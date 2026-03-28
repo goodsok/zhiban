@@ -6,25 +6,46 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, ArrowRight, Heart, Check } from 'lucide-react-taro'
+import { ArrowLeft, ArrowRight, Heart, Check, X, Plus } from 'lucide-react-taro'
 import { Network } from '@/network'
 
 // 见面场景
 const meetingScenes = [
-  { id: 'blind_date', label: '相亲', icon: '💑', desc: '介绍人安排的正式见面' },
-  { id: 'pickup', label: '搭讪', icon: '👋', desc: '偶遇心动主动搭话' },
-  { id: 'app_meetup', label: 'App线下见面', icon: '📱', desc: '交友软件匹配后见面' },
-  { id: 'party', label: '聚会社交', icon: '🎉', desc: '朋友聚会或活动认识' },
-  { id: 'workplace', label: '职场', icon: '💼', desc: '工作中认识' },
+  { id: 'blind_date', label: '相亲', icon: '💑', desc: '介绍人安排' },
+  { id: 'pickup', label: '搭讪', icon: '👋', desc: '偶遇心动' },
+  { id: 'app_meetup', label: 'App线下见面', icon: '📱', desc: '交友软件' },
+  { id: 'party', label: '聚会社交', icon: '🎉', desc: '朋友聚会' },
+  { id: 'workplace', label: '职场', icon: '💼', desc: '工作认识' },
   { id: 'school', label: '学校', icon: '📚', desc: '同学校友' },
-  { id: 'activity', label: '兴趣活动', icon: '🎯', desc: '运动、爱好活动认识' },
+  { id: 'activity', label: '兴趣活动', icon: '🎯', desc: '运动爱好' },
   { id: 'other', label: '其他', icon: '✨', desc: '其他场景' },
 ]
 
-// 兴趣标签
-const interestOptions = [
+// 关系阶段
+const relationshipStages = [
+  { id: 'new', label: '刚认识', icon: '👋', desc: '刚刚认识，不太了解' },
+  { id: 'contacting', label: '接触中', icon: '💬', desc: '正在聊天了解' },
+  { id: 'dating', label: '约会中', icon: '💝', desc: '已经约过会' },
+  { id: 'progressing', label: '发展中', icon: '💕', desc: '关系正在升温' },
+]
+
+// 互动状态
+const interactionStatuses = [
+  { id: 'just_met', label: '只有一面之缘', icon: '👀' },
+  { id: 'got_contact', label: '拿到了联系方式', icon: '📱' },
+  { id: 'chatted', label: '聊过几次天', icon: '💭' },
+  { id: 'good_vibe', label: '聊天氛围不错', icon: '😊' },
+  { id: 'met_up', label: '约出来见过面', icon: '☕' },
+  { id: 'dating_regularly', label: '正在稳定约会', icon: '💑' },
+  { id: 'ambiguous', label: '暧昧期', icon: '💕' },
+  { id: 'confirming', label: '准备确认关系', icon: '💍' },
+]
+
+// 预设兴趣标签
+const presetInterests = [
   '旅行', '摄影', '美食', '健身', '电影', '音乐', '阅读', '游戏',
   '户外', '艺术', '烹饪', '宠物', '时尚', '科技', '运动', '手工',
+  '绘画', '写作', '舞蹈', '唱歌', '乐器', '棋牌', '钓鱼', '园艺',
 ]
 
 // 印象标签
@@ -57,6 +78,7 @@ const zodiacOptions = [
 const CreatePage: FC = () => {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [newInterest, setNewInterest] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -66,6 +88,8 @@ const CreatePage: FC = () => {
     zodiac: '',
     meetingScene: '',
     meetingDate: '',
+    relationshipStage: 'new',
+    interactionStatus: 'just_met',
     impression: 0,
     impressionTags: [] as string[],
     interests: [] as string[],
@@ -105,6 +129,8 @@ const CreatePage: FC = () => {
             zodiac: formData.zodiac,
             meetingScene: formData.meetingScene,
             meetingDate: formData.meetingDate,
+            relationshipStage: formData.relationshipStage,
+            interactionStatus: formData.interactionStatus,
             impression: formData.impression,
             impressionTags: formData.impressionTags,
             interests: formData.interests,
@@ -124,12 +150,24 @@ const CreatePage: FC = () => {
     }
   }
 
-  const toggleInterest = (interest: string) => {
+  const togglePresetInterest = (interest: string) => {
     if (formData.interests.includes(interest)) {
       setFormData({ ...formData, interests: formData.interests.filter(i => i !== interest) })
-    } else if (formData.interests.length < 5) {
+    } else {
       setFormData({ ...formData, interests: [...formData.interests, interest] })
     }
+  }
+
+  const addCustomInterest = () => {
+    const trimmed = newInterest.trim()
+    if (trimmed && !formData.interests.includes(trimmed)) {
+      setFormData({ ...formData, interests: [...formData.interests, trimmed] })
+      setNewInterest('')
+    }
+  }
+
+  const removeInterest = (interest: string) => {
+    setFormData({ ...formData, interests: formData.interests.filter(i => i !== interest) })
   }
 
   const toggleImpressionTag = (tagId: string) => {
@@ -145,7 +183,7 @@ const CreatePage: FC = () => {
       case 1:
         return formData.name && formData.age && formData.meetingScene
       case 2:
-        return formData.impression > 0
+        return formData.relationshipStage && formData.interactionStatus && formData.impression > 0
       case 3:
         return formData.interests.length > 0
       default:
@@ -180,7 +218,7 @@ const CreatePage: FC = () => {
       </View>
 
       {/* 步骤内容 */}
-      <View className="p-4">
+      <View className="p-4 pb-24">
         {/* 步骤1：基本信息 */}
         {step === 1 && (
           <View>
@@ -295,12 +333,51 @@ const CreatePage: FC = () => {
           </View>
         )}
 
-        {/* 步骤2：初印象 */}
+        {/* 步骤2：阶段与状态 */}
         {step === 2 && (
           <View>
-            <Text className="block text-xl font-bold text-gray-800 mb-2">初印象</Text>
-            <Text className="block text-sm text-gray-500 mb-6">Ta给你留下了什么印象？</Text>
+            <Text className="block text-xl font-bold text-gray-800 mb-2">阶段与状态</Text>
+            <Text className="block text-sm text-gray-500 mb-6">你们现在的关系如何？</Text>
 
+            {/* 关系阶段 */}
+            <Text className="block text-sm font-medium text-gray-700 mb-2">当前阶段 *</Text>
+            <View className="grid grid-cols-2 gap-3 mb-6">
+              {relationshipStages.map((stage) => (
+                <Card
+                  key={stage.id}
+                  className={`shadow-sm border-0 ${
+                    formData.relationshipStage === stage.id ? 'ring-2 ring-indigo-500 bg-indigo-50' : ''
+                  }`}
+                  onClick={() => setFormData({ ...formData, relationshipStage: stage.id })}
+                >
+                  <CardContent className="p-3 text-center">
+                    <Text className="block text-2xl mb-1">{stage.icon}</Text>
+                    <Text className="block font-medium text-gray-800 text-sm">{stage.label}</Text>
+                    <Text className="block text-xs text-gray-400">{stage.desc}</Text>
+                  </CardContent>
+                </Card>
+              ))}
+            </View>
+
+            {/* 互动状态 */}
+            <Text className="block text-sm font-medium text-gray-700 mb-2">互动状态 *</Text>
+            <View className="flex flex-wrap gap-2 mb-6">
+              {interactionStatuses.map((status) => (
+                <Badge
+                  key={status.id}
+                  className={`cursor-pointer ${
+                    formData.interactionStatus === status.id
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                  onClick={() => setFormData({ ...formData, interactionStatus: status.id })}
+                >
+                  <Text>{status.icon} {status.label}</Text>
+                </Badge>
+              ))}
+            </View>
+
+            {/* 心动指数 */}
             <Card className="shadow-sm border-0 mb-4">
               <CardContent className="p-6 text-center">
                 <Text className="block text-sm text-gray-500 mb-3">心动指数</Text>
@@ -325,6 +402,7 @@ const CreatePage: FC = () => {
               </CardContent>
             </Card>
 
+            {/* 印象标签 */}
             <Text className="block text-sm font-medium text-gray-700 mb-2">印象标签（最多选3个）</Text>
             <View className="flex flex-wrap gap-2">
               {impressionTags.map((tag) => (
@@ -348,10 +426,59 @@ const CreatePage: FC = () => {
         {step === 3 && (
           <View>
             <Text className="block text-xl font-bold text-gray-800 mb-2">兴趣爱好</Text>
-            <Text className="block text-sm text-gray-500 mb-6">Ta有什么兴趣爱好？（选1-5个）</Text>
+            <Text className="block text-sm text-gray-500 mb-6">Ta有什么兴趣爱好？</Text>
 
+            {/* 已选择的兴趣 */}
+            {formData.interests.length > 0 && (
+              <Card className="shadow-sm border-0 mb-4 bg-indigo-50">
+                <CardContent className="p-4">
+                  <Text className="block text-sm font-medium text-indigo-600 mb-3">
+                    已选择 ({formData.interests.length}个)
+                  </Text>
+                  <View className="flex flex-wrap gap-2">
+                    {formData.interests.map((interest, i) => (
+                      <Badge
+                        key={i}
+                        className="bg-indigo-500 text-white cursor-pointer"
+                        onClick={() => removeInterest(interest)}
+                      >
+                        <Text>{interest}</Text>
+                        <X size={12} color="#fff" className="ml-1" />
+                      </Badge>
+                    ))}
+                  </View>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 自定义添加 */}
+            <Card className="shadow-sm border-0 mb-4">
+              <CardContent className="p-4">
+                <Text className="block text-sm font-medium text-gray-700 mb-2">自定义添加</Text>
+                <View className="flex gap-2">
+                  <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                    <Input
+                      placeholder="输入兴趣爱好..."
+                      value={newInterest}
+                      onInput={(e) => setNewInterest(e.detail.value)}
+                    />
+                  </View>
+                  <Button
+                    size="sm"
+                    className="bg-indigo-500"
+                    disabled={!newInterest.trim()}
+                    onClick={addCustomInterest}
+                  >
+                    <Plus size={16} color="#fff" />
+                  </Button>
+                </View>
+              </CardContent>
+            </Card>
+
+            {/* 预设兴趣 */}
+            <Text className="block text-sm font-medium text-gray-700 mb-2">或选择预设标签</Text>
             <View className="flex flex-wrap gap-2">
-              {interestOptions.map((interest) => (
+              {presetInterests.map((interest) => (
                 <Badge
                   key={interest}
                   className={`cursor-pointer ${
@@ -359,7 +486,7 @@ const CreatePage: FC = () => {
                       ? 'bg-indigo-500 text-white'
                       : 'bg-gray-100 text-gray-600'
                   }`}
-                  onClick={() => toggleInterest(interest)}
+                  onClick={() => togglePresetInterest(interest)}
                 >
                   {formData.interests.includes(interest) && (
                     <Check size={12} color="#fff" />
@@ -370,20 +497,14 @@ const CreatePage: FC = () => {
                 </Badge>
               ))}
             </View>
-
-            {formData.interests.length > 0 && (
-              <View className="mt-4">
-                <Text className="block text-sm text-gray-500">已选择 {formData.interests.length}/5 个</Text>
-              </View>
-            )}
           </View>
         )}
 
         {/* 步骤4：见面日期 */}
         {step === 4 && (
           <View>
-            <Text className="block text-xl font-bold text-gray-800 mb-2">见面时间</Text>
-            <Text className="block text-sm text-gray-500 mb-6">记录你们第一次见面的时间</Text>
+            <Text className="block text-xl font-bold text-gray-800 mb-2">见面信息</Text>
+            <Text className="block text-sm text-gray-500 mb-6">记录你们第一次见面的信息</Text>
 
             <Card className="shadow-sm border-0">
               <CardContent className="p-4">
@@ -409,42 +530,15 @@ const CreatePage: FC = () => {
           </View>
         )}
 
-        {/* 步骤5：推荐建议 */}
+        {/* 步骤5：档案确认 */}
         {step === 5 && (
           <View>
-            <Text className="block text-xl font-bold text-gray-800 mb-2">智能推荐</Text>
-            <Text className="block text-sm text-gray-500 mb-6">根据Ta的信息，为你推荐互动策略</Text>
+            <Text className="block text-xl font-bold text-gray-800 mb-2">档案确认</Text>
+            <Text className="block text-sm text-gray-500 mb-6">确认Ta的信息是否正确</Text>
 
-            <Card className="shadow-sm border-0 bg-gradient-to-r from-indigo-50 to-purple-50 mb-4">
+            <Card className="shadow-sm border-0 mb-4">
               <CardContent className="p-4">
-                <Text className="block font-semibold text-gray-800 mb-2">
-                  💡 推荐策略
-                </Text>
-                <Text className="block text-sm text-gray-600 mb-3">
-                  {formData.meetingScene === 'blind_date' && 
-                    '相亲场景建议：重点展示真诚和稳定，适合聊聊生活规划和家庭观念。'}
-                  {formData.meetingScene === 'pickup' && 
-                    '搭讪场景建议：信息较少，先从轻松话题开始，慢慢了解对方。'}
-                  {formData.meetingScene === 'app_meetup' && 
-                    'App见面建议：延续线上的话题热度，可以安排有趣的约会活动。'}
-                  {formData.meetingScene === 'party' && 
-                    '聚会场景建议：有共同朋友，可以组织小团体活动自然接触。'}
-                  {!['blind_date', 'pickup', 'app_meetup', 'party'].includes(formData.meetingScene) && 
-                    '建议：根据对方的兴趣爱好安排合适的互动内容。'}
-                </Text>
-                <View className="flex flex-wrap gap-2">
-                  {formData.interests.map((interest, i) => (
-                    <Badge key={i} variant="outline" className="text-indigo-600">
-                      {interest}
-                    </Badge>
-                  ))}
-                </View>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-sm border-0">
-              <CardContent className="p-4">
-                <Text className="block font-semibold text-gray-800 mb-3">📝 档案确认</Text>
+                <Text className="block font-semibold text-gray-800 mb-3">📋 基本信息</Text>
                 <View className="space-y-2">
                   <View className="flex justify-between">
                     <Text className="text-gray-500">姓名</Text>
@@ -472,6 +566,26 @@ const CreatePage: FC = () => {
                       {meetingScenes.find(s => s.id === formData.meetingScene)?.label}
                     </Text>
                   </View>
+                </View>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm border-0 mb-4">
+              <CardContent className="p-4">
+                <Text className="block font-semibold text-gray-800 mb-3">💝 关系状态</Text>
+                <View className="space-y-2">
+                  <View className="flex justify-between">
+                    <Text className="text-gray-500">当前阶段</Text>
+                    <Text className="text-gray-800">
+                      {relationshipStages.find(s => s.id === formData.relationshipStage)?.label}
+                    </Text>
+                  </View>
+                  <View className="flex justify-between">
+                    <Text className="text-gray-500">互动状态</Text>
+                    <Text className="text-gray-800">
+                      {interactionStatuses.find(s => s.id === formData.interactionStatus)?.label}
+                    </Text>
+                  </View>
                   <View className="flex justify-between">
                     <Text className="text-gray-500">心动指数</Text>
                     <View className="flex items-center gap-1">
@@ -480,6 +594,19 @@ const CreatePage: FC = () => {
                       ))}
                     </View>
                   </View>
+                </View>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm border-0">
+              <CardContent className="p-4">
+                <Text className="block font-semibold text-gray-800 mb-3">🎯 兴趣爱好</Text>
+                <View className="flex flex-wrap gap-2">
+                  {formData.interests.map((interest, i) => (
+                    <Badge key={i} variant="outline" className="text-indigo-600 border-indigo-200">
+                      {interest}
+                    </Badge>
+                  ))}
                 </View>
               </CardContent>
             </Card>

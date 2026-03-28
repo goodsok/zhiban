@@ -31,6 +31,26 @@ const meetingSceneLabels: Record<string, string> = {
   other: '其他',
 }
 
+// 关系阶段映射
+const relationshipStageLabels: Record<string, string> = {
+  new: '刚认识',
+  contacting: '接触中',
+  dating: '约会中',
+  progressing: '发展中',
+}
+
+// 互动状态映射
+const interactionStatusLabels: Record<string, string> = {
+  just_met: '只有一面之缘',
+  got_contact: '拿到了联系方式',
+  chatted: '聊过几次天',
+  good_vibe: '聊天氛围不错',
+  met_up: '约出来见过面',
+  dating_regularly: '正在稳定约会',
+  ambiguous: '暧昧期',
+  confirming: '准备确认关系',
+}
+
 // 关系状态
 const statusConfig = {
   new: { label: '新认识', color: 'text-blue-500 bg-blue-50' },
@@ -50,6 +70,8 @@ interface MatchDetail {
   zodiac: string
   meetingScene: string
   meetingDate: string
+  relationshipStage: string
+  interactionStatus: string
   impression: number
   impressionTags: string[]
   interests: string[]
@@ -244,9 +266,32 @@ const DetailPage: FC = () => {
         </View>
       </View>
 
+      {/* 关系阶段和互动状态 */}
+      <View className="p-4">
+        <Card className="shadow-sm border-0">
+          <CardContent className="p-4">
+            <Text className="block font-semibold text-gray-800 mb-3">💝 关系状态</Text>
+            <View className="flex gap-4">
+              <View className="flex-1 text-center">
+                <Text className="block text-xs text-gray-500 mb-1">当前阶段</Text>
+                <Badge className="bg-indigo-100 text-indigo-600">
+                  {relationshipStageLabels[detail.relationshipStage] || detail.relationshipStage}
+                </Badge>
+              </View>
+              <View className="flex-1 text-center">
+                <Text className="block text-xs text-gray-500 mb-1">互动状态</Text>
+                <Badge className="bg-pink-100 text-pink-600">
+                  {interactionStatusLabels[detail.interactionStatus] || detail.interactionStatus}
+                </Badge>
+              </View>
+            </View>
+          </CardContent>
+        </Card>
+      </View>
+
       {/* MBTI和星座 */}
       {(detail.mbti || detail.zodiac) && (
-        <View className="p-4">
+        <View className="px-4 pb-4">
           <Card className="shadow-sm border-0">
             <CardContent className="p-4">
               <View className="flex gap-4">
@@ -273,12 +318,12 @@ const DetailPage: FC = () => {
       )}
 
       {/* 兴趣标签 */}
-      <View className="p-4">
+      <View className="px-4 pb-4">
         <Card className="shadow-sm border-0">
           <CardContent className="p-4">
-            <Text className="block font-semibold text-gray-800 mb-3">兴趣爱好</Text>
+            <Text className="block font-semibold text-gray-800 mb-3">🎯 兴趣爱好</Text>
             <View className="flex flex-wrap gap-2">
-              {detail.interests.map((interest, i) => (
+              {detail.interests?.map((interest, i) => (
                 <Badge key={i} variant="outline" className="text-indigo-600 border-indigo-200">
                   {interest}
                 </Badge>
@@ -294,7 +339,7 @@ const DetailPage: FC = () => {
       </View>
 
       {/* 快捷操作 */}
-      <View className="p-4">
+      <View className="px-4 pb-4">
         <Text className="block font-semibold text-gray-800 mb-3">快捷操作</Text>
         <View className="grid grid-cols-3 gap-3">
           <Card className="shadow-sm border-0" onClick={goToTasks}>
@@ -328,7 +373,7 @@ const DetailPage: FC = () => {
       </View>
 
       {/* 下一步行动 */}
-      <View className="p-4">
+      <View className="px-4 pb-4">
         <Card className="shadow-sm border-0 bg-gradient-to-r from-indigo-50 to-purple-50">
           <CardContent className="p-4">
             <View className="flex items-center gap-3">

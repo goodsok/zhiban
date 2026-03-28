@@ -12,6 +12,8 @@ export interface Match {
   zodiac: string
   meetingScene: string
   meetingDate: string
+  relationshipStage: string
+  interactionStatus: string
   impression: number
   impressionTags: string[]
   interests: string[]
@@ -46,6 +48,26 @@ const meetingSceneLabels: Record<string, string> = {
   other: '其他',
 }
 
+// 关系阶段映射
+const relationshipStageLabels: Record<string, string> = {
+  new: '刚认识',
+  contacting: '接触中',
+  dating: '约会中',
+  progressing: '发展中',
+}
+
+// 互动状态映射
+const interactionStatusLabels: Record<string, string> = {
+  just_met: '只有一面之缘',
+  got_contact: '拿到了联系方式',
+  chatted: '聊过几次天',
+  good_vibe: '聊天氛围不错',
+  met_up: '约出来见过面',
+  dating_regularly: '正在稳定约会',
+  ambiguous: '暧昧期',
+  confirming: '准备确认关系',
+}
+
 @Injectable()
 export class MatchService {
   // 模拟数据存储
@@ -60,6 +82,8 @@ export class MatchService {
       zodiac: '双子座',
       meetingScene: 'blind_date',
       meetingDate: '2024-03-20',
+      relationshipStage: 'contacting',
+      interactionStatus: 'good_vibe',
       impression: 4,
       impressionTags: ['nice', 'pretty'],
       interests: ['旅行', '摄影', '美食'],
@@ -79,6 +103,8 @@ export class MatchService {
       zodiac: '巨蟹座',
       meetingScene: 'activity',
       meetingDate: '2024-03-15',
+      relationshipStage: 'dating',
+      interactionStatus: 'dating_regularly',
       impression: 5,
       impressionTags: ['smart', 'funny'],
       interests: ['健身', '电影', '阅读'],
@@ -98,6 +124,8 @@ export class MatchService {
       zodiac: '处女座',
       meetingScene: 'app_meetup',
       meetingDate: '2024-03-10',
+      relationshipStage: 'new',
+      interactionStatus: 'got_contact',
       impression: 3,
       impressionTags: ['nice'],
       interests: ['音乐', '旅行'],
@@ -122,6 +150,8 @@ export class MatchService {
         mbti: m.mbti,
         zodiac: m.zodiac,
         meetingScene: m.meetingScene,
+        relationshipStage: m.relationshipStage,
+        interactionStatus: m.interactionStatus,
         impression: m.impression,
         interests: m.interests,
         status: m.status,
@@ -164,12 +194,14 @@ export class MatchService {
       zodiac: body.zodiac || '',
       meetingScene: body.meetingScene || 'other',
       meetingDate: body.meetingDate || new Date().toISOString().split('T')[0],
+      relationshipStage: body.relationshipStage || 'new',
+      interactionStatus: body.interactionStatus || 'just_met',
       impression: body.impression || 0,
       impressionTags: body.impressionTags || [],
       interests: body.interests || [],
       notes: body.notes || '',
-      status: 'new',
-      nextAction: this.generateNextAction(body.meetingScene || 'other'),
+      status: this.mapStageToStatus(body.relationshipStage || 'new'),
+      nextAction: this.generateNextAction(body.meetingScene || 'other', body.interactionStatus || 'just_met'),
       lastContact: new Date().toISOString(),
       createdAt: new Date(),
     }
@@ -186,6 +218,12 @@ export class MatchService {
     if (index === -1) {
       return { code: 404, data: null, message: 'Not found' }
     }
+    
+    // 如果更新了关系阶段，同步更新status
+    if (body.relationshipStage) {
+      body.status = this.mapStageToStatus(body.relationshipStage)
+    }
+    
     this.matches[index] = { ...this.matches[index], ...body }
     return {
       code: 200,
@@ -209,7 +247,6 @@ export class MatchService {
       return { code: 404, data: null, message: 'Not found' }
     }
 
-    // 根据场景和兴趣推荐
     const recommendations = {
       topics: this.recommendTopics(match),
       tasks: this.recommendTasks(match),
@@ -262,7 +299,6 @@ export class MatchService {
       }
     } catch (error) {
       console.error('AI topics error:', error)
-      // 如果AI失败，返回基础推荐
       return {
         code: 200,
         data: {
@@ -313,7 +349,6 @@ export class MatchService {
       }
     } catch (error) {
       console.error('AI interaction error:', error)
-      // 如果AI失败，返回基础建议
       return {
         code: 200,
         data: {
@@ -328,6 +363,8 @@ export class MatchService {
   private buildTopicsPrompt(match: Match): string {
     const tagLabels = match.impressionTags.map(t => impressionTagLabels[t] || t).join('、')
     const sceneLabel = meetingSceneLabels[match.meetingScene] || match.meetingScene
+    const stageLabel = relationshipStageLabels[match.relationshipStage] || match.relationshipStage
+    const statusLabel = interactionStatusLabels[match.interactionStatus] || match.interactionStatus
     const interests = match.interests.join('、')
     
     return `请为以下情况推荐3-5个聊天话题：
@@ -346,7 +383,8 @@ export class MatchService {
 - 通过「${sceneLabel}」认识
 
 【当前状态】
-- 关系阶段：${this.getStatusLabel(match.status)}
+- 关系阶段：${stageLabel}
+- 互动状态：${statusLabel}
 - 备注：${match.notes || '无'}
 
 请根据以上信息，推荐适合的聊天话题。每个话题请说明：
@@ -369,6 +407,8 @@ export class MatchService {
   private buildInteractionPrompt(match: Match, situation: string | undefined): string {
     const tagLabels = match.impressionTags.map(t => impressionTagLabels[t] || t).join('、')
     const sceneLabel = meetingSceneLabels[match.meetingScene] || match.meetingScene
+    const stageLabel = relationshipStageLabels[match.relationshipStage] || match.relationshipStage
+    const statusLabel = interactionStatusLabels[match.interactionStatus] || match.interactionStatus
     const interests = match.interests.join('、')
     
     return `请为以下情况提供互动建议：
@@ -387,7 +427,8 @@ export class MatchService {
 - 通过「${sceneLabel}」认识
 
 【当前状态】
-- 关系阶段：${this.getStatusLabel(match.status)}
+- 关系阶段：${stageLabel}
+- 互动状态：${statusLabel}
 - 备注：${match.notes || '无'}
 ${situation ? `\n【当前情况】\n${situation}` : ''}
 
@@ -410,7 +451,6 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
 
   private parseTopicsResponse(content: string): Array<{ title: string; reason: string; opener: string }> {
     try {
-      // 尝试提取JSON
       const jsonMatch = content.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0])
@@ -419,10 +459,9 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
         }
       }
     } catch {
-      // 解析失败，返回默认格式
+      // 解析失败
     }
     
-    // 如果解析失败，返回基础话题
     return [
       { title: '聊聊最近的趣事', reason: '轻松自然的话题', opener: '最近有什么有趣的事吗？' },
       { title: '分享生活日常', reason: '增进了解', opener: '今天过得怎么样？' },
@@ -432,7 +471,6 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
 
   private parseInteractionResponse(content: string): Array<{ action: string; reason: string; tips: string }> {
     try {
-      // 尝试提取JSON
       const jsonMatch = content.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0])
@@ -441,15 +479,24 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
         }
       }
     } catch {
-      // 解析失败，返回默认格式
+      // 解析失败
     }
     
-    // 如果解析失败，返回基础建议
     return [
       { action: '发送一条关心的消息', reason: '表达关心', tips: '保持自然，不要过于频繁' },
       { action: '分享一件有趣的事', reason: '增加互动', tips: '选择轻松有趣的内容' },
       { action: '记住对方的小习惯', reason: '展示细心', tips: '在合适的时机体现出来' },
     ]
+  }
+
+  private mapStageToStatus(stage: string): string {
+    const mapping: Record<string, string> = {
+      new: 'new',
+      contacting: 'contacting',
+      dating: 'dating',
+      progressing: 'progressing',
+    }
+    return mapping[stage] || 'new'
   }
 
   private getStatusLabel(status: string): string {
@@ -474,18 +521,34 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
   }
 
   private calculateProgress(match: Match): number {
-    // 根据状态计算进度
-    const statusProgress: Record<string, number> = {
+    const progressMap: Record<string, number> = {
       new: 10,
       contacting: 30,
       dating: 60,
       progressing: 80,
       paused: 0,
     }
-    return statusProgress[match.status] || 0
+    return progressMap[match.status] || 0
   }
 
-  private generateNextAction(scene: string): string {
+  private generateNextAction(scene: string, interactionStatus: string): string {
+    // 根据互动状态生成下一步行动
+    const statusActions: Record<string, string> = {
+      just_met: '尝试获取联系方式',
+      got_contact: '发第一条消息打招呼',
+      chatted: '找话题继续聊下去',
+      good_vibe: '尝试约出来见面',
+      met_up: '安排下一次约会',
+      dating_regularly: '计划一个特别的约会',
+      ambiguous: '适时表达心意',
+      confirming: '准备正式表白',
+    }
+    
+    if (statusActions[interactionStatus]) {
+      return statusActions[interactionStatus]
+    }
+    
+    // 默认根据场景
     const actions: Record<string, string> = {
       blind_date: '发消息约下次见面',
       pickup: '发第一条消息',
