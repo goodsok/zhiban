@@ -94,7 +94,7 @@ const CreatePage: FC = () => {
         console.log('Creating match with data:', formData)
         
         const res = await Network.request({
-          url: '/api/match',
+          url: '/api/match/create',
           method: 'POST',
           data: {
             name: formData.name,
