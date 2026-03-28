@@ -52,7 +52,7 @@ const IndexPage: FC = () => {
     try {
       setLoading(true)
       const res = await Network.request({
-        url: '/api/match',
+        url: '/api/match/list',
         method: 'GET'
       })
       console.log('Fetch matches response:', res.data)
