@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, navigateBack } from '@tarojs/taro'
+import { useLoad, navigateBack, switchTab } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, ArrowRight, Heart, Check } from 'lucide-react-taro'
+import { Network } from '@/network'
 
 // 见面场景
 const meetingScenes = [
@@ -38,13 +39,31 @@ const impressionTags = [
   { id: 'thoughtful', label: '细心体贴', icon: '💝' },
 ]
 
+// MBTI 类型
+const mbtiOptions = [
+  'INTJ', 'INTP', 'ENTJ', 'ENTP',
+  'INFJ', 'INFP', 'ENFJ', 'ENFP',
+  'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
+  'ISTP', 'ISFP', 'ESTP', 'ESFP',
+]
+
+// 星座
+const zodiacOptions = [
+  '白羊座', '金牛座', '双子座', '巨蟹座',
+  '狮子座', '处女座', '天秤座', '天蝎座',
+  '射手座', '摩羯座', '水瓶座', '双鱼座',
+]
+
 const CreatePage: FC = () => {
   const [step, setStep] = useState(1)
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     age: '',
     gender: 'female',
     occupation: '',
+    mbti: '',
+    zodiac: '',
     meetingScene: '',
     meetingDate: '',
     impression: 0,
@@ -65,13 +84,43 @@ const CreatePage: FC = () => {
     }
   }
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (step < 5) {
       setStep(step + 1)
     } else {
-      // 完成创建
-      console.log('Form data:', formData)
-      navigateBack()
+      // 完成创建 - 调用API
+      try {
+        setLoading(true)
+        console.log('Creating match with data:', formData)
+        
+        const res = await Network.request({
+          url: '/api/match',
+          method: 'POST',
+          data: {
+            name: formData.name,
+            age: parseInt(formData.age),
+            gender: formData.gender,
+            occupation: formData.occupation,
+            mbti: formData.mbti,
+            zodiac: formData.zodiac,
+            meetingScene: formData.meetingScene,
+            meetingDate: formData.meetingDate,
+            impression: formData.impression,
+            impressionTags: formData.impressionTags,
+            interests: formData.interests,
+            notes: formData.notes,
+          }
+        })
+        
+        console.log('Create match response:', res.data)
+        
+        // 创建成功后跳转到对象列表页
+        switchTab({ url: '/pages/index/index' })
+      } catch (error) {
+        console.error('Create match error:', error)
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -178,13 +227,49 @@ const CreatePage: FC = () => {
                     </Button>
                   </View>
                 </View>
-                <View>
+                <View className="mb-4">
                   <Text className="block text-sm font-medium text-gray-700 mb-2">职业</Text>
                   <Input
                     placeholder="Ta做什么工作？"
                     value={formData.occupation}
                     onInput={(e) => setFormData({ ...formData, occupation: e.detail.value })}
                   />
+                </View>
+                <View className="mb-4">
+                  <Text className="block text-sm font-medium text-gray-700 mb-2">MBTI人格</Text>
+                  <View className="flex flex-wrap gap-2">
+                    {mbtiOptions.map((mbti) => (
+                      <Badge
+                        key={mbti}
+                        className={`cursor-pointer ${
+                          formData.mbti === mbti
+                            ? 'bg-indigo-500 text-white'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}
+                        onClick={() => setFormData({ ...formData, mbti: formData.mbti === mbti ? '' : mbti })}
+                      >
+                        <Text>{mbti}</Text>
+                      </Badge>
+                    ))}
+                  </View>
+                </View>
+                <View>
+                  <Text className="block text-sm font-medium text-gray-700 mb-2">星座</Text>
+                  <View className="flex flex-wrap gap-2">
+                    {zodiacOptions.map((zodiac) => (
+                      <Badge
+                        key={zodiac}
+                        className={`cursor-pointer ${
+                          formData.zodiac === zodiac
+                            ? 'bg-pink-500 text-white'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}
+                        onClick={() => setFormData({ ...formData, zodiac: formData.zodiac === zodiac ? '' : zodiac })}
+                      >
+                        <Text>{zodiac}</Text>
+                      </Badge>
+                    ))}
+                  </View>
                 </View>
               </CardContent>
             </Card>
@@ -374,6 +459,14 @@ const CreatePage: FC = () => {
                     <Text className="text-gray-800">{formData.occupation || '未填写'}</Text>
                   </View>
                   <View className="flex justify-between">
+                    <Text className="text-gray-500">MBTI</Text>
+                    <Text className="text-gray-800">{formData.mbti || '未填写'}</Text>
+                  </View>
+                  <View className="flex justify-between">
+                    <Text className="text-gray-500">星座</Text>
+                    <Text className="text-gray-800">{formData.zodiac || '未填写'}</Text>
+                  </View>
+                  <View className="flex justify-between">
                     <Text className="text-gray-500">见面场景</Text>
                     <Text className="text-gray-800">
                       {meetingScenes.find(s => s.id === formData.meetingScene)?.label}
@@ -398,13 +491,13 @@ const CreatePage: FC = () => {
       <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
         <Button
           className="w-full bg-indigo-500"
-          disabled={!canNext()}
+          disabled={!canNext() || loading}
           onClick={nextStep}
         >
           <Text className="text-white">
-            {step === 5 ? '完成创建' : '下一步'}
+            {loading ? '创建中...' : step === 5 ? '完成创建' : '下一步'}
           </Text>
-          {step < 5 && <ArrowRight size={16} color="#fff" className="ml-1" />}
+          {step < 5 && !loading && <ArrowRight size={16} color="#fff" className="ml-1" />}
         </Button>
       </View>
     </View>

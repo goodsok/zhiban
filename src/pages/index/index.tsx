@@ -1,11 +1,12 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, navigateTo } from '@tarojs/taro'
+import { useLoad, useDidShow, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Users, Plus, Heart, MessageCircle } from 'lucide-react-taro'
 import { useState } from 'react'
+import { Network } from '@/network'
 
 // 见面场景
 const meetingScenes = [
@@ -28,54 +29,52 @@ const statusConfig = {
   paused: { label: '暂停', color: 'text-gray-500 bg-gray-50' },
 }
 
-// 模拟数据
-const mockMatches = [
-  {
-    id: 1,
-    name: '小红',
-    age: 25,
-    occupation: '产品经理',
-    meetingScene: 'blind_date',
-    meetingDate: '2024-03-20',
-    impression: 4,
-    status: 'contacting',
-    interests: ['旅行', '摄影', '美食'],
-    lastContact: '今天',
-    nextAction: '约她周末去拍照',
-  },
-  {
-    id: 2,
-    name: '小芳',
-    age: 27,
-    occupation: '设计师',
-    meetingScene: 'activity',
-    meetingDate: '2024-03-15',
-    impression: 5,
-    status: 'dating',
-    interests: ['健身', '电影', '阅读'],
-    lastContact: '昨天',
-    nextAction: '第三次约会，看她的展',
-  },
-  {
-    id: 3,
-    name: '小丽',
-    age: 24,
-    occupation: '教师',
-    meetingScene: 'app_meetup',
-    meetingDate: '2024-03-10',
-    impression: 3,
-    status: 'new',
-    interests: ['音乐', '旅行'],
-    lastContact: '3天前',
-    nextAction: '发第一条消息',
-  },
-]
+interface MatchItem {
+  id: number
+  name: string
+  age: number
+  occupation: string
+  mbti: string
+  zodiac: string
+  meetingScene: string
+  impression: number
+  status: string
+  interests: string[]
+  lastContact: string
+  nextAction: string
+}
 
 const IndexPage: FC = () => {
-  const [matches] = useState(mockMatches)
+  const [matches, setMatches] = useState<MatchItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchMatches = async () => {
+    try {
+      setLoading(true)
+      const res = await Network.request({
+        url: '/api/match',
+        method: 'GET'
+      })
+      console.log('Fetch matches response:', res.data)
+      if (res.data?.code === 200 && res.data?.data) {
+        setMatches(res.data.data)
+      }
+    } catch (error) {
+      console.error('Fetch matches error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useLoad(() => {
     console.log('Index page loaded.')
+    fetchMatches()
+  })
+
+  // 每次显示页面时刷新数据
+  useDidShow(() => {
+    console.log('Index page showed, refreshing data...')
+    fetchMatches()
   })
 
   const goToCreate = () => {
@@ -131,70 +130,76 @@ const IndexPage: FC = () => {
           </Button>
         </View>
 
-        {matches.map((match) => (
-          <Card 
-            key={match.id} 
-            className="mb-3 shadow-sm border-0"
-            onClick={() => goToDetail(match.id)}
-          >
-            <CardContent className="p-4">
-              <View className="flex items-start gap-3">
-                {/* 头像 */}
-                <View className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <Text className="block text-indigo-600 text-lg font-semibold">
-                    {match.name.charAt(0)}
-                  </Text>
-                </View>
-
-                {/* 信息 */}
-                <View className="flex-1">
-                  <View className="flex items-center gap-2 mb-1">
-                    <Text className="block font-semibold text-gray-800">{match.name}</Text>
-                    <Text className="block text-sm text-gray-500">{match.age}岁</Text>
-                    <Badge className={statusConfig[match.status].color}>
-                      {statusConfig[match.status].label}
-                    </Badge>
+        {loading ? (
+          <View className="text-center py-12">
+            <Text className="block text-gray-400">加载中...</Text>
+          </View>
+        ) : (
+          matches.map((match) => (
+            <Card 
+              key={match.id} 
+              className="mb-3 shadow-sm border-0"
+              onClick={() => goToDetail(match.id)}
+            >
+              <CardContent className="p-4">
+                <View className="flex items-start gap-3">
+                  {/* 头像 */}
+                  <View className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <Text className="block text-indigo-600 text-lg font-semibold">
+                      {match.name.charAt(0)}
+                    </Text>
                   </View>
-                  <Text className="block text-sm text-gray-500 mb-2">
-                    {match.occupation} · {getSceneLabel(match.meetingScene)}
-                  </Text>
-                  <View className="flex flex-wrap gap-1">
-                    {match.interests.slice(0, 3).map((interest, i) => (
-                      <Badge key={i} variant="outline" className="text-xs">
-                        {interest}
+
+                  {/* 信息 */}
+                  <View className="flex-1">
+                    <View className="flex items-center gap-2 mb-1">
+                      <Text className="block font-semibold text-gray-800">{match.name}</Text>
+                      <Text className="block text-sm text-gray-500">{match.age}岁</Text>
+                      <Badge className={statusConfig[match.status as keyof typeof statusConfig]?.color || 'text-gray-500 bg-gray-50'}>
+                        {statusConfig[match.status as keyof typeof statusConfig]?.label || '未知'}
                       </Badge>
-                    ))}
+                    </View>
+                    <Text className="block text-sm text-gray-500 mb-2">
+                      {match.occupation} · {getSceneLabel(match.meetingScene)}
+                    </Text>
+                    <View className="flex flex-wrap gap-1">
+                      {match.interests?.slice(0, 3).map((interest, i) => (
+                        <Badge key={i} variant="outline" className="text-xs">
+                          {interest}
+                        </Badge>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* 心动度 */}
+                  <View className="text-right">
+                    <View className="flex items-center gap-1 mb-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Heart 
+                          key={i} 
+                          size={12} 
+                          color={i < match.impression ? '#EC4899' : '#E5E7EB'}
+                        />
+                      ))}
+                    </View>
+                    <Text className="block text-xs text-gray-400">{match.lastContact}</Text>
                   </View>
                 </View>
 
-                {/* 心动度 */}
-                <View className="text-right">
-                  <View className="flex items-center gap-1 mb-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Heart 
-                        key={i} 
-                        size={12} 
-                        color={i < match.impression ? '#EC4899' : '#E5E7EB'}
-                      />
-                    ))}
+                {/* 下一步行动 */}
+                <View className="mt-3 pt-3 border-t border-gray-100">
+                  <View className="flex items-center gap-2">
+                    <MessageCircle size={14} color="#6366F1" />
+                    <Text className="block text-sm text-indigo-600">下一步：{match.nextAction}</Text>
                   </View>
-                  <Text className="block text-xs text-gray-400">{match.lastContact}</Text>
                 </View>
-              </View>
-
-              {/* 下一步行动 */}
-              <View className="mt-3 pt-3 border-t border-gray-100">
-                <View className="flex items-center gap-2">
-                  <MessageCircle size={14} color="#6366F1" />
-                  <Text className="block text-sm text-indigo-600">下一步：{match.nextAction}</Text>
-                </View>
-              </View>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))
+        )}
 
         {/* 空状态 */}
-        {matches.length === 0 && (
+        {!loading && matches.length === 0 && (
           <View className="text-center py-12">
             <Users size={48} color="#D1D5DB" />
             <Text className="block text-gray-400 mt-4 mb-4">还没有添加心动对象</Text>

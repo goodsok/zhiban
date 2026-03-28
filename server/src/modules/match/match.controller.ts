@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Req } from '@nestjs/common'
+import { Request } from 'express'
 import { MatchService } from './match.service'
 
 @Controller('match')
@@ -21,6 +22,8 @@ export class MatchController {
     age: number
     gender: string
     occupation: string
+    mbti: string
+    zodiac: string
     meetingScene: string
     meetingDate: string
     impression: number
@@ -50,5 +53,15 @@ export class MatchController {
   @Get(':id/recommend')
   getRecommendations(@Param('id') id: string) {
     return this.matchService.getRecommendations(Number(id))
+  }
+
+  @Post(':id/ai-topics')
+  async getAITopics(@Param('id') id: string, @Req() req: Request) {
+    return this.matchService.getAITopics(Number(id), req)
+  }
+
+  @Post(':id/ai-interaction')
+  async getAIInteraction(@Param('id') id: string, @Body() body: { situation?: string }, @Req() req: Request) {
+    return this.matchService.getAIInteraction(Number(id), body.situation, req)
   }
 }
