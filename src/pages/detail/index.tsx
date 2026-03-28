@@ -141,6 +141,10 @@ const DetailPage: FC = () => {
     navigateBack()
   }
 
+  const goToEdit = () => {
+    navigateTo({ url: `/pages/edit/index?id=${detail?.id}` })
+  }
+
   const goToTasks = () => {
     navigateTo({ url: `/pages/tasks/index?matchId=${detail?.id}` })
   }
@@ -195,7 +199,7 @@ const DetailPage: FC = () => {
   if (loading) {
     return (
       <View className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Text className="block text-gray-400">加载中...</Text>
+        <Loader size={32} color="#6366F1" className="animate-spin" />
       </View>
     )
   }
@@ -216,8 +220,12 @@ const DetailPage: FC = () => {
           <View onClick={goBack}>
             <ArrowLeft size={24} color="#fff" />
           </View>
-          <View className="flex items-center gap-2">
-            <Pencil size={20} color="#fff" />
+          <View 
+            className="flex items-center gap-2 bg-white bg-opacity-20 rounded-full px-3 py-1"
+            onClick={goToEdit}
+          >
+            <Pencil size={16} color="#fff" />
+            <Text className="block text-white text-sm">编辑</Text>
           </View>
         </View>
 
@@ -270,7 +278,12 @@ const DetailPage: FC = () => {
       <View className="p-4">
         <Card className="shadow-sm border-0">
           <CardContent className="p-4">
-            <Text className="block font-semibold text-gray-800 mb-3">💝 关系状态</Text>
+            <View className="flex items-center justify-between mb-3">
+              <Text className="block font-semibold text-gray-800">💝 关系状态</Text>
+              <View onClick={goToEdit}>
+                <Pencil size={16} color="#6366F1" />
+              </View>
+            </View>
             <View className="flex gap-4">
               <View className="flex-1 text-center">
                 <Text className="block text-xs text-gray-500 mb-1">当前阶段</Text>
@@ -294,6 +307,12 @@ const DetailPage: FC = () => {
         <View className="px-4 pb-4">
           <Card className="shadow-sm border-0">
             <CardContent className="p-4">
+              <View className="flex items-center justify-between mb-3">
+                <Text className="block font-semibold text-gray-800">📊 基础资料</Text>
+                <View onClick={goToEdit}>
+                  <Pencil size={16} color="#6366F1" />
+                </View>
+              </View>
               <View className="flex gap-4">
                 {detail.mbti && (
                   <View className="flex-1 text-center">
@@ -321,7 +340,12 @@ const DetailPage: FC = () => {
       <View className="px-4 pb-4">
         <Card className="shadow-sm border-0">
           <CardContent className="p-4">
-            <Text className="block font-semibold text-gray-800 mb-3">🎯 兴趣爱好</Text>
+            <View className="flex items-center justify-between mb-3">
+              <Text className="block font-semibold text-gray-800">🎯 兴趣爱好</Text>
+              <View onClick={goToEdit}>
+                <Pencil size={16} color="#6366F1" />
+              </View>
+            </View>
             <View className="flex flex-wrap gap-2">
               {detail.interests?.map((interest, i) => (
                 <Badge key={i} variant="outline" className="text-indigo-600 border-indigo-200">

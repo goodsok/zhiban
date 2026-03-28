@@ -38,7 +38,18 @@ export class MatchController {
   updateMatch(@Param('id') id: string, @Body() body: Partial<{
     name: string
     age: number
+    gender: string
     occupation: string
+    mbti: string
+    zodiac: string
+    meetingScene: string
+    meetingDate: string
+    relationshipStage: string
+    interactionStatus: string
+    impression: number
+    impressionTags: string[]
+    interests: string[]
+    notes: string
     status: string
     nextAction: string
   }>) {
