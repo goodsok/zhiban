@@ -1,215 +1,209 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useDidShow, switchTab } from '@tarojs/taro'
+import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { useState } from 'react'
-import { Network } from '@/network'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Heart, MessageCircle, Gamepad2, Camera, Sparkles, RefreshCw } from 'lucide-react-taro'
-import './index.css'
+import { Users, Plus, Heart, MessageCircle } from 'lucide-react-taro'
+import { useState } from 'react'
 
-interface CoupleInfo {
-  myName: string
-  partnerName: string
-  days: number
-  nextDate: string
+// 见面场景
+const meetingScenes = [
+  { id: 'blind_date', label: '相亲', icon: '💑', desc: '介绍人安排' },
+  { id: 'pickup', label: '搭讪', icon: '👋', desc: '偶遇心动' },
+  { id: 'app_meetup', label: 'App线下见面', icon: '📱', desc: '交友软件' },
+  { id: 'party', label: '聚会社交', icon: '🎉', desc: '朋友聚会' },
+  { id: 'workplace', label: '职场', icon: '💼', desc: '工作认识' },
+  { id: 'school', label: '学校', icon: '📚', desc: '同学校友' },
+  { id: 'activity', label: '兴趣活动', icon: '🎯', desc: '运动爱好' },
+  { id: 'other', label: '其他', icon: '✨', desc: '其他场景' },
+]
+
+// 关系状态
+const statusConfig = {
+  new: { label: '新认识', color: 'text-blue-500 bg-blue-50' },
+  contacting: { label: '接触中', color: 'text-purple-500 bg-purple-50' },
+  dating: { label: '约会中', color: 'text-pink-500 bg-pink-50' },
+  progressing: { label: '发展中', color: 'text-emerald-500 bg-emerald-50' },
+  paused: { label: '暂停', color: 'text-gray-500 bg-gray-50' },
 }
 
-interface Topic {
-  id: number
-  topic: string
-  category: string
-}
-
-const quickEntries = [
-  { icon: MessageCircle, title: '开始互动', desc: '破冰话题推荐', page: 'tasks' },
-  { icon: Gamepad2, title: '默契测试', desc: '了解彼此', page: 'quiz' },
-  { icon: Sparkles, title: '打卡任务', desc: '增进感情', page: 'tasks' },
-  { icon: Camera, title: '美好时刻', desc: '记录回忆', page: 'progress' },
+// 模拟数据
+const mockMatches = [
+  {
+    id: 1,
+    name: '小红',
+    age: 25,
+    occupation: '产品经理',
+    meetingScene: 'blind_date',
+    meetingDate: '2024-03-20',
+    impression: 4,
+    status: 'contacting',
+    interests: ['旅行', '摄影', '美食'],
+    lastContact: '今天',
+    nextAction: '约她周末去拍照',
+  },
+  {
+    id: 2,
+    name: '小芳',
+    age: 27,
+    occupation: '设计师',
+    meetingScene: 'activity',
+    meetingDate: '2024-03-15',
+    impression: 5,
+    status: 'dating',
+    interests: ['健身', '电影', '阅读'],
+    lastContact: '昨天',
+    nextAction: '第三次约会，看她的展',
+  },
+  {
+    id: 3,
+    name: '小丽',
+    age: 24,
+    occupation: '教师',
+    meetingScene: 'app_meetup',
+    meetingDate: '2024-03-10',
+    impression: 3,
+    status: 'new',
+    interests: ['音乐', '旅行'],
+    lastContact: '3天前',
+    nextAction: '发第一条消息',
+  },
 ]
 
 const IndexPage: FC = () => {
-  const [coupleInfo, setCoupleInfo] = useState<CoupleInfo>({
-    myName: '小明',
-    partnerName: '小红',
-    days: 15,
-    nextDate: '明天下午3点',
-  })
-  const [topics, setTopics] = useState<Topic[]>([])
-  const [taskProgress, setTaskProgress] = useState({ completed: 0, total: 0 })
+  const [matches] = useState(mockMatches)
 
   useLoad(() => {
     console.log('Index page loaded.')
   })
 
-  useDidShow(() => {
-    fetchCoupleInfo()
-    fetchTopics()
-    fetchTaskProgress()
-  })
-
-  const fetchCoupleInfo = async () => {
-    try {
-      const res = await Network.request({ url: '/api/couple/info' })
-      console.log('Couple info response:', res.data)
-      if (res.data?.code === 200 && res.data?.data) {
-        setCoupleInfo(res.data.data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch couple info:', error)
-    }
+  const goToCreate = () => {
+    navigateTo({ url: '/pages/create/index' })
   }
 
-  const fetchTopics = async () => {
-    try {
-      const res = await Network.request({ url: '/api/topic/icebreaker' })
-      console.log('Topics response:', res.data)
-      if (res.data?.code === 200 && res.data?.data) {
-        setTopics(res.data.data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch topics:', error)
-    }
+  const goToDetail = (id: number) => {
+    navigateTo({ url: `/pages/detail/index?id=${id}` })
   }
 
-  const fetchTaskProgress = async () => {
-    try {
-      const res = await Network.request({ url: '/api/task/progress' })
-      console.log('Task progress response:', res.data)
-      if (res.data?.code === 200 && res.data?.data) {
-        setTaskProgress(res.data.data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch task progress:', error)
-    }
-  }
-
-  const refreshTopic = async () => {
-    try {
-      const res = await Network.request({ 
-        url: '/api/topic/generate',
-        method: 'POST'
-      })
-      console.log('Generate topic response:', res.data)
-      if (res.data?.code === 200 && res.data?.data) {
-        setTopics([res.data.data, ...topics.slice(0, 2)])
-      }
-    } catch (error) {
-      console.error('Failed to generate topic:', error)
-    }
-  }
-
-  const handleNavigate = (page: string) => {
-    switchTab({ url: `/pages/${page}/index` })
+  const getSceneLabel = (sceneId: string) => {
+    return meetingScenes.find(s => s.id === sceneId)?.label || '其他'
   }
 
   return (
     <View className="min-h-screen bg-gray-50 pb-20">
-      {/* 头部情侣信息区 */}
-      <View className="bg-gradient-to-r from-pink-500 to-orange-400 p-6 rounded-b-3xl">
+      {/* 头部 */}
+      <View className="bg-gradient-to-r from-indigo-500 to-purple-500 p-6 rounded-b-3xl">
         <View className="flex items-center justify-between mb-4">
-          <View className="flex items-center gap-3">
-            <View className="w-14 h-14 rounded-full bg-white bg-opacity-30 flex items-center justify-center">
-              <Heart size={24} color="#fff" />
-            </View>
-            <View>
-              <Text className="block text-white text-lg font-semibold">{coupleInfo.myName}</Text>
-              <Text className="block text-white text-opacity-80 text-sm">和</Text>
-            </View>
+          <View>
+            <Text className="block text-white text-2xl font-bold">心动助手</Text>
+            <Text className="block text-white text-opacity-80 text-sm mt-1">管理你的心动对象</Text>
           </View>
-          <View className="flex items-center gap-3">
-            <View>
-              <Text className="block text-white text-opacity-80 text-sm text-right">的</Text>
-              <Text className="block text-white text-lg font-semibold">{coupleInfo.partnerName}</Text>
-            </View>
-            <View className="w-14 h-14 rounded-full bg-white bg-opacity-30 flex items-center justify-center">
-              <Heart size={24} color="#fff" />
-            </View>
-          </View>
-        </View>
-        
-        {/* 相识天数 */}
-        <View className="bg-white bg-opacity-20 rounded-2xl p-4 text-center">
-          <Text className="block text-white text-opacity-80 text-sm mb-1">已相识</Text>
-          <View className="flex items-baseline justify-center gap-1">
-            <Text className="block text-white text-5xl font-bold">{coupleInfo.days}</Text>
-            <Text className="block text-white text-lg">天</Text>
+          <View className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+            <Users size={24} color="#fff" />
           </View>
         </View>
 
-        {/* 下次约会提醒 */}
-        <View className="mt-4 bg-white bg-opacity-10 rounded-xl p-3">
-          <Text className="block text-white text-sm">
-            下次约会：{coupleInfo.nextDate} ☕
-          </Text>
+        {/* 统计 */}
+        <View className="flex gap-4">
+          <View className="flex-1 bg-white bg-opacity-20 rounded-xl p-3 text-center">
+            <Text className="block text-white text-2xl font-bold">{matches.length}</Text>
+            <Text className="block text-white text-opacity-80 text-xs">正在接触</Text>
+          </View>
+          <View className="flex-1 bg-white bg-opacity-20 rounded-xl p-3 text-center">
+            <Text className="block text-white text-2xl font-bold">{matches.filter(m => m.status === 'dating').length}</Text>
+            <Text className="block text-white text-opacity-80 text-xs">约会中</Text>
+          </View>
+          <View className="flex-1 bg-white bg-opacity-20 rounded-xl p-3 text-center">
+            <Text className="block text-white text-2xl font-bold">{matches.filter(m => m.impression >= 4).length}</Text>
+            <Text className="block text-white text-opacity-80 text-xs">高意向</Text>
+          </View>
         </View>
       </View>
 
-      {/* 快捷入口 */}
-      <View className="p-4">
-        <Text className="block text-lg font-semibold text-gray-800 mb-3">快捷入口</Text>
-        <View className="grid grid-cols-4 gap-3">
-          {quickEntries.map((entry, index) => (
-            <View 
-              key={index}
-              className="flex flex-col items-center"
-              onClick={() => handleNavigate(entry.page)}
-            >
-              <View className="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center mb-2">
-                <entry.icon size={24} color="#FF6B9D" />
-              </View>
-              <Text className="block text-sm font-medium text-gray-700">{entry.title}</Text>
-              <Text className="block text-xs text-gray-400">{entry.desc}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {/* AI破冰话题 */}
+      {/* 对象列表 */}
       <View className="p-4">
         <View className="flex items-center justify-between mb-3">
-          <Text className="block text-lg font-semibold text-gray-800">今日破冰话题</Text>
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="text-pink-500"
-            onClick={refreshTopic}
-          >
-            <RefreshCw size={16} color="#FF6B9D" />
-            <Text className="ml-1">换一个</Text>
+          <Text className="block text-lg font-semibold text-gray-800">我的对象</Text>
+          <Button size="sm" className="bg-indigo-500" onClick={goToCreate}>
+            <Plus size={16} color="#fff" />
+            <Text className="ml-1 text-white">添加</Text>
           </Button>
         </View>
 
-        {topics.map((item) => (
-          <Card key={item.id} className="mb-3 shadow-sm border-0">
+        {matches.map((match) => (
+          <Card 
+            key={match.id} 
+            className="mb-3 shadow-sm border-0"
+            onClick={() => goToDetail(match.id)}
+          >
             <CardContent className="p-4">
-              <View className="flex items-start justify-between">
+              <View className="flex items-start gap-3">
+                {/* 头像 */}
+                <View className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                  <Text className="block text-indigo-600 text-lg font-semibold">
+                    {match.name.charAt(0)}
+                  </Text>
+                </View>
+
+                {/* 信息 */}
                 <View className="flex-1">
-                  <Badge variant="secondary" className="mb-2 bg-pink-50 text-pink-500">
-                    {item.category}
-                  </Badge>
-                  <Text className="block text-gray-700 text-base">{item.topic}</Text>
+                  <View className="flex items-center gap-2 mb-1">
+                    <Text className="block font-semibold text-gray-800">{match.name}</Text>
+                    <Text className="block text-sm text-gray-500">{match.age}岁</Text>
+                    <Badge className={statusConfig[match.status].color}>
+                      {statusConfig[match.status].label}
+                    </Badge>
+                  </View>
+                  <Text className="block text-sm text-gray-500 mb-2">
+                    {match.occupation} · {getSceneLabel(match.meetingScene)}
+                  </Text>
+                  <View className="flex flex-wrap gap-1">
+                    {match.interests.slice(0, 3).map((interest, i) => (
+                      <Badge key={i} variant="outline" className="text-xs">
+                        {interest}
+                      </Badge>
+                    ))}
+                  </View>
+                </View>
+
+                {/* 心动度 */}
+                <View className="text-right">
+                  <View className="flex items-center gap-1 mb-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Heart 
+                        key={i} 
+                        size={12} 
+                        color={i < match.impression ? '#EC4899' : '#E5E7EB'}
+                      />
+                    ))}
+                  </View>
+                  <Text className="block text-xs text-gray-400">{match.lastContact}</Text>
+                </View>
+              </View>
+
+              {/* 下一步行动 */}
+              <View className="mt-3 pt-3 border-t border-gray-100">
+                <View className="flex items-center gap-2">
+                  <MessageCircle size={14} color="#6366F1" />
+                  <Text className="block text-sm text-indigo-600">下一步：{match.nextAction}</Text>
                 </View>
               </View>
             </CardContent>
           </Card>
         ))}
-      </View>
 
-      {/* 任务进度 */}
-      <View className="p-4">
-        <Card className="shadow-sm border-0 bg-gradient-to-r from-pink-50 to-orange-50">
-          <CardContent className="p-4">
-            <View className="flex items-center justify-between mb-3">
-              <Text className="block font-semibold text-gray-800">本周任务进度</Text>
-              <Text className="block text-sm text-pink-500">{taskProgress.completed}/{taskProgress.total} 已完成</Text>
-            </View>
-            <Progress value={taskProgress.total > 0 ? (taskProgress.completed / taskProgress.total) * 100 : 0} className="h-2" />
-            <Text className="block text-sm text-gray-500 mt-2">再完成{taskProgress.total - taskProgress.completed}个任务，解锁默契达人成就 🎉</Text>
-          </CardContent>
-        </Card>
+        {/* 空状态 */}
+        {matches.length === 0 && (
+          <View className="text-center py-12">
+            <Users size={48} color="#D1D5DB" />
+            <Text className="block text-gray-400 mt-4 mb-4">还没有添加心动对象</Text>
+            <Button className="bg-indigo-500" onClick={goToCreate}>
+              <Plus size={16} color="#fff" />
+              <Text className="ml-1 text-white">添加第一个对象</Text>
+            </Button>
+          </View>
+        )}
       </View>
     </View>
   )
