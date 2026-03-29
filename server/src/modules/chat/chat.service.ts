@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Request } from 'express'
-import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
+import { LLMClient, Config, HeaderUtils, S3Storage } from 'coze-coding-dev-sdk'
 import { getSupabaseClient } from '@/storage/database/supabase-client'
 
 // 消息接口
@@ -36,6 +36,18 @@ interface DbChatHistory {
 
 @Injectable()
 export class ChatService {
+  private storage: S3Storage
+
+  constructor() {
+    this.storage = new S3Storage({
+      endpointUrl: process.env.COZE_BUCKET_ENDPOINT_URL,
+      accessKey: '',
+      secretKey: '',
+      bucketName: process.env.COZE_BUCKET_NAME,
+      region: 'cn-beijing',
+    })
+  }
+
   /**
    * 获取对话历史
    * @param matchId 对象ID
@@ -138,15 +150,112 @@ export class ChatService {
   }
 
   /**
+   * 分析图片内容（聊天场景）
+   * @param base64Data 图片base64数据
+   * @param context 用户提供的上下文
+   * @param req 请求对象
+   */
+  async analyzeImage(base64Data: string, context: string, req: Request) {
+    try {
+      // 解析 base64
+      const matches = base64Data.match(/^data:(.+);base64,(.+)$/)
+      if (!matches) {
+        return {
+          code: 400,
+          data: null,
+          message: '无效的图片格式',
+        }
+      }
+
+      const contentType = matches[1]
+      const buffer = Buffer.from(matches[2], 'base64')
+
+      // 上传到对象存储
+      const ext = contentType.split('/')[1] || 'jpg'
+      const key = await this.storage.uploadFile({
+        fileContent: buffer,
+        fileName: `chat-analysis/${Date.now()}.${ext}`,
+        contentType,
+      })
+
+      const imageUrl = await this.storage.generatePresignedUrl({ key, expireTime: 600 })
+
+      // 调用多模态LLM分析
+      const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
+      const config = new Config()
+      const client = new LLMClient(config, customHeaders)
+
+      const messages = [
+        {
+          role: 'user' as const,
+          content: [
+            {
+              type: 'text' as const,
+              text: `请分析这张图片的内容。${context ? `用户的问题或上下文：${context}` : ''}
+
+如果是聊天记录截图，请提取：
+1. 聊天的主要内容
+2. 双方的语气和态度
+3. 可能的关系状态
+4. 任何值得注意的细节
+
+如果是朋友圈截图，请提取：
+1. 发布的内容和图片描述
+2. 可能反映的性格特点
+3. 兴趣爱好线索
+4. 发布时间和互动情况
+
+如果是个人照片，请提取：
+1. 人物特征
+2. 穿搭风格
+3. 可能的场景和活动
+4. 其他可见信息
+
+请用简洁的中文回复，控制在100字以内。`,
+            },
+            {
+              type: 'image_url' as const,
+              image_url: {
+                url: imageUrl,
+                detail: 'high' as const,
+              },
+            },
+          ],
+        },
+      ]
+
+      const response = await client.invoke(messages, {
+        model: 'doubao-seed-1-6-vision-250815',
+        temperature: 0.3,
+      })
+
+      return {
+        code: 200,
+        data: { analysis: response.content },
+        message: 'success',
+      }
+    } catch (error) {
+      console.error('Analyze image error:', error)
+      return {
+        code: 500,
+        data: null,
+        message: '图片分析失败',
+      }
+    }
+  }
+
+  /**
    * AI对话接口
    * @param messages 对话历史
    * @param context 对象档案上下文
    * @param req 请求对象
+   * @param imageContext 图片分析上下文
    */
   async chat(
     messages: ChatMessage[],
     context: ChatContext | null,
-    req: Request
+    req: Request,
+    imageContext?: string
   ) {
     try {
       const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
@@ -156,9 +265,14 @@ export class ChatService {
       // 构建系统提示词
       const systemPrompt = this.buildSystemPrompt(context)
 
+      // 如果有图片上下文，添加到系统提示词
+      const finalSystemPrompt = imageContext 
+        ? `${systemPrompt}\n\n**用户上传的图片分析**：${imageContext}`
+        : systemPrompt
+
       // 构建完整消息列表
       const fullMessages = [
-        { role: 'system' as const, content: systemPrompt },
+        { role: 'system' as const, content: finalSystemPrompt },
         ...messages.map(m => ({
           role: m.role as 'user' | 'assistant',
           content: m.content

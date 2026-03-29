@@ -1,13 +1,15 @@
-import { View, Text, ScrollView } from '@tarojs/components'
+import Taro from '@tarojs/taro'
+import { View, Text, ScrollView, Image } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import { Network } from '@/network'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Loader, Send, Sparkles } from 'lucide-react-taro'
+import { Loader, Send, Sparkles, ImagePlus, X } from 'lucide-react-taro'
 
 // 消息类型
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+  images?: string[] // 图片URL列表
 }
 
 // 对话上下文
@@ -37,13 +39,13 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
   const [inputValue, setInputValue] = useState('')
   const [loading, setLoading] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [selectedImages, setSelectedImages] = useState<string[]>([])
 
   // 加载历史记录
   useEffect(() => {
     if (open && context?.matchId) {
       loadHistory()
     } else if (open) {
-      // 没有上下文时显示欢迎消息
       setMessages([{ 
         role: 'assistant', 
         content: '你好！我是小助手，请先选择一个对象，我才能给你针对性的建议哦~' 
@@ -66,7 +68,6 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       if (res.data?.code === 200 && res.data?.data?.messages?.length > 0) {
         setMessages(res.data.data.messages)
       } else {
-        // 没有历史记录，显示欢迎消息
         setMessages([{ 
           role: 'assistant', 
           content: `你好！我是小助手，可以帮你分析${context.matchName}的情况，或者给你一些建议。有什么想聊的吗？` 
@@ -83,22 +84,87 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
     }
   }
 
+  // 选择图片
+  const handleChooseImage = async () => {
+    if (selectedImages.length >= 3) {
+      Taro.showToast({ title: '最多选择3张图片', icon: 'none' })
+      return
+    }
+
+    try {
+      const res = await Taro.chooseImage({
+        count: 3 - selectedImages.length,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera']
+      })
+
+      if (res.tempFilePaths && res.tempFilePaths.length > 0) {
+        setSelectedImages([...selectedImages, ...res.tempFilePaths])
+      }
+    } catch (error) {
+      console.error('Choose image error:', error)
+    }
+  }
+
+  // 删除图片
+  const handleRemoveImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index))
+  }
+
   // 发送消息
   const handleSend = async () => {
-    if (!inputValue.trim() || loading) return
+    if ((!inputValue.trim() && selectedImages.length === 0) || loading) return
 
     const userMessage = inputValue.trim()
+    const userImages = [...selectedImages]
     setInputValue('')
+    setSelectedImages([])
     
     // 添加用户消息
     const newMessages: ChatMessage[] = [
       ...messages,
-      { role: 'user', content: userMessage }
+      { 
+        role: 'user', 
+        content: userMessage,
+        images: userImages.length > 0 ? userImages : undefined
+      }
     ]
     setMessages(newMessages)
     setLoading(true)
 
     try {
+      // 如果有图片，先上传图片并分析
+      let imageAnalysisText = ''
+      if (userImages.length > 0) {
+        // 逐个分析图片
+        const analysisResults: string[] = []
+        for (const imagePath of userImages) {
+          try {
+            const fileSystemManager = Taro.getFileSystemManager()
+            const base64Data = fileSystemManager.readFileSync(imagePath, 'base64') as string
+            
+            const res = await Network.request({
+              url: '/api/chat/analyze-image',
+              method: 'POST',
+              data: {
+                base64Data: `data:image/jpeg;base64,${base64Data}`,
+                context: userMessage || '请分析这张图片的内容'
+              }
+            })
+            
+            if (res.data?.code === 200 && res.data?.data?.analysis) {
+              analysisResults.push(res.data.data.analysis)
+            }
+          } catch (error) {
+            console.error('Analyze image error:', error)
+          }
+        }
+        
+        if (analysisResults.length > 0) {
+          imageAnalysisText = `\n\n【图片分析结果】\n${analysisResults.join('\n')}`
+        }
+      }
+
       // 调用后端 API
       const res = await Network.request({
         url: '/api/chat',
@@ -106,9 +172,10 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         data: {
           messages: newMessages.map(m => ({
             role: m.role,
-            content: m.content
+            content: m.content + (m.images && m.images.length > 0 ? ' [包含图片]' : '')
           })),
-          context
+          context,
+          imageContext: imageAnalysisText || undefined
         }
       })
 
@@ -188,8 +255,26 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
                     <Text className="block text-sm text-gray-800 whitespace-pre-wrap">{msg.content}</Text>
                   </View>
                 ) : (
-                  <View className="bg-black rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%]">
-                    <Text className="block text-sm text-white">{msg.content}</Text>
+                  <View className="max-w-[85%]">
+                    {/* 用户图片 */}
+                    {msg.images && msg.images.length > 0 && (
+                      <View className="flex flex-wrap gap-1 mb-2 justify-end">
+                        {msg.images.map((img, imgIndex) => (
+                          <Image 
+                            key={imgIndex}
+                            src={img}
+                            className="w-24 h-24 rounded-lg object-cover"
+                            mode="aspectFill"
+                          />
+                        ))}
+                      </View>
+                    )}
+                    {/* 用户文字 */}
+                    {msg.content && (
+                      <View className="bg-black rounded-2xl rounded-tr-sm px-4 py-3">
+                        <Text className="block text-sm text-white">{msg.content}</Text>
+                      </View>
+                    )}
                   </View>
                 )}
               </View>
@@ -223,15 +308,46 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
           </View>
         )}
 
+        {/* 已选图片预览 */}
+        {selectedImages.length > 0 && (
+          <View className="flex-shrink-0 px-4 pb-2">
+            <View className="flex flex-wrap gap-2">
+              {selectedImages.map((img, index) => (
+                <View key={index} className="relative">
+                  <Image 
+                    src={img}
+                    className="w-16 h-16 rounded-lg object-cover"
+                    mode="aspectFill"
+                  />
+                  <View 
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-black rounded-full flex items-center justify-center"
+                    onClick={() => handleRemoveImage(index)}
+                  >
+                    <X size={12} color="#fff" />
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* 输入区域 */}
         <View className="flex-shrink-0 px-4 py-3 border-t border-gray-100">
           <View className="flex items-center gap-2">
+            {/* 图片上传按钮 */}
+            <View 
+              className="w-9 h-9 rounded-full flex items-center justify-center bg-gray-100 flex-shrink-0"
+              onClick={handleChooseImage}
+            >
+              <ImagePlus size={18} color="#6B7280" />
+            </View>
+            {/* 输入框 */}
             <View className="flex-1 bg-gray-100 rounded-full px-4 py-2">
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="问我任何问题..."
+                placeholder={selectedImages.length > 0 ? "添加说明（可选）..." : "问我任何问题..."}
                 className="w-full bg-transparent text-sm outline-none"
                 style={{ border: 'none' }}
                 onKeyDown={(e) => {
@@ -242,16 +358,17 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
                 }}
               />
             </View>
+            {/* 发送按钮 */}
             <View 
-              className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                inputValue.trim() && !loading ? 'bg-black' : 'bg-gray-200'
+              className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                (inputValue.trim() || selectedImages.length > 0) && !loading ? 'bg-black' : 'bg-gray-200'
               }`}
               onClick={handleSend}
             >
               {loading ? (
                 <Loader size={16} color="#6B7280" className="animate-spin" />
               ) : (
-                <Send size={16} color={inputValue.trim() ? '#fff' : '#9CA3AF'} />
+                <Send size={16} color={(inputValue.trim() || selectedImages.length > 0) ? '#fff' : '#9CA3AF'} />
               )}
             </View>
           </View>

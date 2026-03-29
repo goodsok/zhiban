@@ -11,14 +11,34 @@ export class ChatController {
     @Body() body: {
       messages: ChatMessage[]
       context?: ChatContext
+      imageContext?: string
     },
     @Req() req: Request
   ) {
     return this.chatService.chat(
       body.messages || [],
       body.context || null,
-      req
+      req,
+      body.imageContext
     )
+  }
+
+  @Post('analyze-image')
+  async analyzeImage(
+    @Body() body: {
+      base64Data: string
+      context?: string
+    },
+    @Req() req: Request
+  ) {
+    if (!body.base64Data) {
+      return {
+        code: 400,
+        data: null,
+        message: '请提供图片数据',
+      }
+    }
+    return this.chatService.analyzeImage(body.base64Data, body.context || '', req)
   }
 
   @Get('history/:matchId')

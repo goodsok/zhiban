@@ -1,12 +1,19 @@
 import Taro, { useLoad, navigateBack, chooseImage } from '@tarojs/taro'
-import { View, Text } from '@tarojs/components'
+import { View, Text, Image } from '@tarojs/components'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Check, Loader, HardDrive, Cpu, Camera, Sparkles } from 'lucide-react-taro'
+import { ArrowLeft, Check, Loader, HardDrive, Cpu, Camera, Sparkles, X } from 'lucide-react-taro'
 import { Network } from '@/network'
+
+// 已选图片
+interface SelectedImage {
+  path: string
+  analyzing: boolean
+  result: Record<string, unknown> | null
+}
 
 // 见面场景
 const meetingScenes = [
@@ -48,8 +55,7 @@ const presetInterests = [
 
 const CreatePage: FC = () => {
   const [loading, setLoading] = useState(false)
-  const [analyzing, setAnalyzing] = useState(false)
-  const [analysisResult, setAnalysisResult] = useState<string | null>(null)
+  const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([])
   const [formData, setFormData] = useState({
     name: '',
     gender: 'female',
@@ -77,34 +83,53 @@ const CreatePage: FC = () => {
 
   const goBack = () => navigateBack()
 
-  // 选择图片并分析
+  // 选择图片
   const handleChooseImage = async () => {
+    // 最多3张图片
+    const remaining = 3 - selectedImages.length
+    if (remaining <= 0) {
+      Taro.showToast({ title: '最多选择3张图片', icon: 'none' })
+      return
+    }
+
     try {
       const res = await chooseImage({
-        count: 1,
+        count: remaining,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera']
       })
 
-      if (res.tempFilePaths && res.tempFilePaths[0]) {
-        await analyzeImage(res.tempFilePaths[0])
+      if (res.tempFilePaths && res.tempFilePaths.length > 0) {
+        // 添加新图片
+        const newImages: SelectedImage[] = res.tempFilePaths.map(path => ({
+          path,
+          analyzing: true,
+          result: null
+        }))
+        const updatedImages = [...selectedImages, ...newImages]
+        setSelectedImages(updatedImages)
+
+        // 逐个分析图片
+        for (let i = selectedImages.length; i < updatedImages.length; i++) {
+          analyzeImage(i, updatedImages[i].path)
+        }
       }
     } catch (error) {
       console.error('Choose image error:', error)
     }
   }
 
-  // 分析图片
-  const analyzeImage = async (filePath: string) => {
-    setAnalyzing(true)
-    setAnalysisResult(null)
+  // 删除图片
+  const handleRemoveImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index))
+  }
 
+  // 分析单张图片
+  const analyzeImage = async (index: number, filePath: string) => {
     try {
-      // 使用 Taro.readFile 读取文件并转为 base64
       const fileSystemManager = Taro.getFileSystemManager()
       const base64Data = fileSystemManager.readFileSync(filePath, 'base64') as string
       
-      // 调用图片分析接口
       const res = await Network.request({
         url: '/api/profile-analysis/from-base64',
         method: 'POST',
@@ -113,74 +138,88 @@ const CreatePage: FC = () => {
         }
       })
 
-      console.log('Analysis response:', res.data)
+      console.log(`Analysis response for image ${index}:`, res.data)
 
       if (res.data?.code === 200 && res.data?.data) {
         const profile = res.data.data
+        
+        // 更新图片分析结果
+        setSelectedImages(prev => prev.map((img, i) => 
+          i === index ? { ...img, analyzing: false, result: profile } : img
+        ))
+
+        // 合并结果到表单
         applyAnalysisResult(profile)
-        setAnalysisResult(profile.summary || '分析完成')
       } else {
-        setAnalysisResult('分析失败，请手动填写信息')
+        setSelectedImages(prev => prev.map((img, i) => 
+          i === index ? { ...img, analyzing: false } : img
+        ))
       }
     } catch (error) {
-      console.error('Analyze image error:', error)
-      setAnalysisResult('分析失败，请手动填写信息')
-    } finally {
-      setAnalyzing(false)
+      console.error(`Analyze image ${index} error:`, error)
+      setSelectedImages(prev => prev.map((img, i) => 
+        i === index ? { ...img, analyzing: false } : img
+      ))
     }
   }
 
-  // 应用分析结果到表单
+  // 应用分析结果到表单（合并多张图片的结果）
   const applyAnalysisResult = (profile: Record<string, unknown>) => {
-    const updates: Partial<typeof formData> = {}
+    setFormData(prev => {
+      const updates: Partial<typeof formData> = {}
 
-    if (profile.gender) {
-      updates.gender = profile.gender as string
-    }
-    if (profile.age) {
-      updates.hardware = {
-        ...formData.hardware,
-        age: String(profile.age)
+      // 如果新结果有值且当前为空，则填充
+      if (profile.gender && !prev.gender) {
+        updates.gender = profile.gender as string
       }
-    }
-    if (profile.occupation) {
-      updates.hardware = {
-        ...formData.hardware,
-        ...(updates.hardware || formData.hardware),
-        occupation: profile.occupation as string
+      if (profile.age && !prev.hardware.age) {
+        updates.hardware = {
+          ...prev.hardware,
+          age: String(profile.age)
+        }
       }
-    }
-    if (profile.mbti) {
-      updates.software = {
-        ...formData.software,
-        mbti: profile.mbti as string
+      if (profile.occupation && !prev.hardware.occupation) {
+        updates.hardware = {
+          ...prev.hardware,
+          ...(updates.hardware || {}),
+          occupation: profile.occupation as string
+        }
       }
-    }
-    if (profile.personality) {
-      updates.software = {
-        ...formData.software,
-        ...(updates.software || formData.software),
-        personality: profile.personality as string
+      if (profile.mbti && !prev.software.mbti) {
+        updates.software = {
+          ...prev.software,
+          mbti: profile.mbti as string
+        }
       }
-    }
-    if (profile.interests && Array.isArray(profile.interests)) {
-      // 匹配预设兴趣
-      const matchedInterests = profile.interests.filter((i: string) => 
-        presetInterests.some(p => i.includes(p) || p.includes(i))
-      )
-      updates.software = {
-        ...formData.software,
-        ...(updates.software || formData.software),
-        interests: matchedInterests.length > 0 ? matchedInterests : profile.interests.slice(0, 3)
+      if (profile.personality && !prev.software.personality) {
+        updates.software = {
+          ...prev.software,
+          ...(updates.software || {}),
+          personality: profile.personality as string
+        }
       }
-    }
+      
+      // 兴趣爱好合并
+      if (profile.interests && Array.isArray(profile.interests)) {
+        const matchedInterests = profile.interests.filter((i: string) => 
+          presetInterests.some(p => i.includes(p) || p.includes(i))
+        )
+        const newInterests = matchedInterests.length > 0 ? matchedInterests : profile.interests.slice(0, 3)
+        const mergedInterests = [...new Set([...prev.software.interests, ...newInterests])]
+        updates.software = {
+          ...prev.software,
+          ...(updates.software || {}),
+          interests: mergedInterests.slice(0, 6) // 最多保留6个
+        }
+      }
 
-    setFormData(prev => ({
-      ...prev,
-      ...updates,
-      hardware: { ...prev.hardware, ...(updates.hardware || {}) },
-      software: { ...prev.software, ...(updates.software || {}) }
-    }))
+      return {
+        ...prev,
+        ...updates,
+        hardware: { ...prev.hardware, ...(updates.hardware || {}) },
+        software: { ...prev.software, ...(updates.software || {}) }
+      }
+    })
   }
 
   const toggleInterest = (interest: string) => {
@@ -252,32 +291,68 @@ const CreatePage: FC = () => {
           <View className="flex items-center gap-2 mb-2">
             <Sparkles size={14} color="#6B7280" />
             <Text className="block text-xs text-gray-400">AI 智能分析</Text>
+            <Text className="block text-xs text-gray-300">最多3张图片</Text>
           </View>
           <View className="bg-white rounded-xl border border-gray-100 p-4">
-            {analyzing ? (
-              <View className="flex items-center justify-center py-4">
-                <Loader size={20} color="#6B7280" className="animate-spin" />
-                <Text className="block text-sm text-gray-500 ml-2">正在分析图片...</Text>
+            {/* 已选图片列表 */}
+            {selectedImages.length > 0 && (
+              <View className="flex flex-wrap gap-2 mb-3">
+                {selectedImages.map((img, index) => (
+                  <View key={index} className="relative">
+                    <Image 
+                      src={img.path} 
+                      className="w-20 h-20 rounded-lg object-cover"
+                      mode="aspectFill"
+                    />
+                    {/* 分析中遮罩 */}
+                    {img.analyzing && (
+                      <View className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                        <Loader size={16} color="#fff" className="animate-spin" />
+                      </View>
+                    )}
+                    {/* 删除按钮 */}
+                    <View 
+                      className="absolute -top-1 -right-1 w-5 h-5 bg-black rounded-full flex items-center justify-center"
+                      onClick={() => handleRemoveImage(index)}
+                    >
+                      <X size={12} color="#fff" />
+                    </View>
+                  </View>
+                ))}
               </View>
-            ) : (
-              <>
-                <View 
-                  className="flex items-center justify-center py-6 border-2 border-dashed border-gray-200 rounded-lg mb-2"
-                  onClick={handleChooseImage}
-                >
-                  <View className="text-center">
-                    <Camera size={32} color="#9CA3AF" />
-                    <Text className="block text-sm text-gray-400 mt-2">点击上传图片</Text>
-                    <Text className="block text-xs text-gray-300 mt-1">自动识别人物信息</Text>
-                  </View>
+            )}
+            
+            {/* 上传按钮 */}
+            {selectedImages.length < 3 && (
+              <View 
+                className="flex items-center justify-center py-4 border-2 border-dashed border-gray-200 rounded-lg"
+                onClick={handleChooseImage}
+              >
+                <View className="text-center">
+                  <Camera size={24} color="#9CA3AF" />
+                  <Text className="block text-xs text-gray-400 mt-1">
+                    {selectedImages.length > 0 ? '继续添加' : '点击上传图片'}
+                  </Text>
                 </View>
-                {analysisResult && (
-                  <View className="bg-gray-50 rounded-lg p-3">
-                    <Text className="block text-xs text-gray-500 mb-1">分析结果</Text>
-                    <Text className="block text-sm text-gray-700">{analysisResult}</Text>
-                  </View>
-                )}
-              </>
+              </View>
+            )}
+            
+            {/* 分析提示 */}
+            {selectedImages.some(img => img.analyzing) && (
+              <View className="mt-2 flex items-center justify-center">
+                <Loader size={14} color="#6B7280" className="animate-spin" />
+                <Text className="block text-xs text-gray-400 ml-2">正在分析图片...</Text>
+              </View>
+            )}
+            
+            {/* 分析完成提示 */}
+            {selectedImages.length > 0 && !selectedImages.some(img => img.analyzing) && (
+              <View className="mt-2 flex items-center justify-center">
+                <Check size={14} color="#22C55E" />
+                <Text className="block text-xs text-gray-500 ml-1">
+                  已分析 {selectedImages.filter(img => img.result).length} 张图片，信息已自动填充
+                </Text>
+              </View>
             )}
           </View>
         </View>
