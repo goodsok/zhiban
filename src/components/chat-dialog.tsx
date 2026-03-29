@@ -1,15 +1,14 @@
 import Taro from '@tarojs/taro'
-import { View, Text, ScrollView, Image } from '@tarojs/components'
+import { View, Text, ScrollView, Image, Input } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import { Network } from '@/network'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Loader, Send, Sparkles, ImagePlus, X } from 'lucide-react-taro'
+import { Loader, Send, Sparkles, ImagePlus, X, ArrowLeft } from 'lucide-react-taro'
 
 // 消息类型
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
-  images?: string[] // 图片URL列表
+  images?: string[]
 }
 
 // 对话上下文
@@ -40,6 +39,13 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
   const [loading, setLoading] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(false)
   const [selectedImages, setSelectedImages] = useState<string[]>([])
+  const [statusBarHeight, setStatusBarHeight] = useState(0)
+
+  // 获取状态栏高度
+  useEffect(() => {
+    const systemInfo = Taro.getSystemInfoSync()
+    setStatusBarHeight(systemInfo.statusBarHeight || 0)
+  }, [])
 
   // 加载历史记录
   useEffect(() => {
@@ -120,7 +126,6 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
     setInputValue('')
     setSelectedImages([])
     
-    // 添加用户消息
     const newMessages: ChatMessage[] = [
       ...messages,
       { 
@@ -133,10 +138,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
     setLoading(true)
 
     try {
-      // 如果有图片，先上传图片并分析
       let imageAnalysisText = ''
       if (userImages.length > 0) {
-        // 逐个分析图片
         const analysisResults: string[] = []
         for (const imagePath of userImages) {
           try {
@@ -165,7 +168,6 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         }
       }
 
-      // 调用后端 API
       const res = await Network.request({
         url: '/api/chat',
         method: 'POST',
@@ -211,37 +213,77 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
     setInputValue(q)
   }
 
+  const handleClose = () => {
+    onOpenChange(false)
+  }
+
+  if (!open) return null
+
+  // 导航栏高度 44px
+  const navBarHeight = 44
+  const headerHeight = statusBarHeight + navBarHeight
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="w-full h-[90vh] max-h-none max-w-full rounded-none sm:rounded-xl sm:max-w-lg sm:h-[80vh] flex flex-col p-0"
-        closeClassName="right-3 top-3"
+    <View 
+      className="fixed inset-0 z-[100] bg-white"
+      style={{ top: 0, left: 0, right: 0, bottom: 0 }}
+    >
+      {/* 自定义头部 */}
+      <View 
+        className="fixed left-0 right-0 z-[101] bg-white border-b border-gray-100"
+        style={{ top: 0 }}
       >
-        {/* 标题栏 */}
-        <DialogHeader className="flex-shrink-0 px-4 py-3 border-b border-gray-100 pr-10">
-          <View className="flex items-center gap-2">
-            <Sparkles size={18} color="#000" />
-            <DialogTitle className="text-base font-semibold">AI 助手</DialogTitle>
+        {/* 状态栏占位 */}
+        <View style={{ height: `${statusBarHeight}px` }} />
+        
+        {/* 导航栏 */}
+        <View 
+          className="flex items-center justify-between px-4"
+          style={{ height: `${navBarHeight}px` }}
+        >
+          <View 
+            className="w-10 h-10 flex items-center justify-center -ml-2"
+            onClick={handleClose}
+          >
+            <ArrowLeft size={24} color="#374151" />
           </View>
-          {context && (
-            <Text className="block text-xs text-gray-400 mt-1">
+          <View className="flex items-center gap-2 flex-1 justify-center">
+            <Sparkles size={18} color="#000" />
+            <Text className="text-base font-semibold text-gray-900">AI 助手</Text>
+          </View>
+          <View className="w-10 h-10" />
+        </View>
+        
+        {/* 副标题 */}
+        {context && (
+          <View className="px-4 pb-2 -mt-1">
+            <Text className="text-xs text-gray-400 text-center">
               当前：{context.matchName}
               {context.cycleInfo && ` · ${context.cycleInfo.phaseName}`}
             </Text>
-          )}
-        </DialogHeader>
+          </View>
+        )}
+      </View>
 
-        {/* 消息列表 */}
-        <ScrollView 
-          className="flex-1 px-4 py-3"
-          scrollY
-          scrollIntoView={`msg-${messages.length}`}
-          scrollWithAnimation
-        >
+      {/* 消息列表区域 */}
+      <ScrollView 
+        className="bg-gray-50"
+        scrollY
+        scrollIntoView={messages.length > 0 ? `msg-${messages.length}` : ''}
+        scrollWithAnimation
+        style={{ 
+          position: 'fixed',
+          top: `${headerHeight + (context ? 20 : 0)}px`,
+          left: 0,
+          right: 0,
+          bottom: '120px'
+        }}
+      >
+        <View className="p-4">
           {historyLoading ? (
             <View className="flex items-center justify-center py-8">
               <Loader size={20} color="#6B7280" className="animate-spin" />
-              <Text className="block text-sm text-gray-400 ml-2">加载历史记录...</Text>
+              <Text className="text-sm text-gray-400 ml-2">加载历史记录...</Text>
             </View>
           ) : (
             messages.map((msg, i) => (
@@ -251,28 +293,26 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
                 className={`mb-3 ${msg.role === 'user' ? 'flex justify-end' : ''}`}
               >
                 {msg.role === 'assistant' ? (
-                  <View className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
-                    <Text className="block text-sm text-gray-800 whitespace-pre-wrap">{msg.content}</Text>
+                  <View className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] shadow-sm">
+                    <Text className="text-sm text-gray-800 whitespace-pre-wrap">{msg.content}</Text>
                   </View>
                 ) : (
                   <View className="max-w-[85%]">
-                    {/* 用户图片 */}
                     {msg.images && msg.images.length > 0 && (
                       <View className="flex flex-wrap gap-1 mb-2 justify-end">
                         {msg.images.map((img, imgIndex) => (
                           <Image 
                             key={imgIndex}
                             src={img}
-                            className="w-24 h-24 rounded-lg object-cover"
+                            className="w-24 h-24 rounded-lg"
                             mode="aspectFill"
                           />
                         ))}
                       </View>
                     )}
-                    {/* 用户文字 */}
                     {msg.content && (
                       <View className="bg-black rounded-2xl rounded-tr-sm px-4 py-3">
-                        <Text className="block text-sm text-white">{msg.content}</Text>
+                        <Text className="text-sm text-white">{msg.content}</Text>
                       </View>
                     )}
                   </View>
@@ -283,17 +323,23 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
           
           {loading && (
             <View className="mb-3">
-              <View className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 inline-flex items-center gap-2">
+              <View className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 inline-flex items-center gap-2 shadow-sm">
                 <Loader size={14} color="#6B7280" className="animate-spin" />
-                <Text className="block text-sm text-gray-400">思考中...</Text>
+                <Text className="text-sm text-gray-400">思考中...</Text>
               </View>
             </View>
           )}
-        </ScrollView>
+        </View>
+      </ScrollView>
 
+      {/* 底部输入区域 */}
+      <View 
+        className="fixed left-0 right-0 z-[101] bg-white border-t border-gray-100"
+        style={{ bottom: 0 }}
+      >
         {/* 快捷问题 */}
         {messages.length <= 1 && !historyLoading && (
-          <View className="flex-shrink-0 px-4 pb-2">
+          <View className="px-4 pt-3 pb-2">
             <View className="flex flex-wrap gap-2">
               {quickQuestions.map((q, i) => (
                 <View
@@ -301,7 +347,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
                   className="bg-gray-100 rounded-full px-3 py-2"
                   onClick={() => handleQuickQuestion(q)}
                 >
-                  <Text className="block text-xs text-gray-600">{q}</Text>
+                  <Text className="text-xs text-gray-600">{q}</Text>
                 </View>
               ))}
             </View>
@@ -310,13 +356,13 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
 
         {/* 已选图片预览 */}
         {selectedImages.length > 0 && (
-          <View className="flex-shrink-0 px-4 pb-2">
+          <View className="px-4 pt-2 pb-2">
             <View className="flex flex-wrap gap-2">
               {selectedImages.map((img, index) => (
                 <View key={index} className="relative">
                   <Image 
                     src={img}
-                    className="w-16 h-16 rounded-lg object-cover"
+                    className="w-16 h-16 rounded-lg"
                     mode="aspectFill"
                   />
                   <View 
@@ -331,50 +377,51 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
           </View>
         )}
 
-        {/* 输入区域 */}
-        <View className="flex-shrink-0 px-4 py-3 border-t border-gray-100">
+        {/* 输入框 */}
+        <View className="px-4 py-3">
           <View className="flex items-center gap-2">
             {/* 图片上传按钮 */}
             <View 
-              className="w-9 h-9 rounded-full flex items-center justify-center bg-gray-100 flex-shrink-0"
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 flex-shrink-0"
               onClick={handleChooseImage}
             >
-              <ImagePlus size={18} color="#6B7280" />
+              <ImagePlus size={20} color="#6B7280" />
             </View>
-            {/* 输入框 */}
-            <View className="flex-1 bg-gray-100 rounded-full px-4 py-2">
-              <input
-                type="text"
+            
+            {/* 输入框容器 */}
+            <View className="flex-1 bg-gray-100 rounded-full px-4 py-2 min-h-[40px] flex items-center">
+              <Input
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onInput={(e) => setInputValue(e.detail.value)}
                 placeholder={selectedImages.length > 0 ? "添加说明（可选）..." : "问我任何问题..."}
-                className="w-full bg-transparent text-sm outline-none"
-                style={{ border: 'none' }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    handleSend()
-                  }
-                }}
+                placeholderClass="text-gray-400"
+                className="w-full text-sm"
+                confirmType="send"
+                onConfirm={handleSend}
+                adjustPosition
               />
             </View>
+            
             {/* 发送按钮 */}
             <View 
-              className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+              className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                 (inputValue.trim() || selectedImages.length > 0) && !loading ? 'bg-black' : 'bg-gray-200'
               }`}
               onClick={handleSend}
             >
               {loading ? (
-                <Loader size={16} color="#6B7280" className="animate-spin" />
+                <Loader size={18} color="#6B7280" className="animate-spin" />
               ) : (
-                <Send size={16} color={(inputValue.trim() || selectedImages.length > 0) ? '#fff' : '#9CA3AF'} />
+                <Send size={18} color={(inputValue.trim() || selectedImages.length > 0) ? '#fff' : '#9CA3AF'} />
               )}
             </View>
           </View>
         </View>
-      </DialogContent>
-    </Dialog>
+        
+        {/* 底部安全区域 */}
+        <View className="h-[env(safe-area-inset-bottom)]" />
+      </View>
+    </View>
   )
 }
 
