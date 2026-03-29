@@ -33,6 +33,12 @@ interface ChatDialogProps {
   context: ChatContext | null
 }
 
+// 本地存储的 key 前缀
+const CHAT_HISTORY_KEY_PREFIX = 'chat_history_'
+
+// 获取本地存储的 key
+const getLocalHistoryKey = (matchId: number) => `${CHAT_HISTORY_KEY_PREFIX}${matchId}`
+
 const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputValue, setInputValue] = useState('')
@@ -46,6 +52,28 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
     const systemInfo = Taro.getSystemInfoSync()
     setStatusBarHeight(systemInfo.statusBarHeight || 0)
   }, [])
+
+  // 保存消息到本地存储
+  const saveMessagesToLocal = (matchId: number, msgs: ChatMessage[]) => {
+    try {
+      Taro.setStorageSync(getLocalHistoryKey(matchId), JSON.stringify(msgs))
+    } catch (error) {
+      console.error('Save to local storage error:', error)
+    }
+  }
+
+  // 从本地存储加载消息
+  const loadMessagesFromLocal = (matchId: number): ChatMessage[] | null => {
+    try {
+      const data = Taro.getStorageSync(getLocalHistoryKey(matchId))
+      if (data) {
+        return JSON.parse(data)
+      }
+    } catch (error) {
+      console.error('Load from local storage error:', error)
+    }
+    return null
+  }
 
   // 加载历史记录
   useEffect(() => {
@@ -62,7 +90,16 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
   const loadHistory = async () => {
     if (!context?.matchId) return
     
-    setHistoryLoading(true)
+    // 1. 先从本地加载，立即显示
+    const localMessages = loadMessagesFromLocal(context.matchId)
+    if (localMessages && localMessages.length > 0) {
+      setMessages(localMessages)
+      setHistoryLoading(false)
+    } else {
+      setHistoryLoading(true)
+    }
+
+    // 2. 再从服务器同步
     try {
       const res = await Network.request({
         url: `/api/chat/history/${context.matchId}`,
@@ -72,19 +109,29 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       console.log('Load history response:', res.data)
       
       if (res.data?.code === 200 && res.data?.data?.messages?.length > 0) {
-        setMessages(res.data.data.messages)
+        const serverMessages = res.data.data.messages
+        setMessages(serverMessages)
+        // 更新本地缓存
+        saveMessagesToLocal(context.matchId, serverMessages)
       } else {
+        // 服务器无数据，显示欢迎语
+        if (!localMessages || localMessages.length === 0) {
+          const welcomeMsg = [{ 
+            role: 'assistant' as const, 
+            content: `你好！我是小助手，可以帮你分析${context.matchName}的情况，或者给你一些建议。有什么想聊的吗？` 
+          }]
+          setMessages(welcomeMsg)
+        }
+      }
+    } catch (error) {
+      console.error('Load history error:', error)
+      // 网络错误时，如果本地无数据，显示欢迎语
+      if (!localMessages || localMessages.length === 0) {
         setMessages([{ 
           role: 'assistant', 
           content: `你好！我是小助手，可以帮你分析${context.matchName}的情况，或者给你一些建议。有什么想聊的吗？` 
         }])
       }
-    } catch (error) {
-      console.error('Load history error:', error)
-      setMessages([{ 
-        role: 'assistant', 
-        content: `你好！我是小助手，可以帮你分析${context.matchName}的情况，或者给你一些建议。有什么想聊的吗？` 
-      }])
     } finally {
       setHistoryLoading(false)
     }
@@ -184,19 +231,34 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       console.log('Chat response:', res.data)
 
       if (res.data?.code === 200 && res.data?.data?.content) {
-        setMessages([...newMessages, { role: 'assistant', content: res.data.data.content }])
+        const finalMessages = [...newMessages, { role: 'assistant' as const, content: res.data.data.content }]
+        setMessages(finalMessages)
+        // 保存到本地存储
+        if (context?.matchId) {
+          saveMessagesToLocal(context.matchId, finalMessages)
+        }
       } else {
-        setMessages([...newMessages, { 
-          role: 'assistant', 
+        const finalMessages = [...newMessages, { 
+          role: 'assistant' as const, 
           content: '抱歉，我暂时无法回应，请稍后再试。' 
-        }])
+        }]
+        setMessages(finalMessages)
+        // 保存到本地存储
+        if (context?.matchId) {
+          saveMessagesToLocal(context.matchId, finalMessages)
+        }
       }
     } catch (error) {
       console.error('Chat error:', error)
-      setMessages([...newMessages, { 
-        role: 'assistant', 
+      const finalMessages = [...newMessages, { 
+        role: 'assistant' as const, 
         content: '网络出了点问题，请稍后再试。' 
-      }])
+      }]
+      setMessages(finalMessages)
+      // 保存到本地存储
+      if (context?.matchId) {
+        saveMessagesToLocal(context.matchId, finalMessages)
+      }
     } finally {
       setLoading(false)
     }
@@ -259,8 +321,66 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
 
   const quickQuestions = getQuickQuestions()
 
-  const handleQuickQuestion = (q: string) => {
-    setInputValue(q)
+  // 快捷问题点击后直接发送
+  const handleQuickQuestion = async (q: string) => {
+    if (loading) return
+    
+    const userMessage = q
+    const newMessages: ChatMessage[] = [
+      ...messages,
+      { 
+        role: 'user', 
+        content: userMessage
+      }
+    ]
+    setMessages(newMessages)
+    setLoading(true)
+
+    try {
+      const res = await Network.request({
+        url: '/api/chat',
+        method: 'POST',
+        data: {
+          messages: newMessages.map(m => ({
+            role: m.role,
+            content: m.content
+          })),
+          context
+        }
+      })
+
+      console.log('Chat response:', res.data)
+
+      if (res.data?.code === 200 && res.data?.data?.content) {
+        const finalMessages = [...newMessages, { role: 'assistant' as const, content: res.data.data.content }]
+        setMessages(finalMessages)
+        // 保存到本地存储
+        if (context?.matchId) {
+          saveMessagesToLocal(context.matchId, finalMessages)
+        }
+      } else {
+        const finalMessages = [...newMessages, { 
+          role: 'assistant' as const, 
+          content: '抱歉，我暂时无法回应，请稍后再试。' 
+        }]
+        setMessages(finalMessages)
+        if (context?.matchId) {
+          saveMessagesToLocal(context.matchId, finalMessages)
+        }
+      }
+    } catch (error) {
+      console.error('Chat error:', error)
+      const finalMessages = [...newMessages, { 
+        role: 'assistant' as const, 
+        content: '网络出了点问题，请稍后再试。' 
+      }]
+      setMessages(finalMessages)
+      if (context?.matchId) {
+        saveMessagesToLocal(context.matchId, finalMessages)
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleClose = () => {
