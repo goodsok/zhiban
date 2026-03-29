@@ -8,9 +8,10 @@ import { TaskModule } from '@/modules/task/task.module';
 import { QuizModule } from '@/modules/quiz/quiz.module';
 import { DateRecordModule } from '@/modules/date-record/date-record.module';
 import { KnowledgeModule } from '@/modules/knowledge/knowledge.module';
+import { ChatModule } from '@/modules/chat/chat.module';
 
 @Module({
-  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule],
+  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -6,11 +6,11 @@ import { Network } from '@/network'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import ChatDialog from '@/components/chat-dialog'
 import { 
   ArrowLeft, 
   Pencil,
   ChevronRight,
-  Sparkles,
   Calendar,
   ClipboardList,
   Loader,
@@ -167,9 +167,8 @@ const DetailPage: FC = () => {
   const router = useRouter()
   const [detail, setDetail] = useState<MatchDetail | null>(null)
   const [loading, setLoading] = useState(true)
-  const [aiLoading, setAiLoading] = useState(false)
-  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null)
   const [cycleInfo, setCycleInfo] = useState<CycleInfo | null>(null)
+  const [chatOpen, setChatOpen] = useState(false)
 
   useLoad(() => {
     console.log('Detail page loaded.', router.params.id)
@@ -210,24 +209,22 @@ const DetailPage: FC = () => {
   const goToTasks = () => navigateTo({ url: `/pages/tasks/index?matchId=${detail?.id}` })
   const goToDates = () => navigateTo({ url: `/pages/dates/index?matchId=${detail?.id}` })
 
-  const getAISuggestion = async () => {
-    if (!detail) return
-    
-    try {
-      setAiLoading(true)
-      const res = await Network.request({
-        url: `/api/match/${detail.id}/ai-interaction`,
-        method: 'POST',
-        data: {}
-      })
-      console.log('AI suggestion response:', res.data)
-      if (res.data?.code === 200 && res.data?.data?.suggestions?.[0]) {
-        setAiSuggestion(res.data.data.suggestions[0].action)
-      }
-    } catch (error) {
-      console.error('AI suggestion error:', error)
-    } finally {
-      setAiLoading(false)
+  // 构建对话上下文
+  const getChatContext = () => {
+    if (!detail) return null
+    return {
+      matchId: detail.id,
+      matchName: detail.name,
+      hardware: { ...detail.hardware } as Record<string, unknown>,
+      software: { ...detail.software } as Record<string, unknown>,
+      cycleInfo: cycleInfo ? {
+        day: cycleInfo.day,
+        phase: cycleInfo.phase,
+        phaseName: cycleInfo.phaseName,
+        description: cycleInfo.description
+      } : undefined,
+      relationshipStage: detail.relationshipStage,
+      interactionStatus: detail.interactionStatus
     }
   }
 
@@ -524,32 +521,6 @@ const DetailPage: FC = () => {
         </View>
       </View>
 
-      {/* AI建议 */}
-      <View className="px-4 pb-4">
-        <Text className="block text-sm font-semibold text-gray-900 mb-2">AI建议</Text>
-        {aiSuggestion ? (
-          <View className="bg-gray-900 rounded-xl p-4">
-            <Text className="block text-white text-sm">{aiSuggestion}</Text>
-          </View>
-        ) : (
-          <Button 
-            variant="outline" 
-            className="w-full border-gray-200"
-            onClick={getAISuggestion}
-            disabled={aiLoading}
-          >
-            {aiLoading ? (
-              <Loader size={16} color="#6B7280" className="animate-spin" />
-            ) : (
-              <Sparkles size={16} color="#6B7280" />
-            )}
-            <Text className="ml-2 text-gray-600">
-              {aiLoading ? '分析中...' : '获取下一步建议'}
-            </Text>
-          </Button>
-        )}
-      </View>
-
       {/* 备注 */}
       {detail.notes && (
         <View className="px-4 pb-4">
@@ -562,11 +533,18 @@ const DetailPage: FC = () => {
 
       {/* 底部操作 */}
       <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
-        <Button className="w-full bg-black" onClick={getAISuggestion}>
+        <Button className="w-full bg-black" onClick={() => setChatOpen(true)}>
           <MessageCircle size={16} color="#fff" />
-          <Text className="ml-2 text-white">获取AI建议</Text>
+          <Text className="ml-2 text-white">AI 助手</Text>
         </Button>
       </View>
+
+      {/* AI 对话框 */}
+      <ChatDialog 
+        open={chatOpen} 
+        onOpenChange={setChatOpen} 
+        context={getChatContext()} 
+      />
     </View>
   )
 }
