@@ -2,28 +2,6 @@ import { Injectable } from '@nestjs/common'
 import { Request } from 'express'
 import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
 
-export interface Match {
-  id: number
-  name: string
-  age: number
-  gender: string
-  occupation: string
-  mbti: string
-  zodiac: string
-  meetingScene: string
-  meetingDate: string
-  relationshipStage: string
-  interactionStatus: string
-  impression: number
-  impressionTags: string[]
-  interests: string[]
-  notes: string
-  status: string
-  nextAction: string
-  lastContact: string
-  createdAt: Date
-}
-
 // 印象标签映射
 const impressionTagLabels: Record<string, string> = {
   nice: '性格好',
@@ -68,6 +46,38 @@ const interactionStatusLabels: Record<string, string> = {
   confirming: '准备确认关系',
 }
 
+// 关键信息接口
+export interface KeyInfo {
+  id: string
+  type: string
+  label: string
+  icon: string
+  value: string
+}
+
+export interface Match {
+  id: number
+  name: string
+  age: number
+  gender: string
+  occupation: string
+  mbti: string
+  zodiac: string
+  meetingScene: string
+  meetingDate: string
+  relationshipStage: string
+  interactionStatus: string
+  impression: number
+  impressionTags: string[]
+  interests: string[]
+  keyInfo: KeyInfo[]
+  notes: string
+  status: string
+  nextAction: string
+  lastContact: string
+  createdAt: Date
+}
+
 @Injectable()
 export class MatchService {
   // 模拟数据存储
@@ -87,6 +97,10 @@ export class MatchService {
       impression: 4,
       impressionTags: ['nice', 'pretty'],
       interests: ['旅行', '摄影', '美食'],
+      keyInfo: [
+        { id: 'key_1', type: 'birthday', label: '生日', icon: '🎂', value: '6月15日' },
+        { id: 'key_2', type: 'food_preference', label: '饮食偏好', icon: '🍽️', value: '不吃辣，爱吃日料' },
+      ],
       notes: '相亲认识，印象不错',
       status: 'contacting',
       nextAction: '约她周末去拍照',
@@ -108,6 +122,10 @@ export class MatchService {
       impression: 5,
       impressionTags: ['smart', 'funny'],
       interests: ['健身', '电影', '阅读'],
+      keyInfo: [
+        { id: 'key_3', type: 'pet', label: '宠物', icon: '🐱', value: '养了一只猫叫小橘' },
+        { id: 'key_4', type: 'hometown', label: '家乡', icon: '🏠', value: '浙江杭州' },
+      ],
       notes: '健身房认识',
       status: 'dating',
       nextAction: '第三次约会，看她的展',
@@ -129,6 +147,7 @@ export class MatchService {
       impression: 3,
       impressionTags: ['nice'],
       interests: ['音乐', '旅行'],
+      keyInfo: [],
       notes: '交友App认识',
       status: 'new',
       nextAction: '发第一条消息',
@@ -199,6 +218,7 @@ export class MatchService {
       impression: body.impression || 0,
       impressionTags: body.impressionTags || [],
       interests: body.interests || [],
+      keyInfo: body.keyInfo || [],
       notes: body.notes || '',
       status: this.mapStageToStatus(body.relationshipStage || 'new'),
       nextAction: this.generateNextAction(body.meetingScene || 'other', body.interactionStatus || 'just_met'),
@@ -366,6 +386,7 @@ export class MatchService {
     const stageLabel = relationshipStageLabels[match.relationshipStage] || match.relationshipStage
     const statusLabel = interactionStatusLabels[match.interactionStatus] || match.interactionStatus
     const interests = match.interests.join('、')
+    const keyInfoStr = match.keyInfo?.map(k => `${k.icon} ${k.label}：${k.value}`).join('\n') || '无'
     
     return `请为以下情况推荐3-5个聊天话题：
 
@@ -379,6 +400,9 @@ export class MatchService {
 - 初印象标签：${tagLabels}
 - 心动指数：${match.impression}/5
 
+【关键信息】
+${keyInfoStr}
+
 【认识场景】
 - 通过「${sceneLabel}」认识
 
@@ -389,7 +413,7 @@ export class MatchService {
 
 请根据以上信息，推荐适合的聊天话题。每个话题请说明：
 1. 话题内容
-2. 为什么适合这个话题（结合对方的MBTI、兴趣等）
+2. 为什么适合这个话题（结合对方的MBTI、兴趣、关键信息等）
 3. 如何自然地开启这个话题
 
 请用JSON格式返回，格式如下：
@@ -410,6 +434,7 @@ export class MatchService {
     const stageLabel = relationshipStageLabels[match.relationshipStage] || match.relationshipStage
     const statusLabel = interactionStatusLabels[match.interactionStatus] || match.interactionStatus
     const interests = match.interests.join('、')
+    const keyInfoStr = match.keyInfo?.map(k => `${k.icon} ${k.label}：${k.value}`).join('\n') || '无'
     
     return `请为以下情况提供互动建议：
 
@@ -423,6 +448,9 @@ export class MatchService {
 - 初印象标签：${tagLabels}
 - 心动指数：${match.impression}/5
 
+【关键信息】
+${keyInfoStr}
+
 【认识场景】
 - 通过「${sceneLabel}」认识
 
@@ -434,7 +462,7 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
 
 请根据以上信息，提供3-5条具体的互动建议。每条建议请说明：
 1. 具体行动
-2. 为什么适合（结合对方的MBTI、星座、兴趣等）
+2. 为什么适合（结合对方的MBTI、星座、兴趣、关键信息等）
 3. 注意事项
 
 请用JSON格式返回，格式如下：

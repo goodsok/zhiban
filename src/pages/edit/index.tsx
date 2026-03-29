@@ -75,11 +75,43 @@ const zodiacOptions = [
   '射手座', '摩羯座', '水瓶座', '双鱼座',
 ]
 
+// 预设关键信息类型
+const presetKeyInfoTypes = [
+  { id: 'birthday', label: '生日', icon: '🎂', placeholder: '例如：12月25日' },
+  { id: 'hometown', label: '家乡', icon: '🏠', placeholder: '例如：浙江杭州' },
+  { id: 'food_preference', label: '饮食偏好', icon: '🍽️', placeholder: '例如：不吃辣、爱吃日料' },
+  { id: 'pet', label: '宠物', icon: '🐱', placeholder: '例如：养了一只猫叫小橘' },
+  { id: 'smoke', label: '抽烟习惯', icon: '🚬', placeholder: '例如：不抽烟' },
+  { id: 'drink', label: '饮酒习惯', icon: '🍺', placeholder: '例如：偶尔小酌' },
+  { id: 'color', label: '喜欢的颜色', icon: '🎨', placeholder: '例如：喜欢蓝色' },
+  { id: 'music', label: '喜欢的音乐', icon: '🎵', placeholder: '例如：喜欢民谣和流行' },
+  { id: 'movie', label: '喜欢的电影', icon: '🎬', placeholder: '例如：喜欢科幻片' },
+  { id: 'sports', label: '喜欢的运动', icon: '⚽', placeholder: '例如：喜欢羽毛球' },
+  { id: 'family', label: '家庭情况', icon: '👨‍👩‍👧', placeholder: '例如：有一个妹妹' },
+  { id: 'anniversary', label: '重要纪念日', icon: '📅', placeholder: '例如：特殊日期' },
+  { id: 'taboo', label: '禁忌/雷点', icon: '⚠️', placeholder: '例如：不喜欢被催促' },
+  { id: 'work', label: '工作情况', icon: '💼', placeholder: '例如：经常加班' },
+  { id: 'schedule', label: '作息时间', icon: '⏰', placeholder: '例如：早起型，7点起床' },
+  { id: 'other', label: '其他', icon: '📝', placeholder: '自定义信息' },
+]
+
+// 关键信息接口
+interface KeyInfo {
+  id: string
+  type: string
+  label: string
+  icon: string
+  value: string
+}
+
 const EditPage: FC = () => {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [newInterest, setNewInterest] = useState('')
+  const [showKeyInfoModal, setShowKeyInfoModal] = useState(false)
+  const [selectedKeyInfoType, setSelectedKeyInfoType] = useState<string>('')
+  const [newKeyInfoValue, setNewKeyInfoValue] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -94,6 +126,7 @@ const EditPage: FC = () => {
     impression: 0,
     impressionTags: [] as string[],
     interests: [] as string[],
+    keyInfo: [] as KeyInfo[],
     notes: '',
   })
 
@@ -129,6 +162,7 @@ const EditPage: FC = () => {
           impression: data.impression || 0,
           impressionTags: data.impressionTags || [],
           interests: data.interests || [],
+          keyInfo: data.keyInfo || [],
           notes: data.notes || '',
         })
       }
@@ -168,6 +202,7 @@ const EditPage: FC = () => {
           impression: formData.impression,
           impressionTags: formData.impressionTags,
           interests: formData.interests,
+          keyInfo: formData.keyInfo,
           notes: formData.notes,
         }
       })
@@ -210,6 +245,42 @@ const EditPage: FC = () => {
     } else if (formData.impressionTags.length < 3) {
       setFormData({ ...formData, impressionTags: [...formData.impressionTags, tagId] })
     }
+  }
+
+  // 关键信息相关方法
+  const openKeyInfoModal = () => {
+    setSelectedKeyInfoType('')
+    setNewKeyInfoValue('')
+    setShowKeyInfoModal(true)
+  }
+
+  const selectKeyInfoType = (type: typeof presetKeyInfoTypes[0]) => {
+    setSelectedKeyInfoType(type.id)
+    setNewKeyInfoValue('')
+  }
+
+  const addKeyInfo = () => {
+    if (!selectedKeyInfoType || !newKeyInfoValue.trim()) return
+    
+    const typeInfo = presetKeyInfoTypes.find(t => t.id === selectedKeyInfoType)
+    if (!typeInfo) return
+
+    const newKeyInfo: KeyInfo = {
+      id: `key_${Date.now()}`,
+      type: selectedKeyInfoType,
+      label: typeInfo.label,
+      icon: typeInfo.icon,
+      value: newKeyInfoValue.trim(),
+    }
+
+    setFormData({ ...formData, keyInfo: [...formData.keyInfo, newKeyInfo] })
+    setShowKeyInfoModal(false)
+    setSelectedKeyInfoType('')
+    setNewKeyInfoValue('')
+  }
+
+  const removeKeyInfo = (id: string) => {
+    setFormData({ ...formData, keyInfo: formData.keyInfo.filter(k => k.id !== id) })
   }
 
   if (loading) {
@@ -517,6 +588,45 @@ const EditPage: FC = () => {
           ))}
         </View>
 
+        {/* 关键信息 */}
+        <Text className="block text-lg font-bold text-gray-800 mb-3">🔑 关键信息</Text>
+        <Text className="block text-sm text-gray-500 mb-3">记录接触中了解到的重要信息</Text>
+        
+        {/* 已添加的关键信息 */}
+        {formData.keyInfo.length > 0 && (
+          <Card className="shadow-sm border-0 mb-4 bg-amber-50">
+            <CardContent className="p-4">
+              <Text className="block text-sm font-medium text-amber-600 mb-3">
+                已记录 ({formData.keyInfo.length}条)
+              </Text>
+              <View className="space-y-3">
+                {formData.keyInfo.map((info) => (
+                  <View key={info.id} className="flex items-start gap-2 bg-white rounded-lg p-3">
+                    <Text className="block text-lg">{info.icon}</Text>
+                    <View className="flex-1">
+                      <Text className="block text-sm font-medium text-gray-800">{info.label}</Text>
+                      <Text className="block text-sm text-gray-600">{info.value}</Text>
+                    </View>
+                    <View onClick={() => removeKeyInfo(info.id)}>
+                      <X size={16} color="#9CA3AF" />
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 添加关键信息按钮 */}
+        <Card className="shadow-sm border-0 mb-6" onClick={openKeyInfoModal}>
+          <CardContent className="p-4">
+            <View className="flex items-center justify-center gap-2">
+              <Plus size={20} color="#6366F1" />
+              <Text className="block text-indigo-600 font-medium">添加关键信息</Text>
+            </View>
+          </CardContent>
+        </Card>
+
         {/* 备注 */}
         <Text className="block text-lg font-bold text-gray-800 mb-3">📝 备注</Text>
         <Card className="shadow-sm border-0 mb-6">
@@ -547,6 +657,82 @@ const EditPage: FC = () => {
           <Text className="text-white ml-1">{saving ? '保存中...' : '保存修改'}</Text>
         </Button>
       </View>
+
+      {/* 添加关键信息弹窗 */}
+      {showKeyInfoModal && (
+        <View 
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end"
+          onClick={() => setShowKeyInfoModal(false)}
+        >
+          <View 
+            className="w-full bg-white rounded-t-3xl p-4 max-h-[80vh] overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <View className="flex items-center justify-between mb-4">
+              <Text className="block text-lg font-semibold text-gray-800">添加关键信息</Text>
+              <View onClick={() => setShowKeyInfoModal(false)}>
+                <X size={24} color="#9CA3AF" />
+              </View>
+            </View>
+
+            {/* 选择信息类型 */}
+            {!selectedKeyInfoType ? (
+              <View>
+                <Text className="block text-sm text-gray-500 mb-3">选择要记录的信息类型</Text>
+                <View className="grid grid-cols-3 gap-3">
+                  {presetKeyInfoTypes.map((type) => (
+                    <Card
+                      key={type.id}
+                      className="shadow-sm border-0"
+                      onClick={() => selectKeyInfoType(type)}
+                    >
+                      <CardContent className="p-3 text-center">
+                        <Text className="block text-2xl mb-1">{type.icon}</Text>
+                        <Text className="block text-xs text-gray-600">{type.label}</Text>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </View>
+              </View>
+            ) : (
+              <View>
+                <View className="flex items-center gap-2 mb-4">
+                  <Text className="block text-2xl">{presetKeyInfoTypes.find(t => t.id === selectedKeyInfoType)?.icon}</Text>
+                  <Text className="block font-medium text-gray-800">
+                    {presetKeyInfoTypes.find(t => t.id === selectedKeyInfoType)?.label}
+                  </Text>
+                </View>
+                <View className="bg-gray-50 rounded-lg px-3 py-2 mb-4">
+                  <Input
+                    placeholder={presetKeyInfoTypes.find(t => t.id === selectedKeyInfoType)?.placeholder}
+                    value={newKeyInfoValue}
+                    onInput={(e) => setNewKeyInfoValue(e.detail.value)}
+                  />
+                </View>
+                <View className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setSelectedKeyInfoType('')
+                      setNewKeyInfoValue('')
+                    }}
+                  >
+                    <Text>重新选择类型</Text>
+                  </Button>
+                  <Button
+                    className="flex-1 bg-indigo-500"
+                    disabled={!newKeyInfoValue.trim()}
+                    onClick={addKeyInfo}
+                  >
+                    <Text className="text-white">确认添加</Text>
+                  </Button>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+      )}
     </View>
   )
 }

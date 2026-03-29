@@ -49,6 +49,7 @@ export class MatchController {
     impression: number
     impressionTags: string[]
     interests: string[]
+    keyInfo: Array<{ id: string; type: string; label: string; icon: string; value: string }>
     notes: string
     status: string
     nextAction: string

@@ -60,6 +60,15 @@ const statusConfig = {
   paused: { label: '暂停', color: 'text-gray-500 bg-gray-50' },
 }
 
+// 关键信息接口
+interface KeyInfo {
+  id: string
+  type: string
+  label: string
+  icon: string
+  value: string
+}
+
 interface MatchDetail {
   id: number
   name: string
@@ -75,6 +84,7 @@ interface MatchDetail {
   impression: number
   impressionTags: string[]
   interests: string[]
+  keyInfo: KeyInfo[]
   status: string
   notes: string
   lastContact: string
@@ -346,17 +356,50 @@ const DetailPage: FC = () => {
                 <Pencil size={16} color="#6366F1" />
               </View>
             </View>
-            <View className="flex flex-wrap gap-2">
-              {detail.interests?.map((interest, i) => (
-                <Badge key={i} variant="outline" className="text-indigo-600 border-indigo-200">
-                  {interest}
-                </Badge>
-              ))}
-            </View>
+            {detail.interests?.length > 0 ? (
+              <View className="flex flex-wrap gap-2">
+                {detail.interests.map((interest, i) => (
+                  <Badge key={i} variant="outline" className="text-indigo-600 border-indigo-200">
+                    {interest}
+                  </Badge>
+                ))}
+              </View>
+            ) : (
+              <Text className="block text-sm text-gray-400">暂无记录</Text>
+            )}
             {detail.notes && (
               <View className="mt-3 pt-3 border-t border-gray-100">
                 <Text className="block text-sm text-gray-500">{detail.notes}</Text>
               </View>
+            )}
+          </CardContent>
+        </Card>
+      </View>
+
+      {/* 关键信息 */}
+      <View className="px-4 pb-4">
+        <Card className="shadow-sm border-0">
+          <CardContent className="p-4">
+            <View className="flex items-center justify-between mb-3">
+              <Text className="block font-semibold text-gray-800">🔑 关键信息</Text>
+              <View onClick={goToEdit}>
+                <Pencil size={16} color="#6366F1" />
+              </View>
+            </View>
+            {detail.keyInfo?.length > 0 ? (
+              <View className="space-y-3">
+                {detail.keyInfo.map((info) => (
+                  <View key={info.id} className="flex items-start gap-3 bg-amber-50 rounded-lg p-3">
+                    <Text className="block text-lg">{info.icon}</Text>
+                    <View className="flex-1">
+                      <Text className="block text-xs text-gray-500">{info.label}</Text>
+                      <Text className="block text-sm text-gray-800">{info.value}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text className="block text-sm text-gray-400">暂无记录，点击编辑添加</Text>
             )}
           </CardContent>
         </Card>
