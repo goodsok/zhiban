@@ -14,31 +14,61 @@ import {
   Calendar,
   ClipboardList,
   Loader,
-  MessageCircle
+  MessageCircle,
+  Cpu,
+  HardDrive
 } from 'lucide-react-taro'
 
-interface KeyInfo {
-  id: string
-  type: string
-  label: string
-  icon: string
-  value: string
+// 硬件信息接口
+interface HardwareInfo {
+  age: number
+  height?: string
+  birthday?: string
+  zodiac?: string
+  bloodType?: string
+  bodyType?: string
+  style?: string
+  wechat?: string
+  phone?: string
+  location?: string
+  occupation?: string
+  company?: string
+  position?: string
+}
+
+// 软件信息接口
+interface SoftwareInfo {
+  mbti?: string
+  personality?: string
+  emotionalStyle?: string
+  interests: string[]
+  hobbies?: string
+  schedule?: string
+  spendingStyle?: string
+  communicationStyle?: string
+  likes?: string
+  dislikes?: string
+  loveExpectation?: string
+  dealBreakers?: string
 }
 
 interface MatchDetail {
   id: number
   name: string
-  age: number
-  occupation: string
-  mbti: string
-  zodiac: string
+  gender: string
+  hardware: HardwareInfo
+  software: SoftwareInfo
+  meetingScene: string
+  meetingDate: string
   relationshipStage: string
   interactionStatus: string
   impression: number
-  interests: string[]
-  keyInfo: KeyInfo[]
+  impressionTags: string[]
+  keyInfo: Array<{ id: string; type: string; label: string; icon: string; value: string }>
   notes: string
+  status: string
   nextAction: string
+  lastContact: string
   stats: {
     tasks: number
     completedTasks: number
@@ -62,6 +92,38 @@ const statusLabels: Record<string, string> = {
   dating_regularly: '稳定约会',
   ambiguous: '暧昧期',
   confirming: '准备确认',
+}
+
+// 硬件字段标签
+const hardwareFieldLabels: Record<string, { label: string; icon: string }> = {
+  age: { label: '年龄', icon: '👤' },
+  height: { label: '身高', icon: '📏' },
+  birthday: { label: '生日', icon: '🎂' },
+  zodiac: { label: '星座', icon: '⭐' },
+  bloodType: { label: '血型', icon: '🩸' },
+  bodyType: { label: '体型', icon: '💪' },
+  style: { label: '穿搭', icon: '👔' },
+  wechat: { label: '微信', icon: '💬' },
+  phone: { label: '电话', icon: '📱' },
+  location: { label: '所在地', icon: '📍' },
+  occupation: { label: '职业', icon: '💼' },
+  company: { label: '公司', icon: '🏢' },
+  position: { label: '职位', icon: '📋' },
+}
+
+// 软件字段标签
+const softwareFieldLabels: Record<string, { label: string; icon: string }> = {
+  mbti: { label: 'MBTI', icon: '🧠' },
+  personality: { label: '性格', icon: '💫' },
+  emotionalStyle: { label: '情绪', icon: '🎭' },
+  hobbies: { label: '爱好', icon: '🎯' },
+  schedule: { label: '作息', icon: '⏰' },
+  spendingStyle: { label: '消费观', icon: '💳' },
+  communicationStyle: { label: '沟通风格', icon: '🗣️' },
+  likes: { label: '喜欢', icon: '❤️' },
+  dislikes: { label: '讨厌', icon: '💔' },
+  loveExpectation: { label: '恋爱期待', icon: '💑' },
+  dealBreakers: { label: '雷区', icon: '⚠️' },
 }
 
 const DetailPage: FC = () => {
@@ -123,6 +185,44 @@ const DetailPage: FC = () => {
     }
   }
 
+  // 提取硬件信息项
+  const getHardwareItems = (hw: HardwareInfo | undefined) => {
+    if (!hw) return []
+    const items: Array<{ key: string; label: string; icon: string; value: string }> = []
+    Object.keys(hardwareFieldLabels).forEach(key => {
+      const value = hw[key as keyof HardwareInfo]
+      if (value !== undefined && value !== '' && key !== 'interests') {
+        const field = hardwareFieldLabels[key]
+        items.push({
+          key,
+          label: field.label,
+          icon: field.icon,
+          value: String(value)
+        })
+      }
+    })
+    return items
+  }
+
+  // 提取软件信息项
+  const getSoftwareItems = (sw: SoftwareInfo | undefined) => {
+    if (!sw) return []
+    const items: Array<{ key: string; label: string; icon: string; value: string }> = []
+    Object.keys(softwareFieldLabels).forEach(key => {
+      const value = sw[key as keyof SoftwareInfo]
+      if (value !== undefined && value !== '' && key !== 'interests') {
+        const field = softwareFieldLabels[key]
+        items.push({
+          key,
+          label: field.label,
+          icon: field.icon,
+          value: String(value)
+        })
+      }
+    })
+    return items
+  }
+
   if (loading) {
     return (
       <View className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -139,6 +239,10 @@ const DetailPage: FC = () => {
     )
   }
 
+  const hardwareItems = getHardwareItems(detail.hardware)
+  const softwareItems = getSoftwareItems(detail.software)
+  const interests = detail.software?.interests || []
+
   return (
     <View className="min-h-screen bg-gray-50 pb-24">
       {/* 顶部 */}
@@ -154,26 +258,29 @@ const DetailPage: FC = () => {
         </View>
       </View>
 
-      {/* 基本信息 */}
+      {/* 基本信息卡片 */}
       <View className="p-4">
         <Card className="border border-gray-100">
           <CardContent className="p-4">
-            <View className="flex items-start justify-between mb-4">
+            <View className="flex items-start justify-between mb-3">
               <View>
                 <Text className="block text-xl font-bold text-gray-900 mb-1">{detail.name}</Text>
-                <Text className="block text-sm text-gray-500">{detail.age}岁 · {detail.occupation}</Text>
+                <Text className="block text-sm text-gray-500">
+                  {detail.hardware?.age ? `${detail.hardware.age}岁` : ''}
+                  {detail.hardware?.occupation ? ` · ${detail.hardware.occupation}` : ''}
+                </Text>
               </View>
               <View className="flex gap-2">
-                {detail.mbti && (
-                  <Badge className="bg-gray-100 text-gray-600">{detail.mbti}</Badge>
+                {detail.software?.mbti && (
+                  <Badge className="bg-gray-100 text-gray-600">{detail.software.mbti}</Badge>
                 )}
-                {detail.zodiac && (
-                  <Badge className="bg-gray-100 text-gray-600">{detail.zodiac}</Badge>
+                {detail.hardware?.zodiac && (
+                  <Badge className="bg-gray-100 text-gray-600">{detail.hardware.zodiac}</Badge>
                 )}
               </View>
             </View>
             
-            <View className="flex gap-4">
+            <View className="flex gap-3">
               <View className="flex-1 text-center py-2 bg-gray-50 rounded-lg">
                 <Text className="block text-sm font-semibold text-gray-900">
                   {stageLabels[detail.relationshipStage] || detail.relationshipStage}
@@ -191,39 +298,64 @@ const DetailPage: FC = () => {
         </Card>
       </View>
 
-      {/* 关键信息 */}
+      {/* 硬件信息 */}
       <View className="px-4 pb-4">
-        <View className="flex items-center justify-between mb-2">
-          <Text className="block text-sm font-semibold text-gray-900">关键信息</Text>
-          <View onClick={goToEdit}>
-            <Text className="block text-xs text-gray-400">编辑</Text>
-          </View>
+        <View className="flex items-center gap-2 mb-2">
+          <HardDrive size={14} color="#6B7280" />
+          <Text className="block text-sm font-semibold text-gray-900">硬件信息</Text>
+          <Text className="block text-xs text-gray-400">外在属性</Text>
         </View>
-        {detail.keyInfo?.length > 0 ? (
+        {hardwareItems.length > 0 ? (
           <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
-            {detail.keyInfo.map((info) => (
-              <View key={info.id} className="flex items-center px-4 py-3">
-                <Text className="block text-base mr-3">{info.icon}</Text>
+            {hardwareItems.map((item) => (
+              <View key={item.key} className="flex items-center px-4 py-3">
+                <Text className="block text-base mr-3">{item.icon}</Text>
                 <View className="flex-1">
-                  <Text className="block text-xs text-gray-400">{info.label}</Text>
-                  <Text className="block text-sm text-gray-700">{info.value}</Text>
+                  <Text className="block text-xs text-gray-400">{item.label}</Text>
+                  <Text className="block text-sm text-gray-700">{item.value}</Text>
                 </View>
               </View>
             ))}
           </View>
         ) : (
           <View className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-            <Text className="block text-sm text-gray-400">暂无关键信息，点击编辑添加</Text>
+            <Text className="block text-sm text-gray-400">暂无硬件信息，点击编辑添加</Text>
+          </View>
+        )}
+      </View>
+
+      {/* 软件信息 */}
+      <View className="px-4 pb-4">
+        <View className="flex items-center gap-2 mb-2">
+          <Cpu size={14} color="#6B7280" />
+          <Text className="block text-sm font-semibold text-gray-900">软件信息</Text>
+          <Text className="block text-xs text-gray-400">内在特质</Text>
+        </View>
+        {softwareItems.length > 0 ? (
+          <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
+            {softwareItems.map((item) => (
+              <View key={item.key} className="flex items-center px-4 py-3">
+                <Text className="block text-base mr-3">{item.icon}</Text>
+                <View className="flex-1">
+                  <Text className="block text-xs text-gray-400">{item.label}</Text>
+                  <Text className="block text-sm text-gray-700">{item.value}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View className="bg-white rounded-xl border border-gray-100 p-4 text-center">
+            <Text className="block text-sm text-gray-400">暂无软件信息，点击编辑添加</Text>
           </View>
         )}
       </View>
 
       {/* 兴趣标签 */}
-      {detail.interests?.length > 0 && (
+      {interests.length > 0 && (
         <View className="px-4 pb-4">
           <Text className="block text-sm font-semibold text-gray-900 mb-2">兴趣爱好</Text>
           <View className="flex flex-wrap gap-2">
-            {detail.interests.map((interest, i) => (
+            {interests.map((interest, i) => (
               <Badge key={i} className="bg-gray-100 text-gray-600">{interest}</Badge>
             ))}
           </View>
@@ -290,6 +422,16 @@ const DetailPage: FC = () => {
           </Button>
         )}
       </View>
+
+      {/* 备注 */}
+      {detail.notes && (
+        <View className="px-4 pb-4">
+          <Text className="block text-sm font-semibold text-gray-900 mb-2">备注</Text>
+          <View className="bg-white rounded-xl border border-gray-100 p-4">
+            <Text className="block text-sm text-gray-600">{detail.notes}</Text>
+          </View>
+        </View>
+      )}
 
       {/* 底部操作 */}
       <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">

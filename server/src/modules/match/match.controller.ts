@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Param, Req } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Req, Put } from '@nestjs/common'
 import { Request } from 'express'
-import { MatchService } from './match.service'
+import { MatchService, HardwareInfo, SoftwareInfo } from './match.service'
 
 @Controller('match')
 export class MatchController {
@@ -19,36 +19,33 @@ export class MatchController {
   @Post('create')
   createMatch(@Body() body: {
     name: string
-    age: number
-    gender: string
-    occupation: string
-    mbti: string
-    zodiac: string
-    meetingScene: string
-    meetingDate: string
-    impression: number
-    impressionTags: string[]
-    interests: string[]
-    notes: string
+    gender?: string
+    hardware?: Partial<HardwareInfo>
+    software?: Partial<SoftwareInfo>
+    meetingScene?: string
+    meetingDate?: string
+    relationshipStage?: string
+    interactionStatus?: string
+    impression?: number
+    impressionTags?: string[]
+    notes?: string
   }) {
     return this.matchService.createMatch(body)
   }
 
+  @Put(':id')
   @Post(':id/update')
   updateMatch(@Param('id') id: string, @Body() body: Partial<{
     name: string
-    age: number
     gender: string
-    occupation: string
-    mbti: string
-    zodiac: string
+    hardware: Partial<HardwareInfo>
+    software: Partial<SoftwareInfo>
     meetingScene: string
     meetingDate: string
     relationshipStage: string
     interactionStatus: string
     impression: number
     impressionTags: string[]
-    interests: string[]
     keyInfo: Array<{ id: string; type: string; label: string; icon: string; value: string }>
     notes: string
     status: string

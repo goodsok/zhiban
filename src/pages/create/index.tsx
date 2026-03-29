@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Check, Loader } from 'lucide-react-taro'
+import { ArrowLeft, Check, Loader, HardDrive, Cpu } from 'lucide-react-taro'
 import { Network } from '@/network'
 
 // 见面场景
@@ -43,18 +43,29 @@ const interactionStatuses = [
 // 预设兴趣
 const presetInterests = [
   '旅行', '摄影', '美食', '健身', '电影', '音乐', '阅读', '游戏',
+  '绘画', '烹饪', '瑜伽', '游泳',
 ]
 
 const CreatePage: FC = () => {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
-    age: '',
-    occupation: '',
+    gender: 'female',
+    // 硬件信息
+    hardware: {
+      age: '',
+      occupation: '',
+      location: '',
+    },
+    // 软件信息
+    software: {
+      mbti: '',
+      interests: [] as string[],
+    },
     meetingScene: '',
     relationshipStage: 'new',
     interactionStatus: 'just_met',
-    interests: [] as string[],
+    notes: '',
   })
 
   useLoad(() => {
@@ -64,14 +75,17 @@ const CreatePage: FC = () => {
   const goBack = () => navigateBack()
 
   const toggleInterest = (interest: string) => {
-    const newInterests = formData.interests.includes(interest)
-      ? formData.interests.filter(i => i !== interest)
-      : [...formData.interests, interest]
-    setFormData({ ...formData, interests: newInterests })
+    const newInterests = formData.software.interests.includes(interest)
+      ? formData.software.interests.filter(i => i !== interest)
+      : [...formData.software.interests, interest]
+    setFormData({
+      ...formData,
+      software: { ...formData.software, interests: newInterests }
+    })
   }
 
   const handleSave = async () => {
-    if (!formData.name || !formData.age) return
+    if (!formData.name || !formData.hardware.age) return
 
     try {
       setLoading(true)
@@ -80,12 +94,20 @@ const CreatePage: FC = () => {
         method: 'POST',
         data: {
           name: formData.name,
-          age: parseInt(formData.age),
-          occupation: formData.occupation,
+          gender: formData.gender,
+          hardware: {
+            age: parseInt(formData.hardware.age),
+            occupation: formData.hardware.occupation || undefined,
+            location: formData.hardware.location || undefined,
+          },
+          software: {
+            mbti: formData.software.mbti || undefined,
+            interests: formData.software.interests,
+          },
           meetingScene: formData.meetingScene || 'other',
           relationshipStage: formData.relationshipStage,
           interactionStatus: formData.interactionStatus,
-          interests: formData.interests,
+          notes: formData.notes || undefined,
         }
       })
       console.log('Create response:', res.data)
@@ -99,7 +121,7 @@ const CreatePage: FC = () => {
     }
   }
 
-  const isValid = formData.name && formData.age
+  const isValid = formData.name && formData.hardware.age
 
   return (
     <View className="min-h-screen bg-gray-50 pb-24">
@@ -115,43 +137,110 @@ const CreatePage: FC = () => {
       </View>
 
       <View className="p-4">
-        {/* 基本信息 */}
-        <View className="mb-6">
-          <Text className="block text-xs text-gray-400 mb-2">基本信息</Text>
+        {/* 姓名 */}
+        <View className="mb-4">
+          <Text className="block text-xs text-gray-400 mb-2">姓名 *</Text>
           <View className="bg-white rounded-xl border border-gray-100 p-4">
-            <View className="mb-4">
-              <Text className="block text-xs text-gray-400 mb-1">姓名</Text>
-              <Input
-                className="w-full"
-                placeholder="输入姓名"
-                value={formData.name}
-                onInput={(e) => setFormData({ ...formData, name: e.detail.value })}
-              />
-            </View>
-            <View className="mb-4">
-              <Text className="block text-xs text-gray-400 mb-1">年龄</Text>
+            <Input
+              className="w-full"
+              placeholder="输入姓名"
+              value={formData.name}
+              onInput={(e) => setFormData({ ...formData, name: e.detail.value })}
+            />
+          </View>
+        </View>
+
+        {/* 硬件信息 */}
+        <View className="mb-4">
+          <View className="flex items-center gap-2 mb-2">
+            <HardDrive size={14} color="#6B7280" />
+            <Text className="block text-xs text-gray-400">硬件信息</Text>
+            <Text className="block text-xs text-gray-300">外在属性</Text>
+          </View>
+          <View className="bg-white rounded-xl border border-gray-100 p-4">
+            <View className="mb-3">
+              <Text className="block text-xs text-gray-400 mb-1">年龄 *</Text>
               <Input
                 className="w-full"
                 type="number"
                 placeholder="输入年龄"
-                value={formData.age}
-                onInput={(e) => setFormData({ ...formData, age: e.detail.value })}
+                value={formData.hardware.age}
+                onInput={(e) => setFormData({
+                  ...formData,
+                  hardware: { ...formData.hardware, age: e.detail.value }
+                })}
               />
             </View>
-            <View>
+            <View className="mb-3">
               <Text className="block text-xs text-gray-400 mb-1">职业</Text>
               <Input
                 className="w-full"
                 placeholder="输入职业（选填）"
-                value={formData.occupation}
-                onInput={(e) => setFormData({ ...formData, occupation: e.detail.value })}
+                value={formData.hardware.occupation}
+                onInput={(e) => setFormData({
+                  ...formData,
+                  hardware: { ...formData.hardware, occupation: e.detail.value }
+                })}
+              />
+            </View>
+            <View>
+              <Text className="block text-xs text-gray-400 mb-1">所在地</Text>
+              <Input
+                className="w-full"
+                placeholder="如：北京朝阳（选填）"
+                value={formData.hardware.location}
+                onInput={(e) => setFormData({
+                  ...formData,
+                  hardware: { ...formData.hardware, location: e.detail.value }
+                })}
               />
             </View>
           </View>
         </View>
 
+        {/* 软件信息 */}
+        <View className="mb-4">
+          <View className="flex items-center gap-2 mb-2">
+            <Cpu size={14} color="#6B7280" />
+            <Text className="block text-xs text-gray-400">软件信息</Text>
+            <Text className="block text-xs text-gray-300">内在特质</Text>
+          </View>
+          <View className="bg-white rounded-xl border border-gray-100 p-4">
+            <View className="mb-3">
+              <Text className="block text-xs text-gray-400 mb-1">MBTI</Text>
+              <Input
+                className="w-full"
+                placeholder="如：ENFP（选填）"
+                value={formData.software.mbti}
+                onInput={(e) => setFormData({
+                  ...formData,
+                  software: { ...formData.software, mbti: e.detail.value }
+                })}
+              />
+            </View>
+            <View>
+              <Text className="block text-xs text-gray-400 mb-1">兴趣爱好</Text>
+              <View className="flex flex-wrap gap-2 mt-2">
+                {presetInterests.map((interest) => (
+                  <Badge
+                    key={interest}
+                    className={`${
+                      formData.software.interests.includes(interest)
+                        ? 'bg-gray-900 text-white'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}
+                    onClick={() => toggleInterest(interest)}
+                  >
+                    {interest}
+                  </Badge>
+                ))}
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* 见面场景 */}
-        <View className="mb-6">
+        <View className="mb-4">
           <Text className="block text-xs text-gray-400 mb-2">见面场景</Text>
           <View className="flex flex-wrap gap-2">
             {meetingScenes.map((scene) => (
@@ -170,10 +259,10 @@ const CreatePage: FC = () => {
           </View>
         </View>
 
-        {/* 关系阶段 */}
-        <View className="mb-6">
+        {/* 关系状态 */}
+        <View className="mb-4">
           <Text className="block text-xs text-gray-400 mb-2">关系阶段</Text>
-          <View className="grid grid-cols-4 gap-2">
+          <View className="grid grid-cols-4 gap-2 mb-2">
             {relationshipStages.map((stage) => (
               <View
                 key={stage.id}
@@ -191,13 +280,13 @@ const CreatePage: FC = () => {
         </View>
 
         {/* 互动状态 */}
-        <View className="mb-6">
+        <View className="mb-4">
           <Text className="block text-xs text-gray-400 mb-2">互动状态</Text>
           <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
             {interactionStatuses.map((status) => (
               <View
                 key={status.id}
-                className="flex items-center justify-between px-4 py-3"
+                className="flex items-center justify-between px-4 py-2"
                 onClick={() => setFormData({ ...formData, interactionStatus: status.id })}
               >
                 <Text className={`block text-sm ${
@@ -207,30 +296,23 @@ const CreatePage: FC = () => {
                   {status.label}
                 </Text>
                 {formData.interactionStatus === status.id && (
-                  <Check size={16} color="#111827" />
+                  <Check size={14} color="#111827" />
                 )}
               </View>
             ))}
           </View>
         </View>
 
-        {/* 兴趣爱好 */}
-        <View className="mb-6">
-          <Text className="block text-xs text-gray-400 mb-2">兴趣爱好（选填）</Text>
-          <View className="flex flex-wrap gap-2">
-            {presetInterests.map((interest) => (
-              <Badge
-                key={interest}
-                className={`${
-                  formData.interests.includes(interest)
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-                onClick={() => toggleInterest(interest)}
-              >
-                {interest}
-              </Badge>
-            ))}
+        {/* 备注 */}
+        <View className="mb-4">
+          <Text className="block text-xs text-gray-400 mb-2">备注</Text>
+          <View className="bg-white rounded-xl border border-gray-100 p-4">
+            <Input
+              className="w-full"
+              placeholder="添加备注（选填）"
+              value={formData.notes}
+              onInput={(e) => setFormData({ ...formData, notes: e.detail.value })}
+            />
           </View>
         </View>
       </View>
