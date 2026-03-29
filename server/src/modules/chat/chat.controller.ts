@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req } from '@nestjs/common'
+import { Controller, Post, Get, Delete, Body, Param, Query, Req } from '@nestjs/common'
 import { Request } from 'express'
 import { ChatService, ChatMessage, ChatContext } from './chat.service'
 
@@ -19,5 +19,21 @@ export class ChatController {
       body.context || null,
       req
     )
+  }
+
+  @Get('history/:matchId')
+  async getHistory(
+    @Param('matchId') matchId: string,
+    @Query('limit') limit?: string
+  ) {
+    return this.chatService.getHistory(
+      Number(matchId),
+      limit ? Number(limit) : 50
+    )
+  }
+
+  @Delete('history/:matchId')
+  async clearHistory(@Param('matchId') matchId: string) {
+    return this.chatService.clearHistory(Number(matchId))
   }
 }

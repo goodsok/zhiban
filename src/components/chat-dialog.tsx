@@ -1,5 +1,5 @@
 import { View, Text, ScrollView } from '@tarojs/components'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Network } from '@/network'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Loader, Send, Sparkles } from 'lucide-react-taro'
@@ -36,17 +36,52 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [loading, setLoading] = useState(false)
-  const scrollViewRef = useRef<string>('')
+  const [historyLoading, setHistoryLoading] = useState(false)
 
-  // 欢迎消息
+  // 加载历史记录
   useEffect(() => {
-    if (open && messages.length === 0) {
-      const welcomeMsg = context
-        ? `你好！我是小助手，可以帮你分析${context.matchName}的情况，或者给你一些建议。有什么想聊的吗？`
-        : '你好！我是小助手，请先选择一个对象，我才能给你针对性的建议哦~'
-      setMessages([{ role: 'assistant', content: welcomeMsg }])
+    if (open && context?.matchId) {
+      loadHistory()
+    } else if (open) {
+      // 没有上下文时显示欢迎消息
+      setMessages([{ 
+        role: 'assistant', 
+        content: '你好！我是小助手，请先选择一个对象，我才能给你针对性的建议哦~' 
+      }])
     }
-  }, [open, context, messages.length])
+  }, [open, context?.matchId])
+
+  const loadHistory = async () => {
+    if (!context?.matchId) return
+    
+    setHistoryLoading(true)
+    try {
+      const res = await Network.request({
+        url: `/api/chat/history/${context.matchId}`,
+        method: 'GET'
+      })
+      
+      console.log('Load history response:', res.data)
+      
+      if (res.data?.code === 200 && res.data?.data?.messages?.length > 0) {
+        setMessages(res.data.data.messages)
+      } else {
+        // 没有历史记录，显示欢迎消息
+        setMessages([{ 
+          role: 'assistant', 
+          content: `你好！我是小助手，可以帮你分析${context.matchName}的情况，或者给你一些建议。有什么想聊的吗？` 
+        }])
+      }
+    } catch (error) {
+      console.error('Load history error:', error)
+      setMessages([{ 
+        role: 'assistant', 
+        content: `你好！我是小助手，可以帮你分析${context.matchName}的情况，或者给你一些建议。有什么想聊的吗？` 
+      }])
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
 
   // 发送消息
   const handleSend = async () => {
@@ -109,11 +144,6 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
     setInputValue(q)
   }
 
-  // 滚动到底部
-  useEffect(() => {
-    scrollViewRef.current = `msg-${messages.length}`
-  }, [messages.length])
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
@@ -138,26 +168,33 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         <ScrollView 
           className="flex-1 px-4 py-3"
           scrollY
-          scrollIntoView={scrollViewRef.current}
+          scrollIntoView={`msg-${messages.length}`}
           scrollWithAnimation
         >
-          {messages.map((msg, i) => (
-            <View 
-              key={i}
-              id={`msg-${i + 1}`}
-              className={`mb-3 ${msg.role === 'user' ? 'flex justify-end' : ''}`}
-            >
-              {msg.role === 'assistant' ? (
-                <View className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
-                  <Text className="block text-sm text-gray-800 whitespace-pre-wrap">{msg.content}</Text>
-                </View>
-              ) : (
-                <View className="bg-black rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%]">
-                  <Text className="block text-sm text-white">{msg.content}</Text>
-                </View>
-              )}
+          {historyLoading ? (
+            <View className="flex items-center justify-center py-8">
+              <Loader size={20} color="#6B7280" className="animate-spin" />
+              <Text className="block text-sm text-gray-400 ml-2">加载历史记录...</Text>
             </View>
-          ))}
+          ) : (
+            messages.map((msg, i) => (
+              <View 
+                key={i}
+                id={`msg-${i + 1}`}
+                className={`mb-3 ${msg.role === 'user' ? 'flex justify-end' : ''}`}
+              >
+                {msg.role === 'assistant' ? (
+                  <View className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                    <Text className="block text-sm text-gray-800 whitespace-pre-wrap">{msg.content}</Text>
+                  </View>
+                ) : (
+                  <View className="bg-black rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%]">
+                    <Text className="block text-sm text-white">{msg.content}</Text>
+                  </View>
+                )}
+              </View>
+            ))
+          )}
           
           {loading && (
             <View className="mb-3">
@@ -170,7 +207,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         </ScrollView>
 
         {/* 快捷问题 */}
-        {messages.length <= 1 && (
+        {messages.length <= 1 && !historyLoading && (
           <View className="flex-shrink-0 px-4 pb-2">
             <View className="flex flex-wrap gap-2">
               {quickQuestions.map((q, i) => (

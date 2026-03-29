@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Request } from 'express'
 import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
+import { getSupabaseClient } from '@/storage/database/supabase-client'
 
 // 消息接口
 export interface ChatMessage {
@@ -24,8 +25,118 @@ export interface ChatContext {
   interactionStatus: string
 }
 
+// 数据库消息格式
+interface DbChatHistory {
+  id: number
+  match_id: number
+  role: string
+  content: string
+  created_at: string
+}
+
 @Injectable()
 export class ChatService {
+  /**
+   * 获取对话历史
+   * @param matchId 对象ID
+   * @param limit 限制条数
+   */
+  async getHistory(matchId: number, limit: number = 50) {
+    try {
+      const client = getSupabaseClient()
+      const { data, error } = await client
+        .from('chat_histories')
+        .select('id, match_id, role, content, created_at')
+        .eq('match_id', matchId)
+        .order('created_at', { ascending: true })
+        .limit(limit)
+
+      if (error) {
+        console.error('Get history error:', error)
+        return {
+          code: 500,
+          data: null,
+          message: `获取历史记录失败: ${error.message}`,
+        }
+      }
+
+      const messages = (data as DbChatHistory[]).map(msg => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      }))
+
+      return {
+        code: 200,
+        data: { messages },
+        message: 'success',
+      }
+    } catch (error) {
+      console.error('Get history error:', error)
+      return {
+        code: 500,
+        data: null,
+        message: '获取历史记录失败',
+      }
+    }
+  }
+
+  /**
+   * 保存消息到数据库
+   */
+  private async saveMessage(matchId: number, role: string, content: string) {
+    try {
+      const client = getSupabaseClient()
+      const { error } = await client
+        .from('chat_histories')
+        .insert({
+          match_id: matchId,
+          role,
+          content,
+        })
+
+      if (error) {
+        console.error('Save message error:', error)
+      }
+    } catch (error) {
+      console.error('Save message error:', error)
+    }
+  }
+
+  /**
+   * 清空对话历史
+   */
+  async clearHistory(matchId: number) {
+    try {
+      const client = getSupabaseClient()
+      const { error } = await client
+        .from('chat_histories')
+        .delete()
+        .eq('match_id', matchId)
+
+      if (error) {
+        console.error('Clear history error:', error)
+        return {
+          code: 500,
+          data: null,
+          message: `清空历史记录失败: ${error.message}`,
+        }
+      }
+
+      return {
+        code: 200,
+        data: null,
+        message: 'success',
+      }
+    } catch (error) {
+      console.error('Clear history error:', error)
+      return {
+        code: 500,
+        data: null,
+        message: '清空历史记录失败',
+      }
+    }
+  }
+
   /**
    * AI对话接口
    * @param messages 对话历史
@@ -55,6 +166,15 @@ export class ChatService {
       ]
 
       const response = await client.invoke(fullMessages, { temperature: 0.8 })
+
+      // 保存用户消息和AI回复到数据库
+      if (context?.matchId && messages.length > 0) {
+        const lastMessage = messages[messages.length - 1]
+        if (lastMessage.role === 'user') {
+          await this.saveMessage(context.matchId, 'user', lastMessage.content)
+        }
+        await this.saveMessage(context.matchId, 'assistant', response.content)
+      }
 
       return {
         code: 200,

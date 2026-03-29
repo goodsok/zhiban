@@ -1,11 +1,11 @@
+import Taro, { useLoad, navigateBack, chooseImage } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
-import { useLoad, navigateBack } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Check, Loader, HardDrive, Cpu } from 'lucide-react-taro'
+import { ArrowLeft, Check, Loader, HardDrive, Cpu, Camera, Sparkles } from 'lucide-react-taro'
 import { Network } from '@/network'
 
 // 见面场景
@@ -48,6 +48,8 @@ const presetInterests = [
 
 const CreatePage: FC = () => {
   const [loading, setLoading] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     gender: 'female',
@@ -61,6 +63,7 @@ const CreatePage: FC = () => {
     software: {
       mbti: '',
       interests: [] as string[],
+      personality: '',
     },
     meetingScene: '',
     relationshipStage: 'new',
@@ -73,6 +76,112 @@ const CreatePage: FC = () => {
   })
 
   const goBack = () => navigateBack()
+
+  // 选择图片并分析
+  const handleChooseImage = async () => {
+    try {
+      const res = await chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera']
+      })
+
+      if (res.tempFilePaths && res.tempFilePaths[0]) {
+        await analyzeImage(res.tempFilePaths[0])
+      }
+    } catch (error) {
+      console.error('Choose image error:', error)
+    }
+  }
+
+  // 分析图片
+  const analyzeImage = async (filePath: string) => {
+    setAnalyzing(true)
+    setAnalysisResult(null)
+
+    try {
+      // 使用 Taro.readFile 读取文件并转为 base64
+      const fileSystemManager = Taro.getFileSystemManager()
+      const base64Data = fileSystemManager.readFileSync(filePath, 'base64') as string
+      
+      // 调用图片分析接口
+      const res = await Network.request({
+        url: '/api/profile-analysis/from-base64',
+        method: 'POST',
+        data: {
+          base64Data: `data:image/jpeg;base64,${base64Data}`
+        }
+      })
+
+      console.log('Analysis response:', res.data)
+
+      if (res.data?.code === 200 && res.data?.data) {
+        const profile = res.data.data
+        applyAnalysisResult(profile)
+        setAnalysisResult(profile.summary || '分析完成')
+      } else {
+        setAnalysisResult('分析失败，请手动填写信息')
+      }
+    } catch (error) {
+      console.error('Analyze image error:', error)
+      setAnalysisResult('分析失败，请手动填写信息')
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
+  // 应用分析结果到表单
+  const applyAnalysisResult = (profile: Record<string, unknown>) => {
+    const updates: Partial<typeof formData> = {}
+
+    if (profile.gender) {
+      updates.gender = profile.gender as string
+    }
+    if (profile.age) {
+      updates.hardware = {
+        ...formData.hardware,
+        age: String(profile.age)
+      }
+    }
+    if (profile.occupation) {
+      updates.hardware = {
+        ...formData.hardware,
+        ...(updates.hardware || formData.hardware),
+        occupation: profile.occupation as string
+      }
+    }
+    if (profile.mbti) {
+      updates.software = {
+        ...formData.software,
+        mbti: profile.mbti as string
+      }
+    }
+    if (profile.personality) {
+      updates.software = {
+        ...formData.software,
+        ...(updates.software || formData.software),
+        personality: profile.personality as string
+      }
+    }
+    if (profile.interests && Array.isArray(profile.interests)) {
+      // 匹配预设兴趣
+      const matchedInterests = profile.interests.filter((i: string) => 
+        presetInterests.some(p => i.includes(p) || p.includes(i))
+      )
+      updates.software = {
+        ...formData.software,
+        ...(updates.software || formData.software),
+        interests: matchedInterests.length > 0 ? matchedInterests : profile.interests.slice(0, 3)
+      }
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      ...updates,
+      hardware: { ...prev.hardware, ...(updates.hardware || {}) },
+      software: { ...prev.software, ...(updates.software || {}) }
+    }))
+  }
 
   const toggleInterest = (interest: string) => {
     const newInterests = formData.software.interests.includes(interest)
@@ -103,6 +212,7 @@ const CreatePage: FC = () => {
           software: {
             mbti: formData.software.mbti || undefined,
             interests: formData.software.interests,
+            personality: formData.software.personality || undefined,
           },
           meetingScene: formData.meetingScene || 'other',
           relationshipStage: formData.relationshipStage,
@@ -137,6 +247,41 @@ const CreatePage: FC = () => {
       </View>
 
       <View className="p-4">
+        {/* AI 图片分析 */}
+        <View className="mb-4">
+          <View className="flex items-center gap-2 mb-2">
+            <Sparkles size={14} color="#6B7280" />
+            <Text className="block text-xs text-gray-400">AI 智能分析</Text>
+          </View>
+          <View className="bg-white rounded-xl border border-gray-100 p-4">
+            {analyzing ? (
+              <View className="flex items-center justify-center py-4">
+                <Loader size={20} color="#6B7280" className="animate-spin" />
+                <Text className="block text-sm text-gray-500 ml-2">正在分析图片...</Text>
+              </View>
+            ) : (
+              <>
+                <View 
+                  className="flex items-center justify-center py-6 border-2 border-dashed border-gray-200 rounded-lg mb-2"
+                  onClick={handleChooseImage}
+                >
+                  <View className="text-center">
+                    <Camera size={32} color="#9CA3AF" />
+                    <Text className="block text-sm text-gray-400 mt-2">点击上传图片</Text>
+                    <Text className="block text-xs text-gray-300 mt-1">自动识别人物信息</Text>
+                  </View>
+                </View>
+                {analysisResult && (
+                  <View className="bg-gray-50 rounded-lg p-3">
+                    <Text className="block text-xs text-gray-500 mb-1">分析结果</Text>
+                    <Text className="block text-sm text-gray-700">{analysisResult}</Text>
+                  </View>
+                )}
+              </>
+            )}
+          </View>
+        </View>
+
         {/* 姓名 */}
         <View className="mb-4">
           <Text className="block text-xs text-gray-400 mb-2">姓名 *</Text>
@@ -147,6 +292,29 @@ const CreatePage: FC = () => {
               value={formData.name}
               onInput={(e) => setFormData({ ...formData, name: e.detail.value })}
             />
+          </View>
+        </View>
+
+        {/* 性别 */}
+        <View className="mb-4">
+          <Text className="block text-xs text-gray-400 mb-2">性别</Text>
+          <View className="flex gap-2">
+            <View 
+              className={`flex-1 text-center py-2 rounded-lg ${
+                formData.gender === 'female' ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600'
+              }`}
+              onClick={() => setFormData({ ...formData, gender: 'female' })}
+            >
+              <Text className="block text-sm">女</Text>
+            </View>
+            <View 
+              className={`flex-1 text-center py-2 rounded-lg ${
+                formData.gender === 'male' ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600'
+              }`}
+              onClick={() => setFormData({ ...formData, gender: 'male' })}
+            >
+              <Text className="block text-sm">男</Text>
+            </View>
           </View>
         </View>
 
@@ -218,6 +386,18 @@ const CreatePage: FC = () => {
                 })}
               />
             </View>
+            <View className="mb-3">
+              <Text className="block text-xs text-gray-400 mb-1">性格描述</Text>
+              <Input
+                className="w-full"
+                placeholder="如：热情开朗（选填）"
+                value={formData.software.personality}
+                onInput={(e) => setFormData({
+                  ...formData,
+                  software: { ...formData.software, personality: e.detail.value }
+                })}
+              />
+            </View>
             <View>
               <Text className="block text-xs text-gray-400 mb-1">兴趣爱好</Text>
               <View className="flex flex-wrap gap-2 mt-2">
@@ -226,7 +406,7 @@ const CreatePage: FC = () => {
                     key={interest}
                     className={`${
                       formData.software.interests.includes(interest)
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-black text-white'
                         : 'bg-gray-100 text-gray-600'
                     }`}
                     onClick={() => toggleInterest(interest)}
@@ -248,7 +428,7 @@ const CreatePage: FC = () => {
                 key={scene.id}
                 className={`${
                   formData.meetingScene === scene.id 
-                    ? 'bg-gray-900 text-white' 
+                    ? 'bg-black text-white' 
                     : 'bg-gray-100 text-gray-600'
                 }`}
                 onClick={() => setFormData({ ...formData, meetingScene: scene.id })}
@@ -268,7 +448,7 @@ const CreatePage: FC = () => {
                 key={stage.id}
                 className={`text-center py-2 rounded-lg ${
                   formData.relationshipStage === stage.id 
-                    ? 'bg-gray-900 text-white' 
+                    ? 'bg-black text-white' 
                     : 'bg-white border border-gray-200 text-gray-600'
                 }`}
                 onClick={() => setFormData({ ...formData, relationshipStage: stage.id })}
