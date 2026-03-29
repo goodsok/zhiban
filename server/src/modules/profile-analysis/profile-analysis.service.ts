@@ -105,16 +105,19 @@ export class ProfileAnalysisService {
               text: `请分析这张图片中的人物信息，提取可能的档案数据用于相亲/交友档案。
 
 请从图片中识别以下信息（如果可见/可推断）：
-1. 基本信息：性别、大致年龄、外貌特征
-2. 穿搭风格：服装风格、整体气质
-3. 可能的兴趣爱好（根据服装、背景、道具等推断）
-4. 可能的职业方向
-5. 整体印象和性格猜测
+1. 基本信息：姓名（如果有签名、水印、昵称等）、性别、大致年龄、外貌特征
+2. 所在地：根据背景地标、定位水印、POI信息等推断
+3. 穿搭风格：服装风格、整体气质
+4. 可能的兴趣爱好（根据服装、背景、道具等推断）
+5. 可能的职业方向
+6. 整体印象和性格猜测
 
 请用JSON格式返回，格式如下：
 {
+  "name": "姓名（如果有签名或可推断）",
   "gender": "female/male",
   "age": 数字,
+  "location": "推断的所在地",
   "appearance": "外貌描述",
   "style": "穿搭风格",
   "occupation": "可能职业",
@@ -128,7 +131,9 @@ export class ProfileAnalysisService {
 - 只提取图片中能合理推断的信息
 - 不确定的信息可以省略
 - 保持客观，不要过度猜测
-- summary 字段请给出一段简短的整体描述`,
+- summary 字段请给出一段简短的整体描述
+- 姓名：如果图片中有签名、水印昵称、社交账号名等，可以提取
+- 所在地：根据背景建筑、地标、定位水印等推断城市或区域`,
             },
             {
               type: 'image_url' as const,
@@ -174,8 +179,10 @@ export class ProfileAnalysisService {
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0])
         return {
+          name: parsed.name,
           gender: parsed.gender,
           age: parsed.age,
+          location: parsed.location,
           appearance: parsed.appearance,
           style: parsed.style,
           occupation: parsed.occupation,

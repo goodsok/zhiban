@@ -168,6 +168,9 @@ const CreatePage: FC = () => {
       const updates: Partial<typeof formData> = {}
 
       // 如果新结果有值且当前为空，则填充
+      if (profile.name && !prev.name) {
+        updates.name = profile.name as string
+      }
       if (profile.gender && !prev.gender) {
         updates.gender = profile.gender as string
       }
@@ -175,6 +178,13 @@ const CreatePage: FC = () => {
         updates.hardware = {
           ...prev.hardware,
           age: String(profile.age)
+        }
+      }
+      if (profile.location && !prev.hardware.location) {
+        updates.hardware = {
+          ...prev.hardware,
+          ...(updates.hardware || {}),
+          location: profile.location as string
         }
       }
       if (profile.occupation && !prev.hardware.occupation) {

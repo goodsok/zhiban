@@ -148,14 +148,18 @@ const Index: FC = () => {
                 onClick={() => goToDetail(match.id)}
               >
                 <View className="flex items-center justify-between">
-                  <View className="flex-1">
+                  <View className="flex-1 min-w-0">
                     <View className="flex items-center gap-2 mb-1">
-                      <Text className="block text-base font-semibold text-gray-900">
+                      <Text className="block text-base font-semibold text-gray-900 flex-shrink-0">
                         {match.name}
                       </Text>
-                      <Text className="block text-sm text-gray-500">{match.age}岁</Text>
-                      <Text className="block text-xs text-gray-400">·</Text>
-                      <Text className="block text-sm text-gray-500">{match.occupation}</Text>
+                      <Text className="block text-sm text-gray-500 flex-shrink-0">{match.age}岁</Text>
+                      {match.occupation && (
+                        <>
+                          <Text className="block text-xs text-gray-300 flex-shrink-0">·</Text>
+                          <Text className="block text-sm text-gray-500 truncate">{match.occupation}</Text>
+                        </>
+                      )}
                     </View>
                     <View className="flex items-center gap-2">
                       <Text className="block text-xs text-gray-400">

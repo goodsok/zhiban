@@ -42,28 +42,40 @@ const CustomHeader: FC<CustomHeaderProps> = ({
     }
   }
 
+  // 头部总高度 = 状态栏 + 导航栏
+  const totalHeight = statusBarHeight + navBarHeight
+
   return (
-    <View className="bg-white">
-      {/* 状态栏占位 */}
-      <View style={{ height: `${statusBarHeight}px` }} />
-      
-      {/* 导航栏 */}
+    <>
+      {/* 固定头部 */}
       <View 
-        className="flex items-center justify-between px-4"
-        style={{ height: `${navBarHeight}px` }}
+        className="fixed top-0 left-0 right-0 z-50 bg-white"
+        style={{ borderBottom: '1px solid #f3f4f6' }}
       >
+        {/* 状态栏占位 */}
+        <View style={{ height: `${statusBarHeight}px` }} />
+        
+        {/* 导航栏 */}
         <View 
-          className="w-8 h-8 flex items-center justify-center"
-          onClick={showBack ? handleBack : undefined}
+          className="flex items-center justify-between px-4"
+          style={{ height: `${navBarHeight}px` }}
         >
-          {showBack && <ArrowLeft size={24} color="#374151" />}
-        </View>
-        <Text className="block text-base font-semibold text-gray-900">{title}</Text>
-        <View className="w-8 h-8 flex items-center justify-center">
-          {rightAction}
+          <View 
+            className="w-8 h-8 flex items-center justify-center"
+            onClick={showBack ? handleBack : undefined}
+          >
+            {showBack && <ArrowLeft size={24} color="#374151" />}
+          </View>
+          <Text className="block text-base font-semibold text-gray-900">{title}</Text>
+          <View className="w-8 h-8 flex items-center justify-center">
+            {rightAction}
+          </View>
         </View>
       </View>
-    </View>
+      
+      {/* 内容占位，防止被头部遮挡 */}
+      <View style={{ height: `${totalHeight}px` }} />
+    </>
   )
 }
 
