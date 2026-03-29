@@ -3,7 +3,7 @@ import { useLoad, useDidShow, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
-import { Plus, ChevronRight, Sparkles } from 'lucide-react-taro'
+import { Plus, ChevronRight, Sparkles, Heart, Sun, Moon, Cloud } from 'lucide-react-taro'
 
 interface Match {
   id: number
@@ -16,6 +16,17 @@ interface Match {
   status: string
   nextAction: string
   lastContact: string
+  // 周期信息
+  cycleStartDate?: string
+  cycleLength?: number
+}
+
+interface CycleInfo {
+  day: number
+  phase: string
+  phaseName: string
+  description: string
+  recommendations: string[]
 }
 
 const stageLabels: Record<string, string> = {
@@ -36,9 +47,20 @@ const statusLabels: Record<string, string> = {
   confirming: '准备确认',
 }
 
+// 周期阶段图标和颜色
+const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: string }> = {
+  menstrual: { icon: Moon, color: '#6B7280', bgColor: 'bg-gray-100' },
+  follicular: { icon: Sun, color: '#10B981', bgColor: 'bg-emerald-50' },
+  ovulation: { icon: Heart, color: '#EC4899', bgColor: 'bg-pink-50' },
+  luteal_early: { icon: Sun, color: '#3B82F6', bgColor: 'bg-blue-50' },
+  luteal_mid: { icon: Cloud, color: '#F59E0B', bgColor: 'bg-amber-50' },
+  luteal_late: { icon: Moon, color: '#EF4444', bgColor: 'bg-red-50' },
+}
+
 const Index: FC = () => {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
+  const [cycleInfos, setCycleInfos] = useState<Record<number, CycleInfo>>({})
 
   useLoad(() => {
     console.log('Index page loaded.')
@@ -55,6 +77,15 @@ const Index: FC = () => {
       console.log('Matches response:', res.data)
       if (res.data?.code === 200 && res.data?.data) {
         setMatches(res.data.data)
+        // 获取每个对象的周期信息
+        res.data.data.forEach(async (match: Match) => {
+          if (match.cycleStartDate) {
+            const cycleRes = await Network.request({ url: `/api/match/${match.id}/cycle` })
+            if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
+              setCycleInfos(prev => ({ ...prev, [match.id]: cycleRes.data.data }))
+            }
+          }
+        })
       }
     } catch (error) {
       console.error('Fetch matches error:', error)
@@ -105,44 +136,65 @@ const Index: FC = () => {
             </View>
           </View>
         ) : (
-          matches.map((match) => (
-            <View
-              key={match.id}
-              className="bg-white rounded-xl border border-gray-100 p-4 mb-3"
-              onClick={() => goToDetail(match.id)}
-            >
-              <View className="flex items-center justify-between">
-                <View className="flex-1">
-                  <View className="flex items-center gap-2 mb-1">
-                    <Text className="block text-base font-semibold text-gray-900">
-                      {match.name}
-                    </Text>
-                    <Text className="block text-sm text-gray-500">{match.age}岁</Text>
-                    <Text className="block text-xs text-gray-400">·</Text>
-                    <Text className="block text-sm text-gray-500">{match.occupation}</Text>
+          matches.map((match) => {
+            const cycleInfo = cycleInfos[match.id]
+            const phaseConf = cycleInfo ? phaseConfig[cycleInfo.phase] : null
+            const PhaseIcon = phaseConf?.icon || Heart
+            
+            return (
+              <View
+                key={match.id}
+                className="bg-white rounded-xl border border-gray-100 p-4 mb-3"
+                onClick={() => goToDetail(match.id)}
+              >
+                <View className="flex items-center justify-between">
+                  <View className="flex-1">
+                    <View className="flex items-center gap-2 mb-1">
+                      <Text className="block text-base font-semibold text-gray-900">
+                        {match.name}
+                      </Text>
+                      <Text className="block text-sm text-gray-500">{match.age}岁</Text>
+                      <Text className="block text-xs text-gray-400">·</Text>
+                      <Text className="block text-sm text-gray-500">{match.occupation}</Text>
+                    </View>
+                    <View className="flex items-center gap-2">
+                      <Text className="block text-xs text-gray-400">
+                        {stageLabels[match.relationshipStage] || match.relationshipStage}
+                      </Text>
+                      <Text className="block text-xs text-gray-300">|</Text>
+                      <Text className="block text-xs text-gray-400">
+                        {statusLabels[match.interactionStatus] || match.interactionStatus}
+                      </Text>
+                    </View>
                   </View>
-                  <View className="flex items-center gap-2">
-                    <Text className="block text-xs text-gray-400">
-                      {stageLabels[match.relationshipStage] || match.relationshipStage}
-                    </Text>
-                    <Text className="block text-xs text-gray-300">|</Text>
-                    <Text className="block text-xs text-gray-400">
-                      {statusLabels[match.interactionStatus] || match.interactionStatus}
-                    </Text>
-                  </View>
+                  <ChevronRight size={20} color="#D1D5DB" />
                 </View>
-                <ChevronRight size={20} color="#D1D5DB" />
+                
+                {/* 周期阶段显示 */}
+                {cycleInfo && phaseConf && (
+                  <View className={`mt-3 pt-3 border-t border-gray-100 ${phaseConf.bgColor} -mx-4 -mb-4 px-4 py-3 rounded-b-xl`}>
+                    <View className="flex items-center gap-2 mb-1">
+                      <PhaseIcon size={14} color={phaseConf.color} />
+                      <Text className="block text-xs font-medium" style={{ color: phaseConf.color }}>
+                        {cycleInfo.phaseName} · Day {cycleInfo.day}
+                      </Text>
+                    </View>
+                    <Text className="block text-xs text-gray-500">
+                      {cycleInfo.recommendations[0] || '保持关注'}
+                    </Text>
+                  </View>
+                )}
+                
+                {/* 下一步行动提示（无周期时显示） */}
+                {!cycleInfo && match.nextAction && (
+                  <View className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
+                    <Sparkles size={14} color="#6366F1" />
+                    <Text className="block text-xs text-gray-500">{match.nextAction}</Text>
+                  </View>
+                )}
               </View>
-              
-              {/* 下一步行动提示 */}
-              {match.nextAction && (
-                <View className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
-                  <Sparkles size={14} color="#6366F1" />
-                  <Text className="block text-xs text-gray-500">{match.nextAction}</Text>
-                </View>
-              )}
-            </View>
-          ))
+            )
+          })
         )}
       </View>
     </View>

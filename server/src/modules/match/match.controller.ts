@@ -73,4 +73,16 @@ export class MatchController {
   async getAIInteraction(@Param('id') id: string, @Body() body: { situation?: string }, @Req() req: Request) {
     return this.matchService.getAIInteraction(Number(id), body.situation, req)
   }
+
+  // ============== 周期追踪接口 ==============
+
+  @Get(':id/cycle')
+  getCycleInfo(@Param('id') id: string) {
+    return this.matchService.getCycleInfo(Number(id))
+  }
+
+  @Post(':id/cycle')
+  updateCycleInfo(@Param('id') id: string, @Body() body: { cycleStartDate: string; cycleLength?: number }) {
+    return this.matchService.updateCycleInfo(Number(id), body.cycleStartDate, body.cycleLength)
+  }
 }

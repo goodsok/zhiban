@@ -95,6 +95,19 @@ export interface SoftwareInfo {
   dislikes?: string         // 讨厌什么
   loveExpectation?: string  // 恋爱期待
   dealBreakers?: string     // 雷区/底线
+  // 交流偏好（新增）
+  communicationPreferences?: {
+    effectiveWays?: string[]    // 有效方式：什么让她感到被理解
+    ineffectiveWays?: string[]  // 无效方式：什么让她关闭
+    landmines?: string[]        // 雷区：绝对不能说的话/做
+  }
+  // 爱的语言排序（新增）
+  loveLanguages?: string[]  // ['精心时刻', '肯定的言辞', '礼物', '服务的行动', '身体接触']
+  // 情绪触发点（新增）
+  emotionalTriggers?: {
+    positive?: string[]     // 让她开心的
+    negative?: string[]     // 让她烦躁的
+  }
 }
 
 export interface Match {
@@ -123,6 +136,9 @@ export interface Match {
   nextAction: string
   lastContact: string
   createdAt: Date
+  // 周期追踪（新增）
+  cycleStartDate?: string   // 上次月经开始日期
+  cycleLength?: number      // 周期长度（默认28天）
 }
 
 @Injectable()
@@ -161,6 +177,19 @@ export class MatchService {
         dislikes: '不守时、大男子主义',
         loveExpectation: '希望找到一个能一起成长的人',
         dealBreakers: '不诚实、不尊重女性',
+        // 新增：交流偏好
+        communicationPreferences: {
+          effectiveWays: ['先确认感受，再讨论方案', '问"你需要什么"而非直接建议'],
+          ineffectiveWays: ['她累的时候给建议', '说"你应该..."'],
+          landmines: ['不要说"你太敏感了"', '不要拿她和前任比较'],
+        },
+        // 新增：爱的语言
+        loveLanguages: ['精心时刻', '肯定的言辞', '礼物', '服务的行动', '身体接触'],
+        // 新增：情绪触发点
+        emotionalTriggers: {
+          positive: ['被认真倾听', '收到小惊喜', '一起探索新地方'],
+          negative: ['被忽视感受', '被打断说话', '承诺不兑现'],
+        },
       },
       meetingScene: 'blind_date',
       meetingDate: '2024-03-20',
@@ -177,6 +206,9 @@ export class MatchService {
       nextAction: '约她周末去拍照',
       lastContact: new Date().toISOString(),
       createdAt: new Date('2024-03-20'),
+      // 新增：周期追踪
+      cycleStartDate: '2025-01-10',  // 假设上次月经是10天前
+      cycleLength: 28,
     },
     {
       id: 2,
@@ -198,6 +230,17 @@ export class MatchService {
         hobbies: '养猫、看展、做手工',
         likes: '安静陪伴、深度交流',
         dislikes: '嘈杂环境、肤浅对话',
+        // 新增：交流偏好
+        communicationPreferences: {
+          effectiveWays: ['安静陪伴', '深度话题', '给予思考空间'],
+          ineffectiveWays: ['逼问想法', '强迫社交'],
+          landmines: ['说她想太多', '打断她的思路'],
+        },
+        loveLanguages: ['精心时刻', '身体接触', '肯定的言辞', '服务的行动', '礼物'],
+        emotionalTriggers: {
+          positive: ['被理解内心', '安静的陪伴', '一起看电影'],
+          negative: ['嘈杂人群', '被催促决定', '表面聊天'],
+        },
       },
       meetingScene: 'activity',
       meetingDate: '2024-03-15',
@@ -214,6 +257,9 @@ export class MatchService {
       nextAction: '第三次约会，看她的展',
       lastContact: new Date().toISOString(),
       createdAt: new Date('2024-03-15'),
+      // 新增：周期追踪
+      cycleStartDate: '2025-01-05',  // 假设处于排卵期附近
+      cycleLength: 30,
     },
     {
       id: 3,
@@ -615,6 +661,27 @@ ${keyInfoStr}
     if (sw?.dislikes) softwareInfo.push(`讨厌：${sw.dislikes}`)
     if (sw?.dealBreakers) softwareInfo.push(`雷区：${sw.dealBreakers}`)
     
+    // 交流偏好（新增）
+    const commPrefs: string[] = []
+    if (sw?.communicationPreferences?.effectiveWays?.length) {
+      commPrefs.push(`有效方式：${sw.communicationPreferences.effectiveWays.join('、')}`)
+    }
+    if (sw?.communicationPreferences?.ineffectiveWays?.length) {
+      commPrefs.push(`无效方式：${sw.communicationPreferences.ineffectiveWays.join('、')}`)
+    }
+    if (sw?.communicationPreferences?.landmines?.length) {
+      commPrefs.push(`绝对雷区：${sw.communicationPreferences.landmines.join('、')}`)
+    }
+    
+    // 爱的语言（新增）
+    const loveLangs = sw?.loveLanguages?.length ? sw.loveLanguages.join(' > ') : null
+    
+    // 周期信息（新增）
+    const cycleInfo = this.calculateCyclePhase(match.cycleStartDate, match.cycleLength)
+    const cycleStr = cycleInfo 
+      ? `当前阶段：${cycleInfo.phaseName}（Day ${cycleInfo.day}）\n状态描述：${cycleInfo.description}\n建议方向：${cycleInfo.recommendations.join('、')}`
+      : '未设置周期信息'
+    
     const keyInfoStr = match.keyInfo?.map(k => `${k.icon} ${k.label}：${k.value}`).join('\n') || '无'
     
     return `请为以下情况提供互动建议：
@@ -627,6 +694,15 @@ ${softwareInfo.join('\n') || '暂无信息'}
 
 【关键信息】
 ${keyInfoStr}
+
+【交流偏好】（重要！）
+${commPrefs.join('\n') || '暂无信息'}
+
+【爱的语言】
+${loveLangs || '暂无信息'}
+
+【激素周期状态】（女性特有，非常重要！）
+${cycleStr}
 
 【初印象】
 - 标签：${tagLabels}
@@ -641,18 +717,21 @@ ${keyInfoStr}
 - 备注：${match.notes || '无'}
 ${situation ? `\n【当前情况】\n${situation}` : ''}
 
-请根据以上信息，提供3-5条具体的互动建议。每条建议请说明：
-1. 具体行动
-2. 为什么适合（结合对方的MBTI、星座、兴趣、关键信息等）
-3. 注意事项
+请根据以上信息，提供3-5条具体的互动建议。
+
+**重要原则**：
+1. 如果对方处于PMS期（黄体期后期），建议要更温和、给更多空间
+2. 如果对方处于排卵期，适合主动约会或深度交流
+3. 如果对方处于月经期，建议以关心和陪伴为主，不要安排太多活动
+4. 结合对方的交流偏好，推荐有效的方式，避免雷区
 
 请用JSON格式返回，格式如下：
 {
   "suggestions": [
     {
       "action": "具体行动",
-      "reason": "适合原因",
-      "tips": "注意事项"
+      "reason": "适合原因（结合周期阶段、MBTI、兴趣等）",
+      "tips": "注意事项（结合周期状态提醒）"
     }
   ]
 }`
@@ -803,5 +882,111 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
       party: ['利用共同朋友', '组织小团体活动', '自然接触'],
     }
     return tips[match.meetingScene] || ['真诚对待', '保持联系', '创造机会']
+  }
+
+  // ============== 周期追踪功能 ==============
+
+  /**
+   * 计算当前周期阶段
+   * @param cycleStartDate 周期开始日期
+   * @param cycleLength 周期长度（默认28天）
+   * @returns 周期信息 { day: 当前天数, phase: 阶段, phaseName: 阶段名称 }
+   */
+  calculateCyclePhase(cycleStartDate: string | undefined, cycleLength: number = 28): {
+    day: number
+    phase: string
+    phaseName: string
+    description: string
+    recommendations: string[]
+  } | null {
+    if (!cycleStartDate) return null
+    
+    const startDate = new Date(cycleStartDate)
+    const now = new Date()
+    const diffDays = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+    
+    // 计算当前周期的第几天
+    const currentDay = (diffDays % cycleLength) + 1
+    
+    // 判断阶段
+    if (currentDay <= 5) {
+      return {
+        day: currentDay,
+        phase: 'menstrual',
+        phaseName: '月经期',
+        description: '身体需要休息，可能疲惫、敏感',
+        recommendations: ['少安排活动', '多关心体贴', '避免争论']
+      }
+    } else if (currentDay <= 13) {
+      return {
+        day: currentDay,
+        phase: 'follicular',
+        phaseName: '卵泡期',
+        description: '能量上升，心态积极，适合深度交流',
+        recommendations: ['可以约出来', '聊聊深度话题', '一起规划未来']
+      }
+    } else if (currentDay <= 16) {
+      return {
+        day: currentDay,
+        phase: 'ovulation',
+        phaseName: '排卵期',
+        description: '精力充沛，表达欲强，魅力值max',
+        recommendations: ['让她多说', '表达欣赏', '适合表白或约会']
+      }
+    } else if (currentDay <= 21) {
+      return {
+        day: currentDay,
+        phase: 'luteal_early',
+        phaseName: '黄体期前期',
+        description: '状态平稳，适合日常交流',
+        recommendations: ['正常互动', '分享日常', '保持联系']
+      }
+    } else if (currentDay <= 25) {
+      return {
+        day: currentDay,
+        phase: 'luteal_mid',
+        phaseName: '黄体期中期',
+        description: '可能开始敏感，注意情绪',
+        recommendations: ['多包容', '少批评', '给足安全感']
+      }
+    } else {
+      return {
+        day: currentDay,
+        phase: 'luteal_late',
+        phaseName: '黄体期后期',
+        description: 'PMS期，情绪可能波动',
+        recommendations: ['少建议多倾听', '不要追问', '给点空间']
+      }
+    }
+  }
+
+  /**
+   * 获取对象的周期信息
+   */
+  getCycleInfo(matchId: number): { code: number; data: ReturnType<MatchService['calculateCyclePhase']> } {
+    const match = this.matches.find(m => m.id === matchId)
+    if (!match) {
+      return { code: 404, data: null }
+    }
+    
+    const cycleInfo = this.calculateCyclePhase(match.cycleStartDate, match.cycleLength)
+    return { code: 200, data: cycleInfo }
+  }
+
+  /**
+   * 更新周期信息
+   */
+  updateCycleInfo(matchId: number, cycleStartDate: string, cycleLength?: number): { code: number; message: string } {
+    const index = this.matches.findIndex(m => m.id === matchId)
+    if (index === -1) {
+      return { code: 404, message: '对象不存在' }
+    }
+    
+    this.matches[index].cycleStartDate = cycleStartDate
+    if (cycleLength) {
+      this.matches[index].cycleLength = cycleLength
+    }
+    
+    return { code: 200, message: '更新成功' }
   }
 }

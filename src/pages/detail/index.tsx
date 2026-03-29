@@ -16,7 +16,12 @@ import {
   Loader,
   MessageCircle,
   Cpu,
-  HardDrive
+  HardDrive,
+  Heart,
+  Sun,
+  Moon,
+  Cloud,
+  Activity
 } from 'lucide-react-taro'
 
 // 硬件信息接口
@@ -50,6 +55,17 @@ interface SoftwareInfo {
   dislikes?: string
   loveExpectation?: string
   dealBreakers?: string
+  // 新增
+  communicationPreferences?: {
+    effectiveWays?: string[]
+    ineffectiveWays?: string[]
+    landmines?: string[]
+  }
+  loveLanguages?: string[]
+  emotionalTriggers?: {
+    positive?: string[]
+    negative?: string[]
+  }
 }
 
 interface MatchDetail {
@@ -74,6 +90,17 @@ interface MatchDetail {
     completedTasks: number
     dates: number
   }
+  // 周期信息
+  cycleStartDate?: string
+  cycleLength?: number
+}
+
+interface CycleInfo {
+  day: number
+  phase: string
+  phaseName: string
+  description: string
+  recommendations: string[]
 }
 
 const stageLabels: Record<string, string> = {
@@ -92,6 +119,16 @@ const statusLabels: Record<string, string> = {
   dating_regularly: '稳定约会',
   ambiguous: '暧昧期',
   confirming: '准备确认',
+}
+
+// 周期阶段图标和颜色
+const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: string }> = {
+  menstrual: { icon: Moon, color: '#6B7280', bgColor: 'bg-gray-100' },
+  follicular: { icon: Sun, color: '#10B981', bgColor: 'bg-emerald-50' },
+  ovulation: { icon: Heart, color: '#EC4899', bgColor: 'bg-pink-50' },
+  luteal_early: { icon: Sun, color: '#3B82F6', bgColor: 'bg-blue-50' },
+  luteal_mid: { icon: Cloud, color: '#F59E0B', bgColor: 'bg-amber-50' },
+  luteal_late: { icon: Moon, color: '#EF4444', bgColor: 'bg-red-50' },
 }
 
 // 硬件字段标签
@@ -132,6 +169,7 @@ const DetailPage: FC = () => {
   const [loading, setLoading] = useState(true)
   const [aiLoading, setAiLoading] = useState(false)
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null)
+  const [cycleInfo, setCycleInfo] = useState<CycleInfo | null>(null)
 
   useLoad(() => {
     console.log('Detail page loaded.', router.params.id)
@@ -151,6 +189,14 @@ const DetailPage: FC = () => {
       console.log('Fetch detail response:', res.data)
       if (res.data?.code === 200 && res.data?.data) {
         setDetail(res.data.data)
+        
+        // 获取周期信息
+        if (res.data.data.cycleStartDate) {
+          const cycleRes = await Network.request({ url: `/api/match/${id}/cycle` })
+          if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
+            setCycleInfo(cycleRes.data.data)
+          }
+        }
       }
     } catch (error) {
       console.error('Fetch detail error:', error)
@@ -361,6 +407,87 @@ const DetailPage: FC = () => {
           </View>
         </View>
       )}
+
+      {/* 周期追踪 */}
+      {cycleInfo && (() => {
+        const phaseConf = phaseConfig[cycleInfo.phase] || phaseConfig.follicular
+        const PhaseIcon = phaseConf.icon
+        return (
+          <View className="px-4 pb-4">
+            <View className="flex items-center gap-2 mb-2">
+              <Activity size={14} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">周期状态</Text>
+            </View>
+            <View className={`${phaseConf.bgColor} rounded-xl p-4`}>
+              <View className="flex items-center justify-between mb-2">
+                <View className="flex items-center gap-2">
+                  <PhaseIcon size={16} color={phaseConf.color} />
+                  <Text className="block font-semibold" style={{ color: phaseConf.color }}>
+                    {cycleInfo.phaseName}
+                  </Text>
+                </View>
+                <Text className="block text-xs text-gray-500">Day {cycleInfo.day}</Text>
+              </View>
+              <Text className="block text-sm text-gray-600 mb-3">{cycleInfo.description}</Text>
+              <View className="space-y-1">
+                {cycleInfo.recommendations.slice(0, 3).map((rec, i) => (
+                  <View key={i} className="flex items-start gap-2">
+                    <Text className="block text-xs text-gray-400">•</Text>
+                    <Text className="block text-xs text-gray-600">{rec}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+        )
+      })()}
+
+      {/* 交流偏好 */}
+      {detail.software?.communicationPreferences && (
+        <View className="px-4 pb-4">
+          <Text className="block text-sm font-semibold text-gray-900 mb-2">交流偏好</Text>
+          <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
+            {detail.software.communicationPreferences.effectiveWays?.length ? (
+              <View className="px-4 py-3">
+                <Text className="block text-xs text-emerald-600 mb-1">✓ 有效方式</Text>
+                <Text className="block text-sm text-gray-700">
+                  {detail.software.communicationPreferences.effectiveWays.join('、')}
+                </Text>
+              </View>
+            ) : null}
+            {detail.software.communicationPreferences.ineffectiveWays?.length ? (
+              <View className="px-4 py-3">
+                <Text className="block text-xs text-amber-600 mb-1">⚠ 无效方式</Text>
+                <Text className="block text-sm text-gray-700">
+                  {detail.software.communicationPreferences.ineffectiveWays.join('、')}
+                </Text>
+              </View>
+            ) : null}
+            {detail.software.communicationPreferences.landmines?.length ? (
+              <View className="px-4 py-3">
+                <Text className="block text-xs text-red-600 mb-1">💣 雷区</Text>
+                <Text className="block text-sm text-gray-700">
+                  {detail.software.communicationPreferences.landmines.join('、')}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      )}
+
+      {/* 爱的语言 */}
+      {detail.software?.loveLanguages?.length ? (
+        <View className="px-4 pb-4">
+          <Text className="block text-sm font-semibold text-gray-900 mb-2">爱的语言</Text>
+          <View className="flex flex-wrap gap-2">
+            {detail.software.loveLanguages.map((lang, i) => (
+              <Badge key={i} className={i === 0 ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}>
+                {i === 0 ? '❤️ ' : ''}{lang}
+              </Badge>
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       {/* 快捷入口 */}
       <View className="px-4 pb-4">
