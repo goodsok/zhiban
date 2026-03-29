@@ -198,6 +198,18 @@ const DetailPage: FC = () => {
       console.log('AI suggestions response:', res.data)
       if (res.data?.code === 200 && res.data?.data?.suggestions) {
         setAiSuggestions(res.data.data.suggestions)
+        
+        // 自动将AI建议转化为任务
+        try {
+          const taskRes = await Network.request({
+            url: `/api/task/create-from-suggestions/${detail.id}`,
+            method: 'POST',
+            data: { suggestions: res.data.data.suggestions }
+          })
+          console.log('Create tasks from suggestions response:', taskRes.data)
+        } catch (taskError) {
+          console.error('Create tasks from suggestions error:', taskError)
+        }
       }
     } catch (error) {
       console.error('AI suggestions error:', error)
@@ -533,6 +545,14 @@ const DetailPage: FC = () => {
               </View>
             </View>
             
+            {!suggestionsLoading && aiSuggestions.length > 0 && (
+              <View className="bg-green-50 rounded-lg p-3 mb-4">
+                <Text className="block text-sm text-green-600">
+                  ✅ 建议已自动转化为任务，可在「互动任务」中查看
+                </Text>
+              </View>
+            )}
+            
             {suggestionsLoading ? (
               <View className="text-center py-8">
                 <Loader size={32} color="#6366F1" className="animate-spin" />
@@ -556,6 +576,19 @@ const DetailPage: FC = () => {
                   </CardContent>
                 </Card>
               ))
+            )}
+            
+            {!suggestionsLoading && aiSuggestions.length > 0 && (
+              <Button 
+                className="w-full bg-indigo-500" 
+                onClick={() => {
+                  setShowSuggestionsModal(false)
+                  goToTasks()
+                }}
+              >
+                <Sparkles size={16} color="#fff" />
+                <Text className="ml-1 text-white">查看任务列表</Text>
+              </Button>
             )}
           </View>
         </View>

@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Inject, forwardRef } from '@nestjs/common'
 import { Request } from 'express'
 import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
+import { TaskService } from '../task/task.service'
 
 // 印象标签映射
 const impressionTagLabels: Record<string, string> = {
@@ -80,6 +81,11 @@ export interface Match {
 
 @Injectable()
 export class MatchService {
+  constructor(
+    @Inject(forwardRef(() => TaskService))
+    private readonly taskService: TaskService,
+  ) {}
+
   // 模拟数据存储
   private matches: Match[] = [
     {
@@ -239,12 +245,25 @@ export class MatchService {
       return { code: 404, data: null, message: 'Not found' }
     }
     
+    const oldStage = this.matches[index].relationshipStage
+    
     // 如果更新了关系阶段，同步更新status
     if (body.relationshipStage) {
       body.status = this.mapStageToStatus(body.relationshipStage)
     }
     
     this.matches[index] = { ...this.matches[index], ...body }
+    
+    // 如果关系阶段发生变化，自动生成新任务
+    if (body.relationshipStage && body.relationshipStage !== oldStage) {
+      const match = this.matches[index]
+      this.taskService.updateTasksForStage(
+        id,
+        body.relationshipStage,
+        { keyInfo: match.keyInfo || [], interests: match.interests || [] }
+      )
+    }
+    
     return {
       code: 200,
       data: this.matches[index],
@@ -359,20 +378,37 @@ export class MatchService {
 
       const response = await client.invoke(messages, { temperature: 0.8 })
       
+      const suggestions = this.parseInteractionResponse(response.content)
+      
+      // 将 AI 建议自动转换为任务
+      const createdTasks = this.taskService.createTasksFromAI(id, suggestions)
+      
       return {
         code: 200,
         data: {
-          suggestions: this.parseInteractionResponse(response.content),
+          suggestions,
+          tasks: createdTasks,
           rawContent: response.content,
         },
         message: 'success',
       }
     } catch (error) {
       console.error('AI interaction error:', error)
+      
+      const suggestions = this.recommendTips(match)
+      
+      // 即使是降级建议，也创建任务
+      const createdTasks = this.taskService.createTasksFromAI(id, suggestions.map(s => ({
+        action: s,
+        reason: '根据当前情况推荐',
+        tips: '请根据实际情况灵活调整',
+      })))
+      
       return {
         code: 200,
         data: {
-          suggestions: this.recommendTips(match),
+          suggestions,
+          tasks: createdTasks,
           rawContent: null,
         },
         message: 'success (fallback)',
