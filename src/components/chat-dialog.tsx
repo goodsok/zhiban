@@ -2,7 +2,7 @@ import { View, Text, ScrollView } from '@tarojs/components'
 import { useState, useRef, useEffect } from 'react'
 import { Network } from '@/network'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Loader, Send, X, Sparkles } from 'lucide-react-taro'
+import { Loader, Send, Sparkles } from 'lucide-react-taro'
 
 // 消息类型
 interface ChatMessage {
@@ -116,17 +116,15 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-lg h-[70vh] max-h-[600px] flex flex-col p-0">
+      <DialogContent 
+        className="w-full h-[90vh] max-h-none max-w-full rounded-none sm:rounded-xl sm:max-w-lg sm:h-[80vh] flex flex-col p-0"
+        closeClassName="right-3 top-3"
+      >
         {/* 标题栏 */}
-        <DialogHeader className="flex-shrink-0 px-4 py-3 border-b border-gray-100">
-          <View className="flex items-center justify-between">
-            <View className="flex items-center gap-2">
-              <Sparkles size={18} color="#000" />
-              <DialogTitle className="text-base font-semibold">AI 助手</DialogTitle>
-            </View>
-            <View onClick={() => onOpenChange(false)}>
-              <X size={20} color="#6B7280" />
-            </View>
+        <DialogHeader className="flex-shrink-0 px-4 py-3 border-b border-gray-100 pr-10">
+          <View className="flex items-center gap-2">
+            <Sparkles size={18} color="#000" />
+            <DialogTitle className="text-base font-semibold">AI 助手</DialogTitle>
           </View>
           {context && (
             <Text className="block text-xs text-gray-400 mt-1">
