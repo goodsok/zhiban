@@ -8,6 +8,8 @@ export default defineAppConfig({
     'pages/edit/index',
     'pages/tasks/index',
     'pages/quiz/index',
+    'pages/dates/index',
+    'pages/date-edit/index',
   ],
   window: {
     backgroundTextStyle: 'light',

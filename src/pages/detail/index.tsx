@@ -163,6 +163,10 @@ const DetailPage: FC = () => {
     navigateTo({ url: `/pages/quiz/index?matchId=${detail?.id}` })
   }
 
+  const goToDates = () => {
+    navigateTo({ url: `/pages/dates/index?matchId=${detail?.id}` })
+  }
+
   const fetchAITopics = async () => {
     if (!detail) return
     
@@ -439,7 +443,7 @@ const DetailPage: FC = () => {
               <Text className="block text-xs text-gray-400">{detail.stats.quizScore}分</Text>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-0">
+          <Card className="shadow-sm border-0" onClick={goToDates}>
             <CardContent className="p-4 text-center">
               <View className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-2">
                 <TrendingUp size={24} color="#10B981" />

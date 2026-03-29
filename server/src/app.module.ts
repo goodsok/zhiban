@@ -6,9 +6,10 @@ import { CoupleModule } from '@/modules/couple/couple.module';
 import { TopicModule } from '@/modules/topic/topic.module';
 import { TaskModule } from '@/modules/task/task.module';
 import { QuizModule } from '@/modules/quiz/quiz.module';
+import { DateRecordModule } from '@/modules/date-record/date-record.module';
 
 @Module({
-  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule],
+  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule],
   controllers: [AppController],
   providers: [AppService],
 })
