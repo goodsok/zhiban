@@ -202,12 +202,62 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
     }
   }
 
-  // 快捷问题
-  const quickQuestions = [
-    '她现在适合约会吗？',
-    '怎么开启话题？',
-    '如何表达关心？'
-  ]
+  // 根据关系状态生成快捷问题
+  const getQuickQuestions = () => {
+    if (!context) {
+      return ['如何开始使用？', '怎么创建对象档案？', '这个应用能帮我什么？']
+    }
+
+    const { relationshipStage, interactionStatus, cycleInfo } = context
+    const questions: string[] = []
+
+    // 根据互动状态生成问题
+    if (interactionStatus === 'just_met') {
+      questions.push('如何自然地获取联系方式？')
+    } else if (interactionStatus === 'got_contact') {
+      questions.push('第一条消息应该发什么？')
+    } else if (interactionStatus === 'chatted') {
+      questions.push('怎么延续话题不冷场？')
+    } else if (interactionStatus === 'good_vibe') {
+      questions.push('什么时候适合约出来？')
+    } else if (interactionStatus === 'met_up') {
+      questions.push('约会后怎么跟进？')
+    } else if (interactionStatus === 'dating_regularly') {
+      questions.push('如何让关系更进一步？')
+    } else if (interactionStatus === 'ambiguous') {
+      questions.push('暧昧期怎么突破？')
+    } else if (interactionStatus === 'confirming') {
+      questions.push('如何准备表白？')
+    }
+
+    // 根据周期状态生成问题
+    if (cycleInfo) {
+      if (cycleInfo.phase === 'menstrual') {
+        questions.push('她现在经期，怎么表达关心？')
+      } else if (cycleInfo.phase === 'ovulation') {
+        questions.push('现在适合约她吗？')
+      } else if (cycleInfo.phase === 'luteal_late') {
+        questions.push('PMS期间要注意什么？')
+      }
+    }
+
+    // 根据关系阶段补充问题
+    if (relationshipStage === 'new') {
+      questions.push('怎么快速了解她？')
+    } else if (relationshipStage === 'contacting') {
+      questions.push('怎么增加互动频率？')
+    } else if (relationshipStage === 'dating') {
+      questions.push('约会去哪里比较好？')
+    }
+
+    // 通用问题
+    questions.push('给我一些聊天话题建议')
+
+    // 返回前3个不重复的问题
+    return [...new Set(questions)].slice(0, 3)
+  }
+
+  const quickQuestions = getQuickQuestions()
 
   const handleQuickQuestion = (q: string) => {
     setInputValue(q)

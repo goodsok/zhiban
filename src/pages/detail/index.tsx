@@ -528,11 +528,16 @@ const DetailPage: FC = () => {
       )}
 
       {/* 底部操作 */}
-      <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
-        <Button className="w-full bg-black" onClick={() => setChatOpen(true)}>
-          <MessageCircle size={16} color="#fff" />
-          <Text className="ml-2 text-white">AI 助手</Text>
-        </Button>
+      <View 
+        className="fixed left-0 right-0 bg-white border-t border-gray-100"
+        style={{ bottom: 0, paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <View className="p-4">
+          <Button className="w-full bg-black" onClick={() => setChatOpen(true)}>
+            <MessageCircle size={16} color="#fff" />
+            <Text className="ml-2 text-white">AI 助手</Text>
+          </Button>
+        </View>
       </View>
 
       {/* AI 对话框 */}
