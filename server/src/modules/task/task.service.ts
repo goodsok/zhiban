@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Inject, forwardRef } from '@nestjs/common'
+import { MatchService } from '../match/match.service'
 
 // 任务分类
 export type TaskCategory = 'prepare' | 'chat' | 'game' | 'romantic'
@@ -22,6 +23,11 @@ export interface Task {
   // 关联信息
   relatedKeyInfo?: string[]  // 关联的关键信息类型
   relatedStage?: string      // 关联的关系阶段
+  // 新增：周期阶段适配
+  suitablePhases?: string[]  // 适合的周期阶段（为空表示通用）
+  avoidPhases?: string[]     // 应避免的周期阶段
+  // 新增：学习记录
+  lessonLearned?: string     // 完成后学到了什么
 }
 
 // 关系阶段配置
@@ -110,6 +116,11 @@ const stageDefaultTasks: Record<string, Array<{ category: TaskCategory, title: s
 
 @Injectable()
 export class TaskService {
+  constructor(
+    @Inject(forwardRef(() => MatchService))
+    private readonly matchService: MatchService,
+  ) {}
+
   // 任务存储
   private tasks: Task[] = [
     {
@@ -206,6 +217,8 @@ export class TaskService {
     source?: TaskSource
     relatedKeyInfo?: string[]
     relatedStage?: string
+    suitablePhases?: string[]
+    avoidPhases?: string[]
   }) {
     const newTask: Task = {
       id: this.nextId++,
@@ -220,6 +233,8 @@ export class TaskService {
       createdAt: new Date().toISOString(),
       relatedKeyInfo: taskData.relatedKeyInfo,
       relatedStage: taskData.relatedStage,
+      suitablePhases: taskData.suitablePhases,
+      avoidPhases: taskData.avoidPhases,
     }
     
     this.tasks.push(newTask)
@@ -258,29 +273,41 @@ export class TaskService {
   }
 
   /**
-   * 根据对象信息生成推荐任务
+   * 根据对象信息生成推荐任务（优化版：考虑周期阶段）
    */
   generateRecommendedTasks(matchId: number, matchData: {
     relationshipStage: string
     keyInfo: Array<{ type: string; label: string; value: string }>
     interests: string[]
+    cycleStartDate?: string
+    cycleLength?: number
   }) {
     const recommendedTasks: Task[] = []
     const stage = matchData.relationshipStage || 'new'
     
-    // 1. 根据阶段添加默认任务
+    // 获取当前周期阶段
+    const cycleInfo = this.matchService.calculateCyclePhase(matchData.cycleStartDate, matchData.cycleLength)
+    
+    // 1. 根据阶段添加默认任务（根据周期阶段过滤）
     const stageTasks = stageDefaultTasks[stage] || []
     stageTasks.forEach((taskTemplate, index) => {
       const existingTask = this.tasks.find(
         t => t.matchId === matchId && t.title === taskTemplate.title
       )
       if (!existingTask) {
-        const task = this.createTask(matchId, {
-          ...taskTemplate,
-          source: 'system',
-          relatedStage: stage,
-        })
-        recommendedTasks.push(task)
+        // 根据周期阶段判断任务是否适合
+        const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
+        if (phaseAdjustment.suitable) {
+          const task = this.createTask(matchId, {
+            ...taskTemplate,
+            source: 'system',
+            relatedStage: stage,
+            suitablePhases: phaseAdjustment.suitablePhases,
+            avoidPhases: phaseAdjustment.avoidPhases,
+            description: phaseAdjustment.adjustedDescription || taskTemplate.description,
+          })
+          recommendedTasks.push(task)
+        }
       }
     })
     
@@ -293,13 +320,18 @@ export class TaskService {
             t => t.matchId === matchId && t.title === taskTemplate.title
           )
           if (!existingTask) {
-            const task = this.createTask(matchId, {
-              ...taskTemplate,
-              source: 'system',
-              relatedKeyInfo: [info.type],
-              description: `${taskTemplate.description}（Ta的${info.label}：${info.value}）`,
-            })
-            recommendedTasks.push(task)
+            const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
+            if (phaseAdjustment.suitable) {
+              const task = this.createTask(matchId, {
+                ...taskTemplate,
+                source: 'system',
+                relatedKeyInfo: [info.type],
+                description: `${phaseAdjustment.adjustedDescription || taskTemplate.description}（Ta的${info.label}：${info.value}）`,
+                suitablePhases: phaseAdjustment.suitablePhases,
+                avoidPhases: phaseAdjustment.avoidPhases,
+              })
+              recommendedTasks.push(task)
+            }
           }
         })
       }
@@ -311,15 +343,23 @@ export class TaskService {
         t => t.matchId === matchId && t.title === '聊聊旅行经历'
       )
       if (!existingTask) {
-        const task = this.createTask(matchId, {
-          category: 'chat',
+        const taskTemplate = {
+          category: 'chat' as TaskCategory,
           title: '聊聊旅行经历',
           description: 'Ta喜欢旅行，可以聊聊去过的地方和有趣的经历',
-          difficulty: '简单',
+          difficulty: '简单' as const,
           duration: '20分钟',
-          source: 'system',
-        })
-        recommendedTasks.push(task)
+        }
+        const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
+        if (phaseAdjustment.suitable) {
+          const task = this.createTask(matchId, {
+            ...taskTemplate,
+            source: 'system',
+            suitablePhases: phaseAdjustment.suitablePhases,
+            avoidPhases: phaseAdjustment.avoidPhases,
+          })
+          recommendedTasks.push(task)
+        }
       }
     }
     
@@ -328,29 +368,224 @@ export class TaskService {
         t => t.matchId === matchId && t.title === '一起品尝美食'
       )
       if (!existingTask) {
-        const task = this.createTask(matchId, {
-          category: 'romantic',
+        const taskTemplate = {
+          category: 'romantic' as TaskCategory,
           title: '一起品尝美食',
           description: 'Ta喜欢美食，可以一起探索好吃的餐厅',
-          difficulty: '中等',
+          difficulty: '中等' as const,
           duration: '2小时',
-          source: 'system',
-        })
-        recommendedTasks.push(task)
+        }
+        const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
+        if (phaseAdjustment.suitable) {
+          const task = this.createTask(matchId, {
+            ...taskTemplate,
+            source: 'system',
+            suitablePhases: phaseAdjustment.suitablePhases,
+            avoidPhases: phaseAdjustment.avoidPhases,
+            description: phaseAdjustment.adjustedDescription || taskTemplate.description,
+          })
+          recommendedTasks.push(task)
+        }
       }
+    }
+    
+    // 4. 根据当前周期阶段添加特别任务
+    if (cycleInfo) {
+      const cycleTasks = this.generateCycleSpecificTasks(matchId, cycleInfo)
+      recommendedTasks.push(...cycleTasks)
     }
     
     return recommendedTasks
   }
 
   /**
-   * 完成任务
+   * 根据周期阶段调整任务
    */
-  completeTask(taskId: number) {
+  private adjustTaskForCycle(taskTemplate: { category: TaskCategory; title: string; description: string }, 
+    cycleInfo: { phase: string; phaseName: string; description: string; recommendations: string[] } | null
+  ): { suitable: boolean; adjustedDescription?: string; suitablePhases?: string[]; avoidPhases?: string[] } {
+    
+    if (!cycleInfo) {
+      return { suitable: true }
+    }
+
+    const phase = cycleInfo.phase
+    const title = taskTemplate.title.toLowerCase()
+    const category = taskTemplate.category
+
+    // 不同周期阶段适合的任务类型
+    const phaseTaskRules: Record<string, { 
+      preferred: TaskCategory[], 
+      avoid: string[],
+      tips: string 
+    }> = {
+      menstrual: {
+        preferred: ['chat', 'prepare'],
+        avoid: ['约会', '见面', '浪漫', '表白'],
+        tips: '她现在需要休息和关心'
+      },
+      follicular: {
+        preferred: ['chat', 'game', 'romantic'],
+        avoid: [],
+        tips: '她能量充沛，适合深度交流'
+      },
+      ovulation: {
+        preferred: ['romantic', 'game', 'chat'],
+        avoid: [],
+        tips: '她精力充沛，适合约会和表白'
+      },
+      luteal_early: {
+        preferred: ['chat', 'prepare', 'game'],
+        avoid: [],
+        tips: '她状态平稳，适合日常互动'
+      },
+      luteal_mid: {
+        preferred: ['chat', 'prepare'],
+        avoid: ['表白', '重要决定'],
+        tips: '她可能开始敏感，多包容'
+      },
+      luteal_late: {
+        preferred: ['chat'],
+        avoid: ['约会', '表白', '游戏', '浪漫'],
+        tips: 'PMS期，给她空间和理解'
+      },
+    }
+
+    const rules = phaseTaskRules[phase]
+    if (!rules) {
+      return { suitable: true }
+    }
+
+    // 检查是否应该避免
+    const shouldAvoid = rules.avoid.some(avoidWord => title.includes(avoidWord))
+    if (shouldAvoid) {
+      return { suitable: false }
+    }
+
+    // 构建适合/避免的阶段列表
+    const suitablePhases = Object.entries(phaseTaskRules)
+      .filter(([_, r]) => r.preferred.includes(category))
+      .map(([p]) => p)
+
+    const avoidPhases = Object.entries(phaseTaskRules)
+      .filter(([_, r]) => !r.preferred.includes(category))
+      .map(([p]) => p)
+
+    // 如果是适合的阶段，添加周期提示
+    let adjustedDescription = taskTemplate.description
+    if (rules.preferred.includes(category)) {
+      adjustedDescription = `${taskTemplate.description}\n💡 ${rules.tips}`
+    }
+
+    return { 
+      suitable: true, 
+      adjustedDescription,
+      suitablePhases,
+      avoidPhases
+    }
+  }
+
+  /**
+   * 根据周期阶段生成特别任务
+   */
+  private generateCycleSpecificTasks(matchId: number, cycleInfo: {
+    phase: string
+    phaseName: string
+    description: string
+    recommendations: string[]
+  }): Task[] {
+    const tasks: Task[] = []
+
+    // 根据当前阶段生成特定任务
+    const cycleTaskTemplates: Record<string, Array<{ category: TaskCategory; title: string; description: string; difficulty: '简单' | '中等' | '困难'; duration: string }>> = {
+      menstrual: [
+        {
+          category: 'chat',
+          title: '发一条关心的消息',
+          description: '她处于月经期，发消息关心她的身体状况，但不要过于频繁打扰',
+          difficulty: '简单',
+          duration: '5分钟'
+        },
+        {
+          category: 'prepare',
+          title: '了解她的不适症状',
+          description: '记住她经期的不适表现，下次提前准备关怀',
+          difficulty: '简单',
+          duration: '10分钟'
+        }
+      ],
+      follicular: [
+        {
+          category: 'romantic',
+          title: '约她出来见面',
+          description: '她能量上升，适合约出来玩，可以安排稍微有挑战性的活动',
+          difficulty: '中等',
+          duration: '半天'
+        },
+        {
+          category: 'chat',
+          title: '聊聊深度话题',
+          description: '她心态积极开放，适合聊价值观、人生规划等深度话题',
+          difficulty: '简单',
+          duration: '30分钟'
+        }
+      ],
+      ovulation: [
+        {
+          category: 'romantic',
+          title: '安排特别约会',
+          description: '她精力充沛、魅力值max，是约会和表白的黄金期',
+          difficulty: '中等',
+          duration: '半天'
+        },
+        {
+          category: 'game',
+          title: '尝试新鲜事物',
+          description: '她表达欲强，可以一起尝试新活动，让她多分享想法',
+          difficulty: '中等',
+          duration: '2小时'
+        }
+      ],
+      luteal_late: [
+        {
+          category: 'chat',
+          title: '安静陪伴',
+          description: '她可能情绪波动，少建议多倾听，给她空间',
+          difficulty: '简单',
+          duration: '15分钟'
+        }
+      ]
+    }
+
+    const phaseTasks = cycleTaskTemplates[cycleInfo.phase] || []
+    phaseTasks.forEach(taskTemplate => {
+      const existingTask = this.tasks.find(
+        t => t.matchId === matchId && t.title === taskTemplate.title
+      )
+      if (!existingTask) {
+        const task = this.createTask(matchId, {
+          ...taskTemplate,
+          source: 'system',
+          suitablePhases: [cycleInfo.phase],
+        })
+        tasks.push(task)
+      }
+    })
+
+    return tasks
+  }
+
+  /**
+   * 完成任务（支持记录学习）
+   */
+  completeTask(taskId: number, lessonLearned?: string) {
     const task = this.tasks.find(t => t.id === taskId)
     if (task) {
       task.completed = true
       task.completedAt = new Date().toISOString()
+      if (lessonLearned) {
+        task.lessonLearned = lessonLearned
+      }
       return {
         code: 200,
         data: task,
@@ -362,6 +597,18 @@ export class TaskService {
       data: null,
       message: 'Task not found',
     }
+  }
+
+  /**
+   * 更新任务的学习记录
+   */
+  updateTaskLesson(taskId: number, lesson: string) {
+    const task = this.tasks.find(t => t.id === taskId)
+    if (task) {
+      task.lessonLearned = lesson
+      return { code: 200, data: task, message: 'success' }
+    }
+    return { code: 404, data: null, message: 'Task not found' }
   }
 
   /**

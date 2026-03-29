@@ -16,8 +16,13 @@ export class TaskController {
   }
 
   @Post('complete')
-  completeTask(@Body() body: { taskId: number }) {
-    return this.taskService.completeTask(body.taskId)
+  completeTask(@Body() body: { taskId: number; lessonLearned?: string }) {
+    return this.taskService.completeTask(body.taskId, body.lessonLearned)
+  }
+
+  @Post('update-lesson')
+  updateLesson(@Body() body: { taskId: number; lesson: string }) {
+    return this.taskService.updateTaskLesson(body.taskId, body.lesson)
   }
 
   @Post('create')
@@ -60,6 +65,8 @@ export class TaskController {
       relationshipStage: string
       keyInfo: Array<{ type: string; label: string; value: string }>
       interests: string[]
+      cycleStartDate?: string
+      cycleLength?: number
     }
   ) {
     const tasks = this.taskService.generateRecommendedTasks(Number(matchId), body)
