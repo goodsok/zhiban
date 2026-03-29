@@ -220,7 +220,7 @@ export class DateRecordService {
         
         // 自动更新对象档案
         if (extracted.keyInfo.length > 0) {
-          this.updateMatchKeyInfo(matchId, extracted.keyInfo)
+          await this.updateMatchKeyInfo(matchId, extracted.keyInfo)
         }
       } catch (error) {
         console.error('AI extract key info error:', error)
@@ -286,7 +286,7 @@ export class DateRecordService {
         
         // 更新对象档案
         if (extracted.keyInfo.length > 0) {
-          this.updateMatchKeyInfo(record.matchId, extracted.keyInfo)
+          await this.updateMatchKeyInfo(record.matchId, extracted.keyInfo)
         }
       } catch (error) {
         console.error('AI extract key info error:', error)
@@ -341,7 +341,7 @@ export class DateRecordService {
 
       // 更新对象档案
       if (extracted.keyInfo.length > 0) {
-        this.updateMatchKeyInfo(record.matchId, extracted.keyInfo)
+        await this.updateMatchKeyInfo(record.matchId, extracted.keyInfo)
       }
 
       return {
@@ -485,9 +485,9 @@ ${data.notes || '无'}
   /**
    * 更新对象的关键信息
    */
-  private updateMatchKeyInfo(matchId: number, extractedInfo: ExtractedKeyInfo[]) {
+  private async updateMatchKeyInfo(matchId: number, extractedInfo: ExtractedKeyInfo[]) {
     // 获取对象详情
-    const matchResult = this.matchService.getMatchDetail(matchId)
+    const matchResult = await this.matchService.getMatchDetail(matchId)
     if (matchResult.code !== 200 || !matchResult.data) {
       return
     }

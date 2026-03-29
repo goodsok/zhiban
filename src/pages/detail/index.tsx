@@ -290,11 +290,6 @@ const DetailPage: FC = () => {
       {/* 顶部 */}
       <CustomHeader 
         title="档案" 
-        rightAction={
-          <View onClick={goToEdit}>
-            <Pencil size={20} color="#6B7280" />
-          </View>
-        }
       />
 
       {/* 基本信息卡片 */}
@@ -302,9 +297,14 @@ const DetailPage: FC = () => {
         <Card className="border border-gray-100">
           <CardContent className="p-4">
             <View className="flex items-start justify-between mb-3">
-              <View>
-                <Text className="block text-xl font-bold text-gray-900 mb-1">{detail.name}</Text>
-                <Text className="block text-sm text-gray-500">
+              <View className="flex-1">
+                <View className="flex items-center gap-2">
+                  <Text className="block text-xl font-bold text-gray-900">{detail.name}</Text>
+                  <View onClick={goToEdit} className="p-1">
+                    <Pencil size={16} color="#9CA3AF" />
+                  </View>
+                </View>
+                <Text className="block text-sm text-gray-500 mt-1">
                   {detail.hardware?.age ? `${detail.hardware.age}岁` : ''}
                   {detail.hardware?.occupation ? ` · ${detail.hardware.occupation}` : ''}
                 </Text>

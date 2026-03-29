@@ -7,17 +7,17 @@ export class MatchController {
   constructor(private readonly matchService: MatchService) {}
 
   @Get('list')
-  getMatchList() {
-    return this.matchService.getMatchList()
+  async getMatchList() {
+    return await this.matchService.getMatchList()
   }
 
   @Get(':id')
-  getMatchDetail(@Param('id') id: string) {
-    return this.matchService.getMatchDetail(Number(id))
+  async getMatchDetail(@Param('id') id: string) {
+    return await this.matchService.getMatchDetail(Number(id))
   }
 
   @Post('create')
-  createMatch(@Body() body: {
+  async createMatch(@Body() body: {
     name: string
     gender?: string
     hardware?: Partial<HardwareInfo>
@@ -30,12 +30,12 @@ export class MatchController {
     impressionTags?: string[]
     notes?: string
   }) {
-    return this.matchService.createMatch(body)
+    return await this.matchService.createMatch(body)
   }
 
   @Put(':id')
   @Post(':id/update')
-  updateMatch(@Param('id') id: string, @Body() body: Partial<{
+  async updateMatch(@Param('id') id: string, @Body() body: Partial<{
     name: string
     gender: string
     hardware: Partial<HardwareInfo>
@@ -51,38 +51,38 @@ export class MatchController {
     status: string
     nextAction: string
   }>) {
-    return this.matchService.updateMatch(Number(id), body)
+    return await this.matchService.updateMatch(Number(id), body)
   }
 
   @Post(':id/delete')
-  deleteMatch(@Param('id') id: string) {
-    return this.matchService.deleteMatch(Number(id))
+  async deleteMatch(@Param('id') id: string) {
+    return await this.matchService.deleteMatch(Number(id))
   }
 
   @Get(':id/recommend')
-  getRecommendations(@Param('id') id: string) {
-    return this.matchService.getRecommendations(Number(id))
+  async getRecommendations(@Param('id') id: string) {
+    return await this.matchService.getRecommendations(Number(id))
   }
 
   @Post(':id/ai-topics')
   async getAITopics(@Param('id') id: string, @Req() req: Request) {
-    return this.matchService.getAITopics(Number(id), req)
+    return await this.matchService.getAITopics(Number(id), req)
   }
 
   @Post(':id/ai-interaction')
   async getAIInteraction(@Param('id') id: string, @Body() body: { situation?: string }, @Req() req: Request) {
-    return this.matchService.getAIInteraction(Number(id), body.situation, req)
+    return await this.matchService.getAIInteraction(Number(id), body.situation, req)
   }
 
   // ============== 周期追踪接口 ==============
 
   @Get(':id/cycle')
-  getCycleInfo(@Param('id') id: string) {
-    return this.matchService.getCycleInfo(Number(id))
+  async getCycleInfo(@Param('id') id: string) {
+    return await this.matchService.getCycleInfo(Number(id))
   }
 
   @Post(':id/cycle')
-  updateCycleInfo(@Param('id') id: string, @Body() body: { cycleStartDate: string; cycleLength?: number }) {
-    return this.matchService.updateCycleInfo(Number(id), body.cycleStartDate, body.cycleLength)
+  async updateCycleInfo(@Param('id') id: string, @Body() body: { cycleStartDate: string; cycleLength?: number }) {
+    return await this.matchService.updateCycleInfo(Number(id), body.cycleStartDate, body.cycleLength)
   }
 }

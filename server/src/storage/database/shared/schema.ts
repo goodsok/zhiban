@@ -67,3 +67,44 @@ export const chatHistories = pgTable("chat_histories", {
 	pgPolicy("chat_histories_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
 	pgPolicy("chat_histories_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
 ]);
+
+// 档案对象表
+export const matches = pgTable("matches", {
+	id: serial().primaryKey().notNull(),
+	name: varchar("name", { length: 64 }).notNull(),
+	gender: varchar("gender", { length: 16 }).default('female'),
+	// 硬件信息（JSON）
+	hardware: jsonb("hardware").default({}),
+	// 软件信息（JSON）
+	software: jsonb("software").default({}),
+	// 认识场景
+	meetingScene: varchar("meeting_scene", { length: 32 }).default('other'),
+	meetingDate: varchar("meeting_date", { length: 32 }),
+	// 关系状态
+	relationshipStage: varchar("relationship_stage", { length: 32 }).default('new'),
+	interactionStatus: varchar("interaction_status", { length: 32 }).default('just_met'),
+	// 印象
+	impression: integer("impression").default(0),
+	impressionTags: jsonb("impression_tags").default([]),
+	// 关键信息（兼容旧数据）
+	keyInfo: jsonb("key_info").default([]),
+	// 备注
+	notes: text("notes"),
+	// 状态
+	status: varchar("status", { length: 32 }).default('new'),
+	nextAction: text("next_action"),
+	lastContact: timestamp("last_contact", { withTimezone: true, mode: 'string' }).defaultNow(),
+	// 周期追踪
+	cycleStartDate: varchar("cycle_start_date", { length: 32 }),
+	cycleLength: integer("cycle_length").default(28),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("matches_name_idx").using("btree", table.name.asc().nullsLast().op("text_ops")),
+	index("matches_status_idx").using("btree", table.status.asc().nullsLast().op("text_ops")),
+	index("matches_created_at_idx").using("btree", table.createdAt.desc().nullsLast().op("timestamptz_ops")),
+	pgPolicy("matches_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("matches_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("matches_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("matches_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);

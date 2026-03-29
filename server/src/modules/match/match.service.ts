@@ -1,6 +1,7 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common'
 import { Request } from 'express'
 import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
+import { getSupabaseClient } from '@/storage/database/supabase-client'
 import { TaskService } from '../task/task.service'
 
 // 印象标签映射
@@ -58,55 +59,44 @@ export interface KeyInfo {
 
 // 硬件信息（外在/固定属性）
 export interface HardwareInfo {
-  // 基本信息
-  age?: number              // 年龄
-  height?: string           // 身高
-  birthday?: string         // 生日
-  zodiac?: string           // 星座
-  bloodType?: string        // 血型
-  // 外貌特征
-  bodyType?: string         // 体型
-  style?: string            // 穿搭风格
-  // 联系方式
-  wechat?: string           // 微信
-  phone?: string            // 电话
-  location?: string         // 所在地
-  // 职业信息
-  occupation?: string       // 职业
-  company?: string          // 公司
-  position?: string         // 职位
+  age?: number
+  height?: string
+  birthday?: string
+  zodiac?: string
+  bloodType?: string
+  bodyType?: string
+  style?: string
+  wechat?: string
+  phone?: string
+  location?: string
+  occupation?: string
+  company?: string
+  position?: string
 }
 
 // 软件信息（内在/需探索）
 export interface SoftwareInfo {
-  // 性格特质
-  mbti?: string             // MBTI
-  personality?: string      // 性格描述
-  emotionalStyle?: string   // 情绪特点
-  // 兴趣爱好
-  interests?: string[]      // 兴趣标签
-  hobbies?: string          // 具体爱好描述
-  // 行为习惯
-  schedule?: string         // 作息
-  spendingStyle?: string    // 消费风格
-  communicationStyle?: string // 沟通方式
-  // 情感需求
-  likes?: string            // 喜欢什么
-  dislikes?: string         // 讨厌什么
-  loveExpectation?: string  // 恋爱期待
-  dealBreakers?: string     // 雷区/底线
-  // 交流偏好（新增）
+  mbti?: string
+  personality?: string
+  emotionalStyle?: string
+  interests?: string[]
+  hobbies?: string
+  schedule?: string
+  spendingStyle?: string
+  communicationStyle?: string
+  likes?: string
+  dislikes?: string
+  loveExpectation?: string
+  dealBreakers?: string
   communicationPreferences?: {
-    effectiveWays?: string[]    // 有效方式：什么让她感到被理解
-    ineffectiveWays?: string[]  // 无效方式：什么让她关闭
-    landmines?: string[]        // 雷区：绝对不能说的话/做
+    effectiveWays?: string[]
+    ineffectiveWays?: string[]
+    landmines?: string[]
   }
-  // 爱的语言排序（新增）
-  loveLanguages?: string[]  // ['精心时刻', '肯定的言辞', '礼物', '服务的行动', '身体接触']
-  // 情绪触发点（新增）
+  loveLanguages?: string[]
   emotionalTriggers?: {
-    positive?: string[]     // 让她开心的
-    negative?: string[]     // 让她烦躁的
+    positive?: string[]
+    negative?: string[]
   }
 }
 
@@ -114,31 +104,46 @@ export interface Match {
   id: number
   name: string
   gender: string
-  // 硬件信息
   hardware: HardwareInfo
-  // 软件信息
   software: SoftwareInfo
-  // 认识场景
   meetingScene: string
   meetingDate: string
-  // 关系状态
   relationshipStage: string
   interactionStatus: string
-  // 印象
   impression: number
   impressionTags: string[]
-  // 兼容旧数据
   keyInfo: KeyInfo[]
-  // 备注
   notes: string
-  // 状态
   status: string
   nextAction: string
   lastContact: string
   createdAt: Date
-  // 周期追踪（新增）
-  cycleStartDate?: string   // 上次月经开始日期
-  cycleLength?: number      // 周期长度（默认28天）
+  cycleStartDate?: string
+  cycleLength?: number
+}
+
+// 数据库返回格式
+interface DbMatch {
+  id: number
+  name: string
+  gender: string
+  hardware: HardwareInfo
+  software: SoftwareInfo
+  meeting_scene: string
+  meeting_date: string
+  relationship_stage: string
+  interaction_status: string
+  impression: number
+  impression_tags: string[]
+  key_info: KeyInfo[]
+  notes: string
+  status: string
+  next_action: string
+  last_contact: string
+  cycle_start_date: string
+  cycle_length: number
+  created_at: string
+  updated_at: string
 }
 
 @Injectable()
@@ -148,196 +153,108 @@ export class MatchService {
     private readonly taskService: TaskService,
   ) {}
 
-  // 模拟数据存储
-  private matches: Match[] = [
-    {
-      id: 1,
-      name: '小红',
-      gender: 'female',
-      hardware: {
-        age: 25,
-        height: '165cm',
-        zodiac: '双子座',
-        bloodType: 'O型',
-        style: '简约文艺',
-        location: '北京朝阳',
-        occupation: '产品经理',
-        company: '某互联网公司',
-      },
-      software: {
-        mbti: 'ENFP',
-        personality: '热情开朗，善于表达',
-        emotionalStyle: '情绪稳定，偶尔小脾气',
-        interests: ['旅行', '摄影', '美食'],
-        hobbies: '周末喜欢逛展览、拍照',
-        schedule: '早睡早起',
-        spendingStyle: '注重品质',
-        communicationStyle: '直接坦诚',
-        likes: '被认真对待、小惊喜',
-        dislikes: '不守时、大男子主义',
-        loveExpectation: '希望找到一个能一起成长的人',
-        dealBreakers: '不诚实、不尊重女性',
-        // 新增：交流偏好
-        communicationPreferences: {
-          effectiveWays: ['先确认感受，再讨论方案', '问"你需要什么"而非直接建议'],
-          ineffectiveWays: ['她累的时候给建议', '说"你应该..."'],
-          landmines: ['不要说"你太敏感了"', '不要拿她和前任比较'],
-        },
-        // 新增：爱的语言
-        loveLanguages: ['精心时刻', '肯定的言辞', '礼物', '服务的行动', '身体接触'],
-        // 新增：情绪触发点
-        emotionalTriggers: {
-          positive: ['被认真倾听', '收到小惊喜', '一起探索新地方'],
-          negative: ['被忽视感受', '被打断说话', '承诺不兑现'],
-        },
-      },
-      meetingScene: 'blind_date',
-      meetingDate: '2024-03-20',
-      relationshipStage: 'contacting',
-      interactionStatus: 'good_vibe',
-      impression: 4,
-      impressionTags: ['nice', 'pretty'],
-      keyInfo: [
-        { id: 'key_1', type: 'birthday', label: '生日', icon: '🎂', value: '6月15日' },
-        { id: 'key_2', type: 'food_preference', label: '饮食偏好', icon: '🍽️', value: '不吃辣，爱吃日料' },
-      ],
-      notes: '相亲认识，印象不错',
-      status: 'contacting',
-      nextAction: '约她周末去拍照',
-      lastContact: new Date().toISOString(),
-      createdAt: new Date('2024-03-20'),
-      // 新增：周期追踪
-      cycleStartDate: '2025-01-10',  // 假设上次月经是10天前
-      cycleLength: 28,
-    },
-    {
-      id: 2,
-      name: '小芳',
-      gender: 'female',
-      hardware: {
-        age: 27,
-        height: '168cm',
-        zodiac: '巨蟹座',
-        location: '北京海淀',
-        occupation: '设计师',
-        company: '某设计工作室',
-      },
-      software: {
-        mbti: 'INFP',
-        personality: '温柔细腻，内心丰富',
-        emotionalStyle: '敏感但善解人意',
-        interests: ['健身', '电影', '阅读'],
-        hobbies: '养猫、看展、做手工',
-        likes: '安静陪伴、深度交流',
-        dislikes: '嘈杂环境、肤浅对话',
-        // 新增：交流偏好
-        communicationPreferences: {
-          effectiveWays: ['安静陪伴', '深度话题', '给予思考空间'],
-          ineffectiveWays: ['逼问想法', '强迫社交'],
-          landmines: ['说她想太多', '打断她的思路'],
-        },
-        loveLanguages: ['精心时刻', '身体接触', '肯定的言辞', '服务的行动', '礼物'],
-        emotionalTriggers: {
-          positive: ['被理解内心', '安静的陪伴', '一起看电影'],
-          negative: ['嘈杂人群', '被催促决定', '表面聊天'],
-        },
-      },
-      meetingScene: 'activity',
-      meetingDate: '2024-03-15',
-      relationshipStage: 'dating',
-      interactionStatus: 'dating_regularly',
-      impression: 5,
-      impressionTags: ['smart', 'funny'],
-      keyInfo: [
-        { id: 'key_3', type: 'pet', label: '宠物', icon: '🐱', value: '养了一只猫叫小橘' },
-        { id: 'key_4', type: 'hometown', label: '家乡', icon: '🏠', value: '浙江杭州' },
-      ],
-      notes: '健身房认识',
-      status: 'dating',
-      nextAction: '第三次约会，看她的展',
-      lastContact: new Date().toISOString(),
-      createdAt: new Date('2024-03-15'),
-      // 新增：周期追踪
-      cycleStartDate: '2025-01-05',  // 假设处于排卵期附近
-      cycleLength: 30,
-    },
-    {
-      id: 3,
-      name: '小丽',
-      gender: 'female',
-      hardware: {
-        age: 24,
-        zodiac: '处女座',
-        occupation: '教师',
-        location: '北京西城',
-      },
-      software: {
-        mbti: 'ISFJ',
-        personality: '安静温和，认真负责',
-        interests: ['音乐', '旅行'],
-      },
-      meetingScene: 'app_meetup',
-      meetingDate: '2024-03-10',
-      relationshipStage: 'new',
-      interactionStatus: 'got_contact',
-      impression: 3,
-      impressionTags: ['nice'],
-      keyInfo: [],
-      notes: '交友App认识',
-      status: 'new',
-      nextAction: '发第一条消息',
-      lastContact: new Date().toISOString(),
-      createdAt: new Date('2024-03-10'),
-    },
-  ]
-
-  private nextId = 4
-
-  getMatchList() {
+  // 转换数据库字段为前端格式
+  private dbToMatch(db: DbMatch): Match {
     return {
-      code: 200,
-      data: this.matches.map(m => ({
-        id: m.id,
-        name: m.name,
-        age: m.hardware?.age || 0,
-        occupation: m.hardware?.occupation || '',
-        mbti: m.software?.mbti || '',
-        zodiac: m.hardware?.zodiac || '',
-        meetingScene: m.meetingScene,
-        relationshipStage: m.relationshipStage,
-        interactionStatus: m.interactionStatus,
-        impression: m.impression,
-        interests: m.software?.interests || [],
-        status: m.status,
-        nextAction: m.nextAction,
-        lastContact: this.formatLastContact(m.lastContact),
-      })),
-      message: 'success',
+      id: db.id,
+      name: db.name,
+      gender: db.gender,
+      hardware: db.hardware || {},
+      software: db.software || { interests: [] },
+      meetingScene: db.meeting_scene,
+      meetingDate: db.meeting_date,
+      relationshipStage: db.relationship_stage,
+      interactionStatus: db.interaction_status,
+      impression: db.impression,
+      impressionTags: db.impression_tags || [],
+      keyInfo: db.key_info || [],
+      notes: db.notes,
+      status: db.status,
+      nextAction: db.next_action,
+      lastContact: db.last_contact,
+      createdAt: new Date(db.created_at),
+      cycleStartDate: db.cycle_start_date,
+      cycleLength: db.cycle_length,
     }
   }
 
-  getMatchDetail(id: number) {
-    const match = this.matches.find(m => m.id === id)
-    if (!match) {
-      return { code: 404, data: null, message: 'Not found' }
-    }
-    return {
-      code: 200,
-      data: {
-        ...match,
-        progress: this.calculateProgress(match),
-        stats: {
-          tasks: 5,
-          completedTasks: 2,
-          quizScore: 80,
-          dates: 2,
-        },
-      },
-      message: 'success',
+  async getMatchList() {
+    try {
+      const client = getSupabaseClient()
+      const { data, error } = await client
+        .from('matches')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Get match list error:', error)
+        return { code: 500, data: [], message: `获取列表失败: ${error.message}` }
+      }
+
+      const matches = (data as DbMatch[]).map(this.dbToMatch)
+
+      return {
+        code: 200,
+        data: matches.map(m => ({
+          id: m.id,
+          name: m.name,
+          age: m.hardware?.age || 0,
+          occupation: m.hardware?.occupation || '',
+          mbti: m.software?.mbti || '',
+          zodiac: m.hardware?.zodiac || '',
+          meetingScene: m.meetingScene,
+          relationshipStage: m.relationshipStage,
+          interactionStatus: m.interactionStatus,
+          impression: m.impression,
+          interests: m.software?.interests || [],
+          status: m.status,
+          nextAction: m.nextAction,
+          lastContact: this.formatLastContact(m.lastContact),
+        })),
+        message: 'success',
+      }
+    } catch (error) {
+      console.error('Get match list error:', error)
+      return { code: 500, data: [], message: '获取列表失败' }
     }
   }
 
-  createMatch(body: Partial<Match> & { 
+  async getMatchDetail(id: number) {
+    try {
+      const client = getSupabaseClient()
+      const { data, error } = await client
+        .from('matches')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error || !data) {
+        return { code: 404, data: null, message: 'Not found' }
+      }
+
+      const match = this.dbToMatch(data as DbMatch)
+
+      return {
+        code: 200,
+        data: {
+          ...match,
+          progress: this.calculateProgress(match),
+          stats: {
+            tasks: 5,
+            completedTasks: 2,
+            quizScore: 80,
+            dates: 2,
+          },
+        },
+        message: 'success',
+      }
+    } catch (error) {
+      console.error('Get match detail error:', error)
+      return { code: 500, data: null, message: '获取详情失败' }
+    }
+  }
+
+  async createMatch(body: Partial<Match> & { 
     name?: string
     gender?: string
     hardware?: Partial<HardwareInfo>
@@ -350,94 +267,150 @@ export class MatchService {
     impressionTags?: string[]
     notes?: string
   }) {
-    const newMatch: Match = {
-      id: this.nextId++,
-      name: body.name || '',
-      gender: body.gender || 'female',
-      hardware: body.hardware || {},
-      software: body.software || { interests: [] },
-      meetingScene: body.meetingScene || 'other',
-      meetingDate: body.meetingDate || new Date().toISOString().split('T')[0],
-      relationshipStage: body.relationshipStage || 'new',
-      interactionStatus: body.interactionStatus || 'just_met',
-      impression: body.impression || 0,
-      impressionTags: body.impressionTags || [],
-      keyInfo: [],
-      notes: body.notes || '',
-      status: this.mapStageToStatus(body.relationshipStage || 'new'),
-      nextAction: this.generateNextAction(body.meetingScene || 'other', body.interactionStatus || 'just_met'),
-      lastContact: new Date().toISOString(),
-      createdAt: new Date(),
-    }
-    this.matches.push(newMatch)
-    return {
-      code: 200,
-      data: newMatch,
-      message: 'success',
+    try {
+      const client = getSupabaseClient()
+      const newMatch = {
+        name: body.name || '',
+        gender: body.gender || 'female',
+        hardware: body.hardware || {},
+        software: body.software || { interests: [] },
+        meeting_scene: body.meetingScene || 'other',
+        meeting_date: body.meetingDate || new Date().toISOString().split('T')[0],
+        relationship_stage: body.relationshipStage || 'new',
+        interaction_status: body.interactionStatus || 'just_met',
+        impression: body.impression || 0,
+        impression_tags: body.impressionTags || [],
+        key_info: [],
+        notes: body.notes || '',
+        status: this.mapStageToStatus(body.relationshipStage || 'new'),
+        next_action: this.generateNextAction(body.meetingScene || 'other', body.interactionStatus || 'just_met'),
+        last_contact: new Date().toISOString(),
+        cycle_start_date: null,
+        cycle_length: 28,
+      }
+
+      const { data, error } = await client
+        .from('matches')
+        .insert(newMatch)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Create match error:', error)
+        return { code: 500, data: null, message: `创建失败: ${error.message}` }
+      }
+
+      return {
+        code: 200,
+        data: this.dbToMatch(data as DbMatch),
+        message: 'success',
+      }
+    } catch (error) {
+      console.error('Create match error:', error)
+      return { code: 500, data: null, message: '创建失败' }
     }
   }
 
-  updateMatch(id: number, body: Partial<Match>) {
-    const index = this.matches.findIndex(m => m.id === id)
-    if (index === -1) {
-      return { code: 404, data: null, message: 'Not found' }
-    }
-    
-    const oldStage = this.matches[index].relationshipStage
-    
-    // 深度合并 hardware 和 software
-    const updatedHardware = body.hardware 
-      ? { ...this.matches[index].hardware, ...body.hardware }
-      : this.matches[index].hardware
-    const updatedSoftware = body.software
-      ? { ...this.matches[index].software, ...body.software }
-      : this.matches[index].software
-    
-    // 如果更新了关系阶段，同步更新status
-    const updatedStatus = body.relationshipStage 
-      ? this.mapStageToStatus(body.relationshipStage)
-      : this.matches[index].status
-    
-    this.matches[index] = {
-      ...this.matches[index],
-      ...body,
-      hardware: updatedHardware,
-      software: updatedSoftware,
-      status: updatedStatus,
-    }
-    
-    // 如果关系阶段发生变化，自动生成新任务
-    if (body.relationshipStage && body.relationshipStage !== oldStage) {
-      const match = this.matches[index]
-      this.taskService.updateTasksForStage(
-        id,
-        body.relationshipStage,
-        { keyInfo: match.keyInfo || [], interests: match.software?.interests || [] }
-      )
-    }
-    
-    return {
-      code: 200,
-      data: this.matches[index],
-      message: 'success',
+  async updateMatch(id: number, body: Partial<Match>) {
+    try {
+      const client = getSupabaseClient()
+
+      // 先获取现有数据
+      const { data: existing, error: fetchError } = await client
+        .from('matches')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (fetchError || !existing) {
+        return { code: 404, data: null, message: 'Not found' }
+      }
+
+      const existingMatch = existing as DbMatch
+
+      // 深度合并 hardware 和 software
+      const updatedHardware = body.hardware 
+        ? { ...existingMatch.hardware, ...body.hardware }
+        : existingMatch.hardware
+      const updatedSoftware = body.software
+        ? { ...existingMatch.software, ...body.software }
+        : existingMatch.software
+
+      // 如果更新了关系阶段，同步更新status
+      const updatedStatus = body.relationshipStage 
+        ? this.mapStageToStatus(body.relationshipStage)
+        : existingMatch.status
+
+      const updateData: Record<string, unknown> = {
+        hardware: updatedHardware,
+        software: updatedSoftware,
+        status: updatedStatus,
+        updated_at: new Date().toISOString(),
+      }
+
+      // 只更新提供的字段
+      if (body.name) updateData.name = body.name
+      if (body.gender) updateData.gender = body.gender
+      if (body.meetingScene) updateData.meeting_scene = body.meetingScene
+      if (body.meetingDate) updateData.meeting_date = body.meetingDate
+      if (body.relationshipStage) updateData.relationship_stage = body.relationshipStage
+      if (body.interactionStatus) updateData.interaction_status = body.interactionStatus
+      if (body.impression !== undefined) updateData.impression = body.impression
+      if (body.impressionTags) updateData.impression_tags = body.impressionTags
+      if (body.keyInfo) updateData.key_info = body.keyInfo
+      if (body.notes !== undefined) updateData.notes = body.notes
+      if (body.nextAction !== undefined) updateData.next_action = body.nextAction
+
+      const { data, error } = await client
+        .from('matches')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Update match error:', error)
+        return { code: 500, data: null, message: `更新失败: ${error.message}` }
+      }
+
+      return {
+        code: 200,
+        data: this.dbToMatch(data as DbMatch),
+        message: 'success',
+      }
+    } catch (error) {
+      console.error('Update match error:', error)
+      return { code: 500, data: null, message: '更新失败' }
     }
   }
 
-  deleteMatch(id: number) {
-    const index = this.matches.findIndex(m => m.id === id)
-    if (index === -1) {
-      return { code: 404, data: null, message: 'Not found' }
+  async deleteMatch(id: number) {
+    try {
+      const client = getSupabaseClient()
+      const { error } = await client
+        .from('matches')
+        .delete()
+        .eq('id', id)
+
+      if (error) {
+        console.error('Delete match error:', error)
+        return { code: 500, data: null, message: `删除失败: ${error.message}` }
+      }
+
+      return { code: 200, data: null, message: 'success' }
+    } catch (error) {
+      console.error('Delete match error:', error)
+      return { code: 500, data: null, message: '删除失败' }
     }
-    this.matches.splice(index, 1)
-    return { code: 200, data: null, message: 'success' }
   }
 
-  getRecommendations(id: number) {
-    const match = this.matches.find(m => m.id === id)
-    if (!match) {
+  async getRecommendations(id: number) {
+    const matchResult = await this.getMatchDetail(id)
+    if (matchResult.code !== 200 || !matchResult.data) {
       return { code: 404, data: null, message: 'Not found' }
     }
 
+    const match = matchResult.data as Match
     const recommendations = {
       topics: this.recommendTopics(match),
       tasks: this.recommendTasks(match),
@@ -455,10 +428,12 @@ export class MatchService {
    * 使用大模型生成话题推荐
    */
   async getAITopics(id: number, req: Request) {
-    const match = this.matches.find(m => m.id === id)
-    if (!match) {
+    const matchResult = await this.getMatchDetail(id)
+    if (matchResult.code !== 200 || !matchResult.data) {
       return { code: 404, data: null, message: 'Not found' }
     }
+
+    const match = matchResult.data as Match
 
     try {
       const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
@@ -505,10 +480,12 @@ export class MatchService {
    * 使用大模型生成互动建议
    */
   async getAIInteraction(id: number, situation: string | undefined, req: Request) {
-    const match = this.matches.find(m => m.id === id)
-    if (!match) {
+    const matchResult = await this.getMatchDetail(id)
+    if (matchResult.code !== 200 || !matchResult.data) {
       return { code: 404, data: null, message: 'Not found' }
     }
+
+    const match = matchResult.data as Match
 
     try {
       const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
@@ -549,7 +526,6 @@ export class MatchService {
       
       const suggestions = this.recommendTips(match)
       
-      // 即使是降级建议，也创建任务
       const createdTasks = this.taskService.createTasksFromAI(id, suggestions.map(s => ({
         action: s,
         reason: '根据当前情况推荐',
@@ -576,7 +552,6 @@ export class MatchService {
     const hw = match.hardware
     const sw = match.software
     
-    // 硬件信息
     const hardwareInfo: string[] = []
     if (hw?.age) hardwareInfo.push(`年龄：${hw.age}岁`)
     if (hw?.height) hardwareInfo.push(`身高：${hw.height}`)
@@ -584,7 +559,6 @@ export class MatchService {
     if (hw?.occupation) hardwareInfo.push(`职业：${hw.occupation}`)
     if (hw?.location) hardwareInfo.push(`所在地：${hw.location}`)
     
-    // 软件信息
     const softwareInfo: string[] = []
     if (sw?.mbti) softwareInfo.push(`MBTI：${sw.mbti}`)
     if (sw?.personality) softwareInfo.push(`性格：${sw.personality}`)
@@ -643,7 +617,6 @@ ${keyInfoStr}
     const hw = match.hardware
     const sw = match.software
     
-    // 硬件信息
     const hardwareInfo: string[] = []
     if (hw?.age) hardwareInfo.push(`年龄：${hw.age}岁`)
     if (hw?.height) hardwareInfo.push(`身高：${hw.height}`)
@@ -651,7 +624,6 @@ ${keyInfoStr}
     if (hw?.occupation) hardwareInfo.push(`职业：${hw.occupation}`)
     if (hw?.location) hardwareInfo.push(`所在地：${hw.location}`)
     
-    // 软件信息
     const softwareInfo: string[] = []
     if (sw?.mbti) softwareInfo.push(`MBTI：${sw.mbti}`)
     if (sw?.personality) softwareInfo.push(`性格：${sw.personality}`)
@@ -661,7 +633,6 @@ ${keyInfoStr}
     if (sw?.dislikes) softwareInfo.push(`讨厌：${sw.dislikes}`)
     if (sw?.dealBreakers) softwareInfo.push(`雷区：${sw.dealBreakers}`)
     
-    // 交流偏好（新增）
     const commPrefs: string[] = []
     if (sw?.communicationPreferences?.effectiveWays?.length) {
       commPrefs.push(`有效方式：${sw.communicationPreferences.effectiveWays.join('、')}`)
@@ -673,10 +644,8 @@ ${keyInfoStr}
       commPrefs.push(`绝对雷区：${sw.communicationPreferences.landmines.join('、')}`)
     }
     
-    // 爱的语言（新增）
     const loveLangs = sw?.loveLanguages?.length ? sw.loveLanguages.join(' > ') : null
     
-    // 周期信息（新增）
     const cycleInfo = this.calculateCyclePhase(match.cycleStartDate, match.cycleLength)
     const cycleStr = cycleInfo 
       ? `当前阶段：${cycleInfo.phaseName}（Day ${cycleInfo.day}）\n状态描述：${cycleInfo.description}\n建议方向：${cycleInfo.recommendations.join('、')}`
@@ -787,17 +756,6 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
     return mapping[stage] || 'new'
   }
 
-  private getStatusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      new: '刚认识',
-      contacting: '接触中',
-      dating: '约会中',
-      progressing: '发展中',
-      paused: '暂停中',
-    }
-    return labels[status] || '未知'
-  }
-
   private formatLastContact(dateStr: string): string {
     const date = new Date(dateStr)
     const now = new Date()
@@ -820,7 +778,6 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
   }
 
   private generateNextAction(scene: string, interactionStatus: string): string {
-    // 根据互动状态生成下一步行动
     const statusActions: Record<string, string> = {
       just_met: '尝试获取联系方式',
       got_contact: '发第一条消息打招呼',
@@ -836,7 +793,6 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
       return statusActions[interactionStatus]
     }
     
-    // 默认根据场景
     const actions: Record<string, string> = {
       blind_date: '发消息约下次见面',
       pickup: '发第一条消息',
@@ -886,12 +842,6 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
 
   // ============== 周期追踪功能 ==============
 
-  /**
-   * 计算当前周期阶段
-   * @param cycleStartDate 周期开始日期
-   * @param cycleLength 周期长度（默认28天）
-   * @returns 周期信息 { day: 当前天数, phase: 阶段, phaseName: 阶段名称 }
-   */
   calculateCyclePhase(cycleStartDate: string | undefined, cycleLength: number = 28): {
     day: number
     phase: string
@@ -905,10 +855,8 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
     const now = new Date()
     const diffDays = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
     
-    // 计算当前周期的第几天
     const currentDay = (diffDays % cycleLength) + 1
     
-    // 判断阶段
     if (currentDay <= 5) {
       return {
         day: currentDay,
@@ -937,56 +885,68 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
       return {
         day: currentDay,
         phase: 'luteal_early',
-        phaseName: '黄体期前期',
-        description: '状态平稳，适合日常交流',
-        recommendations: ['正常互动', '分享日常', '保持联系']
-      }
-    } else if (currentDay <= 25) {
-      return {
-        day: currentDay,
-        phase: 'luteal_mid',
-        phaseName: '黄体期中期',
-        description: '可能开始敏感，注意情绪',
-        recommendations: ['多包容', '少批评', '给足安全感']
+        phaseName: '黄体期早期',
+        description: '状态稳定，适合日常互动',
+        recommendations: ['正常交流', '保持节奏', '关注情绪变化']
       }
     } else {
       return {
         day: currentDay,
         phase: 'luteal_late',
-        phaseName: '黄体期后期',
-        description: 'PMS期，情绪可能波动',
-        recommendations: ['少建议多倾听', '不要追问', '给点空间']
+        phaseName: '黄体期晚期(PMS)',
+        description: '可能情绪波动、敏感、疲惫',
+        recommendations: ['多点耐心', '少安排活动', '避免敏感话题']
       }
     }
   }
 
-  /**
-   * 获取对象的周期信息
-   */
-  getCycleInfo(matchId: number): { code: number; data: ReturnType<MatchService['calculateCyclePhase']> } {
-    const match = this.matches.find(m => m.id === matchId)
-    if (!match) {
-      return { code: 404, data: null }
+  async getCycleInfo(id: number) {
+    const matchResult = await this.getMatchDetail(id)
+    if (matchResult.code !== 200 || !matchResult.data) {
+      return { code: 404, data: null, message: 'Not found' }
     }
-    
+
+    const match = matchResult.data as Match
     const cycleInfo = this.calculateCyclePhase(match.cycleStartDate, match.cycleLength)
-    return { code: 200, data: cycleInfo }
+
+    return {
+      code: 200,
+      data: {
+        cycleStartDate: match.cycleStartDate,
+        cycleLength: match.cycleLength,
+        currentPhase: cycleInfo,
+      },
+      message: 'success',
+    }
   }
 
-  /**
-   * 更新周期信息
-   */
-  updateCycleInfo(matchId: number, cycleStartDate: string, cycleLength?: number): { code: number; message: string } {
-    const index = this.matches.findIndex(m => m.id === matchId)
-    if (index === -1) {
-      return { code: 404, message: '对象不存在' }
+  async updateCycleInfo(id: number, cycleStartDate: string, cycleLength: number = 28) {
+    try {
+      const client = getSupabaseClient()
+      const { data, error } = await client
+        .from('matches')
+        .update({
+          cycle_start_date: cycleStartDate,
+          cycle_length: cycleLength,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Update cycle info error:', error)
+        return { code: 500, data: null, message: `更新失败: ${error.message}` }
+      }
+
+      return {
+        code: 200,
+        data: this.dbToMatch(data as DbMatch),
+        message: 'success',
+      }
+    } catch (error) {
+      console.error('Update cycle info error:', error)
+      return { code: 500, data: null, message: '更新失败' }
     }
-    
-    this.matches[index].cycleStartDate = cycleStartDate
-    if (cycleLength) {
-      this.matches[index].cycleLength = cycleLength
-    }
-    
-    return { code: 200, message: '更新成功' }
   }
 }
