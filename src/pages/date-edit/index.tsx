@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
+import CustomHeader from '@/components/custom-header'
 import {
-  ArrowLeft,
   Check,
   X,
   Loader,
@@ -126,17 +126,7 @@ const DateEditPage: FC = () => {
   return (
     <View className="min-h-screen bg-gray-50 pb-24">
       {/* 顶部 */}
-      <View className="bg-white px-4 py-4 border-b border-gray-100">
-        <View className="flex items-center justify-between">
-          <View onClick={goBack}>
-            <ArrowLeft size={24} color="#374151" />
-          </View>
-          <Text className="block text-base font-semibold text-gray-900">
-            {isEdit ? '编辑约会' : '记录约会'}
-          </Text>
-          <View className="w-6" />
-        </View>
-      </View>
+      <CustomHeader title={isEdit ? '编辑约会' : '记录约会'} />
 
       <View className="p-4">
         {/* 基本信息 */}

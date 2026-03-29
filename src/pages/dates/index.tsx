@@ -5,8 +5,8 @@ import { useState } from 'react'
 import { Network } from '@/network'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import CustomHeader from '@/components/custom-header'
 import { 
-  ArrowLeft, 
   Plus, 
   Calendar,
   MapPin,
@@ -106,17 +106,11 @@ const DatesPage: FC = () => {
   return (
     <View className="min-h-screen bg-gray-50 pb-24">
       {/* 顶部 */}
-      <View className="bg-white px-4 py-4 border-b border-gray-100">
-        <View className="flex items-center justify-between">
-          <View onClick={goBack}>
-            <ArrowLeft size={24} color="#374151" />
-          </View>
-          <Text className="block text-base font-semibold text-gray-900">约会记录</Text>
-          <View onClick={goToCreate}>
-            <Plus size={20} color="#6B7280" />
-          </View>
-        </View>
-      </View>
+      <CustomHeader 
+        title="约会记录" 
+        rightAction={<Plus size={20} color="#6B7280" />}
+        onBack={goBack}
+      />
 
       {/* 统计 */}
       <View className="px-4 py-4">

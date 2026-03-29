@@ -1,9 +1,9 @@
 export default typeof definePageConfig === 'function'
   ? definePageConfig({ 
-      navigationBarTitleText: '建立档案',
+      navigationBarTitleText: '约会记录',
       navigationStyle: 'custom'
     })
   : { 
-      navigationBarTitleText: '建立档案',
+      navigationBarTitleText: '约会记录',
       navigationStyle: 'custom'
     }

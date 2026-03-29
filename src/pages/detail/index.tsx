@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useRouter, navigateBack, navigateTo } from '@tarojs/taro'
+import { useLoad, useRouter, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
@@ -7,8 +7,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import ChatDialog from '@/components/chat-dialog'
+import CustomHeader from '@/components/custom-header'
 import { 
-  ArrowLeft, 
   Pencil,
   ChevronRight,
   Calendar,
@@ -204,7 +204,6 @@ const DetailPage: FC = () => {
     }
   }
 
-  const goBack = () => navigateBack()
   const goToEdit = () => navigateTo({ url: `/pages/edit/index?id=${detail?.id}` })
   const goToTasks = () => navigateTo({ url: `/pages/tasks/index?matchId=${detail?.id}` })
   const goToDates = () => navigateTo({ url: `/pages/dates/index?matchId=${detail?.id}` })
@@ -289,17 +288,14 @@ const DetailPage: FC = () => {
   return (
     <View className="min-h-screen bg-gray-50 pb-24">
       {/* 顶部 */}
-      <View className="bg-white px-4 py-4 border-b border-gray-100">
-        <View className="flex items-center justify-between">
-          <View onClick={goBack}>
-            <ArrowLeft size={24} color="#374151" />
-          </View>
-          <Text className="block text-base font-semibold text-gray-900">档案</Text>
+      <CustomHeader 
+        title="档案" 
+        rightAction={
           <View onClick={goToEdit}>
             <Pencil size={20} color="#6B7280" />
           </View>
-        </View>
-      </View>
+        }
+      />
 
       {/* 基本信息卡片 */}
       <View className="p-4">

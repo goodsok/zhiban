@@ -1,13 +1,13 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useDidShow, useRouter, navigateBack } from '@tarojs/taro'
+import { useLoad, useDidShow, useRouter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import CustomHeader from '@/components/custom-header'
 import { 
-  ArrowLeft, 
   Check, 
   Loader,
   Sparkles,
@@ -188,8 +188,6 @@ const TasksPage: FC = () => {
     }
   }
 
-  const goBack = () => navigateBack()
-
   // 按分类分组
   const pendingTasks = tasks.filter(t => !t.completed)
   const completedTasks = tasks.filter(t => t.completed)
@@ -213,15 +211,7 @@ const TasksPage: FC = () => {
   return (
     <View className="min-h-screen bg-gray-50 pb-24">
       {/* 顶部 */}
-      <View className="bg-white px-4 py-4 border-b border-gray-100">
-        <View className="flex items-center justify-between">
-          <View onClick={goBack}>
-            <ArrowLeft size={24} color="#374151" />
-          </View>
-          <Text className="block text-base font-semibold text-gray-900">任务</Text>
-          <View className="w-6" />
-        </View>
-      </View>
+      <CustomHeader title="任务" />
 
       {/* 进度 */}
       <View className="px-4 py-4">

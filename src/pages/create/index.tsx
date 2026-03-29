@@ -5,7 +5,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Check, Loader, HardDrive, Cpu, Camera, Sparkles, X } from 'lucide-react-taro'
+import CustomHeader from '@/components/custom-header'
+import { Check, Loader, HardDrive, Cpu, Camera, Sparkles, X } from 'lucide-react-taro'
 import { Network } from '@/network'
 
 // 已选图片
@@ -80,8 +81,6 @@ const CreatePage: FC = () => {
   useLoad(() => {
     console.log('Create page loaded.')
   })
-
-  const goBack = () => navigateBack()
 
   // 选择图片
   const handleChooseImage = async () => {
@@ -275,15 +274,7 @@ const CreatePage: FC = () => {
   return (
     <View className="min-h-screen bg-gray-50 pb-24">
       {/* 顶部 */}
-      <View className="bg-white px-4 py-4 border-b border-gray-100">
-        <View className="flex items-center justify-between">
-          <View onClick={goBack}>
-            <ArrowLeft size={24} color="#374151" />
-          </View>
-          <Text className="block text-base font-semibold text-gray-900">新建档案</Text>
-          <View className="w-6" />
-        </View>
-      </View>
+      <CustomHeader title="新建档案" />
 
       <View className="p-4">
         {/* AI 图片分析 */}
