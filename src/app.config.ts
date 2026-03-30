@@ -10,6 +10,7 @@ export default defineAppConfig({
     'pages/quiz/index',
     'pages/dates/index',
     'pages/date-edit/index',
+    'pages/portrait/index',
   ],
   window: {
     backgroundTextStyle: 'light',

@@ -10,9 +10,10 @@ import { DateRecordModule } from '@/modules/date-record/date-record.module';
 import { KnowledgeModule } from '@/modules/knowledge/knowledge.module';
 import { ChatModule } from '@/modules/chat/chat.module';
 import { ProfileAnalysisModule } from '@/modules/profile-analysis/profile-analysis.module';
+import { PortraitModule } from '@/modules/portrait/portrait.module';
 
 @Module({
-  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule],
+  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule, PortraitModule],
   controllers: [AppController],
   providers: [AppService],
 })

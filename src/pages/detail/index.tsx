@@ -23,7 +23,8 @@ import {
   Moon,
   Cloud,
   Activity,
-  TrendingUp
+  TrendingUp,
+  Brain
 } from 'lucide-react-taro'
 
 // 硬件信息接口
@@ -233,6 +234,7 @@ const DetailPage: FC = () => {
   const goToEdit = () => navigateTo({ url: `/pages/edit/index?id=${detail?.id}` })
   const goToTasks = () => navigateTo({ url: `/pages/tasks/index?matchId=${detail?.id}` })
   const goToDates = () => navigateTo({ url: `/pages/dates/index?matchId=${detail?.id}` })
+  const goToPortrait = () => navigateTo({ url: `/pages/portrait/index?matchId=${detail?.id}` })
 
   // 构建对话上下文
   const getChatContext = () => {
@@ -622,6 +624,19 @@ const DetailPage: FC = () => {
             </View>
             <View className="flex items-center gap-2">
               <Text className="block text-xs text-gray-400">{detail.stats.dates}次</Text>
+              <ChevronRight size={16} color="#D1D5DB" />
+            </View>
+          </View>
+          <View 
+            className="flex items-center justify-between px-4 py-3"
+            onClick={goToPortrait}
+          >
+            <View className="flex items-center gap-3">
+              <Brain size={18} color="#374151" />
+              <Text className="block text-sm text-gray-700">人物画像</Text>
+            </View>
+            <View className="flex items-center gap-2">
+              <Text className="block text-xs text-gray-400">AI分析</Text>
               <ChevronRight size={16} color="#D1D5DB" />
             </View>
           </View>
