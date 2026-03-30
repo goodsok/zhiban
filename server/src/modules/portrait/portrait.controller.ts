@@ -1,7 +1,6 @@
-import { Controller, Get, Param, Req, Post } from '@nestjs/common'
+import { Controller, Get, Param, Req, Post, Body } from '@nestjs/common'
 import { Request } from 'express'
 import { PortraitService } from './portrait.service'
-import { getSupabaseClient } from '@/storage/database/supabase-client'
 
 @Controller('portrait')
 export class PortraitController {
@@ -84,36 +83,67 @@ export class PortraitController {
   }
 
   /**
-   * 触发画像分析
+   * 上传聊天记录截图
    */
-  @Post(':matchId/analyze')
-  async analyzePortrait(@Param('matchId') matchId: string, @Req() req: Request) {
+  @Post(':matchId/chat-record')
+  async uploadChatRecord(
+    @Param('matchId') matchId: string,
+    @Body() body: { base64Data: string },
+    @Req() req: Request
+  ) {
+    const id = parseInt(matchId, 10)
+    if (isNaN(id)) {
+      return { code: 400, data: null, message: '无效的ID' }
+    }
+
+    if (!body.base64Data) {
+      return { code: 400, data: null, message: '请提供图片数据' }
+    }
+
+    try {
+      const result = await this.portraitService.uploadAndAnalyzeChatRecord(id, body.base64Data, req)
+      
+      if (result.success) {
+        return { code: 200, data: result.analysis, message: result.message }
+      } else {
+        return { code: 400, data: null, message: result.message }
+      }
+    } catch (error) {
+      console.error('Upload chat record error:', error)
+      return { code: 500, data: null, message: '上传失败' }
+    }
+  }
+
+  /**
+   * 保存手动填写的行为数据
+   */
+  @Post(':matchId/manual-data')
+  async saveManualData(
+    @Param('matchId') matchId: string,
+    @Body() body: {
+      responseSpeed?: 'instant' | 'fast' | 'normal' | 'slow' | 'very_slow'
+      activeTimeSlots?: string[]
+      topicPreferences?: string[]
+      communicationStyle?: 'direct' | 'indirect' | 'balanced'
+      notes?: string
+    }
+  ) {
     const id = parseInt(matchId, 10)
     if (isNaN(id)) {
       return { code: 400, data: null, message: '无效的ID' }
     }
 
     try {
-      // 获取聊天历史
-      const client = getSupabaseClient()
-      const { data: chatHistory } = await client
-        .from('chat_histories')
-        .select('*')
-        .eq('match_id', id)
-        .order('created_at', { ascending: true })
-        .limit(100)
-
-      if (!chatHistory || chatHistory.length < 3) {
-        return { code: 400, data: null, message: '聊天记录不足，无法分析' }
-      }
-
-      await this.portraitService.analyzeAndUpdateFromChat(id, chatHistory as any, req)
+      const result = await this.portraitService.saveManualBehaviorData(id, body)
       
-      const portrait = await this.portraitService.getOrCreatePortrait(id)
-      return { code: 200, data: portrait, message: 'success' }
+      if (result.success) {
+        return { code: 200, data: null, message: result.message }
+      } else {
+        return { code: 400, data: null, message: result.message }
+      }
     } catch (error) {
-      console.error('Analyze portrait error:', error)
-      return { code: 500, data: null, message: '分析失败' }
+      console.error('Save manual data error:', error)
+      return { code: 500, data: null, message: '保存失败' }
     }
   }
 }

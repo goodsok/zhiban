@@ -162,6 +162,8 @@ export const profileHistories = pgTable("profile_histories", {
 export const behaviorPatterns = pgTable("behavior_patterns", {
 	id: serial().primaryKey().notNull(),
 	matchId: integer("match_id").notNull(),
+	// 数据来源: 'chat_record' | 'manual' | 'ai_chat'(deprecated,仅兼容旧数据)
+	dataSource: varchar("data_source", { length: 32 }).default('manual'),
 	// 时间行为
 	avgResponseTime: integer("avg_response_time"), // 平均回复时间(分钟)
 	responseTimeVariance: integer("response_time_variance"), // 回复时间方差
@@ -186,6 +188,56 @@ export const behaviorPatterns = pgTable("behavior_patterns", {
 	pgPolicy("behavior_patterns_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
 	pgPolicy("behavior_patterns_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
 	pgPolicy("behavior_patterns_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
+// 聊天记录存储表 - 用户上传的聊天截图
+export const chatRecords = pgTable("chat_records", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	imageUrl: text("image_url"),                    // 聊天截图URL
+	analyzedContent: jsonb("analyzed_content"),     // 分析结果
+	// 从聊天记录提取的行为数据
+	avgResponseTime: integer("avg_response_time"),         // 平均回复时间(分钟)
+	activeHours: jsonb("active_hours").default({}),        // 活跃时段
+	activeDays: jsonb("active_days").default({}),          // 活跃日期分布
+	messageCount: integer("message_count").default(0),     // 消息数量
+	emojiUsageRate: integer("emoji_usage_rate").default(0), // 表情使用率
+	topicKeywords: jsonb("topic_keywords").default([]),    // 话题关键词
+	// 分析状态
+	analysisStatus: varchar("analysis_status", { length: 32 }).default('pending'), // pending/analyzing/completed/failed
+	analysisError: text("analysis_error"),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("chat_records_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	pgPolicy("chat_records_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("chat_records_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("chat_records_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("chat_records_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
+// 手动填写的行为数据表
+export const manualBehaviorData = pgTable("manual_behavior_data", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	// 回复速度选项
+	responseSpeed: varchar("response_speed", { length: 32 }),        // instant/fast/normal/slow/very_slow
+	// 活跃时段选项（多选）
+	activeTimeSlots: jsonb("active_time_slots").default([]), // ['morning', 'afternoon', 'evening', 'night']
+	// 话题偏好选项（多选）
+	topicPreferences: jsonb("topic_preferences").default([]), // ['daily', 'work', 'emotion', 'hobby', 'future', 'relationship']
+	// 沟通风格选项
+	communicationStyle: varchar("communication_style", { length: 32 }),   // direct/indirect/balanced
+	// 备注
+	notes: text(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("manual_behavior_data_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	pgPolicy("manual_behavior_data_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("manual_behavior_data_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("manual_behavior_data_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("manual_behavior_data_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
 ]);
 
 // 档案对象表
