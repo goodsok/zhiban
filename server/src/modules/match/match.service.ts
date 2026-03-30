@@ -245,13 +245,11 @@ export interface Match {
   cycleLength?: number
 }
 
-// 数据库返回格式
+// 数据库返回格式（不再包含 hardware/software）
 interface DbMatch {
   id: number
   name: string
   gender: string
-  hardware: HardwareInfo
-  software: SoftwareInfo
   meeting_scene: string
   meeting_date: string
   relationship_stage: string
@@ -276,14 +274,14 @@ export class MatchService {
     private readonly taskService: TaskService,
   ) {}
 
-  // 转换数据库字段为前端格式
+  // 转换数据库字段为前端格式（hardware/software 从维度表获取）
   private dbToMatch(db: DbMatch): Match {
     return {
       id: db.id,
       name: db.name,
       gender: db.gender,
-      hardware: db.hardware || {},
-      software: db.software || { interests: [] },
+      hardware: {},  // 从维度表填充
+      software: { interests: [] },  // 从维度表填充
       meetingScene: db.meeting_scene,
       meetingDate: db.meeting_date,
       relationshipStage: db.relationship_stage,
@@ -302,8 +300,8 @@ export class MatchService {
   }
 
   /**
-   * 从维度表获取数据，合并到 hardware/software
-   * 优先使用维度数据，维度数据没有的才使用原有数据
+   * 从维度表获取数据，构建 hardware/software
+   * 所有数据都从维度表读取
    */
   private async enrichWithDimensionData(match: Match): Promise<Match> {
     try {
@@ -313,18 +311,21 @@ export class MatchService {
         .select('dimension_key, value')
         .eq('match_id', match.id)
 
-      if (error || !dimensionValues || dimensionValues.length === 0) {
+      if (error) {
+        console.error('获取维度数据失败:', error)
         return match
       }
 
       // 创建维度值映射
       const dimensionMap = new Map<string, unknown>()
-      for (const dv of dimensionValues) {
-        dimensionMap.set(dv.dimension_key, dv.value)
+      if (dimensionValues) {
+        for (const dv of dimensionValues) {
+          dimensionMap.set(dv.dimension_key, dv.value)
+        }
       }
 
-      // 合并到 hardware
-      const hardware = { ...match.hardware }
+      // 构建 hardware
+      const hardware: HardwareInfo = {}
       for (const [dimensionKey, field] of Object.entries(dimensionToHardwareMap)) {
         const dimensionValue = dimensionMap.get(dimensionKey)
         if (dimensionValue !== undefined && dimensionValue !== null) {
@@ -340,8 +341,8 @@ export class MatchService {
         }
       }
 
-      // 合并到 software
-      const software = { ...match.software }
+      // 构建 software
+      const software: SoftwareInfo = { interests: [] }
       for (const [dimensionKey, field] of Object.entries(dimensionToSoftwareMap)) {
         const dimensionValue = dimensionMap.get(dimensionKey)
         if (dimensionValue !== undefined && dimensionValue !== null) {
@@ -362,32 +363,6 @@ export class MatchService {
   }
 
   /**
-   * 过滤掉已被维度覆盖的字段，避免冗余存储
-   */
-  private filterDimensionFields(
-    hardware: Partial<HardwareInfo>,
-    software: Partial<SoftwareInfo>
-  ): { hardware: Partial<HardwareInfo>; software: Partial<SoftwareInfo> } {
-    const filteredHardware: Partial<HardwareInfo> = {}
-    const filteredSoftware: Partial<SoftwareInfo> = {}
-
-    // 只保留未被维度覆盖的字段
-    for (const [field] of Object.entries(hardware)) {
-      if (!hardwareToDimensionMap[field]) {
-        (filteredHardware as Record<string, unknown>)[field] = hardware[field as keyof HardwareInfo]
-      }
-    }
-
-    for (const [field] of Object.entries(software)) {
-      if (!softwareToDimensionMap[field]) {
-        (filteredSoftware as Record<string, unknown>)[field] = software[field as keyof SoftwareInfo]
-      }
-    }
-
-    return { hardware: filteredHardware, software: filteredSoftware }
-  }
-
-  /**
    * 计算推进值
    * 推进值 = 信息完整度(20分) + 互动深度(30分) + 任务完成率(25分) + 关键信息掌握度(15分) + 时间活跃度(10分)
    */
@@ -405,22 +380,26 @@ export class MatchService {
     }
 
     const match = this.dbToMatch(matchData as DbMatch)
+    
+    // 从维度表获取 hardware/software 数据
+    const enrichedMatch = await this.enrichWithDimensionData(match)
+    
     const taskStats = await this.taskService.getTaskStats(matchId)
 
     // 1. 信息完整度 (0-20分)
-    const infoScore = this.calculateInfoCompleteness(match.hardware, match.software)
+    const infoScore = this.calculateInfoCompleteness(enrichedMatch.hardware, enrichedMatch.software)
 
     // 2. 互动深度 (0-30分)
-    const interactionScore = this.calculateInteractionDepth(match.relationshipStage, match.interactionStatus)
+    const interactionScore = this.calculateInteractionDepth(enrichedMatch.relationshipStage, enrichedMatch.interactionStatus)
 
     // 3. 任务完成率 (0-25分)
     const taskScore = this.calculateTaskCompletion(taskStats.total, taskStats.completed)
 
     // 4. 关键信息掌握度 (0-15分)
-    const keyInfoScore = this.calculateKeyInfoMastery(match.hardware, match.software, match.keyInfo)
+    const keyInfoScore = this.calculateKeyInfoMastery(enrichedMatch.hardware, enrichedMatch.software, enrichedMatch.keyInfo)
 
     // 5. 时间活跃度 (0-10分)
-    const timeScore = this.calculateTimeActivity(match.lastContact, match.meetingDate)
+    const timeScore = this.calculateTimeActivity(enrichedMatch.lastContact, enrichedMatch.meetingDate)
 
     // 计算总分
     const total = Math.min(100, Math.max(0, 
@@ -437,10 +416,10 @@ export class MatchService {
       taskScore,
       keyInfoScore,
       timeScore,
-    }, match)
+    }, enrichedMatch)
 
     // 获取下一步建议
-    const nextActions = this.getNextActions(stage, match)
+    const nextActions = this.getNextActions(stage, enrichedMatch)
 
     return {
       total,
@@ -860,17 +839,9 @@ export class MatchService {
     try {
       const client = getSupabaseClient()
       
-      // 过滤掉维度覆盖的字段，避免冗余存储
-      const { hardware: filteredHardware, software: filteredSoftware } = this.filterDimensionFields(
-        body.hardware || {},
-        body.software || {}
-      )
-      
       const newMatch = {
         name: body.name || '',
         gender: body.gender || 'female',
-        hardware: filteredHardware,
-        software: filteredSoftware,
         meeting_scene: body.meetingScene || 'other',
         meeting_date: body.meetingDate || new Date().toISOString().split('T')[0],
         relationship_stage: body.relationshipStage || 'new',
@@ -899,7 +870,7 @@ export class MatchService {
 
       const matchId = (data as DbMatch).id
       
-      // 异步同步到维度表（同步原始完整数据，不是过滤后的数据）
+      // 同步到维度表
       this.syncToDimensions(matchId, body.hardware || {}, body.software || {}).catch(err => {
         console.error('同步到维度表失败:', err)
       })
@@ -932,34 +903,12 @@ export class MatchService {
 
       const existingMatch = existing as DbMatch
 
-      // 过滤维度覆盖的字段后，深度合并 hardware 和 software
-      const { hardware: filteredHardware, software: filteredSoftware } = this.filterDimensionFields(
-        body.hardware || {},
-        body.software || {}
-      )
-      
-      // 合并时保留非维度字段
-      const existingHardwareFiltered = Object.fromEntries(
-        Object.entries(existingMatch.hardware || {}).filter(([key]) => !hardwareToDimensionMap[key])
-      )
-      const existingSoftwareFiltered = Object.fromEntries(
-        Object.entries(existingMatch.software || {}).filter(([key]) => !softwareToDimensionMap[key])
-      )
-      
-      const updatedHardware = { ...existingHardwareFiltered, ...filteredHardware }
-      const updatedSoftware = { 
-        ...existingSoftwareFiltered, 
-        ...filteredSoftware
-      }
-
       // 如果更新了关系阶段，同步更新status
       const updatedStatus = body.relationshipStage 
         ? this.mapStageToStatus(body.relationshipStage)
         : existingMatch.status
 
       const updateData: Record<string, unknown> = {
-        hardware: updatedHardware,
-        software: updatedSoftware,
         status: updatedStatus,
         updated_at: new Date().toISOString(),
       }
@@ -989,7 +938,7 @@ export class MatchService {
         return { code: 500, data: null, message: `更新失败: ${error.message}` }
       }
 
-      // 异步同步到维度表（同步原始完整数据，不是过滤后的数据）
+      // 同步到维度表
       if (body.hardware || body.software) {
         this.syncToDimensions(id, body.hardware || {}, body.software || {}).catch(err => {
           console.error('同步到维度表失败:', err)
