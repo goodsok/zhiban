@@ -1,4 +1,4 @@
-import { pgTable, serial, timestamp, index, unique, pgPolicy, varchar, text, jsonb, integer } from "drizzle-orm/pg-core"
+import { pgTable, serial, timestamp, index, unique, pgPolicy, varchar, text, jsonb, integer, decimal, boolean } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -350,4 +350,121 @@ export const matches = pgTable("matches", {
 	pgPolicy("matches_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
 	pgPolicy("matches_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
 	pgPolicy("matches_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
+// ==================== 维度管理系统 ====================
+
+// 维度定义表 - 存储所有可用的维度元数据
+export const dimensionDefinitions = pgTable("dimension_definitions", {
+	id: serial().primaryKey().notNull(),
+	
+	// 维度标识
+	dimensionKey: varchar("dimension_key", { length: 100 }).notNull(),
+	displayName: varchar("display_name", { length: 100 }).notNull(),
+	description: text(),
+	
+	// 分类信息
+	layer: integer("layer").notNull(), // 1-5，对应五个层级
+	category: varchar("category", { length: 50 }).notNull(),
+	subcategory: varchar("subcategory", { length: 50 }),
+	
+	// 数据约束
+	dataType: varchar("data_type", { length: 20 }).notNull(), // string, int, float, boolean, enum, string[], object
+	enumOptions: jsonb("enum_options"), // 枚举选项 [{value, label}]
+	validationRules: jsonb("validation_rules"), // {min, max, pattern, required}
+	defaultValue: jsonb("default_value"),
+	
+	// UI 配置
+	inputType: varchar("input_type", { length: 20 }), // text, select, multiselect, slider, textarea
+	placeholder: text("placeholder"),
+	helpText: text("help_text"),
+	icon: varchar("icon", { length: 50 }),
+	
+	// 权重与重要性
+	weight: decimal("weight", { precision: 3, scale: 2 }).default('1.00'), // 用于推进值计算
+	importance: varchar("importance", { length: 20 }).default('optional'), // critical, important, optional
+	
+	// 来源控制
+	sourceAllowed: jsonb("source_allowed").default(['manual']), // manual, ai_extract, chat_analysis, questionnaire
+	
+	// 元信息
+	sortOrder: integer("sort_order").default(0),
+	isActive: boolean("is_active").default(true),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("dimension_definitions_layer_idx").using("btree", table.layer.asc().nullsLast().op("int4_ops")),
+	index("dimension_definitions_category_idx").using("btree", table.category.asc().nullsLast().op("text_ops")),
+	index("dimension_definitions_active_idx").using("btree", table.isActive.asc().nullsLast().op("bool_ops")).where(sql`is_active = true`),
+	unique("dimension_definitions_dimension_key_unique").on(table.dimensionKey),
+	pgPolicy("dimension_definitions_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("dimension_definitions_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("dimension_definitions_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("dimension_definitions_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
+// 维度值表 - KV存储，每个match每个维度一条记录
+export const profileDimensionValues = pgTable("profile_dimension_values", {
+	id: serial().primaryKey().notNull(),
+	
+	// 关联
+	matchId: integer("match_id").notNull(),
+	dimensionKey: varchar("dimension_key", { length: 100 }).notNull(),
+	
+	// 值（核心）
+	value: jsonb("value").notNull(),
+	
+	// 来源追踪
+	source: varchar("source", { length: 20 }).notNull(), // manual, ai_extract, chat_analysis, questionnaire
+	sourceDetail: jsonb("source_detail"), // {chat_id, message_id, confidence, extracted_from}
+	
+	// 置信度（AI提取时使用）
+	confidence: decimal("confidence", { precision: 3, scale: 2 }), // 0.00 - 1.00
+	
+	// 历史版本
+	previousValue: jsonb("previous_value"),
+	changedReason: text("changed_reason"),
+	
+	// 时间戳
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("profile_dimension_values_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	index("profile_dimension_values_dimension_key_idx").using("btree", table.dimensionKey.asc().nullsLast().op("text_ops")),
+	index("profile_dimension_values_source_idx").using("btree", table.source.asc().nullsLast().op("text_ops")),
+	index("profile_dimension_values_updated_at_idx").using("btree", table.updatedAt.desc().nullsLast().op("timestamptz_ops")),
+	index("profile_dimension_values_value_idx").using("gin", table.value), // GIN索引支持JSONB查询
+	unique("profile_dimension_values_match_dimension_unique").on(table.matchId, table.dimensionKey),
+	pgPolicy("profile_dimension_values_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("profile_dimension_values_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("profile_dimension_values_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("profile_dimension_values_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
+// 维度值历史表 - 记录所有变更历史
+export const profileDimensionHistory = pgTable("profile_dimension_history", {
+	id: serial().primaryKey().notNull(),
+	
+	// 关联
+	matchId: integer("match_id").notNull(),
+	dimensionKey: varchar("dimension_key", { length: 100 }).notNull(),
+	
+	// 变更
+	oldValue: jsonb("old_value"),
+	newValue: jsonb("new_value").notNull(),
+	
+	// 变更元信息
+	changeSource: varchar("change_source", { length: 20 }).notNull(), // manual_update, ai_update, correction
+	changedReason: text("changed_reason"),
+	
+	// 时间戳
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("profile_dimension_history_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	index("profile_dimension_history_created_at_idx").using("btree", table.createdAt.desc().nullsLast().op("timestamptz_ops")),
+	index("profile_dimension_history_dimension_key_idx").using("btree", table.dimensionKey.asc().nullsLast().op("text_ops")),
+	pgPolicy("profile_dimension_history_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("profile_dimension_history_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("profile_dimension_history_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("profile_dimension_history_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
 ]);

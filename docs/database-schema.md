@@ -8,6 +8,10 @@
 - [核心业务表](#核心业务表)
   - [matches - 档案对象表](#matches---档案对象表)
   - [tasks - 任务表](#tasks---任务表)
+- [维度管理系统表](#维度管理系统表)
+  - [dimension_definitions - 维度定义表](#dimension_definitions---维度定义表)
+  - [profile_dimension_values - 维度值表](#profile_dimension_values---维度值表)
+  - [profile_dimension_history - 维度历史表](#profile_dimension_history---维度历史表)
 - [画像系统表](#画像系统表)
   - [profile_portraits - 人物画像表](#profile_portraits---人物画像表)
   - [profile_histories - 画像变化历史表](#profile_histories---画像变化历史表)
@@ -35,6 +39,9 @@
 |------|--------|------|------|
 | `matches` | 档案对象表 | 存储恋爱对象的基本信息 | 核心表，被多表关联 |
 | `tasks` | 任务表 | 存储推进关系的任务 | → matches |
+| `dimension_definitions` | 维度定义表 | 存储所有可用的维度元数据 | 独立 |
+| `profile_dimension_values` | 维度值表 | KV存储每个对象的维度值 | → matches, dimension_definitions |
+| `profile_dimension_history` | 维度历史表 | 记录维度值的变化历史 | → matches |
 | `profile_portraits` | 人物画像表 | 存储对象的多维度画像 | → matches |
 | `profile_histories` | 画像变化历史表 | 记录画像随时间的变化 | → matches |
 | `behavior_patterns` | 行为模式表 | 存储从聊天记录提取的行为特征 | → matches |
@@ -141,6 +148,130 @@
 | `updated_at` | timestamp | - | 更新时间 |
 
 **索引**: `match_id`, `completed`, `created_at`
+
+---
+
+## 维度管理系统表
+
+### dimension_definitions - 维度定义表
+
+存储所有可用的维度元数据，包括维度标识、类型、验证规则、UI配置等。采用元数据驱动的架构，支持灵活扩展。
+
+| 字段名 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `id` | serial | - | 主键，自增 |
+| **维度标识** ||||
+| `dimension_key` | varchar(100) | - | 维度唯一标识（如 mbti, hometown） |
+| `display_name` | varchar(100) | - | 显示名称（如 MBTI类型） |
+| `description` | text | - | 维度说明 |
+| **分类信息** ||||
+| `layer` | integer | - | 层级（1-5）：静态属性→长期特质→中期偏好→动态状态→情境数据 |
+| `category` | varchar(50) | - | 分类（如 identity, family, personality） |
+| `subcategory` | varchar(50) | - | 子分类（可选） |
+| **数据约束** ||||
+| `data_type` | varchar(20) | - | 数据类型：string/int/float/boolean/enum/string[]/object |
+| `enum_options` | jsonb | - | 枚举选项 [{value, label}] |
+| `validation_rules` | jsonb | - | 验证规则 {min, max, pattern, required} |
+| `default_value` | jsonb | - | 默认值 |
+| **UI 配置** ||||
+| `input_type` | varchar(20) | - | 输入类型：text/select/multiselect/slider/textarea |
+| `placeholder` | text | - | 占位提示 |
+| `help_text` | text | - | 帮助文本 |
+| `icon` | varchar(50) | - | 图标名称 |
+| **权重与重要性** ||||
+| `weight` | decimal(3,2) | 1.00 | 权重（用于推进值计算） |
+| `importance` | varchar(20) | 'optional' | 重要性：critical/important/optional |
+| **来源控制** ||||
+| `source_allowed` | jsonb | ['manual'] | 允许的来源：manual/ai_extract/chat_analysis/questionnaire |
+| **元信息** ||||
+| `sort_order` | integer | 0 | 排序顺序 |
+| `is_active` | boolean | true | 是否启用 |
+| `created_at` | timestamp | NOW() | 创建时间 |
+| `updated_at` | timestamp | - | 更新时间 |
+
+**索引**: `layer`, `category`, `is_active` (WHERE is_active = true)
+
+**唯一约束**: `dimension_key`
+
+**设计理念**:
+- **元数据驱动**: 维度定义存储在数据库中，而非硬编码
+- **灵活扩展**: 新增维度只需插入记录，无需修改表结构
+- **类型安全**: 通过 `data_type` 和 `validation_rules` 确保数据一致性
+- **前端友好**: UI 配置字段支持动态表单渲染
+
+---
+
+### profile_dimension_values - 维度值表
+
+KV 存储每个对象在每个维度上的值，采用稀疏存储策略（只存储有值的维度）。
+
+| 字段名 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `id` | serial | - | 主键，自增 |
+| **关联** ||||
+| `match_id` | integer | - | 关联的对象ID |
+| `dimension_key` | varchar(100) | - | 维度标识（关联 dimension_definitions） |
+| **值** ||||
+| `value` | jsonb | - | 维度值（支持任意类型） |
+| **来源追踪** ||||
+| `source` | varchar(20) | - | 来源：manual/ai_extract/chat_analysis/questionnaire |
+| `source_detail` | jsonb | - | 来源详情 {chat_id, message_id, confidence, extracted_from} |
+| `confidence` | decimal(3,2) | - | 置信度（AI提取时使用，0.00-1.00） |
+| **历史版本** ||||
+| `previous_value` | jsonb | - | 修改前的值（用于快速对比） |
+| `changed_reason` | text | - | 修改原因 |
+| **时间戳** ||||
+| `created_at` | timestamp | NOW() | 创建时间 |
+| `updated_at` | timestamp | - | 更新时间 |
+
+**索引**: 
+- `match_id` - 快速查询某对象的所有维度
+- `dimension_key` - 快速查询某维度的所有对象值
+- `source` - 按来源筛选
+- `updated_at` - 按更新时间排序
+- `value` (GIN) - 支持 JSONB 内容查询
+
+**唯一约束**: `(match_id, dimension_key)` - 每个对象每个维度只有一条当前值
+
+**数据示例**:
+```json
+// 静态属性
+{"dimension_key": "mbti", "value": "INFJ", "source": "manual"}
+
+// 数组类型
+{"dimension_key": "interests", "value": ["摄影", "旅行"], "source": "chat_analysis", "confidence": 0.85}
+
+// 复杂对象
+{"dimension_key": "exerciseHabits", "value": {"frequency": "weekly", "types": ["瑜伽"]}, "source": "manual"}
+```
+
+---
+
+### profile_dimension_history - 维度历史表
+
+记录维度值的所有变更历史，支持追溯和趋势分析。
+
+| 字段名 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `id` | serial | - | 主键，自增 |
+| **关联** ||||
+| `match_id` | integer | - | 关联的对象ID |
+| `dimension_key` | varchar(100) | - | 维度标识 |
+| **变更** ||||
+| `old_value` | jsonb | - | 变更前的值 |
+| `new_value` | jsonb | - | 变更后的值 |
+| **变更元信息** ||||
+| `change_source` | varchar(20) | - | 变更来源：manual_update/ai_update/correction |
+| `changed_reason` | text | - | 变更原因 |
+| **时间戳** ||||
+| `created_at` | timestamp | NOW() | 创建时间 |
+
+**索引**: `match_id`, `created_at`, `dimension_key`
+
+**用途**:
+- 追踪维度值的演变过程
+- 分析用户画像的变化趋势
+- 支持数据回滚和审计
 
 ---
 
