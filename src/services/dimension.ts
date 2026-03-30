@@ -81,6 +81,18 @@ export async function getDimensionDefinitions(filters?: {
 }
 
 /**
+ * 获取单个维度定义
+ */
+export async function getDimensionDefinition(dimensionKey: string): Promise<{
+  code: number
+  msg: string
+  data: DimensionDefinition | null
+}> {
+  const res = await Network.request({ url: `/api/dimension/definitions/${dimensionKey}` })
+  return res.data
+}
+
+/**
  * 获取对象的维度数据（带定义和完成度）
  */
 export async function getMatchDimensions(matchId: number): Promise<{

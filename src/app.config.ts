@@ -6,6 +6,7 @@ export default defineAppConfig({
     'pages/create/index',
     'pages/detail/index',
     'pages/edit/index',
+    'pages/dimension-edit/index',
     'pages/tasks/index',
     'pages/quiz/index',
     'pages/dates/index',
