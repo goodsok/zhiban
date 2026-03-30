@@ -259,14 +259,43 @@ export class ChatService {
     }
 
     try {
+      // 从数据库获取最新的档案信息
+      const client = getSupabaseClient()
+      const { data: latestMatch, error } = await client
+        .from('matches')
+        .select('hardware, software, relationship_stage, interaction_status')
+        .eq('id', context.matchId)
+        .single()
+
+      // 使用最新的档案信息，如果获取失败则使用传入的 context
+      let hw: Record<string, unknown>
+      let sw: Record<string, unknown>
+      let relationshipStage: string
+      let interactionStatus: string
+
+      if (latestMatch && !error) {
+        const match = latestMatch as {
+          hardware: Record<string, unknown>
+          software: Record<string, unknown>
+          relationship_stage: string
+          interaction_status: string
+        }
+        hw = match.hardware || {}
+        sw = match.software || {}
+        relationshipStage = match.relationship_stage
+        interactionStatus = match.interaction_status
+      } else {
+        hw = context.hardware as Record<string, unknown>
+        sw = context.software as Record<string, unknown>
+        relationshipStage = context.relationshipStage
+        interactionStatus = context.interactionStatus
+      }
+
       const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
       const config = new Config()
-      const client = new LLMClient(config, customHeaders)
+      const llmClient = new LLMClient(config, customHeaders)
 
       // 构建档案缺失信息
-      const hw = context.hardware as Record<string, unknown>
-      const sw = context.software as Record<string, unknown>
-      
       const missingInfo: string[] = []
       if (!hw?.age) missingInfo.push('年龄')
       if (!hw?.birthday) missingInfo.push('生日')
@@ -282,8 +311,8 @@ export class ChatService {
 
 对方档案：
 - 姓名：${context.matchName}
-- 关系阶段：${context.relationshipStage}
-- 互动状态：${context.interactionStatus}
+- 关系阶段：${relationshipStage}
+- 互动状态：${interactionStatus}
 - 已知信息：年龄${hw?.age || '未知'}，职业${hw?.occupation || '未知'}，MBTI${sw?.mbti || '未知'}
 - 缺失信息：${missingInfo.join('、') || '无'}
 ${context.cycleInfo ? `- 当前周期：${context.cycleInfo.phaseName}（Day ${context.cycleInfo.day}）` : ''}
@@ -296,7 +325,7 @@ ${context.cycleInfo ? `- 当前周期：${context.cycleInfo.phaseName}（Day ${c
 
 请直接返回3个问题，用换行分隔，不要编号和其他文字。`
 
-      const response = await client.invoke([
+      const response = await llmClient.invoke([
         { role: 'user', content: prompt }
       ], { temperature: 0.7 })
 
