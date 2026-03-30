@@ -8,14 +8,14 @@ import { Plus, ChevronRight, Sparkles, Heart, Sun, Moon, Cloud } from 'lucide-re
 interface Match {
   id: number
   name: string
-  age: number
-  occupation: string
-  relationshipStage: string
-  interactionStatus: string
+  gender?: string
+  meetingScene?: string
+  meetingDate?: string
   impression: number
   status: string
   nextAction: string
   lastContact: string
+  progressScore?: number
   // 周期信息
   cycleStartDate?: string
   cycleLength?: number
@@ -27,24 +27,6 @@ interface CycleInfo {
   phaseName: string
   description: string
   recommendations: string[]
-}
-
-const stageLabels: Record<string, string> = {
-  new: '刚认识',
-  contacting: '接触中',
-  dating: '约会中',
-  progressing: '发展中',
-}
-
-const statusLabels: Record<string, string> = {
-  just_met: '一面之缘',
-  got_contact: '有联系方式',
-  chatted: '聊过天',
-  good_vibe: '聊得不错',
-  met_up: '见过面',
-  dating_regularly: '稳定约会',
-  ambiguous: '暧昧期',
-  confirming: '准备确认',
 }
 
 // 周期阶段图标和颜色
@@ -75,10 +57,10 @@ const Index: FC = () => {
       setLoading(true)
       const res = await Network.request({ url: '/api/match/list' })
       console.log('Matches response:', res.data)
-      if (res.data?.code === 200 && res.data?.data) {
-        setMatches(res.data.data)
+      if (res.data?.code === 200 && res.data?.data?.list) {
+        setMatches(res.data.data.list)
         // 获取每个对象的周期信息
-        res.data.data.forEach(async (match: Match) => {
+        res.data.data.list.forEach(async (match: Match) => {
           if (match.cycleStartDate) {
             const cycleRes = await Network.request({ url: `/api/match/${match.id}/cycle` })
             if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
@@ -153,23 +135,19 @@ const Index: FC = () => {
                       <Text className="block text-base font-semibold text-gray-900 flex-shrink-0">
                         {match.name}
                       </Text>
-                      <Text className="block text-sm text-gray-500 flex-shrink-0">{match.age}岁</Text>
-                      {match.occupation && (
-                        <>
-                          <Text className="block text-xs text-gray-300 flex-shrink-0">·</Text>
-                          <Text className="block text-sm text-gray-500 truncate">{match.occupation}</Text>
-                        </>
-                      )}
                     </View>
-                    <View className="flex items-center gap-2">
-                      <Text className="block text-xs text-gray-400">
-                        {stageLabels[match.relationshipStage] || match.relationshipStage}
-                      </Text>
-                      <Text className="block text-xs text-gray-300">|</Text>
-                      <Text className="block text-xs text-gray-400">
-                        {statusLabels[match.interactionStatus] || match.interactionStatus}
-                      </Text>
-                    </View>
+                    {/* 推进值显示 */}
+                    {match.progressScore !== undefined && (
+                      <View className="flex items-center gap-1">
+                        <View className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <View 
+                            className="h-full bg-gradient-to-r from-indigo-500 to-pink-500 rounded-full"
+                            style={{ width: `${match.progressScore}%` }}
+                          />
+                        </View>
+                        <Text className="block text-xs text-gray-400">{match.progressScore}分</Text>
+                      </View>
+                    )}
                   </View>
                   <ChevronRight size={20} color="#D1D5DB" />
                 </View>

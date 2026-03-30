@@ -338,14 +338,12 @@ export class TaskService {
    * 根据对象信息生成推荐任务（优化版：考虑周期阶段）
    */
   async generateRecommendedTasks(matchId: number, matchData: {
-    relationshipStage: string
     keyInfo: Array<{ type: string; label: string; value: string }>
     interests: string[]
     cycleStartDate?: string
     cycleLength?: number
   }) {
     const recommendedTasks: Task[] = []
-    const stage = matchData.relationshipStage || 'new'
     
     // 获取当前周期阶段
     const cycleInfo = this.calculateCyclePhase(matchData.cycleStartDate, matchData.cycleLength)
@@ -359,9 +357,9 @@ export class TaskService {
     
     const existingTitles = new Set((existingTasks as { title: string }[])?.map(t => t.title) || [])
 
-    // 1. 根据阶段添加默认任务（根据周期阶段过滤）
-    const stageTasks = stageDefaultTasks[stage] || []
-    for (const taskTemplate of stageTasks) {
+    // 1. 添加基础任务（根据周期阶段过滤）
+    const baseTasks = stageDefaultTasks['new'] || []
+    for (const taskTemplate of baseTasks) {
       if (existingTitles.has(taskTemplate.title)) continue
 
       const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
@@ -369,7 +367,6 @@ export class TaskService {
         const task = await this.createTask(matchId, {
           ...taskTemplate,
           source: 'system',
-          relatedStage: stage,
           suitablePhases: phaseAdjustment.suitablePhases,
           avoidPhases: phaseAdjustment.avoidPhases,
           description: phaseAdjustment.adjustedDescription || taskTemplate.description,
@@ -823,22 +820,15 @@ export class TaskService {
       if (completionRate >= 0.8) {
         const interests = match.software?.interests || match.hardware?.interests || []
         
-        // 获取下一阶段
-        const stages = ['new', 'contacting', 'dating', 'progressing']
-        const currentIndex = stages.indexOf(match.relationship_stage)
+        // 如果任务完成率高，生成更多任务
+        const newTasks = await this.generateRecommendedTasks(matchId, {
+          keyInfo: Array.isArray(match.key_info) ? match.key_info as Array<{ type: string; label: string; value: string }> : [],
+          interests: interests,
+          cycleStartDate: match.cycle_start_date || undefined,
+          cycleLength: match.cycle_length || undefined,
+        })
         
-        // 如果还在早期阶段，可以生成更多任务
-        if (currentIndex < stages.length - 1 || completionRate >= 1) {
-          const newTasks = await this.generateRecommendedTasks(matchId, {
-            relationshipStage: match.relationship_stage,
-            keyInfo: Array.isArray(match.key_info) ? match.key_info as Array<{ type: string; label: string; value: string }> : [],
-            interests: interests,
-            cycleStartDate: match.cycle_start_date || undefined,
-            cycleLength: match.cycle_length || undefined,
-          })
-          
-          return newTasks
-        }
+        return newTasks
       }
 
       return []

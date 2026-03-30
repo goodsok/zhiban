@@ -171,7 +171,6 @@ const TasksPage: FC = () => {
           url: `/api/task/generate/${matchId}`,
           method: 'POST',
           data: {
-            relationshipStage: matchData.relationshipStage,
             keyInfo: matchData.keyInfo || [],
             interests: matchData.interests || [],
             cycleStartDate: matchData.cycleStartDate,

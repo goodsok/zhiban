@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import CustomHeader from '@/components/custom-header'
-import { Check, Loader, HardDrive, Cpu, Camera, Sparkles, X } from 'lucide-react-taro'
+import { Check, Loader, Camera, Sparkles, X } from 'lucide-react-taro'
 import { Network } from '@/network'
 
 // 已选图片
@@ -28,53 +28,13 @@ const meetingScenes = [
   { id: 'other', label: '其他' },
 ]
 
-// 关系阶段
-const relationshipStages = [
-  { id: 'new', label: '刚认识' },
-  { id: 'contacting', label: '接触中' },
-  { id: 'dating', label: '约会中' },
-  { id: 'progressing', label: '发展中' },
-]
-
-// 互动状态
-const interactionStatuses = [
-  { id: 'just_met', label: '一面之缘' },
-  { id: 'got_contact', label: '有联系方式' },
-  { id: 'chatted', label: '聊过天' },
-  { id: 'good_vibe', label: '聊得不错' },
-  { id: 'met_up', label: '见过面' },
-  { id: 'dating_regularly', label: '稳定约会' },
-  { id: 'ambiguous', label: '暧昧期' },
-  { id: 'confirming', label: '准备确认' },
-]
-
-// 预设兴趣
-const presetInterests = [
-  '旅行', '摄影', '美食', '健身', '电影', '音乐', '阅读', '游戏',
-  '绘画', '烹饪', '瑜伽', '游泳',
-]
-
 const CreatePage: FC = () => {
   const [loading, setLoading] = useState(false)
   const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([])
   const [formData, setFormData] = useState({
     name: '',
     gender: 'female',
-    // 硬件信息
-    hardware: {
-      age: '',
-      occupation: '',
-      location: '',
-    },
-    // 软件信息
-    software: {
-      mbti: '',
-      interests: [] as string[],
-      personality: '',
-    },
     meetingScene: '',
-    relationshipStage: 'new',
-    interactionStatus: 'just_met',
     notes: '',
   })
 
@@ -174,75 +134,13 @@ const CreatePage: FC = () => {
       if (profile.gender && !prev.gender) {
         updates.gender = profile.gender as string
       }
-      if (profile.age && !prev.hardware.age) {
-        updates.hardware = {
-          ...prev.hardware,
-          age: String(profile.age)
-        }
-      }
-      if (profile.location && !prev.hardware.location) {
-        updates.hardware = {
-          ...prev.hardware,
-          ...(updates.hardware || {}),
-          location: profile.location as string
-        }
-      }
-      if (profile.occupation && !prev.hardware.occupation) {
-        updates.hardware = {
-          ...prev.hardware,
-          ...(updates.hardware || {}),
-          occupation: profile.occupation as string
-        }
-      }
-      if (profile.mbti && !prev.software.mbti) {
-        updates.software = {
-          ...prev.software,
-          mbti: profile.mbti as string
-        }
-      }
-      if (profile.personality && !prev.software.personality) {
-        updates.software = {
-          ...prev.software,
-          ...(updates.software || {}),
-          personality: profile.personality as string
-        }
-      }
-      
-      // 兴趣爱好合并
-      if (profile.interests && Array.isArray(profile.interests)) {
-        const matchedInterests = profile.interests.filter((i: string) => 
-          presetInterests.some(p => i.includes(p) || p.includes(i))
-        )
-        const newInterests = matchedInterests.length > 0 ? matchedInterests : profile.interests.slice(0, 3)
-        const mergedInterests = [...new Set([...prev.software.interests, ...newInterests])]
-        updates.software = {
-          ...prev.software,
-          ...(updates.software || {}),
-          interests: mergedInterests.slice(0, 6) // 最多保留6个
-        }
-      }
 
-      return {
-        ...prev,
-        ...updates,
-        hardware: { ...prev.hardware, ...(updates.hardware || {}) },
-        software: { ...prev.software, ...(updates.software || {}) }
-      }
-    })
-  }
-
-  const toggleInterest = (interest: string) => {
-    const newInterests = formData.software.interests.includes(interest)
-      ? formData.software.interests.filter(i => i !== interest)
-      : [...formData.software.interests, interest]
-    setFormData({
-      ...formData,
-      software: { ...formData.software, interests: newInterests }
+      return { ...prev, ...updates }
     })
   }
 
   const handleSave = async () => {
-    if (!formData.name || !formData.hardware.age) return
+    if (!formData.name) return
 
     try {
       setLoading(true)
@@ -252,19 +150,7 @@ const CreatePage: FC = () => {
         data: {
           name: formData.name,
           gender: formData.gender,
-          hardware: {
-            age: parseInt(formData.hardware.age),
-            occupation: formData.hardware.occupation || undefined,
-            location: formData.hardware.location || undefined,
-          },
-          software: {
-            mbti: formData.software.mbti || undefined,
-            interests: formData.software.interests,
-            personality: formData.software.personality || undefined,
-          },
           meetingScene: formData.meetingScene || 'other',
-          relationshipStage: formData.relationshipStage,
-          interactionStatus: formData.interactionStatus,
           notes: formData.notes || undefined,
         }
       })
@@ -279,7 +165,7 @@ const CreatePage: FC = () => {
     }
   }
 
-  const isValid = formData.name && formData.hardware.age
+  const isValid = formData.name
 
   return (
     <View className="min-h-screen bg-gray-50 pb-24">
@@ -394,107 +280,6 @@ const CreatePage: FC = () => {
           </View>
         </View>
 
-        {/* 硬件信息 */}
-        <View className="mb-4">
-          <View className="flex items-center gap-2 mb-2">
-            <HardDrive size={14} color="#6B7280" />
-            <Text className="block text-xs text-gray-400">硬件信息</Text>
-            <Text className="block text-xs text-gray-300">外在属性</Text>
-          </View>
-          <View className="bg-white rounded-xl border border-gray-100 p-4">
-            <View className="mb-3">
-              <Text className="block text-xs text-gray-400 mb-1">年龄 *</Text>
-              <Input
-                className="w-full"
-                type="number"
-                placeholder="输入年龄"
-                value={formData.hardware.age}
-                onInput={(e) => setFormData({
-                  ...formData,
-                  hardware: { ...formData.hardware, age: e.detail.value }
-                })}
-              />
-            </View>
-            <View className="mb-3">
-              <Text className="block text-xs text-gray-400 mb-1">职业</Text>
-              <Input
-                className="w-full"
-                placeholder="输入职业（选填）"
-                value={formData.hardware.occupation}
-                onInput={(e) => setFormData({
-                  ...formData,
-                  hardware: { ...formData.hardware, occupation: e.detail.value }
-                })}
-              />
-            </View>
-            <View>
-              <Text className="block text-xs text-gray-400 mb-1">所在地</Text>
-              <Input
-                className="w-full"
-                placeholder="如：北京朝阳（选填）"
-                value={formData.hardware.location}
-                onInput={(e) => setFormData({
-                  ...formData,
-                  hardware: { ...formData.hardware, location: e.detail.value }
-                })}
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* 软件信息 */}
-        <View className="mb-4">
-          <View className="flex items-center gap-2 mb-2">
-            <Cpu size={14} color="#6B7280" />
-            <Text className="block text-xs text-gray-400">软件信息</Text>
-            <Text className="block text-xs text-gray-300">内在特质</Text>
-          </View>
-          <View className="bg-white rounded-xl border border-gray-100 p-4">
-            <View className="mb-3">
-              <Text className="block text-xs text-gray-400 mb-1">MBTI</Text>
-              <Input
-                className="w-full"
-                placeholder="如：ENFP（选填）"
-                value={formData.software.mbti}
-                onInput={(e) => setFormData({
-                  ...formData,
-                  software: { ...formData.software, mbti: e.detail.value }
-                })}
-              />
-            </View>
-            <View className="mb-3">
-              <Text className="block text-xs text-gray-400 mb-1">性格描述</Text>
-              <Input
-                className="w-full"
-                placeholder="如：热情开朗（选填）"
-                value={formData.software.personality}
-                onInput={(e) => setFormData({
-                  ...formData,
-                  software: { ...formData.software, personality: e.detail.value }
-                })}
-              />
-            </View>
-            <View>
-              <Text className="block text-xs text-gray-400 mb-1">兴趣爱好</Text>
-              <View className="flex flex-wrap gap-2 mt-2">
-                {presetInterests.map((interest) => (
-                  <Badge
-                    key={interest}
-                    className={`${
-                      formData.software.interests.includes(interest)
-                        ? 'bg-black text-white'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}
-                    onClick={() => toggleInterest(interest)}
-                  >
-                    {interest}
-                  </Badge>
-                ))}
-              </View>
-            </View>
-          </View>
-        </View>
-
         {/* 见面场景 */}
         <View className="mb-4">
           <Text className="block text-xs text-gray-400 mb-2">见面场景</Text>
@@ -511,50 +296,6 @@ const CreatePage: FC = () => {
               >
                 {scene.label}
               </Badge>
-            ))}
-          </View>
-        </View>
-
-        {/* 关系状态 */}
-        <View className="mb-4">
-          <Text className="block text-xs text-gray-400 mb-2">关系阶段</Text>
-          <View className="grid grid-cols-4 gap-2 mb-2">
-            {relationshipStages.map((stage) => (
-              <View
-                key={stage.id}
-                className={`text-center py-2 rounded-lg ${
-                  formData.relationshipStage === stage.id 
-                    ? 'bg-black text-white' 
-                    : 'bg-white border border-gray-200 text-gray-600'
-                }`}
-                onClick={() => setFormData({ ...formData, relationshipStage: stage.id })}
-              >
-                <Text className="block text-sm">{stage.label}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* 互动状态 */}
-        <View className="mb-4">
-          <Text className="block text-xs text-gray-400 mb-2">互动状态</Text>
-          <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
-            {interactionStatuses.map((status) => (
-              <View
-                key={status.id}
-                className="flex items-center justify-between px-4 py-2"
-                onClick={() => setFormData({ ...formData, interactionStatus: status.id })}
-              >
-                <Text className={`block text-sm ${
-                  formData.interactionStatus === status.id ? 'text-gray-900 font-medium' : 'text-gray-600'
-                }`}
-                >
-                  {status.label}
-                </Text>
-                {formData.interactionStatus === status.id && (
-                  <Check size={14} color="#111827" />
-                )}
-              </View>
             ))}
           </View>
         </View>
