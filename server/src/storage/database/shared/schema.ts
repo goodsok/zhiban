@@ -68,6 +68,35 @@ export const chatHistories = pgTable("chat_histories", {
 	pgPolicy("chat_histories_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
 ]);
 
+// 任务表
+export const tasks = pgTable("tasks", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	category: varchar("category", { length: 16 }).notNull().default('prepare'),
+	title: varchar("title", { length: 128 }).notNull(),
+	description: text(),
+	difficulty: varchar("difficulty", { length: 16 }).default('简单'),
+	duration: varchar("duration", { length: 32 }).default('15分钟'),
+	source: varchar("source", { length: 16 }).default('system'),
+	completed: integer("completed").default(0).notNull(),
+	completedAt: timestamp("completed_at", { withTimezone: true, mode: 'string' }),
+	relatedKeyInfo: jsonb("related_key_info").default([]),
+	relatedStage: varchar("related_stage", { length: 32 }),
+	suitablePhases: jsonb("suitable_phases").default([]),
+	avoidPhases: jsonb("avoid_phases").default([]),
+	lessonLearned: text("lesson_learned"),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("tasks_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	index("tasks_completed_idx").using("btree", table.completed.asc().nullsLast().op("int4_ops")),
+	index("tasks_created_at_idx").using("btree", table.createdAt.desc().nullsLast().op("timestamptz_ops")),
+	pgPolicy("tasks_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("tasks_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("tasks_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("tasks_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
 // 档案对象表
 export const matches = pgTable("matches", {
 	id: serial().primaryKey().notNull(),

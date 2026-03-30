@@ -6,27 +6,27 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Get('list')
-  getTaskList(@Query('matchId') matchId?: string) {
+  async getTaskList(@Query('matchId') matchId?: string) {
     return this.taskService.getTaskList(matchId ? Number(matchId) : undefined)
   }
 
   @Get('progress')
-  getProgress(@Query('matchId') matchId?: string) {
+  async getProgress(@Query('matchId') matchId?: string) {
     return this.taskService.getProgress(matchId ? Number(matchId) : undefined)
   }
 
   @Post('complete')
-  completeTask(@Body() body: { taskId: number; lessonLearned?: string }) {
+  async completeTask(@Body() body: { taskId: number; lessonLearned?: string }) {
     return this.taskService.completeTask(body.taskId, body.lessonLearned)
   }
 
   @Post('update-lesson')
-  updateLesson(@Body() body: { taskId: number; lesson: string }) {
+  async updateLesson(@Body() body: { taskId: number; lesson: string }) {
     return this.taskService.updateTaskLesson(body.taskId, body.lesson)
   }
 
   @Post('create')
-  createTask(@Body() body: {
+  async createTask(@Body() body: {
     matchId: number
     category: 'prepare' | 'chat' | 'game' | 'romantic'
     title: string
@@ -36,7 +36,7 @@ export class TaskController {
     relatedKeyInfo?: string[]
     relatedStage?: string
   }) {
-    const task = this.taskService.createTask(body.matchId, {
+    const task = await this.taskService.createTask(body.matchId, {
       category: body.category,
       title: body.title,
       description: body.description,
@@ -54,12 +54,12 @@ export class TaskController {
   }
 
   @Post('delete')
-  deleteTask(@Body() body: { taskId: number }) {
+  async deleteTask(@Body() body: { taskId: number }) {
     return this.taskService.deleteTask(body.taskId)
   }
 
   @Post('generate/:matchId')
-  generateTasks(
+  async generateTasks(
     @Param('matchId') matchId: string,
     @Body() body: {
       relationshipStage: string
@@ -69,7 +69,7 @@ export class TaskController {
       cycleLength?: number
     }
   ) {
-    const tasks = this.taskService.generateRecommendedTasks(Number(matchId), body)
+    const tasks = await this.taskService.generateRecommendedTasks(Number(matchId), body)
     return {
       code: 200,
       data: tasks,
@@ -78,7 +78,7 @@ export class TaskController {
   }
 
   @Post('update-stage/:matchId')
-  updateTasksForStage(
+  async updateTasksForStage(
     @Param('matchId') matchId: string,
     @Body() body: {
       newStage: string
@@ -86,7 +86,7 @@ export class TaskController {
       interests: string[]
     }
   ) {
-    const tasks = this.taskService.updateTasksForStage(
+    const tasks = await this.taskService.updateTasksForStage(
       Number(matchId),
       body.newStage,
       { keyInfo: body.keyInfo, interests: body.interests }
@@ -99,11 +99,11 @@ export class TaskController {
   }
 
   @Post('create-from-suggestions/:matchId')
-  createFromSuggestions(
+  async createFromSuggestions(
     @Param('matchId') matchId: string,
     @Body() body: { suggestions: Array<{ action: string; reason: string; tips: string }> }
   ) {
-    const tasks = this.taskService.createFromSuggestions(
+    const tasks = await this.taskService.createFromSuggestions(
       Number(matchId),
       body.suggestions || []
     )

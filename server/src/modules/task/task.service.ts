@@ -1,5 +1,6 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common'
 import { MatchService } from '../match/match.service'
+import { getSupabaseClient } from '@/storage/database/supabase-client'
 
 // 任务分类
 export type TaskCategory = 'prepare' | 'chat' | 'game' | 'romantic'
@@ -29,6 +30,47 @@ export interface Task {
   // 新增：学习记录
   lessonLearned?: string     // 完成后学到了什么
 }
+
+// 数据库任务格式
+interface DbTask {
+  id: number
+  match_id: number
+  category: string
+  title: string
+  description: string | null
+  difficulty: string | null
+  duration: string | null
+  source: string | null
+  completed: number
+  completed_at: string | null
+  related_key_info: unknown
+  related_stage: string | null
+  suitable_phases: unknown
+  avoid_phases: unknown
+  lesson_learned: string | null
+  created_at: string
+  updated_at: string | null
+}
+
+// 将数据库记录转换为 Task 接口
+const dbToTask = (db: DbTask): Task => ({
+  id: db.id,
+  matchId: db.match_id,
+  category: db.category as TaskCategory,
+  title: db.title,
+  description: db.description || '',
+  difficulty: (db.difficulty as '简单' | '中等' | '困难') || '简单',
+  duration: db.duration || '15分钟',
+  source: (db.source as TaskSource) || 'system',
+  completed: db.completed === 1,
+  completedAt: db.completed_at || undefined,
+  relatedKeyInfo: Array.isArray(db.related_key_info) ? db.related_key_info as string[] : undefined,
+  relatedStage: db.related_stage || undefined,
+  suitablePhases: Array.isArray(db.suitable_phases) ? db.suitable_phases as string[] : undefined,
+  avoidPhases: Array.isArray(db.avoid_phases) ? db.avoid_phases as string[] : undefined,
+  lessonLearned: db.lesson_learned || undefined,
+  createdAt: db.created_at,
+})
 
 // 关系阶段配置
 const stageTaskConfigs: Record<string, { categories: TaskCategory[], focus: string }> = {
@@ -121,94 +163,105 @@ export class TaskService {
     private readonly matchService: MatchService,
   ) {}
 
-  // 任务存储
-  private tasks: Task[] = [
-    {
-      id: 1,
-      matchId: 1,
-      category: 'prepare',
-      title: '了解小红的饮食偏好',
-      description: '根据记录：不吃辣，爱吃日料，可以找合适的餐厅',
-      difficulty: '简单',
-      duration: '30分钟',
-      source: 'system',
-      completed: true,
-      createdAt: new Date().toISOString(),
-      relatedKeyInfo: ['food_preference'],
-      relatedStage: 'contacting',
-    },
-    {
-      id: 2,
-      matchId: 1,
-      category: 'chat',
-      title: '聊聊生日话题',
-      description: '小红的生日是6月15日，可以聊聊往年生日怎么过的',
-      difficulty: '简单',
-      duration: '15分钟',
-      source: 'system',
-      completed: false,
-      createdAt: new Date().toISOString(),
-      relatedKeyInfo: ['birthday'],
-      relatedStage: 'contacting',
-    },
-    {
-      id: 3,
-      matchId: 1,
-      category: 'romantic',
-      title: '准备生日惊喜',
-      description: '为小红准备一份特别的生日礼物',
-      difficulty: '中等',
-      duration: '1-2天',
-      source: 'system',
-      completed: false,
-      createdAt: new Date().toISOString(),
-      relatedKeyInfo: ['birthday'],
-      relatedStage: 'dating',
-    },
-  ]
-
-  private nextId = 4
-
   /**
    * 获取指定对象的任务列表
    */
-  getTaskList(matchId?: number) {
-    let filteredTasks = this.tasks
-    if (matchId) {
-      filteredTasks = this.tasks.filter(t => t.matchId === matchId)
-    }
-    return {
-      code: 200,
-      data: filteredTasks,
-      message: 'success',
+  async getTaskList(matchId?: number) {
+    try {
+      const client = getSupabaseClient()
+      let query = client
+        .from('tasks')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (matchId) {
+        query = query.eq('match_id', matchId)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Get task list error:', error)
+        return { code: 500, data: [], message: `获取任务列表失败: ${error.message}` }
+      }
+
+      const tasks = (data as DbTask[]).map(dbToTask)
+      return { code: 200, data: tasks, message: 'success' }
+    } catch (error) {
+      console.error('Get task list error:', error)
+      return { code: 500, data: [], message: '获取任务列表失败' }
     }
   }
 
   /**
    * 获取任务进度
    */
-  getProgress(matchId?: number) {
-    let filteredTasks = this.tasks
-    if (matchId) {
-      filteredTasks = this.tasks.filter(t => t.matchId === matchId)
+  async getProgress(matchId?: number) {
+    try {
+      const client = getSupabaseClient()
+      let query = client.from('tasks').select('completed')
+
+      if (matchId) {
+        query = query.eq('match_id', matchId)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Get progress error:', error)
+        return { code: 500, data: { completed: 0, total: 0, percentage: 0 }, message: `获取进度失败: ${error.message}` }
+      }
+
+      const tasks = data as { completed: number }[]
+      const total = tasks.length
+      const completed = tasks.filter(t => t.completed === 1).length
+
+      return {
+        code: 200,
+        data: {
+          completed,
+          total,
+          percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
+        },
+        message: 'success',
+      }
+    } catch (error) {
+      console.error('Get progress error:', error)
+      return { code: 500, data: { completed: 0, total: 0, percentage: 0 }, message: '获取进度失败' }
     }
-    const completed = filteredTasks.filter(t => t.completed).length
-    const total = filteredTasks.length
-    return {
-      code: 200,
-      data: {
-        completed,
-        total,
-        percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
-      },
-      message: 'success',
+  }
+
+  /**
+   * 获取指定对象的任务统计（供 MatchService 使用）
+   */
+  async getTaskStats(matchId: number): Promise<{ total: number; completed: number }> {
+    try {
+      const client = getSupabaseClient()
+      const { data, error } = await client
+        .from('tasks')
+        .select('completed')
+        .eq('match_id', matchId)
+
+      if (error) {
+        console.error('Get task stats error:', error)
+        return { total: 0, completed: 0 }
+      }
+
+      const tasks = data as { completed: number }[]
+      return {
+        total: tasks.length,
+        completed: tasks.filter(t => t.completed === 1).length,
+      }
+    } catch (error) {
+      console.error('Get task stats error:', error)
+      return { total: 0, completed: 0 }
     }
   }
 
   /**
    * 创建任务（支持AI建议转任务）
    */
-  createTask(matchId: number, taskData: {
+  async createTask(matchId: number, taskData: {
     category: TaskCategory
     title: string
     description: string
@@ -220,44 +273,51 @@ export class TaskService {
     suitablePhases?: string[]
     avoidPhases?: string[]
   }) {
-    const newTask: Task = {
-      id: this.nextId++,
-      matchId,
-      category: taskData.category,
-      title: taskData.title,
-      description: taskData.description,
-      difficulty: taskData.difficulty || '简单',
-      duration: taskData.duration || '15分钟',
-      source: taskData.source || 'manual',
-      completed: false,
-      createdAt: new Date().toISOString(),
-      relatedKeyInfo: taskData.relatedKeyInfo,
-      relatedStage: taskData.relatedStage,
-      suitablePhases: taskData.suitablePhases,
-      avoidPhases: taskData.avoidPhases,
+    try {
+      const client = getSupabaseClient()
+      const { data, error } = await client
+        .from('tasks')
+        .insert({
+          match_id: matchId,
+          category: taskData.category,
+          title: taskData.title,
+          description: taskData.description,
+          difficulty: taskData.difficulty || '简单',
+          duration: taskData.duration || '15分钟',
+          source: taskData.source || 'manual',
+          completed: 0,
+          related_key_info: taskData.relatedKeyInfo || [],
+          related_stage: taskData.relatedStage || null,
+          suitable_phases: taskData.suitablePhases || [],
+          avoid_phases: taskData.avoidPhases || [],
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Create task error:', error)
+        return null
+      }
+
+      return dbToTask(data as DbTask)
+    } catch (error) {
+      console.error('Create task error:', error)
+      return null
     }
-    
-    this.tasks.push(newTask)
-    return newTask
   }
 
   /**
    * 批量创建任务（AI建议转任务）
    */
-  createTasksFromAI(matchId: number, suggestions: Array<{ action: string; reason: string; tips: string }>) {
+  async createTasksFromAI(matchId: number, suggestions: Array<{ action: string; reason: string; tips: string }>) {
     const createdTasks: Task[] = []
     
-    suggestions.forEach(suggestion => {
-      // 根据建议内容判断分类
+    for (const suggestion of suggestions) {
       const category = this.categorizeTask(suggestion.action)
-      
-      // 判断难度
       const difficulty = this.estimateDifficulty(suggestion.action, suggestion.tips)
-      
-      // 估算时长
       const duration = this.estimateDuration(suggestion.action)
       
-      const task = this.createTask(matchId, {
+      const task = await this.createTask(matchId, {
         category,
         title: suggestion.action,
         description: `${suggestion.reason}。注意：${suggestion.tips}`,
@@ -266,8 +326,10 @@ export class TaskService {
         source: 'ai',
       })
       
-      createdTasks.push(task)
-    })
+      if (task) {
+        createdTasks.push(task)
+      }
+    }
     
     return createdTasks
   }
@@ -275,7 +337,7 @@ export class TaskService {
   /**
    * 根据对象信息生成推荐任务（优化版：考虑周期阶段）
    */
-  generateRecommendedTasks(matchId: number, matchData: {
+  async generateRecommendedTasks(matchId: number, matchData: {
     relationshipStage: string
     keyInfo: Array<{ type: string; label: string; value: string }>
     interests: string[]
@@ -288,110 +350,114 @@ export class TaskService {
     // 获取当前周期阶段
     const cycleInfo = this.matchService.calculateCyclePhase(matchData.cycleStartDate, matchData.cycleLength)
     
+    // 获取现有任务标题，避免重复
+    const client = getSupabaseClient()
+    const { data: existingTasks } = await client
+      .from('tasks')
+      .select('title')
+      .eq('match_id', matchId)
+    
+    const existingTitles = new Set((existingTasks as { title: string }[])?.map(t => t.title) || [])
+
     // 1. 根据阶段添加默认任务（根据周期阶段过滤）
     const stageTasks = stageDefaultTasks[stage] || []
-    stageTasks.forEach((taskTemplate, index) => {
-      const existingTask = this.tasks.find(
-        t => t.matchId === matchId && t.title === taskTemplate.title
-      )
-      if (!existingTask) {
-        // 根据周期阶段判断任务是否适合
-        const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
-        if (phaseAdjustment.suitable) {
-          const task = this.createTask(matchId, {
-            ...taskTemplate,
-            source: 'system',
-            relatedStage: stage,
-            suitablePhases: phaseAdjustment.suitablePhases,
-            avoidPhases: phaseAdjustment.avoidPhases,
-            description: phaseAdjustment.adjustedDescription || taskTemplate.description,
-          })
-          recommendedTasks.push(task)
-        }
-      }
-    })
-    
-    // 2. 根据关键信息添加个性化任务
-    matchData.keyInfo?.forEach(info => {
-      const templates = keyInfoTaskTemplates[info.type]
-      if (templates) {
-        templates.forEach(taskTemplate => {
-          const existingTask = this.tasks.find(
-            t => t.matchId === matchId && t.title === taskTemplate.title
-          )
-          if (!existingTask) {
-            const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
-            if (phaseAdjustment.suitable) {
-              const task = this.createTask(matchId, {
-                ...taskTemplate,
-                source: 'system',
-                relatedKeyInfo: [info.type],
-                description: `${phaseAdjustment.adjustedDescription || taskTemplate.description}（Ta的${info.label}：${info.value}）`,
-                suitablePhases: phaseAdjustment.suitablePhases,
-                avoidPhases: phaseAdjustment.avoidPhases,
-              })
-              recommendedTasks.push(task)
-            }
-          }
+    for (const taskTemplate of stageTasks) {
+      if (existingTitles.has(taskTemplate.title)) continue
+
+      const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
+      if (phaseAdjustment.suitable) {
+        const task = await this.createTask(matchId, {
+          ...taskTemplate,
+          source: 'system',
+          relatedStage: stage,
+          suitablePhases: phaseAdjustment.suitablePhases,
+          avoidPhases: phaseAdjustment.avoidPhases,
+          description: phaseAdjustment.adjustedDescription || taskTemplate.description,
         })
-      }
-    })
-    
-    // 3. 根据兴趣爱好添加任务
-    if (matchData.interests?.includes('旅行')) {
-      const existingTask = this.tasks.find(
-        t => t.matchId === matchId && t.title === '聊聊旅行经历'
-      )
-      if (!existingTask) {
-        const taskTemplate = {
-          category: 'chat' as TaskCategory,
-          title: '聊聊旅行经历',
-          description: 'Ta喜欢旅行，可以聊聊去过的地方和有趣的经历',
-          difficulty: '简单' as const,
-          duration: '20分钟',
-        }
-        const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
-        if (phaseAdjustment.suitable) {
-          const task = this.createTask(matchId, {
-            ...taskTemplate,
-            source: 'system',
-            suitablePhases: phaseAdjustment.suitablePhases,
-            avoidPhases: phaseAdjustment.avoidPhases,
-          })
+        if (task) {
           recommendedTasks.push(task)
+          existingTitles.add(task.title)
         }
       }
     }
     
-    if (matchData.interests?.includes('美食')) {
-      const existingTask = this.tasks.find(
-        t => t.matchId === matchId && t.title === '一起品尝美食'
-      )
-      if (!existingTask) {
-        const taskTemplate = {
-          category: 'romantic' as TaskCategory,
-          title: '一起品尝美食',
-          description: 'Ta喜欢美食，可以一起探索好吃的餐厅',
-          difficulty: '中等' as const,
-          duration: '2小时',
-        }
+    // 2. 根据关键信息添加个性化任务
+    for (const info of (matchData.keyInfo || [])) {
+      const templates = keyInfoTaskTemplates[info.type]
+      if (!templates) continue
+
+      for (const taskTemplate of templates) {
+        if (existingTitles.has(taskTemplate.title)) continue
+
         const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
         if (phaseAdjustment.suitable) {
-          const task = this.createTask(matchId, {
+          const task = await this.createTask(matchId, {
             ...taskTemplate,
             source: 'system',
+            relatedKeyInfo: [info.type],
+            description: `${phaseAdjustment.adjustedDescription || taskTemplate.description}（Ta的${info.label}：${info.value}）`,
             suitablePhases: phaseAdjustment.suitablePhases,
             avoidPhases: phaseAdjustment.avoidPhases,
-            description: phaseAdjustment.adjustedDescription || taskTemplate.description,
           })
+          if (task) {
+            recommendedTasks.push(task)
+            existingTitles.add(task.title)
+          }
+        }
+      }
+    }
+    
+    // 3. 根据兴趣爱好添加任务
+    if (matchData.interests?.includes('旅行') && !existingTitles.has('聊聊旅行经历')) {
+      const taskTemplate = {
+        category: 'chat' as TaskCategory,
+        title: '聊聊旅行经历',
+        description: 'Ta喜欢旅行，可以聊聊去过的地方和有趣的经历',
+        difficulty: '简单' as const,
+        duration: '20分钟',
+      }
+      const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
+      if (phaseAdjustment.suitable) {
+        const task = await this.createTask(matchId, {
+          ...taskTemplate,
+          source: 'system',
+          suitablePhases: phaseAdjustment.suitablePhases,
+          avoidPhases: phaseAdjustment.avoidPhases,
+        })
+        if (task) {
           recommendedTasks.push(task)
+          existingTitles.add(task.title)
+        }
+      }
+    }
+    
+    if (matchData.interests?.includes('美食') && !existingTitles.has('一起品尝美食')) {
+      const taskTemplate = {
+        category: 'romantic' as TaskCategory,
+        title: '一起品尝美食',
+        description: 'Ta喜欢美食，可以一起探索好吃的餐厅',
+        difficulty: '中等' as const,
+        duration: '2小时',
+      }
+      const phaseAdjustment = this.adjustTaskForCycle(taskTemplate, cycleInfo)
+      if (phaseAdjustment.suitable) {
+        const task = await this.createTask(matchId, {
+          ...taskTemplate,
+          source: 'system',
+          suitablePhases: phaseAdjustment.suitablePhases,
+          avoidPhases: phaseAdjustment.avoidPhases,
+          description: phaseAdjustment.adjustedDescription || taskTemplate.description,
+        })
+        if (task) {
+          recommendedTasks.push(task)
+          existingTitles.add(task.title)
         }
       }
     }
     
     // 4. 根据当前周期阶段添加特别任务
     if (cycleInfo) {
-      const cycleTasks = this.generateCycleSpecificTasks(matchId, cycleInfo)
+      const cycleTasks = await this.generateCycleSpecificTasks(matchId, cycleInfo, existingTitles)
       recommendedTasks.push(...cycleTasks)
     }
     
@@ -488,12 +554,12 @@ export class TaskService {
   /**
    * 根据周期阶段生成特别任务
    */
-  private generateCycleSpecificTasks(matchId: number, cycleInfo: {
+  private async generateCycleSpecificTasks(matchId: number, cycleInfo: {
     phase: string
     phaseName: string
     description: string
     recommendations: string[]
-  }): Task[] {
+  }, existingTitles: Set<string>): Promise<Task[]> {
     const tasks: Task[] = []
 
     // 根据当前阶段生成特定任务
@@ -558,19 +624,19 @@ export class TaskService {
     }
 
     const phaseTasks = cycleTaskTemplates[cycleInfo.phase] || []
-    phaseTasks.forEach(taskTemplate => {
-      const existingTask = this.tasks.find(
-        t => t.matchId === matchId && t.title === taskTemplate.title
-      )
-      if (!existingTask) {
-        const task = this.createTask(matchId, {
-          ...taskTemplate,
-          source: 'system',
-          suitablePhases: [cycleInfo.phase],
-        })
+    for (const taskTemplate of phaseTasks) {
+      if (existingTitles.has(taskTemplate.title)) continue
+
+      const task = await this.createTask(matchId, {
+        ...taskTemplate,
+        source: 'system',
+        suitablePhases: [cycleInfo.phase],
+      })
+      if (task) {
         tasks.push(task)
+        existingTitles.add(task.title)
       }
-    })
+    }
 
     return tasks
   }
@@ -578,75 +644,127 @@ export class TaskService {
   /**
    * 完成任务（支持记录学习）
    */
-  completeTask(taskId: number, lessonLearned?: string) {
-    const task = this.tasks.find(t => t.id === taskId)
-    if (task) {
-      task.completed = true
-      task.completedAt = new Date().toISOString()
+  async completeTask(taskId: number, lessonLearned?: string) {
+    try {
+      const client = getSupabaseClient()
+      const updateData: Record<string, unknown> = {
+        completed: 1,
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+
       if (lessonLearned) {
-        task.lessonLearned = lessonLearned
+        updateData.lesson_learned = lessonLearned
       }
-      return {
-        code: 200,
-        data: task,
-        message: 'success',
+
+      const { data, error } = await client
+        .from('tasks')
+        .update(updateData)
+        .eq('id', taskId)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Complete task error:', error)
+        return { code: 500, data: null, message: `完成任务失败: ${error.message}` }
       }
-    }
-    return {
-      code: 404,
-      data: null,
-      message: 'Task not found',
+
+      if (!data) {
+        return { code: 404, data: null, message: 'Task not found' }
+      }
+
+      return { code: 200, data: dbToTask(data as DbTask), message: 'success' }
+    } catch (error) {
+      console.error('Complete task error:', error)
+      return { code: 500, data: null, message: '完成任务失败' }
     }
   }
 
   /**
    * 更新任务的学习记录
    */
-  updateTaskLesson(taskId: number, lesson: string) {
-    const task = this.tasks.find(t => t.id === taskId)
-    if (task) {
-      task.lessonLearned = lesson
-      return { code: 200, data: task, message: 'success' }
+  async updateTaskLesson(taskId: number, lesson: string) {
+    try {
+      const client = getSupabaseClient()
+      const { data, error } = await client
+        .from('tasks')
+        .update({
+          lesson_learned: lesson,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', taskId)
+        .select()
+        .single()
+
+      if (error) {
+        return { code: 500, data: null, message: `更新失败: ${error.message}` }
+      }
+
+      if (!data) {
+        return { code: 404, data: null, message: 'Task not found' }
+      }
+
+      return { code: 200, data: dbToTask(data as DbTask), message: 'success' }
+    } catch (error) {
+      console.error('Update task lesson error:', error)
+      return { code: 500, data: null, message: '更新失败' }
     }
-    return { code: 404, data: null, message: 'Task not found' }
   }
 
   /**
    * 删除任务
    */
-  deleteTask(taskId: number) {
-    const index = this.tasks.findIndex(t => t.id === taskId)
-    if (index !== -1) {
-      this.tasks.splice(index, 1)
+  async deleteTask(taskId: number) {
+    try {
+      const client = getSupabaseClient()
+      const { error } = await client
+        .from('tasks')
+        .delete()
+        .eq('id', taskId)
+
+      if (error) {
+        return { code: 500, data: null, message: `删除失败: ${error.message}` }
+      }
+
       return { code: 200, data: null, message: 'success' }
+    } catch (error) {
+      console.error('Delete task error:', error)
+      return { code: 500, data: null, message: '删除失败' }
     }
-    return { code: 404, data: null, message: 'Task not found' }
   }
 
   /**
    * 根据阶段更新任务（阶段变化时调用）
    */
-  updateTasksForStage(matchId: number, newStage: string, matchData: {
+  async updateTasksForStage(matchId: number, newStage: string, matchData: {
     keyInfo: Array<{ type: string; label: string; value: string }>
     interests: string[]
   }) {
+    // 获取现有任务标题
+    const client = getSupabaseClient()
+    const { data: existingTasks } = await client
+      .from('tasks')
+      .select('title')
+      .eq('match_id', matchId)
+    
+    const existingTitles = new Set((existingTasks as { title: string }[])?.map(t => t.title) || [])
+
     // 获取新阶段的默认任务
     const stageTasks = stageDefaultTasks[newStage] || []
     const newTasks: Task[] = []
     
-    stageTasks.forEach(taskTemplate => {
-      const existingTask = this.tasks.find(
-        t => t.matchId === matchId && t.title === taskTemplate.title
-      )
-      if (!existingTask) {
-        const task = this.createTask(matchId, {
-          ...taskTemplate,
-          source: 'system',
-          relatedStage: newStage,
-        })
+    for (const taskTemplate of stageTasks) {
+      if (existingTitles.has(taskTemplate.title)) continue
+
+      const task = await this.createTask(matchId, {
+        ...taskTemplate,
+        source: 'system',
+        relatedStage: newStage,
+      })
+      if (task) {
         newTasks.push(task)
       }
-    })
+    }
     
     return newTasks
   }
@@ -709,7 +827,7 @@ export class TaskService {
   /**
    * 从AI建议创建任务（供外部调用）
    */
-  createFromSuggestions(matchId: number, suggestions: Array<{ action: string; reason: string; tips: string }>) {
+  async createFromSuggestions(matchId: number, suggestions: Array<{ action: string; reason: string; tips: string }>) {
     return this.createTasksFromAI(matchId, suggestions)
   }
 }

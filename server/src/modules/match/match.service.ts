@@ -234,14 +234,17 @@ export class MatchService {
 
       const match = this.dbToMatch(data as DbMatch)
 
+      // 获取真实的任务统计
+      const taskStats = await this.taskService.getTaskStats(match.id)
+
       return {
         code: 200,
         data: {
           ...match,
           progress: this.calculateProgress(match),
           stats: {
-            tasks: 5,
-            completedTasks: 2,
+            tasks: taskStats.total,
+            completedTasks: taskStats.completed,
             quizScore: 80,
             dates: 2,
           },
