@@ -240,6 +240,77 @@ export const manualBehaviorData = pgTable("manual_behavior_data", {
 	pgPolicy("manual_behavior_data_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
 ]);
 
+// 用户个人档案表 - 存储用户自己的基本信息
+export const userProfiles = pgTable("user_profiles", {
+	id: serial().primaryKey().notNull(),
+	// 基本信息
+	nickname: varchar("nickname", { length: 64 }),
+	gender: varchar("gender", { length: 16 }).default('male'),
+	birthYear: integer("birth_year"),
+	height: integer("height"),                          // cm
+	occupation: varchar("occupation", { length: 128 }),
+	education: varchar("education", { length: 64 }),     // 学历
+	location: varchar("location", { length: 128 }),      // 所在地
+	// 性格自评 (0-100)
+	personalityOpenness: integer("personality_openness").default(50),
+	personalityConscientiousness: integer("personality_conscientiousness").default(50),
+	personalityExtraversion: integer("personality_extraversion").default(50),
+	personalityAgreeableness: integer("personality_agreeableness").default(50),
+	personalityNeuroticism: integer("personality_neuroticism").default(50),
+	// 情感特点
+	emotionalStability: integer("emotional_stability").default(50),
+	emotionalExpression: integer("emotional_expression").default(50),
+	emotionalEmpathy: integer("emotional_empathy").default(50),
+	// 恋爱观
+	relationshipGoal: varchar("relationship_goal", { length: 64 }),      // serious/casual/marriage
+	attachmentStyle: varchar("attachment_style", { length: 64 }),        // secure/anxious/avoidant
+	loveLanguage: jsonb("love_language").default([]),                    // ['quality_time', 'words', 'gifts', 'acts', 'touch']
+	// 兴趣爱好
+	hobbies: jsonb("hobbies").default([]),
+	interests: jsonb("interests").default([]),
+	// 期望对象类型
+	preferredTraits: jsonb("preferred_traits").default([]),              // 期望的特质
+	dealBreakers: jsonb("deal_breakers").default([]),                    // 不能接受的点
+	// 自我介绍
+	bio: text(),
+	// 画像置信度
+	confidence: integer("confidence").default(0),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	pgPolicy("user_profiles_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("user_profiles_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("user_profiles_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("user_profiles_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
+// 用户行为偏好表 - 存储用户自己的行为习惯
+export const userBehaviorPreferences = pgTable("user_behavior_preferences", {
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id").notNull(),
+	// 沟通习惯
+	communicationStyle: varchar("communication_style", { length: 32 }),   // direct/indirect/balanced
+	responseSpeed: varchar("response_speed", { length: 32 }),            // instant/fast/normal/slow
+	activeTimeSlots: jsonb("active_time_slots").default([]),
+	// 社交偏好
+	socialEnergy: varchar("social_energy", { length: 32 }),              // high/medium/low
+	aloneTime: varchar("alone_time", { length: 32 }),                    // 喜欢独处程度
+	// 表达方式
+	expressionStyle: varchar("expression_style", { length: 32 }),        // expressive/reserved
+	affectionStyle: varchar("affection_style", { length: 32 }),          // 表达爱意的方式
+	// 兴趣话题
+	preferredTopics: jsonb("preferred_topics").default([]),
+	topicAvoid: jsonb("topic_avoid").default([]),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("user_behavior_preferences_user_id_idx").using("btree", table.userId.asc().nullsLast().op("int4_ops")),
+	pgPolicy("user_behavior_preferences_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("user_behavior_preferences_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("user_behavior_preferences_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("user_behavior_preferences_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
 // 档案对象表
 export const matches = pgTable("matches", {
 	id: serial().primaryKey().notNull(),

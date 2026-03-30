@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { Request } from 'express'
 import { LLMClient, Config, HeaderUtils, S3Storage } from 'coze-coding-dev-sdk'
 import { getSupabaseClient } from '@/storage/database/supabase-client'
+import { UserProfileService } from '@/modules/user-profile/user-profile.service'
 
 // 画像维度定义
 export interface PortraitDimensions {
@@ -101,7 +102,7 @@ export interface ChatRecordAnalysis {
 export class PortraitService {
   private storage: S3Storage
 
-  constructor() {
+  constructor(private readonly userProfileService: UserProfileService) {
     this.storage = new S3Storage({
       endpointUrl: process.env.COZE_BUCKET_ENDPOINT_URL,
       accessKey: '',
@@ -656,16 +657,37 @@ export class PortraitService {
       const config = new Config()
       const llmClient = new LLMClient(config, customHeaders)
 
+      // 获取用户自己的画像
+      let userPortrait: Record<string, unknown> | null = null
+      try {
+        userPortrait = await this.userProfileService.getUserPortrait(1)
+      } catch (e) {
+        console.log('User portrait not found, using default')
+      }
+
+      // 构建用户画像描述
+      const userDesc = userPortrait ? `
+用户（你）的画像：
+- 性格特点: ${((userPortrait.personality as any)?.traits || []).join('、') || '未知'}
+- 外向性: ${(userPortrait.personality as any)?.extraversion || 50}
+- 宜人性: ${(userPortrait.personality as any)?.agreeableness || 50}
+- 沟通风格: ${(userPortrait.behavior as any)?.communicationStyle || '未知'}
+- 恋爱目标: ${(userPortrait.relationship as any)?.goal || '未知'}
+- 依恋类型: ${(userPortrait.relationship as any)?.attachmentStyle || '未知'}
+` : ''
+
       const prompt = `基于以下数据，预测关系走向并给出建议。
 
 数据来源：${hasChatRecords ? '聊天记录分析' : '手动填写'}
 
-画像数据：
+对方（Ta）的画像数据：
 - 外向性: ${portrait.personality_extraversion}
 - 宜人性: ${portrait.personality_agreeableness}
 - 情绪稳定性: ${portrait.emotional_stability}
 - 共情能力: ${portrait.emotional_empathy}
 - 社交主动性: ${portrait.social_initiative}
+
+${userDesc}
 
 ${hasChatRecords ? `聊天记录分析：
 - 平均回复时间: ${behavior?.avg_response_time || '未知'}分钟
@@ -676,10 +698,10 @@ ${hasChatRecords ? `聊天记录分析：
 - 关系阶段: ${match.relationship_stage}
 - 互动状态: ${match.interaction_status}
 
-请分析：
+请分析双方画像的匹配度，并预测关系趋势：
 1. 关系趋势 (improving/stable/declining)
-2. 关键洞察（2-3条）
-3. 推荐策略（2-3条）
+2. 基于双方画像的匹配分析（2-3条洞察）
+3. 针对性的建议（结合双方特点，2-3条）
 
 返回JSON格式：
 {
@@ -774,27 +796,48 @@ ${hasChatRecords ? `聊天记录分析：
       const config = new Config()
       const llmClient = new LLMClient(config, customHeaders)
 
+      // 获取用户自己的画像
+      let userPortrait: Record<string, unknown> | null = null
+      try {
+        userPortrait = await this.userProfileService.getUserPortrait(1)
+      } catch (e) {
+        console.log('User portrait not found, using default')
+      }
+
       // 计算活跃时段
       const activeSlots = this.getActiveTimeSlots(behavior?.active_hours || {})
 
-      const prompt = `基于画像和行为数据，推荐最佳的互动策略。
+      // 构建用户画像描述
+      const userDesc = userPortrait ? `
+用户（你）的画像：
+- 性格特点: ${((userPortrait.personality as any)?.traits || []).join('、') || '未知'}
+- 外向性: ${(userPortrait.personality as any)?.extraversion || 50}
+- 沟通风格: ${(userPortrait.behavior as any)?.communicationStyle || '未知'}
+- 表达风格: ${(userPortrait.behavior as any)?.expressionStyle || '未知'}
+- 喜欢的话题: ${((userPortrait.behavior as any)?.preferredTopics || []).join('、') || '未知'}
+- 恋爱目标: ${(userPortrait.relationship as any)?.goal || '未知'}
+` : ''
+
+      const prompt = `基于双方画像和行为数据，推荐最佳的互动策略。
 
 数据来源：${hasChatRecords ? '聊天记录分析' : '手动填写'}
 
-画像特征：
+对方（Ta）的画像特征：
 - 外向性: ${portrait.personality_extraversion}
 - 宜人性: ${portrait.personality_agreeableness}
 - 情绪稳定性: ${portrait.emotional_stability}
 - 共情能力: ${portrait.emotional_empathy}
 - 沟通直接度: ${portrait.communication_directness}
 
-${hasChatRecords ? `行为特征：
+${userDesc}
+
+${hasChatRecords ? `对方行为特征：
 - 活跃时段: ${activeSlots.join('、')}
 - 平均回复时间: ${behavior?.avg_response_time || '未知'}分钟` : ''}
 
 关系状态：${match.interaction_status}
 
-请根据对方的画像特点，推荐3-5个具体的互动策略。
+请根据双方的画像特点，推荐3-5个具体的互动策略。策略要结合双方的性格匹配度，给出有针对性的建议。
 
 返回JSON格式：
 {

@@ -17,7 +17,8 @@ import {
   MessageCircleQuestionMark,
   ChevronRight,
   Heart,
-  Users
+  Users,
+  FileText
 } from 'lucide-react-taro'
 
 interface UserProfile {
@@ -242,6 +243,27 @@ const ProfilePage: FC = () => {
                 </View>
                 <Text className="block text-xs text-gray-400">待解锁</Text>
               </View>
+            </View>
+          </CardContent>
+        </Card>
+      </View>
+
+      {/* 我的档案入口 */}
+      <View className="p-4">
+        <Card className="shadow-sm border-0">
+          <CardContent className="p-4">
+            <View 
+              className="flex items-center gap-3"
+              onClick={() => Taro.navigateTo({ url: '/pages/user-profile/index' })}
+            >
+              <View className="w-12 h-12 rounded-xl bg-black flex items-center justify-center">
+                <FileText size={24} color="#fff" />
+              </View>
+              <View className="flex-1">
+                <Text className="block font-semibold text-gray-800">我的档案</Text>
+                <Text className="block text-sm text-gray-500">完善个人画像，获得更精准的AI建议</Text>
+              </View>
+              <ChevronRight size={20} color="#9CA3AF" />
             </View>
           </CardContent>
         </Card>

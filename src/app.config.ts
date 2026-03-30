@@ -11,6 +11,7 @@ export default defineAppConfig({
     'pages/dates/index',
     'pages/date-edit/index',
     'pages/portrait/index',
+    'pages/user-profile/index',
   ],
   window: {
     backgroundTextStyle: 'light',
