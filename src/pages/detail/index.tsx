@@ -5,7 +5,6 @@ import { useState, useCallback } from 'react'
 import { Network } from '@/network'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
 import ChatDialog from '@/components/chat-dialog'
@@ -17,8 +16,6 @@ import {
   ClipboardList,
   Loader,
   MessageCircle,
-  Cpu,
-  HardDrive,
   Heart,
   Sun,
   Moon,
@@ -31,49 +28,6 @@ import {
   X,
   Pencil
 } from 'lucide-react-taro'
-
-// 硬件信息接口
-interface HardwareInfo {
-  age?: number
-  height?: string
-  birthday?: string
-  zodiac?: string
-  bloodType?: string
-  bodyType?: string
-  style?: string
-  wechat?: string
-  phone?: string
-  location?: string
-  occupation?: string
-  company?: string
-  position?: string
-}
-
-// 软件信息接口
-interface SoftwareInfo {
-  mbti?: string
-  personality?: string
-  emotionalStyle?: string
-  interests: string[]
-  hobbies?: string
-  schedule?: string
-  spendingStyle?: string
-  communicationStyle?: string
-  likes?: string
-  dislikes?: string
-  loveExpectation?: string
-  dealBreakers?: string
-  communicationPreferences?: {
-    effectiveWays?: string[]
-    ineffectiveWays?: string[]
-    landmines?: string[]
-  }
-  loveLanguages?: string[]
-  emotionalTriggers?: {
-    positive?: string[]
-    negative?: string[]
-  }
-}
 
 // 推进值接口
 interface ProgressScore {
@@ -101,19 +55,10 @@ interface MatchDetail {
   id: number
   name: string
   gender: string
-  hardware: HardwareInfo
-  software: SoftwareInfo
-  meetingScene: string
-  meetingDate: string
   relationshipStage: string
   interactionStatus: string
-  impression: number
-  impressionTags: string[]
-  keyInfo: Array<{ id: string; type: string; label: string; icon: string; value: string }>
   notes: string
   status: string
-  nextAction: string
-  lastContact: string
   stats: {
     tasks: number
     completedTasks: number
@@ -152,12 +97,6 @@ const interactionStatuses = [
   { id: 'confirming', label: '准备确认' },
 ]
 
-// 预设兴趣
-const presetInterests = [
-  '旅行', '摄影', '美食', '健身', '电影', '音乐', '阅读', '游戏',
-  '绘画', '烹饪', '瑜伽', '游泳', '骑行', '露营', '养宠', '追剧',
-]
-
 // 周期阶段配置
 const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: string }> = {
   menstrual: { icon: Moon, color: '#6B7280', bgColor: 'bg-gray-100' },
@@ -168,44 +107,6 @@ const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: 
   luteal_late: { icon: Moon, color: '#EF4444', bgColor: 'bg-red-50' },
 }
 
-// 硬件字段标签
-const hardwareFieldLabels: Record<string, { label: string; icon: string; type?: string }> = {
-  age: { label: '年龄', icon: '👤', type: 'number' },
-  height: { label: '身高', icon: '📏' },
-  birthday: { label: '生日', icon: '🎂' },
-  zodiac: { label: '星座', icon: '⭐' },
-  bloodType: { label: '血型', icon: '🩸' },
-  bodyType: { label: '体型', icon: '💪' },
-  style: { label: '穿搭', icon: '👔' },
-  wechat: { label: '微信', icon: '💬' },
-  phone: { label: '电话', icon: '📱' },
-  location: { label: '所在地', icon: '📍' },
-  occupation: { label: '职业', icon: '💼' },
-  company: { label: '公司', icon: '🏢' },
-  position: { label: '职位', icon: '📋' },
-}
-
-// 软件字段标签
-const softwareFieldLabels: Record<string, { label: string; icon: string }> = {
-  mbti: { label: 'MBTI', icon: '🧠' },
-  personality: { label: '性格', icon: '💫' },
-  emotionalStyle: { label: '情绪', icon: '🎭' },
-  hobbies: { label: '爱好', icon: '🎯' },
-  schedule: { label: '作息', icon: '⏰' },
-  spendingStyle: { label: '消费观', icon: '💳' },
-  communicationStyle: { label: '沟通风格', icon: '🗣️' },
-  likes: { label: '喜欢', icon: '❤️' },
-  dislikes: { label: '讨厌', icon: '💔' },
-  loveExpectation: { label: '恋爱期待', icon: '💑' },
-  dealBreakers: { label: '雷区', icon: '⚠️' },
-}
-
-// 可编辑字段类型
-type EditableField = {
-  category: 'name' | 'hardware' | 'software' | 'notes'
-  key: string
-}
-
 const DetailPage: FC = () => {
   const router = useRouter()
   const [detail, setDetail] = useState<MatchDetail | null>(null)
@@ -214,9 +115,13 @@ const DetailPage: FC = () => {
   const [chatOpen, setChatOpen] = useState(false)
   
   // 内联编辑状态
-  const [editingField, setEditingField] = useState<EditableField | null>(null)
-  const [editValue, setEditValue] = useState<string>('')
+  const [editingName, setEditingName] = useState(false)
+  const [nameValue, setNameValue] = useState('')
   const [saving, setSaving] = useState(false)
+  
+  // 备注编辑状态
+  const [editingNotes, setEditingNotes] = useState(false)
+  const [notesValue, setNotesValue] = useState('')
 
   useLoad(() => {
     console.log('Detail page loaded.', router.params.id)
@@ -236,6 +141,8 @@ const DetailPage: FC = () => {
       console.log('Fetch detail response:', res.data)
       if (res.data?.code === 200 && res.data?.data) {
         setDetail(res.data.data)
+        setNameValue(res.data.data.name || '')
+        setNotesValue(res.data.data.notes || '')
         
         if (res.data.data.cycleStartDate) {
           const cycleRes = await Network.request({ url: `/api/match/${id}/cycle` })
@@ -251,130 +158,47 @@ const DetailPage: FC = () => {
     }
   }
 
-  // 开始编辑字段
-  const startEdit = useCallback((field: EditableField) => {
-    if (!detail) return
-    
-    let value = ''
-    if (field.category === 'name') {
-      value = detail.name
-    } else if (field.category === 'hardware') {
-      value = String(detail.hardware?.[field.key as keyof HardwareInfo] || '')
-    } else if (field.category === 'software') {
-      value = String(detail.software?.[field.key as keyof SoftwareInfo] || '')
-    } else if (field.category === 'notes') {
-      value = detail.notes || ''
-    }
-    
-    setEditValue(value)
-    setEditingField(field)
-  }, [detail])
-
-  // 取消编辑
-  const cancelEdit = useCallback(() => {
-    setEditingField(null)
-    setEditValue('')
-  }, [])
-
-  // 保存编辑
-  const saveEdit = useCallback(async () => {
-    if (!detail || !editingField) return
+  // 保存姓名
+  const saveName = useCallback(async () => {
+    if (!detail || !nameValue.trim()) return
     
     try {
       setSaving(true)
-      const updateData: Record<string, unknown> = {}
-      
-      if (editingField.category === 'name') {
-        updateData.name = editValue
-      } else if (editingField.category === 'hardware') {
-        updateData.hardware = {
-          ...detail.hardware,
-          [editingField.key]: hardwareFieldLabels[editingField.key]?.type === 'number' 
-            ? (editValue ? parseInt(editValue) : undefined)
-            : editValue || undefined
-        }
-      } else if (editingField.category === 'software') {
-        updateData.software = {
-          ...detail.software,
-          [editingField.key]: editValue || undefined
-        }
-      } else if (editingField.category === 'notes') {
-        updateData.notes = editValue || undefined
-      }
-      
       await Network.request({
         url: `/api/match/${detail.id}`,
         method: 'PUT',
-        data: updateData
+        data: { name: nameValue.trim() }
       })
       
-      // 更新本地状态
-      setDetail(prev => {
-        if (!prev) return prev
-        const updated = { ...prev }
-        if (editingField.category === 'name') {
-          updated.name = editValue
-        } else if (editingField.category === 'hardware') {
-          updated.hardware = {
-            ...updated.hardware,
-            [editingField.key]: hardwareFieldLabels[editingField.key]?.type === 'number'
-              ? (editValue ? parseInt(editValue) : undefined)
-              : editValue || undefined
-          }
-        } else if (editingField.category === 'software') {
-          updated.software = {
-            ...updated.software,
-            [editingField.key]: editValue || undefined
-          }
-        } else if (editingField.category === 'notes') {
-          updated.notes = editValue
-        }
-        return updated
-      })
-      
-      setEditingField(null)
-      setEditValue('')
+      setDetail(prev => prev ? { ...prev, name: nameValue.trim() } : prev)
+      setEditingName(false)
     } catch (error) {
-      console.error('Save error:', error)
+      console.error('Save name error:', error)
     } finally {
       setSaving(false)
     }
-  }, [detail, editingField, editValue])
+  }, [detail, nameValue])
 
-  // 切换兴趣标签
-  const toggleInterest = useCallback(async (interest: string) => {
+  // 保存备注
+  const saveNotes = useCallback(async () => {
     if (!detail) return
     
-    const newInterests = detail.software?.interests?.includes(interest)
-      ? (detail.software.interests || []).filter(i => i !== interest)
-      : [...(detail.software.interests || []), interest]
-    
     try {
+      setSaving(true)
       await Network.request({
         url: `/api/match/${detail.id}`,
         method: 'PUT',
-        data: {
-          software: {
-            ...detail.software,
-            interests: newInterests
-          }
-        }
+        data: { notes: notesValue || undefined }
       })
       
-      setDetail(prev => {
-        if (!prev) return prev
-        return {
-          ...prev,
-          software: {
-            ...prev.software,
-            interests: newInterests
-          }
-        }
-      })
+      setDetail(prev => prev ? { ...prev, notes: notesValue } : prev)
+      setEditingNotes(false)
     } catch (error) {
-      console.error('Toggle interest error:', error)
+      console.error('Save notes error:', error)
+    } finally {
+      setSaving(false)
     }
-  }, [detail])
+  }, [detail, notesValue])
 
   // 更新关系阶段
   const updateRelationshipStage = useCallback(async (stage: string) => {
@@ -419,8 +243,8 @@ const DetailPage: FC = () => {
     return {
       matchId: detail.id,
       matchName: detail.name,
-      hardware: { ...detail.hardware } as Record<string, unknown>,
-      software: { ...detail.software } as Record<string, unknown>,
+      hardware: {},
+      software: {},
       cycleInfo: cycleInfo ? {
         day: cycleInfo.day,
         phase: cycleInfo.phase,
@@ -430,55 +254,6 @@ const DetailPage: FC = () => {
       relationshipStage: detail.relationshipStage,
       interactionStatus: detail.interactionStatus
     }
-  }
-
-  // 渲染可编辑字段
-  const renderEditableItem = (category: EditableField['category'], key: string, label: string, icon: string, value: string) => {
-    const isEditing = editingField?.category === category && editingField?.key === key
-    
-    return (
-      <View 
-        key={key} 
-        className="flex items-center px-4 py-3"
-        onClick={() => !isEditing && startEdit({ category, key })}
-      >
-        <Text className="block text-base mr-3">{icon}</Text>
-        <View className="flex-1">
-          <Text className="block text-xs text-gray-400">{label}</Text>
-          {isEditing ? (
-            <View className="flex items-center gap-2 mt-1">
-              <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
-                <Input
-                  className="w-full text-sm"
-                  value={editValue}
-                  onInput={(e) => setEditValue(e.detail.value)}
-                  autoFocus
-                />
-              </View>
-              <View className="flex gap-1">
-                <View 
-                  className="p-2 bg-black rounded-lg"
-                  onClick={(e) => { e.stopPropagation(); saveEdit() }}
-                >
-                  {saving ? <Loader size={14} color="#fff" className="animate-spin" /> : <Check size={14} color="#fff" />}
-                </View>
-                <View 
-                  className="p-2 bg-gray-200 rounded-lg"
-                  onClick={(e) => { e.stopPropagation(); cancelEdit() }}
-                >
-                  <X size={14} color="#666" />
-                </View>
-              </View>
-            </View>
-          ) : (
-            <View className="flex items-center gap-1">
-              <Text className="block text-sm text-gray-700">{value || '点击填写'}</Text>
-              <Pencil size={12} color="#D1D5DB" />
-            </View>
-          )}
-        </View>
-      </View>
-    )
   }
 
   if (loading) {
@@ -497,8 +272,6 @@ const DetailPage: FC = () => {
     )
   }
 
-  const interests = detail.software?.interests || []
-
   return (
     <View className="min-h-screen bg-gray-50 pb-24">
       <CustomHeader title="档案" />
@@ -510,48 +283,36 @@ const DetailPage: FC = () => {
             <View className="flex items-start justify-between mb-3">
               <View className="flex-1">
                 {/* 姓名可编辑 */}
-                {editingField?.category === 'name' ? (
+                {editingName ? (
                   <View className="flex items-center gap-2">
                     <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
                       <Input
                         className="w-full text-xl font-bold"
-                        value={editValue}
-                        onInput={(e) => setEditValue(e.detail.value)}
+                        value={nameValue}
+                        onInput={(e) => setNameValue(e.detail.value)}
                         autoFocus
                       />
                     </View>
                     <View className="flex gap-1">
                       <View 
                         className="p-2 bg-black rounded-lg"
-                        onClick={saveEdit}
+                        onClick={saveName}
                       >
                         {saving ? <Loader size={14} color="#fff" className="animate-spin" /> : <Check size={14} color="#fff" />}
                       </View>
                       <View 
                         className="p-2 bg-gray-200 rounded-lg"
-                        onClick={cancelEdit}
+                        onClick={() => { setEditingName(false); setNameValue(detail.name) }}
                       >
                         <X size={14} color="#666" />
                       </View>
                     </View>
                   </View>
                 ) : (
-                  <View className="flex items-center gap-2" onClick={() => startEdit({ category: 'name', key: 'name' })}>
+                  <View className="flex items-center gap-2" onClick={() => setEditingName(true)}>
                     <Text className="block text-xl font-bold text-gray-900">{detail.name}</Text>
                     <Pencil size={14} color="#9CA3AF" />
                   </View>
-                )}
-                <Text className="block text-sm text-gray-500 mt-1">
-                  {detail.hardware?.age ? `${detail.hardware.age}岁` : ''}
-                  {detail.hardware?.occupation ? ` · ${detail.hardware.occupation}` : ''}
-                </Text>
-              </View>
-              <View className="flex gap-2">
-                {detail.software?.mbti && (
-                  <Badge className="bg-gray-100 text-gray-600">{detail.software.mbti}</Badge>
-                )}
-                {detail.hardware?.zodiac && (
-                  <Badge className="bg-gray-100 text-gray-600">{detail.hardware.zodiac}</Badge>
                 )}
               </View>
             </View>
@@ -676,58 +437,6 @@ const DetailPage: FC = () => {
         </View>
       )}
 
-      {/* 硬件信息 */}
-      <View className="px-4 pb-4">
-        <View className="flex items-center gap-2 mb-2">
-          <HardDrive size={14} color="#6B7280" />
-          <Text className="block text-sm font-semibold text-gray-900">硬件信息</Text>
-          <Text className="block text-xs text-gray-400">点击编辑</Text>
-        </View>
-        <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
-          {Object.keys(hardwareFieldLabels).map((key) => {
-            const field = hardwareFieldLabels[key]
-            const value = detail.hardware?.[key as keyof HardwareInfo]
-            return renderEditableItem('hardware', key, field.label, field.icon, String(value || ''))
-          })}
-        </View>
-      </View>
-
-      {/* 软件信息 */}
-      <View className="px-4 pb-4">
-        <View className="flex items-center gap-2 mb-2">
-          <Cpu size={14} color="#6B7280" />
-          <Text className="block text-sm font-semibold text-gray-900">软件信息</Text>
-          <Text className="block text-xs text-gray-400">点击编辑</Text>
-        </View>
-        <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
-          {Object.keys(softwareFieldLabels).map((key) => {
-            const field = softwareFieldLabels[key]
-            const value = detail.software?.[key as keyof SoftwareInfo]
-            return renderEditableItem('software', key, field.label, field.icon, String(value || ''))
-          })}
-        </View>
-      </View>
-
-      {/* 兴趣标签 */}
-      <View className="px-4 pb-4">
-        <Text className="block text-sm font-semibold text-gray-900 mb-2">兴趣爱好</Text>
-        <View className="flex flex-wrap gap-2">
-          {presetInterests.map((interest) => (
-            <Badge
-              key={interest}
-              className={`${
-                interests.includes(interest)
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-              onClick={() => toggleInterest(interest)}
-            >
-              {interest}
-            </Badge>
-          ))}
-        </View>
-      </View>
-
       {/* 周期追踪 */}
       {cycleInfo && (() => {
         const phaseConf = phaseConfig[cycleInfo.phase] || phaseConfig.follicular
@@ -762,59 +471,12 @@ const DetailPage: FC = () => {
         )
       })()}
 
-      {/* 交流偏好 */}
-      {detail.software?.communicationPreferences && (
-        <View className="px-4 pb-4">
-          <Text className="block text-sm font-semibold text-gray-900 mb-2">交流偏好</Text>
-          <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
-            {detail.software.communicationPreferences.effectiveWays?.length ? (
-              <View className="px-4 py-3">
-                <Text className="block text-xs text-emerald-600 mb-1">✓ 有效方式</Text>
-                <Text className="block text-sm text-gray-700">
-                  {detail.software.communicationPreferences.effectiveWays.join('、')}
-                </Text>
-              </View>
-            ) : null}
-            {detail.software.communicationPreferences.ineffectiveWays?.length ? (
-              <View className="px-4 py-3">
-                <Text className="block text-xs text-amber-600 mb-1">⚠ 无效方式</Text>
-                <Text className="block text-sm text-gray-700">
-                  {detail.software.communicationPreferences.ineffectiveWays.join('、')}
-                </Text>
-              </View>
-            ) : null}
-            {detail.software.communicationPreferences.landmines?.length ? (
-              <View className="px-4 py-3">
-                <Text className="block text-xs text-red-600 mb-1">💣 雷区</Text>
-                <Text className="block text-sm text-gray-700">
-                  {detail.software.communicationPreferences.landmines.join('、')}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        </View>
-      )}
-
-      {/* 爱的语言 */}
-      {detail.software?.loveLanguages?.length ? (
-        <View className="px-4 pb-4">
-          <Text className="block text-sm font-semibold text-gray-900 mb-2">爱的语言</Text>
-          <View className="flex flex-wrap gap-2">
-            {detail.software.loveLanguages.map((lang, i) => (
-              <Badge key={i} className={i === 0 ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}>
-                {i === 0 ? '❤️ ' : ''}{lang}
-              </Badge>
-            ))}
-          </View>
-        </View>
-      ) : null}
-
       {/* 维度数据 */}
       <View className="px-4 pb-4">
         <View className="flex items-center gap-2 mb-2">
           <Database size={14} color="#6B7280" />
-          <Text className="block text-sm font-semibold text-gray-900">维度数据</Text>
-          <Text className="block text-xs text-gray-400">按层级组织</Text>
+          <Text className="block text-sm font-semibold text-gray-900">档案数据</Text>
+          <Text className="block text-xs text-gray-400">点击编辑</Text>
         </View>
         <DimensionViewer matchId={detail.id} />
       </View>
@@ -870,13 +532,13 @@ const DetailPage: FC = () => {
       {/* 备注 */}
       <View className="px-4 pb-4">
         <Text className="block text-sm font-semibold text-gray-900 mb-2">备注</Text>
-        {editingField?.category === 'notes' ? (
+        {editingNotes ? (
           <View className="bg-white rounded-xl border border-gray-100 p-4">
             <View className="bg-gray-50 rounded-lg p-3 mb-3">
               <Input
                 className="w-full text-sm"
-                value={editValue}
-                onInput={(e) => setEditValue(e.detail.value)}
+                value={notesValue}
+                onInput={(e) => setNotesValue(e.detail.value)}
                 placeholder="添加备注..."
                 autoFocus
               />
@@ -884,13 +546,13 @@ const DetailPage: FC = () => {
             <View className="flex justify-end gap-2">
               <View 
                 className="px-4 py-2 bg-gray-200 rounded-lg"
-                onClick={cancelEdit}
+                onClick={() => { setEditingNotes(false); setNotesValue(detail.notes || '') }}
               >
                 <Text className="block text-sm text-gray-600">取消</Text>
               </View>
               <View 
                 className="px-4 py-2 bg-black rounded-lg flex items-center gap-1"
-                onClick={saveEdit}
+                onClick={saveNotes}
               >
                 {saving ? <Loader size={14} color="#fff" className="animate-spin" /> : <Check size={14} color="#fff" />}
                 <Text className="block text-sm text-white">保存</Text>
@@ -900,7 +562,7 @@ const DetailPage: FC = () => {
         ) : (
           <View 
             className="bg-white rounded-xl border border-gray-100 p-4"
-            onClick={() => startEdit({ category: 'notes', key: 'notes' })}
+            onClick={() => setEditingNotes(true)}
           >
             {detail.notes ? (
               <View className="flex items-start gap-2">
