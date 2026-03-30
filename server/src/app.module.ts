@@ -12,9 +12,10 @@ import { ChatModule } from '@/modules/chat/chat.module';
 import { ProfileAnalysisModule } from '@/modules/profile-analysis/profile-analysis.module';
 import { PortraitModule } from '@/modules/portrait/portrait.module';
 import { UserProfileModule } from '@/modules/user-profile/user-profile.module';
+import { DimensionModule } from '@/modules/dimension/dimension.module';
 
 @Module({
-  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule, PortraitModule, UserProfileModule],
+  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule, PortraitModule, UserProfileModule, DimensionModule],
   controllers: [AppController],
   providers: [AppService],
 })

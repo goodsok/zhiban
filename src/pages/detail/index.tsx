@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import ChatDialog from '@/components/chat-dialog'
+import DimensionViewer from '@/components/dimension-viewer'
 import CustomHeader from '@/components/custom-header'
 import { 
   Pencil,
@@ -24,7 +25,8 @@ import {
   Cloud,
   Activity,
   TrendingUp,
-  Brain
+  Brain,
+  Database
 } from 'lucide-react-taro'
 
 // 硬件信息接口
@@ -594,6 +596,16 @@ const DetailPage: FC = () => {
           </View>
         </View>
       ) : null}
+
+      {/* 维度数据（新架构） */}
+      <View className="px-4 pb-4">
+        <View className="flex items-center gap-2 mb-2">
+          <Database size={14} color="#6B7280" />
+          <Text className="block text-sm font-semibold text-gray-900">维度数据</Text>
+          <Text className="block text-xs text-gray-400">按层级组织</Text>
+        </View>
+        <DimensionViewer matchId={detail.id} />
+      </View>
 
       {/* 快捷入口 */}
       <View className="px-4 pb-4">
