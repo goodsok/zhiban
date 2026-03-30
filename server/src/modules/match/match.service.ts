@@ -21,6 +21,11 @@ const hardwareToDimensionMap: Record<string, string> = {
   birthday: 'birthday'
 }
 
+// 维度 key 到硬件字段的反向映射
+const dimensionToHardwareMap: Record<string, string> = Object.fromEntries(
+  Object.entries(hardwareToDimensionMap).map(([k, v]) => [v, k])
+)
+
 // 软件字段到维度 key 的映射
 const softwareToDimensionMap: Record<string, string> = {
   mbti: 'mbti',
@@ -33,6 +38,11 @@ const softwareToDimensionMap: Record<string, string> = {
   dealBreakers: 'marriageNonNegotiables',
   loveLanguages: 'loveLanguage'
 }
+
+// 维度 key 到软件字段的反向映射
+const dimensionToSoftwareMap: Record<string, string> = Object.fromEntries(
+  Object.entries(softwareToDimensionMap).map(([k, v]) => [v, k])
+)
 
 // 印象标签映射
 const impressionTagLabels: Record<string, string> = {
@@ -289,6 +299,92 @@ export class MatchService {
       cycleStartDate: db.cycle_start_date,
       cycleLength: db.cycle_length,
     }
+  }
+
+  /**
+   * 从维度表获取数据，合并到 hardware/software
+   * 优先使用维度数据，维度数据没有的才使用原有数据
+   */
+  private async enrichWithDimensionData(match: Match): Promise<Match> {
+    try {
+      const client = getSupabaseClient()
+      const { data: dimensionValues, error } = await client
+        .from('profile_dimension_values')
+        .select('dimension_key, value')
+        .eq('match_id', match.id)
+
+      if (error || !dimensionValues || dimensionValues.length === 0) {
+        return match
+      }
+
+      // 创建维度值映射
+      const dimensionMap = new Map<string, unknown>()
+      for (const dv of dimensionValues) {
+        dimensionMap.set(dv.dimension_key, dv.value)
+      }
+
+      // 合并到 hardware
+      const hardware = { ...match.hardware }
+      for (const [dimensionKey, field] of Object.entries(dimensionToHardwareMap)) {
+        const dimensionValue = dimensionMap.get(dimensionKey)
+        if (dimensionValue !== undefined && dimensionValue !== null) {
+          // 特殊处理 birthYear -> age
+          if (dimensionKey === 'birthYear') {
+            const birthYear = Number(dimensionValue)
+            if (!isNaN(birthYear) && birthYear > 1900) {
+              hardware.age = new Date().getFullYear() - birthYear
+            }
+          } else {
+            (hardware as Record<string, unknown>)[field] = dimensionValue
+          }
+        }
+      }
+
+      // 合并到 software
+      const software = { ...match.software }
+      for (const [dimensionKey, field] of Object.entries(dimensionToSoftwareMap)) {
+        const dimensionValue = dimensionMap.get(dimensionKey)
+        if (dimensionValue !== undefined && dimensionValue !== null) {
+          // hobbies 字段在 software 中映射为 interests
+          if (dimensionKey === 'hobbies') {
+            software.interests = Array.isArray(dimensionValue) ? dimensionValue : [String(dimensionValue)]
+          } else {
+            (software as Record<string, unknown>)[field] = dimensionValue
+          }
+        }
+      }
+
+      return { ...match, hardware, software }
+    } catch (err) {
+      console.error('获取维度数据失败:', err)
+      return match
+    }
+  }
+
+  /**
+   * 过滤掉已被维度覆盖的字段，避免冗余存储
+   */
+  private filterDimensionFields(
+    hardware: Partial<HardwareInfo>,
+    software: Partial<SoftwareInfo>
+  ): { hardware: Partial<HardwareInfo>; software: Partial<SoftwareInfo> } {
+    const filteredHardware: Partial<HardwareInfo> = {}
+    const filteredSoftware: Partial<SoftwareInfo> = {}
+
+    // 只保留未被维度覆盖的字段
+    for (const [field] of Object.entries(hardware)) {
+      if (!hardwareToDimensionMap[field]) {
+        (filteredHardware as Record<string, unknown>)[field] = hardware[field as keyof HardwareInfo]
+      }
+    }
+
+    for (const [field] of Object.entries(software)) {
+      if (!softwareToDimensionMap[field]) {
+        (filteredSoftware as Record<string, unknown>)[field] = software[field as keyof SoftwareInfo]
+      }
+    }
+
+    return { hardware: filteredHardware, software: filteredSoftware }
   }
 
   /**
@@ -617,25 +713,72 @@ export class MatchService {
       }
 
       const matches = (data as DbMatch[]).map(this.dbToMatch)
+      
+      // 批量获取所有 match 的维度数据
+      const matchIds = matches.map(m => m.id)
+      const { data: dimensionValues } = await client
+        .from('profile_dimension_values')
+        .select('match_id, dimension_key, value')
+        .in('match_id', matchIds)
+
+      // 按 match_id 分组维度数据
+      const dimensionByMatchId = new Map<number, Map<string, unknown>>()
+      if (dimensionValues) {
+        for (const dv of dimensionValues) {
+          if (!dimensionByMatchId.has(dv.match_id)) {
+            dimensionByMatchId.set(dv.match_id, new Map())
+          }
+          dimensionByMatchId.get(dv.match_id)!.set(dv.dimension_key, dv.value)
+        }
+      }
 
       return {
         code: 200,
-        data: matches.map(m => ({
-          id: m.id,
-          name: m.name,
-          age: m.hardware?.age || 0,
-          occupation: m.hardware?.occupation || '',
-          mbti: m.software?.mbti || '',
-          zodiac: m.hardware?.zodiac || '',
-          meetingScene: m.meetingScene,
-          relationshipStage: m.relationshipStage,
-          interactionStatus: m.interactionStatus,
-          impression: m.impression,
-          interests: m.software?.interests || [],
-          status: m.status,
-          nextAction: m.nextAction,
-          lastContact: this.formatLastContact(m.lastContact),
-        })),
+        data: matches.map(m => {
+          // 合并维度数据
+          const dimMap = dimensionByMatchId.get(m.id)
+          let age = m.hardware?.age || 0
+          let occupation = m.hardware?.occupation || ''
+          let mbti = m.software?.mbti || ''
+          let zodiac = m.hardware?.zodiac || ''
+          let interests = m.software?.interests || []
+          
+          if (dimMap) {
+            // birthYear -> age
+            const birthYear = dimMap.get('birthYear')
+            if (birthYear !== undefined) {
+              const year = Number(birthYear)
+              if (!isNaN(year) && year > 1900) {
+                age = new Date().getFullYear() - year
+              }
+            }
+            // 其他字段
+            if (dimMap.has('occupation')) occupation = String(dimMap.get('occupation'))
+            if (dimMap.has('mbti')) mbti = String(dimMap.get('mbti'))
+            if (dimMap.has('zodiac')) zodiac = String(dimMap.get('zodiac'))
+            if (dimMap.has('hobbies')) {
+              const hobbies = dimMap.get('hobbies')
+              interests = Array.isArray(hobbies) ? hobbies : [String(hobbies)]
+            }
+          }
+          
+          return {
+            id: m.id,
+            name: m.name,
+            age,
+            occupation,
+            mbti,
+            zodiac,
+            meetingScene: m.meetingScene,
+            relationshipStage: m.relationshipStage,
+            interactionStatus: m.interactionStatus,
+            impression: m.impression,
+            interests,
+            status: m.status,
+            nextAction: m.nextAction,
+            lastContact: this.formatLastContact(m.lastContact),
+          }
+        }),
         message: 'success',
       }
     } catch (error) {
@@ -658,6 +801,9 @@ export class MatchService {
       }
 
       const match = this.dbToMatch(data as DbMatch)
+      
+      // 从维度表获取数据，优先使用维度数据
+      const enrichedMatch = await this.enrichWithDimensionData(match)
 
       // 获取真实的任务统计
       const taskStats = await this.taskService.getTaskStats(match.id)
@@ -668,8 +814,8 @@ export class MatchService {
       return {
         code: 200,
         data: {
-          ...match,
-          progress: this.calculateProgress(match),
+          ...enrichedMatch,
+          progress: this.calculateProgress(enrichedMatch),
           progressScore,
           stats: {
             tasks: taskStats.total,
@@ -713,11 +859,18 @@ export class MatchService {
   }) {
     try {
       const client = getSupabaseClient()
+      
+      // 过滤掉维度覆盖的字段，避免冗余存储
+      const { hardware: filteredHardware, software: filteredSoftware } = this.filterDimensionFields(
+        body.hardware || {},
+        body.software || {}
+      )
+      
       const newMatch = {
         name: body.name || '',
         gender: body.gender || 'female',
-        hardware: body.hardware || {},
-        software: body.software || { interests: [] },
+        hardware: filteredHardware,
+        software: filteredSoftware,
         meeting_scene: body.meetingScene || 'other',
         meeting_date: body.meetingDate || new Date().toISOString().split('T')[0],
         relationship_stage: body.relationshipStage || 'new',
@@ -746,7 +899,7 @@ export class MatchService {
 
       const matchId = (data as DbMatch).id
       
-      // 异步同步到维度表
+      // 异步同步到维度表（同步原始完整数据，不是过滤后的数据）
       this.syncToDimensions(matchId, body.hardware || {}, body.software || {}).catch(err => {
         console.error('同步到维度表失败:', err)
       })
@@ -779,13 +932,25 @@ export class MatchService {
 
       const existingMatch = existing as DbMatch
 
-      // 深度合并 hardware 和 software
-      const updatedHardware = body.hardware 
-        ? { ...existingMatch.hardware, ...body.hardware }
-        : existingMatch.hardware
-      const updatedSoftware = body.software
-        ? { ...existingMatch.software, ...body.software }
-        : existingMatch.software
+      // 过滤维度覆盖的字段后，深度合并 hardware 和 software
+      const { hardware: filteredHardware, software: filteredSoftware } = this.filterDimensionFields(
+        body.hardware || {},
+        body.software || {}
+      )
+      
+      // 合并时保留非维度字段
+      const existingHardwareFiltered = Object.fromEntries(
+        Object.entries(existingMatch.hardware || {}).filter(([key]) => !hardwareToDimensionMap[key])
+      )
+      const existingSoftwareFiltered = Object.fromEntries(
+        Object.entries(existingMatch.software || {}).filter(([key]) => !softwareToDimensionMap[key])
+      )
+      
+      const updatedHardware = { ...existingHardwareFiltered, ...filteredHardware }
+      const updatedSoftware = { 
+        ...existingSoftwareFiltered, 
+        ...filteredSoftware
+      }
 
       // 如果更新了关系阶段，同步更新status
       const updatedStatus = body.relationshipStage 
@@ -824,7 +989,7 @@ export class MatchService {
         return { code: 500, data: null, message: `更新失败: ${error.message}` }
       }
 
-      // 异步同步到维度表（仅同步更新的字段）
+      // 异步同步到维度表（同步原始完整数据，不是过滤后的数据）
       if (body.hardware || body.software) {
         this.syncToDimensions(id, body.hardware || {}, body.software || {}).catch(err => {
           console.error('同步到维度表失败:', err)
