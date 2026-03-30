@@ -46,6 +46,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
   const [historyLoading, setHistoryLoading] = useState(false)
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [statusBarHeight, setStatusBarHeight] = useState(0)
+  const [quickQuestions, setQuickQuestions] = useState<string[]>([])
+  const [questionsLoading, setQuestionsLoading] = useState(false)
 
   // 获取状态栏高度
   useEffect(() => {
@@ -79,13 +81,47 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
   useEffect(() => {
     if (open && context?.matchId) {
       loadHistory()
+      loadQuickQuestions()
     } else if (open) {
       setMessages([{ 
         role: 'assistant', 
         content: '你好！我是小助手，请先选择一个对象，我才能给你针对性的建议哦~' 
       }])
+      setQuickQuestions(['如何开始使用？', '怎么创建对象档案？', '这个应用能帮我什么？'])
     }
   }, [open, context?.matchId])
+
+  // 加载快捷问题
+  const loadQuickQuestions = async () => {
+    if (!context) {
+      setQuickQuestions(['如何开始使用？', '怎么创建对象档案？', '这个应用能帮我什么？'])
+      return
+    }
+
+    setQuestionsLoading(true)
+    try {
+      const res = await Network.request({
+        url: '/api/chat/quick-questions',
+        method: 'POST',
+        data: { context }
+      })
+      
+      console.log('Load quick questions response:', res.data)
+      
+      if (res.data?.code === 200 && res.data?.data?.questions?.length > 0) {
+        setQuickQuestions(res.data.data.questions)
+      } else {
+        // 使用默认问题
+        setQuickQuestions(['给我一些聊天话题建议', '如何推进关系？', '帮我分析一下TA的性格'])
+      }
+    } catch (error) {
+      console.error('Load quick questions error:', error)
+      // 网络错误时使用默认问题
+      setQuickQuestions(['给我一些聊天话题建议', '如何推进关系？', '帮我分析一下TA的性格'])
+    } finally {
+      setQuestionsLoading(false)
+    }
+  }
 
   const loadHistory = async () => {
     if (!context?.matchId) return
@@ -263,63 +299,6 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       setLoading(false)
     }
   }
-
-  // 根据关系状态生成快捷问题
-  const getQuickQuestions = () => {
-    if (!context) {
-      return ['如何开始使用？', '怎么创建对象档案？', '这个应用能帮我什么？']
-    }
-
-    const { relationshipStage, interactionStatus, cycleInfo } = context
-    const questions: string[] = []
-
-    // 根据互动状态生成问题
-    if (interactionStatus === 'just_met') {
-      questions.push('如何自然地获取联系方式？')
-    } else if (interactionStatus === 'got_contact') {
-      questions.push('第一条消息应该发什么？')
-    } else if (interactionStatus === 'chatted') {
-      questions.push('怎么延续话题不冷场？')
-    } else if (interactionStatus === 'good_vibe') {
-      questions.push('什么时候适合约出来？')
-    } else if (interactionStatus === 'met_up') {
-      questions.push('约会后怎么跟进？')
-    } else if (interactionStatus === 'dating_regularly') {
-      questions.push('如何让关系更进一步？')
-    } else if (interactionStatus === 'ambiguous') {
-      questions.push('暧昧期怎么突破？')
-    } else if (interactionStatus === 'confirming') {
-      questions.push('如何准备表白？')
-    }
-
-    // 根据周期状态生成问题
-    if (cycleInfo) {
-      if (cycleInfo.phase === 'menstrual') {
-        questions.push('她现在经期，怎么表达关心？')
-      } else if (cycleInfo.phase === 'ovulation') {
-        questions.push('现在适合约她吗？')
-      } else if (cycleInfo.phase === 'luteal_late') {
-        questions.push('PMS期间要注意什么？')
-      }
-    }
-
-    // 根据关系阶段补充问题
-    if (relationshipStage === 'new') {
-      questions.push('怎么快速了解她？')
-    } else if (relationshipStage === 'contacting') {
-      questions.push('怎么增加互动频率？')
-    } else if (relationshipStage === 'dating') {
-      questions.push('约会去哪里比较好？')
-    }
-
-    // 通用问题
-    questions.push('给我一些聊天话题建议')
-
-    // 返回前3个不重复的问题
-    return [...new Set(questions)].slice(0, 3)
-  }
-
-  const quickQuestions = getQuickQuestions()
 
   // 快捷问题点击后直接发送
   const handleQuickQuestion = async (q: string) => {
@@ -510,17 +489,24 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         {/* 快捷问题 */}
         {messages.length <= 1 && !historyLoading && (
           <View className="px-4 pt-3 pb-2">
-            <View className="flex flex-wrap gap-2">
-              {quickQuestions.map((q, i) => (
-                <View
-                  key={i}
-                  className="bg-gray-100 rounded-full px-3 py-2"
-                  onClick={() => handleQuickQuestion(q)}
-                >
-                  <Text className="text-xs text-gray-600">{q}</Text>
-                </View>
-              ))}
-            </View>
+            {questionsLoading ? (
+              <View className="flex items-center justify-center py-2">
+                <Loader size={14} color="#6B7280" className="animate-spin" />
+                <Text className="text-xs text-gray-400 ml-2">加载推荐问题...</Text>
+              </View>
+            ) : (
+              <View className="flex flex-wrap gap-2">
+                {quickQuestions.map((q, i) => (
+                  <View
+                    key={i}
+                    className="bg-gray-100 rounded-full px-3 py-2"
+                    onClick={() => handleQuickQuestion(q)}
+                  >
+                    <Text className="text-xs text-gray-600">{q}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         )}
 

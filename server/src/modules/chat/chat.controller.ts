@@ -56,4 +56,22 @@ export class ChatController {
   async clearHistory(@Param('matchId') matchId: string) {
     return this.chatService.clearHistory(Number(matchId))
   }
+
+  /**
+   * 生成智能快捷问题
+   */
+  @Post('quick-questions')
+  async getQuickQuestions(
+    @Body() body: {
+      context?: ChatContext
+    },
+    @Req() req: Request
+  ) {
+    const questions = await this.chatService.generateQuickQuestions(body.context || null, req)
+    return {
+      code: 200,
+      data: { questions },
+      message: 'success',
+    }
+  }
 }
