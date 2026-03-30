@@ -329,18 +329,18 @@ export class MatchService {
 
   /**
    * 简化版推进值计算（列表用）
+   * 完全基于维度数量估算，不依赖任务
    */
   private async calculateProgressScoreSimple(matchId: number, dimensionCount: number): Promise<number> {
-    // 基于维度数量快速估算
-    // 假设完整填写大约需要 50+ 个维度
-    const estimatedScore = Math.min(60, Math.round((dimensionCount / 50) * 60))
+    // 基于维度数量快速估算（假设完整填写大约需要 50+ 个维度）
+    // 信息完整度 80 分 + 关键信息掌握度估算 20 分
+    const estimatedInfoScore = Math.min(80, Math.round((dimensionCount / 50) * 80))
     
-    // 获取任务完成率
-    const taskStats = await this.taskService.getTaskStats(matchId)
-    const taskScore = this.calculateTaskCompletion(taskStats.total, taskStats.completed)
+    // 关键信息掌握度估算：假设每 10 个维度中有 2 个关键信息
+    const estimatedCriticalCount = Math.floor(dimensionCount / 5)
+    const estimatedCriticalScore = Math.min(20, estimatedCriticalCount * 2)
     
-    // 简化版：信息完整度(60) + 任务完成率(20)，关键信息暂时忽略
-    return Math.min(80, estimatedScore + taskScore)
+    return Math.min(100, estimatedInfoScore + estimatedCriticalScore)
   }
 
   /**
@@ -479,28 +479,23 @@ export class MatchService {
         .map(v => v.dimension_key)
     )
 
-    // 3. 获取任务统计
-    const taskStats = await this.taskService.getTaskStats(matchId)
-
-    // 4. 计算各维度分数
+    // 3. 计算各维度分数（完全基于信息完整度）
     const infoScore = this.calculateInfoCompletenessByLayer(allDefinitions, filledKeys)
     const criticalScore = this.calculateCriticalInfoMastery(allDefinitions, filledKeys)
-    const taskScore = this.calculateTaskCompletion(taskStats.total, taskStats.completed)
 
-    // 5. 计算总分
-    const total = Math.min(100, Math.max(0, infoScore + criticalScore + taskScore))
+    // 4. 计算总分（信息完整度80分 + 关键信息掌握度20分）
+    const total = Math.min(100, Math.max(0, infoScore + criticalScore))
 
-    // 6. 确定当前阶段
+    // 5. 确定当前阶段
     const stage = this.getProgressStage(total)
 
-    // 7. 生成洞察建议
+    // 6. 生成洞察建议
     const insights = this.generateInsights({
       infoScore,
       criticalScore,
-      taskScore,
     }, filledKeys, allDefinitions)
 
-    // 8. 获取下一步建议
+    // 7. 获取下一步建议
     const nextActions = stage.suggestedActions
 
     return {
@@ -509,7 +504,7 @@ export class MatchService {
       breakdown: {
         infoCompleteness: infoScore,
         criticalInfoMastery: criticalScore,
-        taskCompletion: taskScore,
+        taskCompletion: 0, // 任务完成度不再计入推进值
       },
       insights,
       nextActions,
@@ -518,17 +513,18 @@ export class MatchService {
 
   /**
    * 计算信息完整度（基于层级）
-   * Layer 1: 30分, Layer 2: 15分, Layer 3: 10分, Layer 4: 5分
+   * Layer 1: 40分, Layer 2: 20分, Layer 3: 15分, Layer 4: 5分
+   * 总计 80 分
    */
   private calculateInfoCompletenessByLayer(
     definitions: any[],
     filledKeys: Set<string>
   ): number {
-    // 各层级权重配置
+    // 各层级权重配置（总计80分）
     const layerWeights: Record<number, { maxScore: number; weight: number }> = {
-      1: { maxScore: 30, weight: 1.5 },  // 基础档案
-      2: { maxScore: 15, weight: 1.2 },  // 性格特质
-      3: { maxScore: 10, weight: 1.0 },  // 生活偏好
+      1: { maxScore: 40, weight: 1.5 },  // 基础档案
+      2: { maxScore: 20, weight: 1.2 },  // 性格特质
+      3: { maxScore: 15, weight: 1.0 },  // 生活偏好
       4: { maxScore: 5, weight: 0.8 },   // 互动策略
       5: { maxScore: 0, weight: 0.5 },   // 近期状态（不计入）
     }
@@ -552,7 +548,7 @@ export class MatchService {
   }
 
   /**
-   * 计算关键信息掌握度
+   * 计算关键信息掌握度（20分）
    * importance=critical 的维度填写率
    */
   private calculateCriticalInfoMastery(
@@ -566,21 +562,6 @@ export class MatchService {
     const fillRate = filledCount / criticalDefs.length
 
     return Math.round(fillRate * 20 * 10) / 10
-  }
-
-  /**
-   * 计算任务完成率（0-20分）
-   */
-  private calculateTaskCompletion(total: number, completed: number): number {
-    if (total === 0) return 0
-
-    const ratio = completed / total
-    const baseScore = ratio * 15
-
-    // 全部完成额外加分
-    const bonusScore = ratio >= 1 ? 5 : ratio >= 0.8 ? 3 : ratio >= 0.5 ? 1 : 0
-
-    return Math.round((baseScore + bonusScore) * 10) / 10
   }
 
   /**
@@ -599,7 +580,7 @@ export class MatchService {
    * 生成洞察建议
    */
   private generateInsights(
-    scores: { infoScore: number; criticalScore: number; taskScore: number },
+    scores: { infoScore: number; criticalScore: number },
     filledKeys: Set<string>,
     definitions: any[]
   ): string[] {
@@ -610,6 +591,8 @@ export class MatchService {
       insights.push('基础信息较少，建议先完善基本档案')
     } else if (scores.infoScore < 40) {
       insights.push('已了解基本信息，可以深入探索性格特质')
+    } else if (scores.infoScore < 60) {
+      insights.push('信息记录良好，继续深入了解对方')
     }
 
     // 关键信息洞察
@@ -618,11 +601,6 @@ export class MatchService {
     if (unfilledCritical.length > 0) {
       const examples = unfilledCritical.slice(0, 2).map(d => d.dimension_key)
       insights.push(`关键信息缺失：${examples.join('、')}等`)
-    }
-
-    // 任务完成洞察
-    if (scores.taskScore < 10) {
-      insights.push('完成任务可以推进关系发展')
     }
 
     return insights.slice(0, 3)
