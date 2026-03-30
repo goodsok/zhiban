@@ -7,6 +7,7 @@ import CustomHeader from '@/components/custom-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Slider } from '@/components/ui/slider'
 import { Loader, User, Heart, Sparkles, MessageCircle, Save, Target, X } from 'lucide-react-taro'
 
 interface UserProfile {
@@ -466,55 +467,133 @@ const UserProfilePage: FC = () => {
       {/* 性格情感 */}
       {activeSection === 'personality' && (
         <View className="p-4">
+          {/* 性格自评说明 */}
+          <View className="bg-gray-50 rounded-xl p-3 mb-4">
+            <Text className="block text-sm text-gray-600">
+              💡 拖动滑块评估自己在每个维度上的倾向。这些信息会帮助AI更好地理解你，提供更贴合你性格的建议。
+            </Text>
+          </View>
+
           <View className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
             <View className="flex items-center gap-2 mb-4">
               <Sparkles size={16} color="#6B7280" />
               <Text className="block text-sm font-semibold text-gray-900">性格自评</Text>
+              <Text className="block text-xs text-gray-400 ml-auto">基于五大人格理论</Text>
             </View>
 
             {/* 开放性 */}
-            <View className="mb-4">
-              <View className="flex items-center justify-between mb-2">
-                <Text className="block text-sm text-gray-700">开放性</Text>
-                <Text className="block text-xs text-gray-500">{profile.personality.openness}</Text>
+            <View className="mb-6">
+              <View className="mb-2">
+                <Text className="block text-sm font-medium text-gray-800">开放性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你对新事物、新想法的接受程度</Text>
               </View>
-              <View className="flex items-center gap-2">
-                <Text className="block text-xs text-gray-400">传统</Text>
-                <View className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <View className="h-full bg-black rounded-full" style={{ width: `${profile.personality.openness}%` }} />
-                </View>
-                <Text className="block text-xs text-gray-400">开放</Text>
+              <View className="flex items-center justify-between mb-1">
+                <Text className="block text-xs text-gray-500">保守传统</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.personality.openness}</Text>
+                <Text className="block text-xs text-gray-500">开放创新</Text>
               </View>
+              <Slider
+                className="w-full"
+                min={0}
+                max={100}
+                value={[profile.personality.openness]}
+                onValueChange={(value) => setProfile(prev => ({
+                  ...prev,
+                  personality: { ...prev.personality, openness: value[0] }
+                }))}
+              />
+            </View>
+
+            {/* 尽责性 */}
+            <View className="mb-6">
+              <View className="mb-2">
+                <Text className="block text-sm font-medium text-gray-800">尽责性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你的自律程度、目标感和执行力</Text>
+              </View>
+              <View className="flex items-center justify-between mb-1">
+                <Text className="block text-xs text-gray-500">随性自由</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.personality.conscientiousness}</Text>
+                <Text className="block text-xs text-gray-500">自律尽责</Text>
+              </View>
+              <Slider
+                className="w-full"
+                min={0}
+                max={100}
+                value={[profile.personality.conscientiousness]}
+                onValueChange={(value) => setProfile(prev => ({
+                  ...prev,
+                  personality: { ...prev.personality, conscientiousness: value[0] }
+                }))}
+              />
             </View>
 
             {/* 外向性 */}
-            <View className="mb-4">
-              <View className="flex items-center justify-between mb-2">
-                <Text className="block text-sm text-gray-700">外向性</Text>
-                <Text className="block text-xs text-gray-500">{profile.personality.extraversion}</Text>
+            <View className="mb-6">
+              <View className="mb-2">
+                <Text className="block text-sm font-medium text-gray-800">外向性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你在社交场合的能量来源和表现</Text>
               </View>
-              <View className="flex items-center gap-2">
-                <Text className="block text-xs text-gray-400">内向</Text>
-                <View className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <View className="h-full bg-black rounded-full" style={{ width: `${profile.personality.extraversion}%` }} />
-                </View>
-                <Text className="block text-xs text-gray-400">外向</Text>
+              <View className="flex items-center justify-between mb-1">
+                <Text className="block text-xs text-gray-500">内向沉稳</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.personality.extraversion}</Text>
+                <Text className="block text-xs text-gray-500">外向活跃</Text>
               </View>
+              <Slider
+                className="w-full"
+                min={0}
+                max={100}
+                value={[profile.personality.extraversion]}
+                onValueChange={(value) => setProfile(prev => ({
+                  ...prev,
+                  personality: { ...prev.personality, extraversion: value[0] }
+                }))}
+              />
             </View>
 
             {/* 宜人性 */}
-            <View className="mb-4">
-              <View className="flex items-center justify-between mb-2">
-                <Text className="block text-sm text-gray-700">宜人性</Text>
-                <Text className="block text-xs text-gray-500">{profile.personality.agreeableness}</Text>
+            <View className="mb-6">
+              <View className="mb-2">
+                <Text className="block text-sm font-medium text-gray-800">宜人性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你与他人相处时的态度和方式</Text>
               </View>
-              <View className="flex items-center gap-2">
-                <Text className="block text-xs text-gray-400">直接</Text>
-                <View className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <View className="h-full bg-black rounded-full" style={{ width: `${profile.personality.agreeableness}%` }} />
-                </View>
-                <Text className="block text-xs text-gray-400">温和</Text>
+              <View className="flex items-center justify-between mb-1">
+                <Text className="block text-xs text-gray-500">直接有主见</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.personality.agreeableness}</Text>
+                <Text className="block text-xs text-gray-500">温和友善</Text>
               </View>
+              <Slider
+                className="w-full"
+                min={0}
+                max={100}
+                value={[profile.personality.agreeableness]}
+                onValueChange={(value) => setProfile(prev => ({
+                  ...prev,
+                  personality: { ...prev.personality, agreeableness: value[0] }
+                }))}
+              />
+            </View>
+
+            {/* 神经质 */}
+            <View className="mb-2">
+              <View className="mb-2">
+                <Text className="block text-sm font-medium text-gray-800">情绪敏感性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你对压力和负面情绪的敏感程度</Text>
+              </View>
+              <View className="flex items-center justify-between mb-1">
+                <Text className="block text-xs text-gray-500">情绪稳定</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.personality.neuroticism}</Text>
+                <Text className="block text-xs text-gray-500">情绪敏感</Text>
+              </View>
+              <Slider
+                className="w-full"
+                min={0}
+                max={100}
+                value={[profile.personality.neuroticism]}
+                onValueChange={(value) => setProfile(prev => ({
+                  ...prev,
+                  personality: { ...prev.personality, neuroticism: value[0] }
+                }))}
+              />
             </View>
           </View>
 
@@ -525,48 +604,72 @@ const UserProfilePage: FC = () => {
             </View>
 
             {/* 情绪稳定性 */}
-            <View className="mb-4">
-              <View className="flex items-center justify-between mb-2">
-                <Text className="block text-sm text-gray-700">情绪稳定性</Text>
-                <Text className="block text-xs text-gray-500">{profile.emotional.stability}</Text>
+            <View className="mb-6">
+              <View className="mb-2">
+                <Text className="block text-sm font-medium text-gray-800">情绪稳定性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">情绪波动的频率和幅度</Text>
               </View>
-              <View className="flex items-center gap-2">
-                <Text className="block text-xs text-gray-400">敏感</Text>
-                <View className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <View className="h-full bg-black rounded-full" style={{ width: `${profile.emotional.stability}%` }} />
-                </View>
-                <Text className="block text-xs text-gray-400">稳定</Text>
+              <View className="flex items-center justify-between mb-1">
+                <Text className="block text-xs text-gray-500">波动较大</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.emotional.stability}</Text>
+                <Text className="block text-xs text-gray-500">稳定平和</Text>
               </View>
+              <Slider
+                className="w-full"
+                min={0}
+                max={100}
+                value={[profile.emotional.stability]}
+                onValueChange={(value) => setProfile(prev => ({
+                  ...prev,
+                  emotional: { ...prev.emotional, stability: value[0] }
+                }))}
+              />
             </View>
 
             {/* 情感表达 */}
-            <View className="mb-4">
-              <View className="flex items-center justify-between mb-2">
-                <Text className="block text-sm text-gray-700">情感表达</Text>
-                <Text className="block text-xs text-gray-500">{profile.emotional.expression}</Text>
+            <View className="mb-6">
+              <View className="mb-2">
+                <Text className="block text-sm font-medium text-gray-800">情感表达</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你表达情感的方式和频率</Text>
               </View>
-              <View className="flex items-center gap-2">
-                <Text className="block text-xs text-gray-400">含蓄</Text>
-                <View className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <View className="h-full bg-black rounded-full" style={{ width: `${profile.emotional.expression}%` }} />
-                </View>
-                <Text className="block text-xs text-gray-400">表达</Text>
+              <View className="flex items-center justify-between mb-1">
+                <Text className="block text-xs text-gray-500">含蓄内敛</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.emotional.expression}</Text>
+                <Text className="block text-xs text-gray-500">善于表达</Text>
               </View>
+              <Slider
+                className="w-full"
+                min={0}
+                max={100}
+                value={[profile.emotional.expression]}
+                onValueChange={(value) => setProfile(prev => ({
+                  ...prev,
+                  emotional: { ...prev.emotional, expression: value[0] }
+                }))}
+              />
             </View>
 
             {/* 共情能力 */}
-            <View className="mb-4">
-              <View className="flex items-center justify-between mb-2">
-                <Text className="block text-sm text-gray-700">共情能力</Text>
-                <Text className="block text-xs text-gray-500">{profile.emotional.empathy}</Text>
+            <View className="mb-2">
+              <View className="mb-2">
+                <Text className="block text-sm font-medium text-gray-800">共情能力</Text>
+                <Text className="block text-xs text-gray-400 mt-1">理解和感受他人情绪的能力</Text>
               </View>
-              <View className="flex items-center gap-2">
-                <Text className="block text-xs text-gray-400">理性</Text>
-                <View className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <View className="h-full bg-black rounded-full" style={{ width: `${profile.emotional.empathy}%` }} />
-                </View>
-                <Text className="block text-xs text-gray-400">共情</Text>
+              <View className="flex items-center justify-between mb-1">
+                <Text className="block text-xs text-gray-500">理性客观</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.emotional.empathy}</Text>
+                <Text className="block text-xs text-gray-500">共情细腻</Text>
               </View>
+              <Slider
+                className="w-full"
+                min={0}
+                max={100}
+                value={[profile.emotional.empathy]}
+                onValueChange={(value) => setProfile(prev => ({
+                  ...prev,
+                  emotional: { ...prev.emotional, empathy: value[0] }
+                }))}
+              />
             </View>
           </View>
         </View>
