@@ -273,6 +273,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         if (context?.matchId) {
           saveMessagesToLocal(context.matchId, finalMessages)
         }
+        // 发送消息后重新获取快捷问题
+        loadQuickQuestions()
       } else {
         const finalMessages = [...newMessages, { 
           role: 'assistant' as const, 
@@ -337,6 +339,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         if (context?.matchId) {
           saveMessagesToLocal(context.matchId, finalMessages)
         }
+        // 发送消息后重新获取快捷问题
+        loadQuickQuestions()
       } else {
         const finalMessages = [...newMessages, { 
           role: 'assistant' as const, 
@@ -486,8 +490,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         className="fixed left-0 right-0 z-[101] bg-white border-t border-gray-100"
         style={{ bottom: 0 }}
       >
-        {/* 快捷问题 */}
-        {messages.length <= 1 && !historyLoading && (
+        {/* 快捷问题 - 始终显示 */}
+        {!historyLoading && quickQuestions.length > 0 && (
           <View className="px-4 pt-3 pb-2">
             {questionsLoading ? (
               <View className="flex items-center justify-center py-2">
@@ -499,7 +503,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
                 {quickQuestions.map((q, i) => (
                   <View
                     key={i}
-                    className="bg-gray-100 rounded-full px-3 py-2"
+                    className="bg-gray-100 rounded-full px-3 py-2 active:bg-gray-200"
                     onClick={() => handleQuickQuestion(q)}
                   >
                     <Text className="text-xs text-gray-600">{q}</Text>
