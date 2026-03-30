@@ -1121,8 +1121,811 @@ export const layer1Dimensions: DimensionDefinition[] = [
   }
 ]
 
-// 由于文件太长，我会继续创建其他层级的数据
-// 这里先导出 Layer 1，后续会添加更多
+// ==================== Layer 2: 长期特质 ====================
+// 相对稳定但可能随时间缓慢变化的特质
+
+export const layer2Dimensions: DimensionDefinition[] = [
+  // 2.1 性格特质
+  {
+    dimension_key: 'extroversionLevel',
+    display_name: '外向程度',
+    description: '社交能量的来源：从外部世界还是内心世界获取能量',
+    layer: 2,
+    category: 'personality',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=极度内向，100=极度外向',
+    weight: 1.5,
+    importance: 'important',
+    source_allowed: ['manual', 'questionnaire', 'chat_analysis'],
+    sort_order: 100
+  },
+  {
+    dimension_key: 'emotionalStabilityLevel',
+    display_name: '情绪稳定性',
+    description: '情绪波动的频率和幅度',
+    layer: 2,
+    category: 'personality',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=情绪波动大，100=情绪稳定',
+    weight: 1.5,
+    importance: 'important',
+    source_allowed: ['manual', 'questionnaire', 'chat_analysis'],
+    sort_order: 101
+  },
+  {
+    dimension_key: 'opennessLevel',
+    display_name: '开放性',
+    description: '对新事物、新观念的接受程度',
+    layer: 2,
+    category: 'personality',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=保守固执，100=开放好奇',
+    weight: 1.3,
+    importance: 'important',
+    source_allowed: ['manual', 'questionnaire', 'chat_analysis'],
+    sort_order: 102
+  },
+  {
+    dimension_key: 'conscientiousnessLevel',
+    display_name: '尽责性',
+    description: '做事的认真程度、计划性和自律性',
+    layer: 2,
+    category: 'personality',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=随性散漫，100=认真自律',
+    weight: 1.3,
+    importance: 'important',
+    source_allowed: ['manual', 'questionnaire', 'chat_analysis'],
+    sort_order: 103
+  },
+  {
+    dimension_key: 'agreeablenessLevel',
+    display_name: '宜人性',
+    description: '与他人相处时的配合度和友善程度',
+    layer: 2,
+    category: 'personality',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=独立自我，100=友善配合',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual', 'questionnaire', 'chat_analysis'],
+    sort_order: 104
+  },
+
+  // 2.2 情感特质
+  {
+    dimension_key: 'emotionalExpressionStyle',
+    display_name: '情感表达方式',
+    layer: 2,
+    category: 'emotion',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'expressive', label: '直接表达' },
+      { value: 'reserved', label: '含蓄内敛' },
+      { value: 'selective', label: '因人而异' },
+      { value: 'avoidant', label: '回避表达' }
+    ],
+    input_type: 'select',
+    weight: 1.5,
+    importance: 'important',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 110
+  },
+  {
+    dimension_key: 'empathyLevel',
+    display_name: '共情能力',
+    description: '理解和感受他人情绪的能力',
+    layer: 2,
+    category: 'emotion',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=自我中心，100=高度共情',
+    weight: 1.5,
+    importance: 'important',
+    source_allowed: ['manual', 'questionnaire', 'chat_analysis'],
+    sort_order: 111
+  },
+  {
+    dimension_key: 'conflictStyle',
+    display_name: '冲突处理风格',
+    layer: 2,
+    category: 'emotion',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'confronting', label: '直面解决' },
+      { value: 'compromising', label: '协商妥协' },
+      { value: 'avoiding', label: '回避冷处理' },
+      { value: 'accommodating', label: '迁就退让' },
+      { value: 'competing', label: '争强好胜' }
+    ],
+    input_type: 'select',
+    weight: 1.4,
+    importance: 'important',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 112
+  },
+  {
+    dimension_key: 'stressResponse',
+    display_name: '压力反应模式',
+    layer: 2,
+    category: 'emotion',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'seeking_support', label: '寻求支持' },
+      { value: 'internalizing', label: '内化消化' },
+      { value: 'distraction', label: '转移注意力' },
+      { value: 'problem_solving', label: '解决问题' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 113
+  },
+
+  // 2.3 社交特质
+  {
+    dimension_key: 'socialEnergy',
+    display_name: '社交能量',
+    description: '在社交场合获得的能量程度',
+    layer: 2,
+    category: 'social',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'high', label: '社交达人' },
+      { value: 'medium', label: '适可而止' },
+      { value: 'low', label: '社交耗能' },
+      { value: 'situational', label: '看情况' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 120
+  },
+  {
+    dimension_key: 'friendshipStyle',
+    display_name: '交友风格',
+    layer: 2,
+    category: 'social',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'quality_over_quantity', label: '求精不求多' },
+      { value: 'broad_network', label: '广交朋友' },
+      { value: 'selective', label: '谨慎交友' },
+      { value: 'small_circle', label: '小圈子' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 121
+  },
+  {
+    dimension_key: 'trustLevel',
+    display_name: '信任倾向',
+    description: '对他人的初始信任程度',
+    layer: 2,
+    category: 'social',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=防备心重，100=容易信任',
+    weight: 1.3,
+    importance: 'important',
+    source_allowed: ['manual', 'questionnaire'],
+    sort_order: 122
+  },
+  {
+    dimension_key: 'boundariesStyle',
+    display_name: '边界感',
+    layer: 2,
+    category: 'social',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'flexible', label: '边界灵活' },
+      { value: 'moderate', label: '适度边界' },
+      { value: 'firm', label: '边界清晰' },
+      { value: 'rigid', label: '边界严格' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 123
+  },
+
+  // 2.4 沟通特质
+  {
+    dimension_key: 'communicationStyle',
+    display_name: '沟通风格',
+    layer: 2,
+    category: 'communication',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'direct', label: '直接坦率' },
+      { value: 'indirect', label: '委婉含蓄' },
+      { value: 'balanced', label: '因人而异' },
+      { value: 'passive_aggressive', label: '消极被动' }
+    ],
+    input_type: 'select',
+    weight: 1.5,
+    importance: 'critical',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 130
+  },
+  {
+    dimension_key: 'humorStyle',
+    display_name: '幽默风格',
+    layer: 2,
+    category: 'communication',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 自嘲、调侃、冷笑话',
+    weight: 0.8,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 131
+  },
+  {
+    dimension_key: 'listeningStyle',
+    display_name: '倾听风格',
+    layer: 2,
+    category: 'communication',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'active_listener', label: '积极倾听' },
+      { value: 'problem_solver', label: '解决问题型' },
+      { value: 'empathetic', label: '共情型' },
+      { value: 'distracted', label: '容易分心' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 132
+  },
+  {
+    dimension_key: 'argumentStyle',
+    display_name: '争论风格',
+    layer: 2,
+    category: 'communication',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'logical', label: '讲道理' },
+      { value: 'emotional', label: '讲感受' },
+      { value: 'avoiding', label: '避免争论' },
+      { value: 'compromising', label: '求同存异' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 133
+  },
+
+  // 2.5 生活态度
+  {
+    dimension_key: 'lifeSatisfaction',
+    display_name: '生活满意度',
+    layer: 2,
+    category: 'life_attitude',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=很不满意，100=非常满意',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 140
+  },
+  {
+    dimension_key: 'workLifeBalance',
+    display_name: '工作生活平衡',
+    layer: 2,
+    category: 'life_attitude',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'work_priority', label: '工作优先' },
+      { value: 'balanced', label: '平衡' },
+      { value: 'life_priority', label: '生活优先' },
+      { value: 'flexible', label: '灵活调整' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 141
+  },
+  {
+    dimension_key: 'selfImprovementOrientation',
+    display_name: '自我提升倾向',
+    layer: 2,
+    category: 'life_attitude',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'growth_minded', label: '成长型思维' },
+      { value: 'stable', label: '稳定为主' },
+      { value: 'selective', label: '选择性提升' },
+      { value: 'resistant', label: '安于现状' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 142
+  },
+
+  // 2.6 恋爱风格
+  {
+    dimension_key: 'loveLanguage',
+    display_name: '爱的语言',
+    description: '表达和感受爱的方式',
+    layer: 2,
+    category: 'love_style',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 肯定的言语、精心时刻',
+    weight: 1.5,
+    importance: 'critical',
+    source_allowed: ['manual', 'questionnaire'],
+    sort_order: 150
+  },
+  {
+    dimension_key: 'intimacyNeeds',
+    display_name: '亲密需求程度',
+    layer: 2,
+    category: 'love_style',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=独立自主，100=需要高亲密',
+    weight: 1.4,
+    importance: 'important',
+    source_allowed: ['manual', 'questionnaire'],
+    sort_order: 151
+  },
+  {
+    dimension_key: 'jealousyLevel',
+    display_name: '吃醋程度',
+    layer: 2,
+    category: 'love_style',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=很少吃醋，100=容易吃醋',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 152
+  },
+  {
+    dimension_key: 'commitmentStyle',
+    display_name: '承诺风格',
+    layer: 2,
+    category: 'love_style',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'quick_commit', label: '快速投入' },
+      { value: 'cautious', label: '谨慎慢热' },
+      { value: 'selective', label: '因人而异' },
+      { value: 'fearful', label: '害怕承诺' }
+    ],
+    input_type: 'select',
+    weight: 1.3,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 153
+  },
+  {
+    dimension_key: 'pastRelationshipPatterns',
+    display_name: '过往恋爱模式',
+    layer: 2,
+    category: 'love_style',
+    data_type: 'string',
+    input_type: 'textarea',
+    placeholder: '描述过往恋爱经历中的模式或教训',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 154
+  }
+]
+
+// ==================== Layer 3: 中期偏好 ====================
+// 可能随情境或时间变化的偏好
+
+export const layer3Dimensions: DimensionDefinition[] = [
+  // 3.1 兴趣爱好
+  {
+    dimension_key: 'hobbies',
+    display_name: '兴趣爱好',
+    layer: 3,
+    category: 'interests',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 阅读、旅行、健身、摄影',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 200
+  },
+  {
+    dimension_key: 'favoriteMusic',
+    display_name: '喜欢的音乐类型',
+    layer: 3,
+    category: 'interests',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 流行、摇滚、古典',
+    weight: 0.8,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 201
+  },
+  {
+    dimension_key: 'favoriteMovies',
+    display_name: '喜欢的电影类型',
+    layer: 3,
+    category: 'interests',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 科幻、爱情、悬疑',
+    weight: 0.8,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 202
+  },
+  {
+    dimension_key: 'favoriteBooks',
+    display_name: '喜欢的书籍类型',
+    layer: 3,
+    category: 'interests',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 小说、传记、心理学',
+    weight: 0.8,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 203
+  },
+  {
+    dimension_key: 'sportsPreferences',
+    display_name: '运动偏好',
+    layer: 3,
+    category: 'interests',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 跑步、游泳、瑜伽',
+    weight: 0.9,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 204
+  },
+  {
+    dimension_key: 'travelPreferences',
+    display_name: '旅行偏好',
+    layer: 3,
+    category: 'interests',
+    data_type: 'string',
+    input_type: 'text',
+    placeholder: '如: 自然风光、人文历史、美食探索',
+    weight: 0.9,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 205
+  },
+  {
+    dimension_key: 'foodPreferences',
+    display_name: '饮食偏好',
+    layer: 3,
+    category: 'interests',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 中餐、日料、素食',
+    weight: 0.8,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 206
+  },
+  {
+    dimension_key: 'petPreferences',
+    display_name: '宠物偏好',
+    layer: 3,
+    category: 'interests',
+    data_type: 'string',
+    input_type: 'text',
+    placeholder: '如: 养猫、喜欢狗、无宠物',
+    weight: 0.7,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 207
+  },
+
+  // 3.2 生活方式
+  {
+    dimension_key: 'wakeUpTime',
+    display_name: '起床时间',
+    layer: 3,
+    category: 'lifestyle',
+    data_type: 'string',
+    input_type: 'text',
+    placeholder: '如: 7点左右、睡到自然醒',
+    weight: 0.6,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 210
+  },
+  {
+    dimension_key: 'sleepTime',
+    display_name: '睡觉时间',
+    layer: 3,
+    category: 'lifestyle',
+    data_type: 'string',
+    input_type: 'text',
+    placeholder: '如: 11点左右、经常熬夜',
+    weight: 0.6,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 211
+  },
+  {
+    dimension_key: 'weekendPreferences',
+    display_name: '周末偏好',
+    layer: 3,
+    category: 'lifestyle',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'outdoor', label: '户外活动' },
+      { value: 'homebody', label: '宅家休息' },
+      { value: 'social', label: '社交聚会' },
+      { value: 'flexible', label: '看情况' }
+    ],
+    input_type: 'select',
+    weight: 0.9,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 212
+  },
+  {
+    dimension_key: 'exerciseFrequency',
+    display_name: '运动频率',
+    layer: 3,
+    category: 'lifestyle',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'daily', label: '每天' },
+      { value: 'often', label: '经常' },
+      { value: 'occasional', label: '偶尔' },
+      { value: 'rarely', label: '很少' }
+    ],
+    input_type: 'select',
+    weight: 0.8,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 213
+  },
+  {
+    dimension_key: 'cookingHabit',
+    display_name: '做饭习惯',
+    layer: 3,
+    category: 'lifestyle',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'love_cooking', label: '喜欢做饭' },
+      { value: 'occasional', label: '偶尔做' },
+      { value: 'order_out', label: '经常外卖' },
+      { value: 'dont_cook', label: '不会做饭' }
+    ],
+    input_type: 'select',
+    weight: 0.7,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 214
+  },
+  {
+    dimension_key: 'socialMediaUsage',
+    display_name: '社交媒体使用',
+    layer: 3,
+    category: 'lifestyle',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'heavy', label: '重度使用' },
+      { value: 'moderate', label: '适度使用' },
+      { value: 'light', label: '轻度使用' },
+      { value: 'minimal', label: '很少使用' }
+    ],
+    input_type: 'select',
+    weight: 0.6,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 215
+  },
+
+  // 3.3 约会偏好
+  {
+    dimension_key: 'idealDateType',
+    display_name: '理想约会类型',
+    layer: 3,
+    category: 'dating',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 看电影、户外徒步、美食探店',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 220
+  },
+  {
+    dimension_key: 'datingFrequency',
+    display_name: '期望约会频率',
+    layer: 3,
+    category: 'dating',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'very_frequent', label: '每周多次' },
+      { value: 'weekly', label: '每周一次' },
+      { value: 'biweekly', label: '每两周一次' },
+      { value: 'flexible', label: '看情况' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 221
+  },
+  {
+    dimension_key: 'firstDatePreferences',
+    display_name: '第一次约会偏好',
+    layer: 3,
+    category: 'dating',
+    data_type: 'string',
+    input_type: 'textarea',
+    placeholder: '描述理想的第一约会场景',
+    weight: 0.9,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 222
+  },
+  {
+    dimension_key: 'giftPreferences',
+    display_name: '礼物偏好',
+    layer: 3,
+    category: 'dating',
+    data_type: 'string',
+    input_type: 'text',
+    placeholder: '如: 实用为主、浪漫惊喜、手工制作',
+    weight: 0.8,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 223
+  },
+
+  // 3.4 沟通偏好
+  {
+    dimension_key: 'preferredContactMethod',
+    display_name: '偏好联系方式',
+    layer: 3,
+    category: 'communication_pref',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 微信、电话、视频',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 230
+  },
+  {
+    dimension_key: 'responseTimeExpectation',
+    display_name: '回复时间期望',
+    layer: 3,
+    category: 'communication_pref',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'instant', label: '希望秒回' },
+      { value: 'within_hour', label: '一小时内' },
+      { value: 'within_day', label: '当天即可' },
+      { value: 'flexible', label: '无所谓' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 231
+  },
+  {
+    dimension_key: 'textingStyle',
+    display_name: '发消息风格',
+    layer: 3,
+    category: 'communication_pref',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'frequent', label: '频繁联系' },
+      { value: 'moderate', label: '适度联系' },
+      { value: 'quality_over_quantity', label: '重质量' },
+      { value: 'minimal', label: '必要才联系' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 232
+  },
+  {
+    dimension_key: 'emojiUsage',
+    display_name: '表情包使用',
+    layer: 3,
+    category: 'communication_pref',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'heavy', label: '经常用' },
+      { value: 'moderate', label: '适度用' },
+      { value: 'rare', label: '很少用' },
+      { value: 'none', label: '不用' }
+    ],
+    input_type: 'select',
+    weight: 0.5,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 233
+  },
+
+  // 3.5 当前关注
+  {
+    dimension_key: 'currentFocus',
+    display_name: '当前关注点',
+    layer: 3,
+    category: 'current',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 事业发展、买房、学习',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 240
+  },
+  {
+    dimension_key: 'currentChallenges',
+    display_name: '当前困扰',
+    layer: 3,
+    category: 'current',
+    data_type: 'string',
+    input_type: 'textarea',
+    placeholder: '描述当前面临的主要挑战或压力',
+    weight: 0.9,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 241
+  },
+  {
+    dimension_key: 'nearTermGoals',
+    display_name: '近期目标',
+    layer: 3,
+    category: 'current',
+    data_type: 'string',
+    input_type: 'textarea',
+    placeholder: '描述近期想要达成的目标',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 242
+  }
+]
+
+// 导出所有维度
 export const allDimensions: DimensionDefinition[] = [
-  ...layer1Dimensions
+  ...layer1Dimensions,
+  ...layer2Dimensions,
+  ...layer3Dimensions
 ]

@@ -122,4 +122,22 @@ export class DimensionController {
   ) {
     return await this.dimensionService.getDimensionHistory(parseInt(matchId), dimensionKey)
   }
+
+  /**
+   * 初始化维度定义数据
+   * POST /api/dimension/init-definitions
+   */
+  @Post('init-definitions')
+  async initializeDimensionDefinitions() {
+    return await this.dimensionService.initializeDimensionDefinitions()
+  }
+
+  /**
+   * 迁移 hardware/software 数据到维度值表
+   * POST /api/dimension/migrate
+   */
+  @Post('migrate')
+  async migrateHardwareSoftwareToDimensions() {
+    return await this.dimensionService.migrateHardwareSoftwareToDimensions()
+  }
 }

@@ -1,5 +1,165 @@
 import { Injectable } from '@nestjs/common'
 import { getSupabaseClient } from '../../storage/database/supabase-client'
+import { allDimensions } from '../../storage/data/dimension-definitions'
+
+// 硬件字段到维度 key 的映射
+const hardwareToDimensionMap: Record<string, {
+  dimensionKey: string
+  transform?: (value: unknown) => unknown
+}> = {
+  age: {
+    dimensionKey: 'birthYear',
+    transform: (value) => {
+      const age = Number(value)
+      if (isNaN(age) || age <= 0) return null
+      const currentYear = new Date().getFullYear()
+      return currentYear - age
+    }
+  },
+  height: {
+    dimensionKey: 'height',
+    transform: (value) => {
+      const str = String(value).replace(/[^0-9]/g, '')
+      const num = parseInt(str, 10)
+      return isNaN(num) ? null : num
+    }
+  },
+  zodiac: {
+    dimensionKey: 'zodiac',
+    transform: (value) => {
+      const zodiacMap: Record<string, string> = {
+        '白羊座': 'aries', '金牛座': 'taurus', '双子座': 'gemini', '巨蟹座': 'cancer',
+        '狮子座': 'leo', '处女座': 'virgo', '天秤座': 'libra', '天蝎座': 'scorpio',
+        '射手座': 'sagittarius', '摩羯座': 'capricorn', '水瓶座': 'aquarius', '双鱼座': 'pisces',
+        '白羊': 'aries', '金牛': 'taurus', '双子': 'gemini', '巨蟹': 'cancer',
+        '狮子': 'leo', '处女': 'virgo', '天秤': 'libra', '天蝎': 'scorpio',
+        '射手': 'sagittarius', '摩羯': 'capricorn', '水瓶': 'aquarius', '双鱼': 'pisces'
+      }
+      return zodiacMap[String(value)] || String(value).toLowerCase()
+    }
+  },
+  bloodType: {
+    dimensionKey: 'bloodType',
+    transform: (value) => {
+      const str = String(value).toUpperCase()
+      if (['A', 'B', 'AB', 'O'].includes(str)) return str
+      const match = str.match(/([ABO]+)/)
+      return match ? match[1] : null
+    }
+  },
+  bodyType: {
+    dimensionKey: 'bodyType',
+    transform: (value) => {
+      const bodyTypeMap: Record<string, string> = {
+        '偏瘦': 'slim', '瘦': 'slim', 'slim': 'slim',
+        '匀称': 'average', '标准': 'average', 'average': 'average',
+        '健壮': 'athletic', '肌肉': 'athletic', 'athletic': 'athletic',
+        '丰满': 'curvy', 'curvy': 'curvy',
+        '偏胖': 'plump', '胖': 'plump', 'plump': 'plump'
+      }
+      return bodyTypeMap[String(value)] || 'average'
+    }
+  },
+  style: {
+    dimensionKey: 'appearance'
+  },
+  location: {
+    dimensionKey: 'currentCity'
+  },
+  occupation: {
+    dimensionKey: 'occupation'
+  },
+  company: {
+    dimensionKey: 'company'
+  }
+}
+
+// 软件字段到维度 key 的映射
+const softwareToDimensionMap: Record<string, {
+  dimensionKey: string
+  transform?: (value: unknown) => unknown
+}> = {
+  mbti: {
+    dimensionKey: 'mbti',
+    transform: (value) => {
+      const str = String(value).toUpperCase()
+      const validMBTI = ['INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP',
+                         'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP']
+      return validMBTI.includes(str) ? str : null
+    }
+  },
+  personality: {
+    dimensionKey: 'coreTemperament'
+  },
+  emotionalStyle: {
+    dimensionKey: 'emotionalExpressionStyle',
+    transform: (value) => {
+      const styleMap: Record<string, string> = {
+        '直接': 'expressive', '直接表达': 'expressive', 'expressive': 'expressive',
+        '含蓄': 'reserved', '内敛': 'reserved', 'reserved': 'reserved',
+        '看情况': 'selective', '因人而异': 'selective', 'selective': 'selective',
+        '回避': 'avoidant', 'avoidant': 'avoidant'
+      }
+      return styleMap[String(value)] || null
+    }
+  },
+  interests: {
+    dimensionKey: 'hobbies',
+    transform: (value) => {
+      if (Array.isArray(value)) return value
+      if (typeof value === 'string') return value.split(/[,，、]/).map(s => s.trim()).filter(Boolean)
+      return null
+    }
+  },
+  hobbies: {
+    dimensionKey: 'hobbies',
+    transform: (value) => {
+      if (typeof value === 'string') return value.split(/[,，、]/).map(s => s.trim()).filter(Boolean)
+      return null
+    }
+  },
+  spendingStyle: {
+    dimensionKey: 'moneyPhilosophy',
+    transform: (value) => {
+      const styleMap: Record<string, string> = {
+        '节俭': 'frugal', 'frugal': 'frugal',
+        '平衡': 'balanced', 'balanced': 'balanced',
+        '享受': 'enjoyment', '享受当下': 'enjoyment', 'enjoyment': 'enjoyment',
+        '投资': 'investor', '投资导向': 'investor', 'investor': 'investor'
+      }
+      return styleMap[String(value)] || 'balanced'
+    }
+  },
+  communicationStyle: {
+    dimensionKey: 'communicationStyle',
+    transform: (value) => {
+      const styleMap: Record<string, string> = {
+        '直接': 'direct', '直率': 'direct', 'direct': 'direct',
+        '委婉': 'indirect', '含蓄': 'indirect', 'indirect': 'indirect',
+        '平衡': 'balanced', '因人而异': 'balanced', 'balanced': 'balanced'
+      }
+      return styleMap[String(value)] || 'balanced'
+    }
+  },
+  dealBreakers: {
+    dimensionKey: 'marriageNonNegotiables',
+    transform: (value) => {
+      if (typeof value === 'string') return [value]
+      if (Array.isArray(value)) return value
+      return null
+    }
+  },
+  loveLanguages: {
+    dimensionKey: 'loveLanguage',
+    transform: (value) => {
+      if (Array.isArray(value)) return value
+      if (typeof value === 'string') {
+        return value.split(/[,，、>]/).map(s => s.trim()).filter(Boolean)
+      }
+      return null
+    }
+  }
+}
 
 export interface DimensionDefinition {
   id: number
@@ -378,6 +538,226 @@ export class DimensionService {
     } catch (err) {
       console.error('获取维度历史异常:', err)
       return { code: 500, msg: String(err), data: [] }
+    }
+  }
+
+  /**
+   * 初始化维度定义数据
+   * 从 dimension-definitions.ts 导入所有维度定义并插入数据库
+   */
+  async initializeDimensionDefinitions(): Promise<{ code: number; msg: string; data: { inserted: number; skipped: number } }> {
+    try {
+      const supabase = getSupabaseClient()
+      
+      // 获取已有的维度定义
+      const { data: existingDefs, error: fetchError } = await supabase
+        .from('dimension_definitions')
+        .select('dimension_key')
+
+      if (fetchError) {
+        console.error('获取已有维度定义失败:', fetchError)
+        return { code: 500, msg: fetchError.message, data: { inserted: 0, skipped: 0 } }
+      }
+
+      const existingKeys = new Set(existingDefs?.map(d => d.dimension_key) || [])
+      
+      // 过滤出不存在的维度定义
+      const newDefinitions = allDimensions.filter(d => !existingKeys.has(d.dimension_key))
+
+      if (newDefinitions.length === 0) {
+        return { code: 200, msg: '所有维度定义已存在', data: { inserted: 0, skipped: existingKeys.size } }
+      }
+
+      // 插入新维度定义
+      const { error: insertError } = await supabase
+        .from('dimension_definitions')
+        .insert(newDefinitions.map(d => ({
+          dimension_key: d.dimension_key,
+          display_name: d.display_name,
+          description: d.description || null,
+          layer: d.layer,
+          category: d.category,
+          subcategory: d.subcategory || null,
+          data_type: d.data_type,
+          enum_options: d.enum_options || null,
+          validation_rules: d.validation_rules || null,
+          default_value: d.default_value || null,
+          input_type: d.input_type || null,
+          placeholder: d.placeholder || null,
+          help_text: d.help_text || null,
+          icon: d.icon || null,
+          weight: d.weight.toString(),
+          importance: d.importance,
+          source_allowed: d.source_allowed,
+          sort_order: d.sort_order,
+          is_active: true
+        })))
+
+      if (insertError) {
+        console.error('插入维度定义失败:', insertError)
+        return { code: 500, msg: insertError.message, data: { inserted: 0, skipped: existingKeys.size } }
+      }
+
+      console.log(`成功插入 ${newDefinitions.length} 条维度定义`)
+      
+      return { 
+        code: 200, 
+        msg: 'success', 
+        data: { 
+          inserted: newDefinitions.length, 
+          skipped: existingKeys.size 
+        } 
+      }
+    } catch (err) {
+      console.error('初始化维度定义异常:', err)
+      return { code: 500, msg: String(err), data: { inserted: 0, skipped: 0 } }
+    }
+  }
+
+  /**
+   * 迁移 matches.hardware/software 数据到维度值表
+   */
+  async migrateHardwareSoftwareToDimensions(): Promise<{ code: number; msg: string; data: { migrated: number; errors: string[] } }> {
+    const supabase = getSupabaseClient()
+    const errors: string[] = []
+    let migrated = 0
+
+    try {
+      // 1. 获取所有 matches 记录
+      const { data: matches, error: fetchError } = await supabase
+        .from('matches')
+        .select('id, name, hardware, software')
+
+      if (fetchError) {
+        return { code: 500, msg: fetchError.message, data: { migrated: 0, errors: [fetchError.message] } }
+      }
+
+      if (!matches || matches.length === 0) {
+        return { code: 200, msg: '没有需要迁移的数据', data: { migrated: 0, errors: [] } }
+      }
+
+      console.log(`开始迁移 ${matches.length} 条 match 记录...`)
+
+      // 2. 准备维度值数据
+      const dimensionValues: Array<{
+        match_id: number
+        dimension_key: string
+        value: unknown
+        source: string
+        source_detail: Record<string, unknown>
+      }> = []
+
+      for (const match of matches) {
+        const matchId = match.id
+        const hardware = match.hardware as Record<string, unknown> | null
+        const software = match.software as Record<string, unknown> | null
+        
+        // 迁移 hardware 字段
+        if (hardware && typeof hardware === 'object') {
+          for (const [field, mapping] of Object.entries(hardwareToDimensionMap)) {
+            const value = hardware[field]
+            if (value === undefined || value === null || value === '') continue
+            
+            const transformedValue = mapping.transform ? mapping.transform(value) : value
+            if (transformedValue === null || transformedValue === undefined) continue
+            
+            dimensionValues.push({
+              match_id: matchId,
+              dimension_key: mapping.dimensionKey,
+              value: transformedValue,
+              source: 'migration',
+              source_detail: {
+                from_field: `hardware.${field}`,
+                original_value: value,
+                migrated_at: new Date().toISOString()
+              }
+            })
+          }
+        }
+
+        // 迁移 software 字段
+        if (software && typeof software === 'object') {
+          for (const [field, mapping] of Object.entries(softwareToDimensionMap)) {
+            const value = software[field]
+            if (value === undefined || value === null || value === '') continue
+            
+            const transformedValue = mapping.transform ? mapping.transform(value) : value
+            if (transformedValue === null || transformedValue === undefined) continue
+            
+            // 对于 hobbies，需要合并 interests 和 hobbies
+            if (mapping.dimensionKey === 'hobbies') {
+              const existingIndex = dimensionValues.findIndex(
+                dv => dv.match_id === matchId && dv.dimension_key === 'hobbies'
+              )
+              
+              if (existingIndex >= 0) {
+                const existingValue = dimensionValues[existingIndex].value as string[]
+                const newValue = transformedValue as string[]
+                dimensionValues[existingIndex].value = [...new Set([...existingValue, ...newValue])]
+              } else {
+                dimensionValues.push({
+                  match_id: matchId,
+                  dimension_key: mapping.dimensionKey,
+                  value: transformedValue,
+                  source: 'migration',
+                  source_detail: {
+                    from_field: `software.${field}`,
+                    original_value: value,
+                    migrated_at: new Date().toISOString()
+                  }
+                })
+              }
+            } else {
+              dimensionValues.push({
+                match_id: matchId,
+                dimension_key: mapping.dimensionKey,
+                value: transformedValue,
+                source: 'migration',
+                source_detail: {
+                  from_field: `software.${field}`,
+                  original_value: value,
+                  migrated_at: new Date().toISOString()
+                }
+              })
+            }
+          }
+        }
+      }
+
+      console.log(`准备插入 ${dimensionValues.length} 条维度值记录...`)
+
+      // 3. 批量插入维度值
+      if (dimensionValues.length > 0) {
+        // 先删除已有的迁移数据
+        await supabase
+          .from('profile_dimension_values')
+          .delete()
+          .eq('source', 'migration')
+
+        // 插入新数据
+        const { error: insertError } = await supabase
+          .from('profile_dimension_values')
+          .insert(dimensionValues)
+
+        if (insertError) {
+          errors.push(`插入失败: ${insertError.message}`)
+          console.error('插入失败:', insertError)
+        } else {
+          migrated = dimensionValues.length
+          console.log(`成功迁移 ${migrated} 条维度值`)
+        }
+      }
+
+      return {
+        code: errors.length === 0 ? 200 : 500,
+        msg: errors.length === 0 ? 'success' : '部分失败',
+        data: { migrated, errors }
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err)
+      console.error('迁移失败:', errorMsg)
+      errors.push(errorMsg)
+      return { code: 500, msg: errorMsg, data: { migrated, errors } }
     }
   }
 }
