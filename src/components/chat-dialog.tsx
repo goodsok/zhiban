@@ -278,8 +278,6 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         if (context?.matchId) {
           saveMessagesToLocal(context.matchId, finalMessages)
         }
-        // 发送消息后重新获取快捷问题
-        loadQuickQuestions()
       } else {
         const finalMessages = [...newMessages, { 
           role: 'assistant' as const, 
@@ -304,6 +302,10 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       }
     } finally {
       setLoading(false)
+      // 无论成功失败，都刷新快捷问题
+      if (context?.matchId) {
+        loadQuickQuestions()
+      }
     }
   }
 
@@ -344,8 +346,6 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         if (context?.matchId) {
           saveMessagesToLocal(context.matchId, finalMessages)
         }
-        // 发送消息后重新获取快捷问题
-        loadQuickQuestions()
       } else {
         const finalMessages = [...newMessages, { 
           role: 'assistant' as const, 
@@ -368,6 +368,10 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       }
     } finally {
       setLoading(false)
+      // 无论成功失败，都刷新快捷问题
+      if (context?.matchId) {
+        loadQuickQuestions()
+      }
     }
   }
 
