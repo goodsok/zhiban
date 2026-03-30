@@ -6,6 +6,7 @@ import { Network } from '@/network'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 import ChatDialog from '@/components/chat-dialog'
 import CustomHeader from '@/components/custom-header'
 import { 
@@ -21,7 +22,8 @@ import {
   Sun,
   Moon,
   Cloud,
-  Activity
+  Activity,
+  TrendingUp
 } from 'lucide-react-taro'
 
 // 硬件信息接口
@@ -68,6 +70,28 @@ interface SoftwareInfo {
   }
 }
 
+// 推进值接口
+interface ProgressScore {
+  total: number
+  stage: {
+    key: string
+    name: string
+    minScore: number
+    maxScore: number
+    description: string
+    focus: string
+  }
+  breakdown: {
+    infoCompleteness: number
+    interactionDepth: number
+    taskCompletion: number
+    keyInfoMastery: number
+    timeActivity: number
+  }
+  insights: string[]
+  nextActions: string[]
+}
+
 interface MatchDetail {
   id: number
   name: string
@@ -90,6 +114,8 @@ interface MatchDetail {
     completedTasks: number
     dates: number
   }
+  // 推进值
+  progressScore?: ProgressScore
   // 周期信息
   cycleStartDate?: string
   cycleLength?: number
@@ -336,6 +362,91 @@ const DetailPage: FC = () => {
           </CardContent>
         </Card>
       </View>
+
+      {/* 推进值卡片 */}
+      {detail.progressScore && (
+        <View className="px-4 pb-4">
+          <View className="bg-white rounded-xl border border-gray-100 p-4">
+            <View className="flex items-center justify-between mb-3">
+              <View className="flex items-center gap-2">
+                <TrendingUp size={16} color="#000" />
+                <Text className="block text-sm font-semibold text-gray-900">关系推进</Text>
+              </View>
+              <View className="flex items-center gap-1">
+                <Text className="block text-2xl font-bold text-gray-900">{detail.progressScore.total}</Text>
+                <Text className="block text-xs text-gray-400">/100</Text>
+              </View>
+            </View>
+            
+            {/* 进度条 */}
+            <View className="mb-3">
+              <Progress 
+                value={detail.progressScore.total} 
+                className="h-2 bg-gray-100" 
+              />
+            </View>
+
+            {/* 当前阶段 */}
+            <View className="flex items-center justify-between mb-2">
+              <View className="flex items-center gap-2">
+                <View className="w-2 h-2 rounded-full bg-black" />
+                <Text className="block text-sm font-medium text-gray-900">
+                  {detail.progressScore.stage.name}
+                </Text>
+              </View>
+              <Text className="block text-xs text-gray-500">
+                {detail.progressScore.stage.description}
+              </Text>
+            </View>
+
+            {/* 分项得分 */}
+            <View className="grid grid-cols-5 gap-1 mt-3 pt-3 border-t border-gray-100">
+              <View className="text-center">
+                <Text className="block text-xs text-gray-400">信息</Text>
+                <Text className="block text-sm font-semibold text-gray-700">
+                  {detail.progressScore.breakdown.infoCompleteness.toFixed(0)}
+                </Text>
+              </View>
+              <View className="text-center">
+                <Text className="block text-xs text-gray-400">互动</Text>
+                <Text className="block text-sm font-semibold text-gray-700">
+                  {detail.progressScore.breakdown.interactionDepth.toFixed(0)}
+                </Text>
+              </View>
+              <View className="text-center">
+                <Text className="block text-xs text-gray-400">任务</Text>
+                <Text className="block text-sm font-semibold text-gray-700">
+                  {detail.progressScore.breakdown.taskCompletion.toFixed(0)}
+                </Text>
+              </View>
+              <View className="text-center">
+                <Text className="block text-xs text-gray-400">关键</Text>
+                <Text className="block text-sm font-semibold text-gray-700">
+                  {detail.progressScore.breakdown.keyInfoMastery.toFixed(0)}
+                </Text>
+              </View>
+              <View className="text-center">
+                <Text className="block text-xs text-gray-400">活跃</Text>
+                <Text className="block text-sm font-semibold text-gray-700">
+                  {detail.progressScore.breakdown.timeActivity.toFixed(0)}
+                </Text>
+              </View>
+            </View>
+
+            {/* 洞察建议 */}
+            {detail.progressScore.insights.length > 0 && (
+              <View className="mt-3 pt-3 border-t border-gray-100">
+                {detail.progressScore.insights.slice(0, 2).map((insight, i) => (
+                  <View key={i} className="flex items-start gap-2 mb-1">
+                    <Text className="block text-xs text-gray-400">•</Text>
+                    <Text className="block text-xs text-gray-600">{insight}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+      )}
 
       {/* 硬件信息 */}
       <View className="px-4 pb-4">

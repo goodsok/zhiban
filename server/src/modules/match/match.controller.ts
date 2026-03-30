@@ -85,4 +85,11 @@ export class MatchController {
   async updateCycleInfo(@Param('id') id: string, @Body() body: { cycleStartDate: string; cycleLength?: number }) {
     return await this.matchService.updateCycleInfo(Number(id), body.cycleStartDate, body.cycleLength)
   }
+
+  // ============== 推进值接口 ==============
+
+  @Get(':id/progress-score')
+  async getProgressScore(@Param('id') id: string) {
+    return await this.matchService.getProgressScore(Number(id))
+  }
 }

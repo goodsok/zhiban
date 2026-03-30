@@ -48,6 +48,89 @@ const interactionStatusLabels: Record<string, string> = {
   confirming: '准备确认关系',
 }
 
+// 推进阶段定义
+export interface ProgressStage {
+  key: string
+  name: string
+  minScore: number
+  maxScore: number
+  description: string
+  focus: string
+  suggestedActions: string[]
+}
+
+const progressStages: ProgressStage[] = [
+  {
+    key: 'initial',
+    name: '初识期',
+    minScore: 0,
+    maxScore: 20,
+    description: '刚刚认识，信息很少',
+    focus: '建立初步印象，获取联系方式',
+    suggestedActions: ['获取联系方式', '记住基本信息', '发第一条消息'],
+  },
+  {
+    key: 'understanding',
+    name: '了解期',
+    minScore: 21,
+    maxScore: 40,
+    description: '开始了解基本信息',
+    focus: '深入了解对方，寻找共同话题',
+    suggestedActions: ['了解兴趣爱好', '记住重要日期', '找到聊天节奏'],
+  },
+  {
+    key: 'connecting',
+    name: '接触期',
+    minScore: 41,
+    maxScore: 60,
+    description: '有一定互动，关系升温',
+    focus: '增加互动频率，尝试邀约',
+    suggestedActions: ['约出来见面', '创造共同回忆', '展示真实自我'],
+  },
+  {
+    key: 'warming',
+    name: '热络期',
+    minScore: 61,
+    maxScore: 80,
+    description: '频繁互动，关系稳定',
+    focus: '深化情感连接，制造惊喜',
+    suggestedActions: ['记住喜好禁忌', '制造小惊喜', '深入交流价值观'],
+  },
+  {
+    key: 'ambiguous',
+    name: '暧昧期',
+    minScore: 81,
+    maxScore: 90,
+    description: '关系即将突破',
+    focus: '释放明确信号，试探对方态度',
+    suggestedActions: ['增加肢体接触', '暧昧试探', '创造独处机会'],
+  },
+  {
+    key: 'breakthrough',
+    name: '突破期',
+    minScore: 91,
+    maxScore: 100,
+    description: '准备确认关系',
+    focus: '把握时机，正式表白',
+    suggestedActions: ['准备表白', '选择合适时机', '真诚表达心意'],
+  },
+]
+
+// 推进值计算结果
+export interface ProgressScore {
+  total: number           // 总分 0-100
+  stage: ProgressStage    // 当前阶段
+  breakdown: {
+    infoCompleteness: number    // 信息完整度 0-20
+    interactionDepth: number    // 互动深度 0-30
+    taskCompletion: number      // 任务完成率 0-25
+    keyInfoMastery: number      // 关键信息掌握度 0-15
+    timeActivity: number        // 时间活跃度 0-10
+  }
+  insights: string[]      // 洞察建议
+  nextActions: string[]   // 建议下一步行动
+}
+
 // 关键信息接口（兼容旧数据）
 export interface KeyInfo {
   id: string
@@ -178,6 +261,318 @@ export class MatchService {
     }
   }
 
+  /**
+   * 计算推进值
+   * 推进值 = 信息完整度(20分) + 互动深度(30分) + 任务完成率(25分) + 关键信息掌握度(15分) + 时间活跃度(10分)
+   */
+  async calculateProgressScore(matchId: number): Promise<ProgressScore> {
+    // 获取对象详情
+    const client = getSupabaseClient()
+    const { data: matchData } = await client
+      .from('matches')
+      .select('*')
+      .eq('id', matchId)
+      .single()
+
+    if (!matchData) {
+      return this.getDefaultProgressScore()
+    }
+
+    const match = this.dbToMatch(matchData as DbMatch)
+    const taskStats = await this.taskService.getTaskStats(matchId)
+
+    // 1. 信息完整度 (0-20分)
+    const infoScore = this.calculateInfoCompleteness(match.hardware, match.software)
+
+    // 2. 互动深度 (0-30分)
+    const interactionScore = this.calculateInteractionDepth(match.relationshipStage, match.interactionStatus)
+
+    // 3. 任务完成率 (0-25分)
+    const taskScore = this.calculateTaskCompletion(taskStats.total, taskStats.completed)
+
+    // 4. 关键信息掌握度 (0-15分)
+    const keyInfoScore = this.calculateKeyInfoMastery(match.hardware, match.software, match.keyInfo)
+
+    // 5. 时间活跃度 (0-10分)
+    const timeScore = this.calculateTimeActivity(match.lastContact, match.meetingDate)
+
+    // 计算总分
+    const total = Math.min(100, Math.max(0, 
+      infoScore + interactionScore + taskScore + keyInfoScore + timeScore
+    ))
+
+    // 确定当前阶段
+    const stage = this.getProgressStage(total)
+
+    // 生成洞察建议
+    const insights = this.generateInsights({
+      infoScore,
+      interactionScore,
+      taskScore,
+      keyInfoScore,
+      timeScore,
+    }, match)
+
+    // 获取下一步建议
+    const nextActions = this.getNextActions(stage, match)
+
+    return {
+      total,
+      stage,
+      breakdown: {
+        infoCompleteness: infoScore,
+        interactionDepth: interactionScore,
+        taskCompletion: taskScore,
+        keyInfoMastery: keyInfoScore,
+        timeActivity: timeScore,
+      },
+      insights,
+      nextActions,
+    }
+  }
+
+  /**
+   * 计算信息完整度 (0-20分)
+   * 硬件信息 8分 + 软件信息 12分
+   */
+  private calculateInfoCompleteness(hardware: HardwareInfo, software: SoftwareInfo): number {
+    let score = 0
+
+    // 硬件信息 (8分) - 12个字段，每个约0.67分
+    const hardwareFields = ['age', 'height', 'birthday', 'zodiac', 'location', 'occupation', 'company', 'position', 'wechat', 'phone', 'bloodType', 'style']
+    let hardwareCount = 0
+    hardwareFields.forEach(field => {
+      const value = hardware[field as keyof HardwareInfo]
+      if (value !== undefined && value !== null && value !== '') {
+        hardwareCount++
+      }
+    })
+    score += Math.min(8, (hardwareCount / 12) * 8)
+
+    // 软件信息 (12分)
+    // 基础字段 6分
+    const softwareBasicFields = ['mbti', 'personality', 'emotionalStyle', 'hobbies', 'schedule', 'spendingStyle', 'communicationStyle']
+    let basicCount = 0
+    softwareBasicFields.forEach(field => {
+      const value = software[field as keyof SoftwareInfo]
+      if (value !== undefined && value !== null && value !== '') {
+        basicCount++
+      }
+    })
+    score += Math.min(4, (basicCount / 7) * 4)
+
+    // 兴趣爱好 2分
+    if (software.interests && software.interests.length > 0) {
+      score += Math.min(2, software.interests.length * 0.5)
+    }
+
+    // 深度信息 4分
+    let deepScore = 0
+    if (software.communicationPreferences?.effectiveWays?.length) deepScore += 1
+    if (software.communicationPreferences?.landmines?.length) deepScore += 1
+    if (software.loveLanguages && software.loveLanguages.length > 0) deepScore += 1
+    if (software.likes || software.dislikes) deepScore += 1
+    score += Math.min(4, deepScore)
+
+    return Math.round(score * 10) / 10
+  }
+
+  /**
+   * 计算互动深度 (0-30分)
+   * 关系阶段 15分 + 互动状态 15分
+   */
+  private calculateInteractionDepth(relationshipStage: string, interactionStatus: string): number {
+    let score = 0
+
+    // 关系阶段 (15分)
+    const stageScores: Record<string, number> = {
+      new: 3,
+      contacting: 7,
+      dating: 12,
+      progressing: 15,
+    }
+    score += stageScores[relationshipStage] || 0
+
+    // 互动状态 (15分)
+    const statusScores: Record<string, number> = {
+      just_met: 2,
+      got_contact: 4,
+      chatted: 6,
+      good_vibe: 8,
+      met_up: 10,
+      dating_regularly: 12,
+      ambiguous: 14,
+      confirming: 15,
+    }
+    score += statusScores[interactionStatus] || 0
+
+    return score
+  }
+
+  /**
+   * 计算任务完成率 (0-25分)
+   * 完成比例 20分 + 学习记录加分 5分
+   */
+  private calculateTaskCompletion(total: number, completed: number): number {
+    if (total === 0) return 0
+
+    // 完成比例 (20分)
+    const ratio = completed / total
+    const baseScore = ratio * 20
+
+    // 全部完成额外加分 (5分)
+    const bonusScore = ratio >= 1 ? 5 : ratio >= 0.8 ? 3 : ratio >= 0.5 ? 1 : 0
+
+    return Math.round((baseScore + bonusScore) * 10) / 10
+  }
+
+  /**
+   * 计算关键信息掌握度 (0-15分)
+   * 重要日期 5分 + 喜好禁忌 5分 + 爱的语言 5分
+   */
+  private calculateKeyInfoMastery(hardware: HardwareInfo, software: SoftwareInfo, keyInfo: KeyInfo[]): number {
+    let score = 0
+
+    // 重要日期 (5分)
+    if (hardware.birthday) score += 3
+    if (keyInfo.some(k => k.type === 'anniversary')) score += 2
+
+    // 喜好禁忌 (5分)
+    if (software.likes) score += 1
+    if (software.dislikes) score += 1
+    if (software.communicationPreferences?.landmines?.length) score += 2
+    if (software.dealBreakers) score += 1
+
+    // 爱的语言 (5分)
+    if (software.loveLanguages && software.loveLanguages.length >= 3) score += 5
+    else if (software.loveLanguages && software.loveLanguages.length >= 1) score += 3
+
+    return Math.min(15, score)
+  }
+
+  /**
+   * 计算时间活跃度 (0-10分)
+   * 最近互动时间 5分 + 认识时长 5分
+   */
+  private calculateTimeActivity(lastContact: string, meetingDate: string): number {
+    let score = 0
+
+    // 最近互动时间 (5分)
+    const lastContactDate = new Date(lastContact)
+    const now = new Date()
+    const daysSinceContact = Math.floor((now.getTime() - lastContactDate.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (daysSinceContact <= 1) score += 5
+    else if (daysSinceContact <= 3) score += 4
+    else if (daysSinceContact <= 7) score += 3
+    else if (daysSinceContact <= 14) score += 2
+    else if (daysSinceContact <= 30) score += 1
+
+    // 认识时长 - 持续互动加分 (5分)
+    const meetingDateObj = new Date(meetingDate)
+    const daysSinceMeeting = Math.floor((now.getTime() - meetingDateObj.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (daysSinceMeeting >= 7 && daysSinceContact <= 7) score += 2  // 认识一周以上且近期有互动
+    if (daysSinceMeeting >= 30 && daysSinceContact <= 14) score += 2  // 认识一个月以上且两周内有互动
+    if (daysSinceMeeting >= 90 && daysSinceContact <= 30) score += 1  // 认识三个月以上且一月内有互动
+
+    return Math.min(10, score)
+  }
+
+  /**
+   * 根据分数确定推进阶段
+   */
+  private getProgressStage(score: number): ProgressStage {
+    for (const stage of progressStages) {
+      if (score >= stage.minScore && score <= stage.maxScore) {
+        return stage
+      }
+    }
+    return progressStages[0]
+  }
+
+  /**
+   * 生成洞察建议
+   */
+  private generateInsights(
+    scores: { infoScore: number; interactionScore: number; taskScore: number; keyInfoScore: number; timeScore: number },
+    match: Match
+  ): string[] {
+    const insights: string[] = []
+
+    // 信息完整度洞察
+    if (scores.infoScore < 10) {
+      insights.push('信息收集不够完整，建议多了解对方的基本情况')
+    } else if (scores.infoScore < 15) {
+      insights.push('基础信息掌握不错，可以深入了解对方的内心世界')
+    }
+
+    // 互动深度洞察
+    if (scores.interactionScore < 15) {
+      insights.push('互动还处于初期，建议增加沟通频率')
+    } else if (scores.interactionScore >= 25) {
+      insights.push('互动频繁，关系稳定发展')
+    }
+
+    // 任务完成洞察
+    if (scores.taskScore < 10) {
+      insights.push('完成任务较少，每完成一个任务都能推进关系')
+    } else if (scores.taskScore >= 20) {
+      insights.push('任务完成度很高，关系推进顺利')
+    }
+
+    // 关键信息洞察
+    if (scores.keyInfoScore < 8) {
+      insights.push('建议记录更多关键信息，如重要日期、喜好禁忌')
+    }
+
+    // 时间活跃度洞察
+    if (scores.timeScore < 5) {
+      insights.push('最近互动较少，建议主动发起对话')
+    }
+
+    return insights
+  }
+
+  /**
+   * 获取下一步建议行动
+   */
+  private getNextActions(stage: ProgressStage, match: Match): string[] {
+    const actions = [...stage.suggestedActions]
+
+    // 根据具体情况补充建议
+    if (!match.hardware.birthday) {
+      actions.push('了解Ta的生日')
+    }
+    if (!match.software.loveLanguages?.length) {
+      actions.push('观察Ta接受爱的方式')
+    }
+    if (match.interactionStatus === 'chatted' && match.relationshipStage === 'new') {
+      actions.push('尝试约Ta出来见面')
+    }
+
+    return actions.slice(0, 5)
+  }
+
+  /**
+   * 默认推进值
+   */
+  private getDefaultProgressScore(): ProgressScore {
+    return {
+      total: 0,
+      stage: progressStages[0],
+      breakdown: {
+        infoCompleteness: 0,
+        interactionDepth: 0,
+        taskCompletion: 0,
+        keyInfoMastery: 0,
+        timeActivity: 0,
+      },
+      insights: ['开始收集对方信息吧'],
+      nextActions: ['记住对方的名字', '获取联系方式', '了解基本情况'],
+    }
+  }
+
   async getMatchList() {
     try {
       const client = getSupabaseClient()
@@ -237,11 +632,15 @@ export class MatchService {
       // 获取真实的任务统计
       const taskStats = await this.taskService.getTaskStats(match.id)
 
+      // 计算推进值
+      const progressScore = await this.calculateProgressScore(match.id)
+
       return {
         code: 200,
         data: {
           ...match,
           progress: this.calculateProgress(match),
+          progressScore,
           stats: {
             tasks: taskStats.total,
             completedTasks: taskStats.completed,
@@ -254,6 +653,18 @@ export class MatchService {
     } catch (error) {
       console.error('Get match detail error:', error)
       return { code: 500, data: null, message: '获取详情失败' }
+    }
+  }
+
+  /**
+   * 获取推进值详情
+   */
+  async getProgressScore(matchId: number) {
+    const progressScore = await this.calculateProgressScore(matchId)
+    return {
+      code: 200,
+      data: progressScore,
+      message: 'success',
     }
   }
 

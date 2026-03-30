@@ -643,10 +643,26 @@ export class TaskService {
 
   /**
    * 完成任务（支持记录学习）
+   * 任务完成后会自动检查是否需要生成下一阶段任务
    */
   async completeTask(taskId: number, lessonLearned?: string) {
     try {
       const client = getSupabaseClient()
+      
+      // 先获取任务信息
+      const { data: taskData } = await client
+        .from('tasks')
+        .select('*')
+        .eq('id', taskId)
+        .single()
+
+      if (!taskData) {
+        return { code: 404, data: null, message: 'Task not found' }
+      }
+
+      const matchId = (taskData as DbTask).match_id
+
+      // 更新任务状态
       const updateData: Record<string, unknown> = {
         completed: 1,
         completed_at: new Date().toISOString(),
@@ -669,14 +685,92 @@ export class TaskService {
         return { code: 500, data: null, message: `完成任务失败: ${error.message}` }
       }
 
-      if (!data) {
-        return { code: 404, data: null, message: 'Task not found' }
-      }
+      // 检查是否需要生成下一阶段任务
+      const shouldGenerateNew = await this.checkAndGenerateNextTasks(matchId)
 
-      return { code: 200, data: dbToTask(data as DbTask), message: 'success' }
+      return { 
+        code: 200, 
+        data: {
+          task: dbToTask(data as DbTask),
+          newTasksGenerated: shouldGenerateNew.length,
+          newTasks: shouldGenerateNew,
+        }, 
+        message: 'success' 
+      }
     } catch (error) {
       console.error('Complete task error:', error)
       return { code: 500, data: null, message: '完成任务失败' }
+    }
+  }
+
+  /**
+   * 检查并生成下一阶段任务
+   * 当任务完成率达到阈值时，自动生成下一阶段的推荐任务
+   */
+  private async checkAndGenerateNextTasks(matchId: number): Promise<Task[]> {
+    try {
+      const client = getSupabaseClient()
+      
+      // 获取当前任务统计
+      const { data: tasks } = await client
+        .from('tasks')
+        .select('completed')
+        .eq('match_id', matchId)
+
+      if (!tasks || tasks.length === 0) {
+        return []
+      }
+
+      const total = tasks.length
+      const completed = tasks.filter(t => t.completed === 1).length
+      const completionRate = completed / total
+
+      // 获取对象信息
+      const { data: matchData } = await client
+        .from('matches')
+        .select('relationship_stage, key_info, hardware, software, cycle_start_date, cycle_length')
+        .eq('id', matchId)
+        .single()
+
+      if (!matchData) {
+        return []
+      }
+
+      const match = matchData as {
+        relationship_stage: string
+        key_info: unknown
+        hardware: { interests?: string[] } | null
+        software: { interests?: string[] } | null
+        cycle_start_date: string | null
+        cycle_length: number | null
+      }
+
+      // 当完成率达到80%时，生成下一阶段任务
+      if (completionRate >= 0.8) {
+        const interests = match.software?.interests || match.hardware?.interests || []
+        
+        // 获取下一阶段
+        const stages = ['new', 'contacting', 'dating', 'progressing']
+        const currentIndex = stages.indexOf(match.relationship_stage)
+        
+        // 如果还在早期阶段，可以生成更多任务
+        if (currentIndex < stages.length - 1 || completionRate >= 1) {
+          const newTasks = await this.generateRecommendedTasks(matchId, {
+            relationshipStage: match.relationship_stage,
+            keyInfo: Array.isArray(match.key_info) ? match.key_info as Array<{ type: string; label: string; value: string }> : [],
+            interests: interests,
+            cycleStartDate: match.cycle_start_date || undefined,
+            cycleLength: match.cycle_length || undefined,
+          })
+          
+          return newTasks
+        }
+      }
+
+      return []
+    } catch (error) {
+      console.error('Check and generate next tasks error:', error)
+      return []
     }
   }
 
