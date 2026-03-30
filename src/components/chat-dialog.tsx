@@ -15,16 +15,12 @@ interface ChatMessage {
 interface ChatContext {
   matchId: number
   matchName: string
-  hardware: Record<string, unknown> | { age?: number; height?: string; [key: string]: unknown }
-  software: Record<string, unknown> | { mbti?: string; interests?: string[]; [key: string]: unknown }
   cycleInfo?: {
     day: number
     phase: string
     phaseName: string
     description: string
   }
-  relationshipStage: string
-  interactionStatus: string
 }
 
 interface ChatDialogProps {

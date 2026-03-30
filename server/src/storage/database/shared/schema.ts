@@ -316,16 +316,9 @@ export const matches = pgTable("matches", {
 	id: serial().primaryKey().notNull(),
 	name: varchar("name", { length: 64 }).notNull(),
 	gender: varchar("gender", { length: 16 }).default('female'),
-	// 硬件信息（JSON）
-	hardware: jsonb("hardware").default({}),
-	// 软件信息（JSON）
-	software: jsonb("software").default({}),
 	// 认识场景
 	meetingScene: varchar("meeting_scene", { length: 32 }).default('other'),
 	meetingDate: varchar("meeting_date", { length: 32 }),
-	// 关系状态
-	relationshipStage: varchar("relationship_stage", { length: 32 }).default('new'),
-	interactionStatus: varchar("interaction_status", { length: 32 }).default('just_met'),
 	// 印象
 	impression: integer("impression").default(0),
 	impressionTags: jsonb("impression_tags").default([]),

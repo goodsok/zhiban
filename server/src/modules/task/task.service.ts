@@ -348,7 +348,7 @@ export class TaskService {
     const stage = matchData.relationshipStage || 'new'
     
     // 获取当前周期阶段
-    const cycleInfo = this.matchService.calculateCyclePhase(matchData.cycleStartDate, matchData.cycleLength)
+    const cycleInfo = this.calculateCyclePhase(matchData.cycleStartDate, matchData.cycleLength)
     
     // 获取现有任务标题，避免重复
     const client = getSupabaseClient()
@@ -462,6 +462,80 @@ export class TaskService {
     }
     
     return recommendedTasks
+  }
+
+  /**
+   * 计算周期阶段
+   */
+  private calculateCyclePhase(
+    cycleStartDate?: string, 
+    cycleLength?: number
+  ): { phase: string; phaseName: string; description: string; recommendations: string[] } | null {
+    if (!cycleStartDate) {
+      return null
+    }
+
+    const length = cycleLength || 28
+    const startDate = new Date(cycleStartDate)
+    const today = new Date()
+    const dayDiff = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+    const currentDay = (dayDiff % length) + 1
+
+    // 判断周期阶段
+    let phase = 'follicular'
+    let phaseName = '卵泡期'
+    let description = '精力充沛，适合主动出击'
+    const recommendations: string[] = []
+
+    if (currentDay <= 5) {
+      phase = 'menstrual'
+      phaseName = '月经期'
+      description = '身体需要休息，多关心体贴'
+      recommendations.push('避免安排体力活动')
+      recommendations.push('可以准备热水袋等贴心物品')
+      recommendations.push('多问候关心身体状况')
+    } else if (currentDay <= 14) {
+      phase = 'follicular'
+      phaseName = '卵泡期'
+      description = '精力充沛，适合主动出击'
+      recommendations.push('适合安排约会活动')
+      recommendations.push('可以尝试新的话题和互动')
+      recommendations.push('对方情绪较为稳定')
+    } else if (currentDay <= 17) {
+      phase = 'ovulation'
+      phaseName = '排卵期'
+      description = '魅力高峰期，互动效果最佳'
+      recommendations.push('最佳约会时期')
+      recommendations.push('适合进行重要对话')
+      recommendations.push('注意对方可能更加敏感')
+    } else if (currentDay <= 21) {
+      phase = 'luteal_early'
+      phaseName = '黄体早期'
+      description = '情绪稳定，适合日常互动'
+      recommendations.push('保持正常互动频率')
+      recommendations.push('适合轻松的话题')
+    } else if (currentDay <= 25) {
+      phase = 'luteal_mid'
+      phaseName = '黄体中期'
+      description = '可能出现经前症状，需要耐心'
+      recommendations.push('多些耐心和理解')
+      recommendations.push('避免敏感话题')
+      recommendations.push('可以准备一些小惊喜')
+    } else {
+      phase = 'luteal_late'
+      phaseName = '黄体晚期'
+      description = '经前症状明显，格外关心'
+      recommendations.push('格外关心和体贴')
+      recommendations.push('避免安排重要活动')
+      recommendations.push('准备一些温热的食物或饮品')
+    }
+
+    return {
+      phase,
+      phaseName,
+      description,
+      recommendations,
+    }
   }
 
   /**

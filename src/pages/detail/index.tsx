@@ -42,10 +42,8 @@ interface ProgressScore {
   }
   breakdown: {
     infoCompleteness: number
-    interactionDepth: number
+    criticalInfoMastery: number
     taskCompletion: number
-    keyInfoMastery: number
-    timeActivity: number
   }
   insights: string[]
   nextActions: string[]
@@ -55,8 +53,6 @@ interface MatchDetail {
   id: number
   name: string
   gender: string
-  relationshipStage: string
-  interactionStatus: string
   notes: string
   status: string
   stats: {
@@ -76,26 +72,6 @@ interface CycleInfo {
   description: string
   recommendations: string[]
 }
-
-// 关系阶段选项
-const relationshipStages = [
-  { id: 'new', label: '刚认识' },
-  { id: 'contacting', label: '接触中' },
-  { id: 'dating', label: '约会中' },
-  { id: 'progressing', label: '发展中' },
-]
-
-// 互动状态选项
-const interactionStatuses = [
-  { id: 'just_met', label: '一面之缘' },
-  { id: 'got_contact', label: '有联系方式' },
-  { id: 'chatted', label: '聊过天' },
-  { id: 'good_vibe', label: '聊得不错' },
-  { id: 'met_up', label: '见过面' },
-  { id: 'dating_regularly', label: '稳定约会' },
-  { id: 'ambiguous', label: '暧昧期' },
-  { id: 'confirming', label: '准备确认' },
-]
 
 // 周期阶段配置
 const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: string }> = {
@@ -200,40 +176,6 @@ const DetailPage: FC = () => {
     }
   }, [detail, notesValue])
 
-  // 更新关系阶段
-  const updateRelationshipStage = useCallback(async (stage: string) => {
-    if (!detail) return
-    
-    try {
-      await Network.request({
-        url: `/api/match/${detail.id}`,
-        method: 'PUT',
-        data: { relationshipStage: stage }
-      })
-      
-      setDetail(prev => prev ? { ...prev, relationshipStage: stage } : prev)
-    } catch (error) {
-      console.error('Update relationship stage error:', error)
-    }
-  }, [detail])
-
-  // 更新互动状态
-  const updateInteractionStatus = useCallback(async (status: string) => {
-    if (!detail) return
-    
-    try {
-      await Network.request({
-        url: `/api/match/${detail.id}`,
-        method: 'PUT',
-        data: { interactionStatus: status }
-      })
-      
-      setDetail(prev => prev ? { ...prev, interactionStatus: status } : prev)
-    } catch (error) {
-      console.error('Update interaction status error:', error)
-    }
-  }, [detail])
-
   const goToTasks = () => navigateTo({ url: `/pages/tasks/index?matchId=${detail?.id}` })
   const goToDates = () => navigateTo({ url: `/pages/dates/index?matchId=${detail?.id}` })
   const goToPortrait = () => navigateTo({ url: `/pages/portrait/index?matchId=${detail?.id}` })
@@ -243,16 +185,12 @@ const DetailPage: FC = () => {
     return {
       matchId: detail.id,
       matchName: detail.name,
-      hardware: {},
-      software: {},
       cycleInfo: cycleInfo ? {
         day: cycleInfo.day,
         phase: cycleInfo.phase,
         phaseName: cycleInfo.phaseName,
         description: cycleInfo.description
       } : undefined,
-      relationshipStage: detail.relationshipStage,
-      interactionStatus: detail.interactionStatus
     }
   }
 
@@ -280,78 +218,38 @@ const DetailPage: FC = () => {
       <View className="p-4">
         <Card className="border border-gray-100">
           <CardContent className="p-4">
-            <View className="flex items-start justify-between mb-3">
-              <View className="flex-1">
-                {/* 姓名可编辑 */}
-                {editingName ? (
-                  <View className="flex items-center gap-2">
-                    <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
-                      <Input
-                        className="w-full text-xl font-bold"
-                        value={nameValue}
-                        onInput={(e) => setNameValue(e.detail.value)}
-                        autoFocus
-                      />
-                    </View>
-                    <View className="flex gap-1">
-                      <View 
-                        className="p-2 bg-black rounded-lg"
-                        onClick={saveName}
-                      >
-                        {saving ? <Loader size={14} color="#fff" className="animate-spin" /> : <Check size={14} color="#fff" />}
-                      </View>
-                      <View 
-                        className="p-2 bg-gray-200 rounded-lg"
-                        onClick={() => { setEditingName(false); setNameValue(detail.name) }}
-                      >
-                        <X size={14} color="#666" />
-                      </View>
-                    </View>
-                  </View>
-                ) : (
-                  <View className="flex items-center gap-2" onClick={() => setEditingName(true)}>
-                    <Text className="block text-xl font-bold text-gray-900">{detail.name}</Text>
-                    <Pencil size={14} color="#9CA3AF" />
-                  </View>
-                )}
-              </View>
-            </View>
-            
-            {/* 关系阶段选择 */}
-            <View className="grid grid-cols-4 gap-2 mb-2">
-              {relationshipStages.map((stage) => (
-                <View
-                  key={stage.id}
-                  className={`text-center py-2 rounded-lg ${
-                    detail.relationshipStage === stage.id 
-                      ? 'bg-gray-900 text-white' 
-                      : 'bg-gray-100 text-gray-600'
-                  }`}
-                  onClick={() => updateRelationshipStage(stage.id)}
-                >
-                  <Text className="block text-xs">{stage.label}</Text>
+            {/* 姓名可编辑 */}
+            {editingName ? (
+              <View className="flex items-center gap-2">
+                <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                  <Input
+                    className="w-full text-xl font-bold"
+                    value={nameValue}
+                    onInput={(e) => setNameValue(e.detail.value)}
+                    autoFocus
+                  />
                 </View>
-              ))}
-            </View>
-
-            {/* 互动状态选择 */}
-            <View className="bg-white rounded-xl border border-gray-100">
-              {interactionStatuses.map((status, index) => (
-                <View
-                  key={status.id}
-                  className={`flex items-center justify-between px-4 py-2 ${index < interactionStatuses.length - 1 ? 'border-b border-gray-100' : ''}`}
-                  onClick={() => updateInteractionStatus(status.id)}
-                >
-                  <Text className={`block text-sm ${
-                    detail.interactionStatus === status.id ? 'text-gray-900 font-medium' : 'text-gray-600'
-                  }`}
+                <View className="flex gap-1">
+                  <View 
+                    className="p-2 bg-black rounded-lg"
+                    onClick={saveName}
                   >
-                    {status.label}
-                  </Text>
-                  {detail.interactionStatus === status.id && <Check size={14} color="#111827" />}
+                    {saving ? <Loader size={14} color="#fff" className="animate-spin" /> : <Check size={14} color="#fff" />}
+                  </View>
+                  <View 
+                    className="p-2 bg-gray-200 rounded-lg"
+                    onClick={() => { setEditingName(false); setNameValue(detail.name) }}
+                  >
+                    <X size={14} color="#666" />
+                  </View>
                 </View>
-              ))}
-            </View>
+              </View>
+            ) : (
+              <View className="flex items-center gap-2" onClick={() => setEditingName(true)}>
+                <Text className="block text-xl font-bold text-gray-900">{detail.name}</Text>
+                <Pencil size={14} color="#9CA3AF" />
+              </View>
+            )}
           </CardContent>
         </Card>
       </View>
@@ -390,42 +288,32 @@ const DetailPage: FC = () => {
               </Text>
             </View>
 
-            <View className="grid grid-cols-5 gap-1 mt-3 pt-3 border-t border-gray-100">
+            {/* 分项得分 */}
+            <View className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-100">
               <View className="text-center">
-                <Text className="block text-xs text-gray-400">信息</Text>
+                <Text className="block text-xs text-gray-400">信息完整度</Text>
                 <Text className="block text-sm font-semibold text-gray-700">
                   {detail.progressScore.breakdown.infoCompleteness.toFixed(0)}
                 </Text>
               </View>
               <View className="text-center">
-                <Text className="block text-xs text-gray-400">互动</Text>
+                <Text className="block text-xs text-gray-400">关键信息</Text>
                 <Text className="block text-sm font-semibold text-gray-700">
-                  {detail.progressScore.breakdown.interactionDepth.toFixed(0)}
+                  {detail.progressScore.breakdown.criticalInfoMastery.toFixed(0)}
                 </Text>
               </View>
               <View className="text-center">
-                <Text className="block text-xs text-gray-400">任务</Text>
+                <Text className="block text-xs text-gray-400">任务完成</Text>
                 <Text className="block text-sm font-semibold text-gray-700">
                   {detail.progressScore.breakdown.taskCompletion.toFixed(0)}
                 </Text>
               </View>
-              <View className="text-center">
-                <Text className="block text-xs text-gray-400">关键</Text>
-                <Text className="block text-sm font-semibold text-gray-700">
-                  {detail.progressScore.breakdown.keyInfoMastery.toFixed(0)}
-                </Text>
-              </View>
-              <View className="text-center">
-                <Text className="block text-xs text-gray-400">活跃</Text>
-                <Text className="block text-sm font-semibold text-gray-700">
-                  {detail.progressScore.breakdown.timeActivity.toFixed(0)}
-                </Text>
-              </View>
             </View>
 
+            {/* 洞察建议 */}
             {detail.progressScore.insights.length > 0 && (
               <View className="mt-3 pt-3 border-t border-gray-100">
-                {detail.progressScore.insights.slice(0, 2).map((insight, i) => (
+                {detail.progressScore.insights.map((insight, i) => (
                   <View key={i} className="flex items-start gap-2 mb-1">
                     <Text className="block text-xs text-gray-400">•</Text>
                     <Text className="block text-xs text-gray-600">{insight}</Text>

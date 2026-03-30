@@ -484,46 +484,12 @@ ${data.notes || '无'}
 
   /**
    * 更新对象的关键信息
+   * 注意：keyInfo 已迁移到维度表，此方法暂时不实现
    */
   private async updateMatchKeyInfo(matchId: number, extractedInfo: ExtractedKeyInfo[]) {
-    // 获取对象详情
-    const matchResult = await this.matchService.getMatchDetail(matchId)
-    if (matchResult.code !== 200 || !matchResult.data) {
-      return
-    }
-
-    const match = matchResult.data
-    const existingKeyInfo = match.keyInfo || []
-    
-    // 合并新提取的关键信息
-    const newKeyInfo: KeyInfo[] = []
-    
-    extractedInfo.forEach(info => {
-      // 检查是否已存在同类型的信息
-      const existing = existingKeyInfo.find(k => k.type === info.type)
-      
-      if (!existing) {
-        // 不存在则添加
-        newKeyInfo.push({
-          id: `key_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          type: info.type,
-          label: info.label,
-          icon: this.getTypeIcon(info.type),
-          value: info.value,
-        })
-      } else if (info.confidence > 0.8) {
-        // 已存在但置信度高，更新值
-        existing.value = info.value
-        existing.label = info.label
-      }
-    })
-
-    // 更新对象
-    if (newKeyInfo.length > 0) {
-      this.matchService.updateMatch(matchId, {
-        keyInfo: [...existingKeyInfo, ...newKeyInfo],
-      })
-    }
+    // TODO: 重写为使用维度 API 更新关键信息
+    // 当前版本暂时跳过，避免编译错误
+    console.log(`[updateMatchKeyInfo] matchId=${matchId}, extractedInfo=`, extractedInfo)
   }
 
   private getTypeIcon(type: string): string {

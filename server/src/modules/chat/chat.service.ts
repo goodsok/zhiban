@@ -13,16 +13,12 @@ export interface ChatMessage {
 export interface ChatContext {
   matchId: number
   matchName: string
-  hardware: Record<string, unknown>
-  software: Record<string, unknown>
   cycleInfo?: {
     day: number
     phase: string
     phaseName: string
     description: string
   }
-  relationshipStage: string
-  interactionStatus: string
 }
 
 // 数据库消息格式
@@ -341,7 +337,6 @@ export class ChatService {
       const recentChats = (chatHistory || []) as Array<{ role: string; content: string; created_at: string }>
       
       // 2. 使用传入的 context 作为主要信息来源（前端状态是最新的）
-      const interactionStatus = context.interactionStatus
       const cycleInfo = context.cycleInfo
 
       // 3. 如果有聊天历史，用 LLM 分析用户关注点并生成个性化问题
@@ -359,8 +354,7 @@ export class ChatService {
 
           const prompt = `分析用户聊天记录，推测用户困惑，生成3个后续问题。
 
-阶段：${interactionStatus}
-困惑：${this.getConfusionByStatus(interactionStatus)}
+困惑：不知道怎么推进关系、需要更多了解对方
 
 聊天记录：
 ${chatSummary}
@@ -386,110 +380,52 @@ ${chatSummary}
         }
       }
 
-      // 4. 使用预设的阶段问题
-      return this.getContextualQuickQuestions(
-        context.relationshipStage, 
-        interactionStatus, 
-        cycleInfo
-      )
+      // 4. 使用预设的问题
+      return this.getContextualQuickQuestions(cycleInfo)
     } catch (error) {
       console.error('Generate quick questions error:', error)
-      return this.getContextualQuickQuestions(
-        context.relationshipStage, 
-        context.interactionStatus, 
-        context.cycleInfo
-      )
+      return this.getContextualQuickQuestions(context.cycleInfo)
     }
   }
 
   /**
-   * 根据互动状态获取用户可能的困惑描述
-   */
-  private getConfusionByStatus(status: string): string {
-    const confusions: Record<string, string> = {
-      just_met: '刚认识，不知道怎么留下好印象、怎么要联系方式',
-      got_contact: '有联系方式但不知道怎么开场、怕第一条消息发不好',
-      chatted: '聊过但不够深入，不知道怎么约出来、不确定对方是否感兴趣',
-      good_vibe: '感觉不错但不知道怎么升级关系、什么时候约合适',
-      met_up: '见过面了但不知道约会效果如何、怎么继续推进',
-      dating_regularly: '经常约会但不知道怎么更进一步、什么时候表白',
-      ambiguous: '暧昧期卡住了，想突破又怕失去、不确定对方心意',
-      confirming: '准备确认关系但不知道怎么表白、怕被拒绝',
-    }
-    return confusions[status] || '不知道怎么推进关系'
-  }
-
-  /**
-   * 根据互动状态获取上下文相关的快捷问题
+   * 根据周期信息获取上下文相关的快捷问题
    * 注意：这些问题是用户会问AI助手的问题，不是问对象的问题
    */
   private getContextualQuickQuestions(
-    relationshipStage: string, 
-    interactionStatus: string, 
     cycleInfo?: { day: number; phase: string; phaseName: string; description: string }
   ): string[] {
-    const questions: string[] = []
+    // 默认问题
+    const defaultQuestions = [
+      '怎么推进我们的关系？',
+      '怎么找话题聊天？',
+      '怎么约她出来见面？'
+    ]
 
-    // 根据互动状态给出用户最可能问AI的问题
-    const statusQuestions: Record<string, string[]> = {
-      just_met: [
-        '怎么自然地认识她？',
-        '怎么给她留下好印象？',
-        '怎么要联系方式不尴尬？'
-      ],
-      got_contact: [
-        '第一条消息发什么好？',
-        '怎么开场不会被冷落？',
-        '怎么找共同话题？'
-      ],
-      chatted: [
-        '怎么让聊天更深入？',
-        '怎么约她出来见面？',
-        '她回复慢是不感兴趣吗？'
-      ],
-      good_vibe: [
-        '怎么升级关系？',
-        '什么时候约她合适？',
-        '怎么试探她的心意？'
-      ],
-      met_up: [
-        '约会后怎么跟进？',
-        '怎么判断约会效果？',
-        '下次约什么活动好？'
-      ],
-      dating_regularly: [
-        '怎么让关系更进一步？',
-        '什么时候表白合适？',
-        '怎么让她更依赖我？'
-      ],
-      ambiguous: [
-        '怎么突破暧昧期？',
-        '怎么确认她的心意？',
-        '怎么制造心动瞬间？'
-      ],
-      confirming: [
-        '怎么表白成功率高？',
-        '表白说什么比较好？',
-        '被拒绝了怎么处理？'
-      ],
-    }
-
-    if (statusQuestions[interactionStatus]) {
-      questions.push(...statusQuestions[interactionStatus])
-    }
-
-    // 如果有周期信息，替换一个周期相关问题
-    if (cycleInfo && questions.length >= 2) {
+    // 如果有周期信息，根据周期阶段调整问题
+    if (cycleInfo) {
       if (cycleInfo.phase === 'menstrual') {
-        questions[2] = '她经期怎么关心她？'
+        return [
+          '怎么推进我们的关系？',
+          '怎么关心她的身体？',
+          '她经期怎么照顾她？'
+        ]
       } else if (cycleInfo.phase === 'ovulation') {
-        questions[2] = '现在约她合适吗？'
+        return [
+          '怎么推进我们的关系？',
+          '怎么约她出来？',
+          '现在约她合适吗？'
+        ]
       } else if (cycleInfo.phase === 'luteal_late') {
-        questions[2] = '她情绪不好怎么安慰？'
+        return [
+          '怎么推进我们的关系？',
+          '她情绪不好怎么安慰？',
+          '怎么让她开心起来？'
+        ]
       }
     }
 
-    return questions.slice(0, 3)
+    return defaultQuestions
   }
 
 
@@ -708,7 +644,7 @@ ${chatSummary}
       const client = new LLMClient(config, customHeaders)
 
       // 构建系统提示词
-      const systemPrompt = this.buildSystemPrompt(context)
+      const systemPrompt = await this.buildSystemPrompt(context)
 
       // 如果有图片上下文，添加到系统提示词
       const finalSystemPrompt = imageContext 
@@ -782,7 +718,7 @@ ${chatSummary}
   /**
    * 构建系统提示词
    */
-  private buildSystemPrompt(context: ChatContext | null): string {
+  private async buildSystemPrompt(context: ChatContext | null): Promise<string> {
     const basePrompt = `你是一位专业的关系顾问和恋爱教练，你的名字叫"小助手"。
 你的职责是帮助用户更好地理解对方、推进关系发展。
 
@@ -805,79 +741,45 @@ ${chatSummary}
 **当前状态**：用户尚未选择具体的对象，请引导用户先选择或创建对象档案。`
     }
 
-    // 构建档案信息
-    const hw = context.hardware as Record<string, unknown>
-    const sw = context.software as Record<string, unknown>
+    // 从维度表获取档案信息
+    const client = getSupabaseClient()
+    const { data: dimensions } = await client
+      .from('profile_dimension_values')
+      .select('dimension_key, value')
+      .eq('match_id', context.matchId)
 
-    const hardwareInfo: string[] = []
-    if (hw?.age) hardwareInfo.push(`年龄：${hw.age}岁`)
-    if (hw?.zodiac) hardwareInfo.push(`星座：${hw.zodiac}`)
-    if (hw?.occupation) hardwareInfo.push(`职业：${hw.occupation}`)
-    if (hw?.location) hardwareInfo.push(`所在地：${hw.location}`)
+    // 构建档案信息摘要
+    const info: string[] = []
+    const dimMap = new Map((dimensions || []).map(d => [d.dimension_key, d.value]))
 
-    const softwareInfo: string[] = []
-    if (sw?.mbti) softwareInfo.push(`MBTI：${sw.mbti}`)
-    if (sw?.personality) softwareInfo.push(`性格：${sw.personality}`)
-    if (sw?.interests && Array.isArray(sw.interests)) softwareInfo.push(`兴趣：${sw.interests.join('、')}`)
-
-    // 交流偏好
-    const commPrefs: string[] = []
-    const comm = sw?.communicationPreferences as Record<string, string[]> | undefined
-    if (comm?.effectiveWays?.length) commPrefs.push(`有效方式：${comm.effectiveWays.join('、')}`)
-    if (comm?.ineffectiveWays?.length) commPrefs.push(`无效方式：${comm.ineffectiveWays.join('、')}`)
-    if (comm?.landmines?.length) commPrefs.push(`雷区：${comm.landmines.join('、')}`)
-
-    // 爱的语言
-    const loveLangs = sw?.loveLanguages as string[] | undefined
-    const loveLangsStr = loveLangs?.length ? loveLangs.join(' > ') : null
+    // 基本信息
+    if (dimMap.get('birthYear')) {
+      const birthYear = dimMap.get('birthYear') as number
+      const age = new Date().getFullYear() - birthYear
+      info.push(`年龄：约${age}岁`)
+    }
+    if (dimMap.get('zodiac')) info.push(`星座：${dimMap.get('zodiac')}`)
+    if (dimMap.get('occupation')) info.push(`职业：${dimMap.get('occupation')}`)
+    if (dimMap.get('currentCity')) info.push(`所在地：${dimMap.get('currentCity')}`)
+    if (dimMap.get('mbti')) info.push(`MBTI：${dimMap.get('mbti')}`)
 
     // 周期信息
     const cycleStr = context.cycleInfo
       ? `当前阶段：${context.cycleInfo.phaseName}（Day ${context.cycleInfo.day}）\n状态：${context.cycleInfo.description}`
       : '未设置周期信息'
 
-    // 关系阶段标签
-    const stageLabels: Record<string, string> = {
-      new: '刚认识',
-      contacting: '接触中',
-      dating: '约会中',
-      progressing: '发展中',
-    }
-    const statusLabels: Record<string, string> = {
-      just_met: '一面之缘',
-      got_contact: '有联系方式',
-      chatted: '聊过天',
-      good_vibe: '聊得不错',
-      met_up: '见过面',
-      dating_regularly: '稳定约会',
-      ambiguous: '暧昧期',
-      confirming: '准备确认',
-    }
-
     return `${basePrompt}
 
 **当前对象档案**：
 【基本信息】
 姓名：${context.matchName}
-${hardwareInfo.join('\n')}
-${softwareInfo.join('\n')}
-
-【关系状态】
-阶段：${stageLabels[context.relationshipStage] || context.relationshipStage}
-状态：${statusLabels[context.interactionStatus] || context.interactionStatus}
-
-【交流偏好】
-${commPrefs.join('\n') || '暂无信息'}
-
-【爱的语言排序】
-${loveLangsStr || '暂无信息'}
+${info.join('\n') || '暂无详细信息'}
 
 【激素周期状态】
 ${cycleStr}
 
 **特别提醒**：
 - 如果处于月经期或PMS期，建议要更温和、给更多空间
-- 结合对方的MBTI和交流偏好，选择合适的沟通方式
-- 避开已知的雷区`
+- 鼓励用户完善档案信息，以便提供更精准的建议`
   }
 }

@@ -4,46 +4,6 @@ import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
 import { getSupabaseClient } from '@/storage/database/supabase-client'
 import { TaskService } from '../task/task.service'
 
-// 硬件字段到维度 key 的映射
-const hardwareToDimensionMap: Record<string, string> = {
-  age: 'birthYear',
-  height: 'height',
-  zodiac: 'zodiac',
-  bloodType: 'bloodType',
-  bodyType: 'bodyType',
-  style: 'appearance',
-  location: 'currentCity',
-  occupation: 'occupation',
-  company: 'company',
-  position: 'jobLevel',
-  wechat: 'wechat',
-  phone: 'phone',
-  birthday: 'birthday'
-}
-
-// 维度 key 到硬件字段的反向映射
-const dimensionToHardwareMap: Record<string, string> = Object.fromEntries(
-  Object.entries(hardwareToDimensionMap).map(([k, v]) => [v, k])
-)
-
-// 软件字段到维度 key 的映射
-const softwareToDimensionMap: Record<string, string> = {
-  mbti: 'mbti',
-  personality: 'coreTemperament',
-  emotionalStyle: 'emotionalExpressionStyle',
-  interests: 'hobbies',
-  hobbies: 'hobbies',
-  spendingStyle: 'moneyPhilosophy',
-  communicationStyle: 'communicationStyle',
-  dealBreakers: 'marriageNonNegotiables',
-  loveLanguages: 'loveLanguage'
-}
-
-// 维度 key 到软件字段的反向映射
-const dimensionToSoftwareMap: Record<string, string> = Object.fromEntries(
-  Object.entries(softwareToDimensionMap).map(([k, v]) => [v, k])
-)
-
 // 印象标签映射
 const impressionTagLabels: Record<string, string> = {
   nice: '性格好',
@@ -68,26 +28,6 @@ const meetingSceneLabels: Record<string, string> = {
   other: '其他',
 }
 
-// 关系阶段映射
-const relationshipStageLabels: Record<string, string> = {
-  new: '刚认识',
-  contacting: '接触中',
-  dating: '约会中',
-  progressing: '发展中',
-}
-
-// 互动状态映射
-const interactionStatusLabels: Record<string, string> = {
-  just_met: '只有一面之缘',
-  got_contact: '拿到了联系方式',
-  chatted: '聊过几次天',
-  good_vibe: '聊天氛围不错',
-  met_up: '约出来见过面',
-  dating_regularly: '正在稳定约会',
-  ambiguous: '暧昧期',
-  confirming: '准备确认关系',
-}
-
 // 推进阶段定义
 export interface ProgressStage {
   key: string
@@ -99,6 +39,7 @@ export interface ProgressStage {
   suggestedActions: string[]
 }
 
+// 推进阶段配置
 const progressStages: ProgressStage[] = [
   {
     key: 'initial',
@@ -106,8 +47,8 @@ const progressStages: ProgressStage[] = [
     minScore: 0,
     maxScore: 20,
     description: '刚刚认识，信息很少',
-    focus: '建立初步印象，获取联系方式',
-    suggestedActions: ['获取联系方式', '记住基本信息', '发第一条消息'],
+    focus: '建立初步印象，获取基础信息',
+    suggestedActions: ['获取联系方式', '记住基本信息', '了解基本情况'],
   },
   {
     key: 'understanding',
@@ -123,7 +64,7 @@ const progressStages: ProgressStage[] = [
     name: '接触期',
     minScore: 41,
     maxScore: 60,
-    description: '有一定互动，关系升温',
+    description: '有一定了解，可以深入互动',
     focus: '增加互动频率，尝试邀约',
     suggestedActions: ['约出来见面', '创造共同回忆', '展示真实自我'],
   },
@@ -132,7 +73,7 @@ const progressStages: ProgressStage[] = [
     name: '热络期',
     minScore: 61,
     maxScore: 80,
-    description: '频繁互动，关系稳定',
+    description: '了解较深，关系稳定发展',
     focus: '深化情感连接，制造惊喜',
     suggestedActions: ['记住喜好禁忌', '制造小惊喜', '深入交流价值观'],
   },
@@ -141,7 +82,7 @@ const progressStages: ProgressStage[] = [
     name: '暧昧期',
     minScore: 81,
     maxScore: 90,
-    description: '关系即将突破',
+    description: '了解深入，关系即将突破',
     focus: '释放明确信号，试探对方态度',
     suggestedActions: ['增加肢体接触', '暧昧试探', '创造独处机会'],
   },
@@ -150,7 +91,7 @@ const progressStages: ProgressStage[] = [
     name: '突破期',
     minScore: 91,
     maxScore: 100,
-    description: '准备确认关系',
+    description: '信息完整，准备确认关系',
     focus: '把握时机，正式表白',
     suggestedActions: ['准备表白', '选择合适时机', '真诚表达心意'],
   },
@@ -161,11 +102,9 @@ export interface ProgressScore {
   total: number           // 总分 0-100
   stage: ProgressStage    // 当前阶段
   breakdown: {
-    infoCompleteness: number    // 信息完整度 0-20
-    interactionDepth: number    // 互动深度 0-30
-    taskCompletion: number      // 任务完成率 0-25
-    keyInfoMastery: number      // 关键信息掌握度 0-15
-    timeActivity: number        // 时间活跃度 0-10
+    infoCompleteness: number    // 信息完整度 0-60
+    criticalInfoMastery: number // 关键信息掌握度 0-20
+    taskCompletion: number      // 任务完成率 0-20
   }
   insights: string[]      // 洞察建议
   nextActions: string[]   // 建议下一步行动
@@ -180,59 +119,23 @@ export interface KeyInfo {
   value: string
 }
 
-// 硬件信息（外在/固定属性）
-export interface HardwareInfo {
-  age?: number
-  height?: string
-  birthday?: string
-  zodiac?: string
-  bloodType?: string
-  bodyType?: string
-  style?: string
-  wechat?: string
-  phone?: string
-  location?: string
-  occupation?: string
-  company?: string
-  position?: string
-}
-
-// 软件信息（内在/需探索）
-export interface SoftwareInfo {
-  mbti?: string
-  personality?: string
-  emotionalStyle?: string
-  interests?: string[]
-  hobbies?: string
-  schedule?: string
-  spendingStyle?: string
-  communicationStyle?: string
-  likes?: string
-  dislikes?: string
-  loveExpectation?: string
-  dealBreakers?: string
-  communicationPreferences?: {
-    effectiveWays?: string[]
-    ineffectiveWays?: string[]
-    landmines?: string[]
-  }
-  loveLanguages?: string[]
-  emotionalTriggers?: {
-    positive?: string[]
-    negative?: string[]
-  }
+// 维度数据接口
+export interface DimensionValue {
+  dimension_key: string
+  value: any
+  layer: number
+  category: string
+  importance: string
+  weight: number
 }
 
 export interface Match {
   id: number
   name: string
   gender: string
-  hardware: HardwareInfo
-  software: SoftwareInfo
+  dimensions: DimensionValue[]  // 维度数据
   meetingScene: string
   meetingDate: string
-  relationshipStage: string
-  interactionStatus: string
   impression: number
   impressionTags: string[]
   keyInfo: KeyInfo[]
@@ -245,15 +148,13 @@ export interface Match {
   cycleLength?: number
 }
 
-// 数据库返回格式（不再包含 hardware/software）
+// 数据库返回格式
 interface DbMatch {
   id: number
   name: string
   gender: string
   meeting_scene: string
   meeting_date: string
-  relationship_stage: string
-  interaction_status: string
   impression: number
   impression_tags: string[]
   key_info: KeyInfo[]
@@ -274,18 +175,15 @@ export class MatchService {
     private readonly taskService: TaskService,
   ) {}
 
-  // 转换数据库字段为前端格式（hardware/software 从维度表获取）
+  // 转换数据库字段为前端格式
   private dbToMatch(db: DbMatch): Match {
     return {
       id: db.id,
       name: db.name,
       gender: db.gender,
-      hardware: {},  // 从维度表填充
-      software: { interests: [] },  // 从维度表填充
+      dimensions: [],  // 从维度表填充
       meetingScene: db.meeting_scene,
       meetingDate: db.meeting_date,
-      relationshipStage: db.relationship_stage,
-      interactionStatus: db.interaction_status,
       impression: db.impression,
       impressionTags: db.impression_tags || [],
       keyInfo: db.key_info || [],
@@ -300,15 +198,18 @@ export class MatchService {
   }
 
   /**
-   * 从维度表获取数据，构建 hardware/software
-   * 所有数据都从维度表读取
+   * 从维度表获取维度数据
    */
   private async enrichWithDimensionData(match: Match): Promise<Match> {
     try {
       const client = getSupabaseClient()
       const { data: dimensionValues, error } = await client
         .from('profile_dimension_values')
-        .select('dimension_key, value')
+        .select(`
+          dimension_key,
+          value,
+          layer:dimension_definitions!inner(layer, category, importance, weight)
+        `)
         .eq('match_id', match.id)
 
       if (error) {
@@ -316,120 +217,299 @@ export class MatchService {
         return match
       }
 
-      // 创建维度值映射
-      const dimensionMap = new Map<string, unknown>()
-      if (dimensionValues) {
-        for (const dv of dimensionValues) {
-          dimensionMap.set(dv.dimension_key, dv.value)
-        }
+      if (dimensionValues && dimensionValues.length > 0) {
+        match.dimensions = dimensionValues.map((dv: any) => ({
+          dimension_key: dv.dimension_key,
+          value: dv.value,
+          layer: dv.layer?.layer || 1,
+          category: dv.layer?.category || 'unknown',
+          importance: dv.layer?.importance || 'optional',
+          weight: dv.layer?.weight || 1,
+        }))
       }
 
-      // 构建 hardware
-      const hardware: HardwareInfo = {}
-      for (const [dimensionKey, field] of Object.entries(dimensionToHardwareMap)) {
-        const dimensionValue = dimensionMap.get(dimensionKey)
-        if (dimensionValue !== undefined && dimensionValue !== null) {
-          // 特殊处理 birthYear -> age
-          if (dimensionKey === 'birthYear') {
-            const birthYear = Number(dimensionValue)
-            if (!isNaN(birthYear) && birthYear > 1900) {
-              hardware.age = new Date().getFullYear() - birthYear
-            }
-          } else {
-            (hardware as Record<string, unknown>)[field] = dimensionValue
-          }
-        }
-      }
-
-      // 构建 software
-      const software: SoftwareInfo = { interests: [] }
-      for (const [dimensionKey, field] of Object.entries(dimensionToSoftwareMap)) {
-        const dimensionValue = dimensionMap.get(dimensionKey)
-        if (dimensionValue !== undefined && dimensionValue !== null) {
-          // hobbies 字段在 software 中映射为 interests
-          if (dimensionKey === 'hobbies') {
-            software.interests = Array.isArray(dimensionValue) ? dimensionValue : [String(dimensionValue)]
-          } else {
-            (software as Record<string, unknown>)[field] = dimensionValue
-          }
-        }
-      }
-
-      return { ...match, hardware, software }
-    } catch (err) {
-      console.error('获取维度数据失败:', err)
+      return match
+    } catch (error) {
+      console.error('enrichWithDimensionData error:', error)
       return match
     }
   }
 
   /**
-   * 计算推进值
-   * 推进值 = 信息完整度(20分) + 互动深度(30分) + 任务完成率(25分) + 关键信息掌握度(15分) + 时间活跃度(10分)
+   * 创建新对象
    */
-  async calculateProgressScore(matchId: number): Promise<ProgressScore> {
-    // 获取对象详情
+  async createMatch(req: Request, body: {
+    name: string
+    gender?: string
+    meetingScene?: string
+    meetingDate?: string
+    notes?: string
+  }) {
     const client = getSupabaseClient()
-    const { data: matchData } = await client
+
+    const { data, error } = await client
       .from('matches')
-      .select('*')
-      .eq('id', matchId)
+      .insert({
+        name: body.name,
+        gender: body.gender || 'female',
+        meeting_scene: body.meetingScene || 'other',
+        meeting_date: body.meetingDate,
+        notes: body.notes,
+      })
+      .select()
       .single()
 
-    if (!matchData) {
+    if (error) {
+      return { code: 500, msg: '创建失败', data: null }
+    }
+
+    const match = this.dbToMatch(data as DbMatch)
+    return { code: 200, msg: '创建成功', data: match }
+  }
+
+  /**
+   * 获取对象列表
+   */
+  async getMatches(req: Request, query: {
+    status?: string
+    page?: number
+    pageSize?: number
+  }) {
+    const client = getSupabaseClient()
+    const page = query.page || 1
+    const pageSize = query.pageSize || 20
+    const offset = (page - 1) * pageSize
+
+    let queryBuilder = client
+      .from('matches')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + pageSize - 1)
+
+    if (query.status) {
+      queryBuilder = queryBuilder.eq('status', query.status)
+    }
+
+    const { data, count, error } = await queryBuilder
+
+    if (error) {
+      return { code: 500, msg: '获取失败', data: null }
+    }
+
+    const matches = (data as DbMatch[]).map(this.dbToMatch)
+
+    // 批量获取所有 match 的维度数据
+    const matchIds = matches.map(m => m.id)
+    const { data: allDimensions } = await client
+      .from('profile_dimension_values')
+      .select('match_id, dimension_key, value')
+      .in('match_id', matchIds)
+
+    // 按维度计算推进值
+    const progressScores: Record<number, number> = {}
+    for (const match of matches) {
+      const matchDimensions = (allDimensions || []).filter(d => d.match_id === match.id)
+      progressScores[match.id] = await this.calculateProgressScoreSimple(match.id, matchDimensions.length)
+    }
+
+    return {
+      code: 200,
+      msg: '获取成功',
+      data: {
+        list: matches.map(m => ({
+          ...m,
+          progressScore: progressScores[m.id] || 0,
+        })),
+        total: count || 0,
+        page,
+        pageSize,
+      },
+    }
+  }
+
+  /**
+   * 简化版推进值计算（列表用）
+   */
+  private async calculateProgressScoreSimple(matchId: number, dimensionCount: number): Promise<number> {
+    // 基于维度数量快速估算
+    // 假设完整填写大约需要 50+ 个维度
+    const estimatedScore = Math.min(60, Math.round((dimensionCount / 50) * 60))
+    
+    // 获取任务完成率
+    const taskStats = await this.taskService.getTaskStats(matchId)
+    const taskScore = this.calculateTaskCompletion(taskStats.total, taskStats.completed)
+    
+    // 简化版：信息完整度(60) + 任务完成率(20)，关键信息暂时忽略
+    return Math.min(80, estimatedScore + taskScore)
+  }
+
+  /**
+   * 获取对象详情
+   */
+  async getMatchById(req?: Request, id?: number) {
+    if (!id) return { code: 400, msg: '缺少对象ID', data: null }
+    const client = getSupabaseClient()
+
+    const { data, error } = await client
+      .from('matches')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error || !data) {
+      return { code: 404, msg: '未找到对象', data: null }
+    }
+
+    let match = this.dbToMatch(data as DbMatch)
+    
+    // 获取维度数据
+    match = await this.enrichWithDimensionData(match)
+    
+    // 获取任务统计
+    const taskStats = await this.taskService.getTaskStats(id)
+    
+    // 计算推进值
+    const progressScore = await this.calculateProgressScore(id)
+
+    return {
+      code: 200,
+      msg: '获取成功',
+      data: {
+        ...match,
+        stats: taskStats,
+        progressScore,
+      },
+    }
+  }
+
+  /**
+   * 更新对象信息
+   */
+  async updateMatch(req?: Request, id?: number, body?: Partial<{
+    name: string
+    gender: string
+    meetingScene: string
+    meetingDate: string
+    notes: string
+    status: string
+    impression: number
+    impressionTags: string[]
+  }>) {
+    if (!id || !body) return { code: 400, msg: '参数错误', data: null }
+    
+    const client = getSupabaseClient()
+
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    }
+
+    if (body.name !== undefined) updateData.name = body.name
+    if (body.gender !== undefined) updateData.gender = body.gender
+    if (body.meetingScene !== undefined) updateData.meeting_scene = body.meetingScene
+    if (body.meetingDate !== undefined) updateData.meeting_date = body.meetingDate
+    if (body.notes !== undefined) updateData.notes = body.notes
+    if (body.status !== undefined) updateData.status = body.status
+    if (body.impression !== undefined) updateData.impression = body.impression
+    if (body.impressionTags !== undefined) updateData.impression_tags = body.impressionTags
+
+    const { data, error } = await client
+      .from('matches')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      return { code: 500, msg: '更新失败', data: null }
+    }
+
+    const match = this.dbToMatch(data as DbMatch)
+    return { code: 200, msg: '更新成功', data: match }
+  }
+
+  /**
+   * 删除对象
+   */
+  async deleteMatch(req?: Request, id?: number) {
+    if (!id) return { code: 400, msg: '缺少对象ID', data: null }
+    
+    const client = getSupabaseClient()
+
+    const { error } = await client
+      .from('matches')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      return { code: 500, msg: '删除失败', data: null }
+    }
+
+    return { code: 200, msg: '删除成功', data: null }
+  }
+
+  /**
+   * 计算推进值（基于维度数据）
+   * 新算法：
+   * - 信息完整度 (60分) - 各层级维度填写率加权
+   * - 关键信息掌握度 (20分) - critical 维度填写率
+   * - 任务完成率 (20分) - 任务完成情况
+   */
+  async calculateProgressScore(matchId: number): Promise<ProgressScore> {
+    const client = getSupabaseClient()
+
+    // 1. 获取维度定义总数（按层级和重要性分组）
+    const { data: allDefinitions } = await client
+      .from('dimension_definitions')
+      .select('dimension_key, layer, importance, weight, is_active')
+      .eq('is_active', true)
+
+    if (!allDefinitions || allDefinitions.length === 0) {
       return this.getDefaultProgressScore()
     }
 
-    const match = this.dbToMatch(matchData as DbMatch)
-    
-    // 从维度表获取 hardware/software 数据
-    const enrichedMatch = await this.enrichWithDimensionData(match)
-    
+    // 2. 获取已填写的维度值
+    const { data: filledValues } = await client
+      .from('profile_dimension_values')
+      .select('dimension_key, value')
+      .eq('match_id', matchId)
+
+    const filledKeys = new Set(
+      (filledValues || [])
+        .filter(v => v.value !== null && v.value !== undefined && v.value !== '')
+        .map(v => v.dimension_key)
+    )
+
+    // 3. 获取任务统计
     const taskStats = await this.taskService.getTaskStats(matchId)
 
-    // 1. 信息完整度 (0-20分)
-    const infoScore = this.calculateInfoCompleteness(enrichedMatch.hardware, enrichedMatch.software)
-
-    // 2. 互动深度 (0-30分)
-    const interactionScore = this.calculateInteractionDepth(enrichedMatch.relationshipStage, enrichedMatch.interactionStatus)
-
-    // 3. 任务完成率 (0-25分)
+    // 4. 计算各维度分数
+    const infoScore = this.calculateInfoCompletenessByLayer(allDefinitions, filledKeys)
+    const criticalScore = this.calculateCriticalInfoMastery(allDefinitions, filledKeys)
     const taskScore = this.calculateTaskCompletion(taskStats.total, taskStats.completed)
 
-    // 4. 关键信息掌握度 (0-15分)
-    const keyInfoScore = this.calculateKeyInfoMastery(enrichedMatch.hardware, enrichedMatch.software, enrichedMatch.keyInfo)
+    // 5. 计算总分
+    const total = Math.min(100, Math.max(0, infoScore + criticalScore + taskScore))
 
-    // 5. 时间活跃度 (0-10分)
-    const timeScore = this.calculateTimeActivity(enrichedMatch.lastContact, enrichedMatch.meetingDate)
-
-    // 计算总分
-    const total = Math.min(100, Math.max(0, 
-      infoScore + interactionScore + taskScore + keyInfoScore + timeScore
-    ))
-
-    // 确定当前阶段
+    // 6. 确定当前阶段
     const stage = this.getProgressStage(total)
 
-    // 生成洞察建议
+    // 7. 生成洞察建议
     const insights = this.generateInsights({
       infoScore,
-      interactionScore,
+      criticalScore,
       taskScore,
-      keyInfoScore,
-      timeScore,
-    }, enrichedMatch)
+    }, filledKeys, allDefinitions)
 
-    // 获取下一步建议
-    const nextActions = this.getNextActions(stage, enrichedMatch)
+    // 8. 获取下一步建议
+    const nextActions = stage.suggestedActions
 
     return {
       total,
       stage,
       breakdown: {
         infoCompleteness: infoScore,
-        interactionDepth: interactionScore,
+        criticalInfoMastery: criticalScore,
         taskCompletion: taskScore,
-        keyInfoMastery: keyInfoScore,
-        timeActivity: timeScore,
       },
       insights,
       nextActions,
@@ -437,151 +517,70 @@ export class MatchService {
   }
 
   /**
-   * 计算信息完整度 (0-20分)
-   * 硬件信息 8分 + 软件信息 12分
+   * 计算信息完整度（基于层级）
+   * Layer 1: 30分, Layer 2: 15分, Layer 3: 10分, Layer 4: 5分
    */
-  private calculateInfoCompleteness(hardware: HardwareInfo, software: SoftwareInfo): number {
-    let score = 0
-
-    // 硬件信息 (8分) - 12个字段，每个约0.67分
-    const hardwareFields = ['age', 'height', 'birthday', 'zodiac', 'location', 'occupation', 'company', 'position', 'wechat', 'phone', 'bloodType', 'style']
-    let hardwareCount = 0
-    hardwareFields.forEach(field => {
-      const value = hardware[field as keyof HardwareInfo]
-      if (value !== undefined && value !== null && value !== '') {
-        hardwareCount++
-      }
-    })
-    score += Math.min(8, (hardwareCount / 12) * 8)
-
-    // 软件信息 (12分)
-    // 基础字段 6分
-    const softwareBasicFields = ['mbti', 'personality', 'emotionalStyle', 'hobbies', 'schedule', 'spendingStyle', 'communicationStyle']
-    let basicCount = 0
-    softwareBasicFields.forEach(field => {
-      const value = software[field as keyof SoftwareInfo]
-      if (value !== undefined && value !== null && value !== '') {
-        basicCount++
-      }
-    })
-    score += Math.min(4, (basicCount / 7) * 4)
-
-    // 兴趣爱好 2分
-    if (software.interests && software.interests.length > 0) {
-      score += Math.min(2, software.interests.length * 0.5)
+  private calculateInfoCompletenessByLayer(
+    definitions: any[],
+    filledKeys: Set<string>
+  ): number {
+    // 各层级权重配置
+    const layerWeights: Record<number, { maxScore: number; weight: number }> = {
+      1: { maxScore: 30, weight: 1.5 },  // 基础档案
+      2: { maxScore: 15, weight: 1.2 },  // 性格特质
+      3: { maxScore: 10, weight: 1.0 },  // 生活偏好
+      4: { maxScore: 5, weight: 0.8 },   // 互动策略
+      5: { maxScore: 0, weight: 0.5 },   // 近期状态（不计入）
     }
 
-    // 深度信息 4分
-    let deepScore = 0
-    if (software.communicationPreferences?.effectiveWays?.length) deepScore += 1
-    if (software.communicationPreferences?.landmines?.length) deepScore += 1
-    if (software.loveLanguages && software.loveLanguages.length > 0) deepScore += 1
-    if (software.likes || software.dislikes) deepScore += 1
-    score += Math.min(4, deepScore)
+    let totalScore = 0
 
-    return Math.round(score * 10) / 10
+    for (const [layer, config] of Object.entries(layerWeights)) {
+      const layerNum = parseInt(layer)
+      if (config.maxScore === 0) continue
+
+      const layerDefs = definitions.filter(d => d.layer === layerNum)
+      if (layerDefs.length === 0) continue
+
+      const filledCount = layerDefs.filter(d => filledKeys.has(d.dimension_key)).length
+      const fillRate = filledCount / layerDefs.length
+
+      totalScore += fillRate * config.maxScore
+    }
+
+    return Math.round(totalScore * 10) / 10
   }
 
   /**
-   * 计算互动深度 (0-30分)
-   * 关系阶段 15分 + 互动状态 15分
+   * 计算关键信息掌握度
+   * importance=critical 的维度填写率
    */
-  private calculateInteractionDepth(relationshipStage: string, interactionStatus: string): number {
-    let score = 0
+  private calculateCriticalInfoMastery(
+    definitions: any[],
+    filledKeys: Set<string>
+  ): number {
+    const criticalDefs = definitions.filter(d => d.importance === 'critical')
+    if (criticalDefs.length === 0) return 0
 
-    // 关系阶段 (15分)
-    const stageScores: Record<string, number> = {
-      new: 3,
-      contacting: 7,
-      dating: 12,
-      progressing: 15,
-    }
-    score += stageScores[relationshipStage] || 0
+    const filledCount = criticalDefs.filter(d => filledKeys.has(d.dimension_key)).length
+    const fillRate = filledCount / criticalDefs.length
 
-    // 互动状态 (15分)
-    const statusScores: Record<string, number> = {
-      just_met: 2,
-      got_contact: 4,
-      chatted: 6,
-      good_vibe: 8,
-      met_up: 10,
-      dating_regularly: 12,
-      ambiguous: 14,
-      confirming: 15,
-    }
-    score += statusScores[interactionStatus] || 0
-
-    return score
+    return Math.round(fillRate * 20 * 10) / 10
   }
 
   /**
-   * 计算任务完成率 (0-25分)
-   * 完成比例 20分 + 学习记录加分 5分
+   * 计算任务完成率（0-20分）
    */
   private calculateTaskCompletion(total: number, completed: number): number {
     if (total === 0) return 0
 
-    // 完成比例 (20分)
     const ratio = completed / total
-    const baseScore = ratio * 20
+    const baseScore = ratio * 15
 
-    // 全部完成额外加分 (5分)
+    // 全部完成额外加分
     const bonusScore = ratio >= 1 ? 5 : ratio >= 0.8 ? 3 : ratio >= 0.5 ? 1 : 0
 
     return Math.round((baseScore + bonusScore) * 10) / 10
-  }
-
-  /**
-   * 计算关键信息掌握度 (0-15分)
-   * 重要日期 5分 + 喜好禁忌 5分 + 爱的语言 5分
-   */
-  private calculateKeyInfoMastery(hardware: HardwareInfo, software: SoftwareInfo, keyInfo: KeyInfo[]): number {
-    let score = 0
-
-    // 重要日期 (5分)
-    if (hardware.birthday) score += 3
-    if (keyInfo.some(k => k.type === 'anniversary')) score += 2
-
-    // 喜好禁忌 (5分)
-    if (software.likes) score += 1
-    if (software.dislikes) score += 1
-    if (software.communicationPreferences?.landmines?.length) score += 2
-    if (software.dealBreakers) score += 1
-
-    // 爱的语言 (5分)
-    if (software.loveLanguages && software.loveLanguages.length >= 3) score += 5
-    else if (software.loveLanguages && software.loveLanguages.length >= 1) score += 3
-
-    return Math.min(15, score)
-  }
-
-  /**
-   * 计算时间活跃度 (0-10分)
-   * 最近互动时间 5分 + 认识时长 5分
-   */
-  private calculateTimeActivity(lastContact: string, meetingDate: string): number {
-    let score = 0
-
-    // 最近互动时间 (5分)
-    const lastContactDate = new Date(lastContact)
-    const now = new Date()
-    const daysSinceContact = Math.floor((now.getTime() - lastContactDate.getTime()) / (1000 * 60 * 60 * 24))
-
-    if (daysSinceContact <= 1) score += 5
-    else if (daysSinceContact <= 3) score += 4
-    else if (daysSinceContact <= 7) score += 3
-    else if (daysSinceContact <= 14) score += 2
-    else if (daysSinceContact <= 30) score += 1
-
-    // 认识时长 - 持续互动加分 (5分)
-    const meetingDateObj = new Date(meetingDate)
-    const daysSinceMeeting = Math.floor((now.getTime() - meetingDateObj.getTime()) / (1000 * 60 * 60 * 24))
-
-    if (daysSinceMeeting >= 7 && daysSinceContact <= 7) score += 2  // 认识一周以上且近期有互动
-    if (daysSinceMeeting >= 30 && daysSinceContact <= 14) score += 2  // 认识一个月以上且两周内有互动
-    if (daysSinceMeeting >= 90 && daysSinceContact <= 30) score += 1  // 认识三个月以上且一月内有互动
-
-    return Math.min(10, score)
   }
 
   /**
@@ -600,67 +599,37 @@ export class MatchService {
    * 生成洞察建议
    */
   private generateInsights(
-    scores: { infoScore: number; interactionScore: number; taskScore: number; keyInfoScore: number; timeScore: number },
-    match: Match
+    scores: { infoScore: number; criticalScore: number; taskScore: number },
+    filledKeys: Set<string>,
+    definitions: any[]
   ): string[] {
     const insights: string[] = []
 
     // 信息完整度洞察
-    if (scores.infoScore < 10) {
-      insights.push('信息收集不够完整，建议多了解对方的基本情况')
-    } else if (scores.infoScore < 15) {
-      insights.push('基础信息掌握不错，可以深入了解对方的内心世界')
+    if (scores.infoScore < 20) {
+      insights.push('基础信息较少，建议先完善基本档案')
+    } else if (scores.infoScore < 40) {
+      insights.push('已了解基本信息，可以深入探索性格特质')
     }
 
-    // 互动深度洞察
-    if (scores.interactionScore < 15) {
-      insights.push('互动还处于初期，建议增加沟通频率')
-    } else if (scores.interactionScore >= 25) {
-      insights.push('互动频繁，关系稳定发展')
+    // 关键信息洞察
+    const criticalDefs = definitions.filter(d => d.importance === 'critical')
+    const unfilledCritical = criticalDefs.filter(d => !filledKeys.has(d.dimension_key))
+    if (unfilledCritical.length > 0) {
+      const examples = unfilledCritical.slice(0, 2).map(d => d.dimension_key)
+      insights.push(`关键信息缺失：${examples.join('、')}等`)
     }
 
     // 任务完成洞察
     if (scores.taskScore < 10) {
-      insights.push('完成任务较少，每完成一个任务都能推进关系')
-    } else if (scores.taskScore >= 20) {
-      insights.push('任务完成度很高，关系推进顺利')
+      insights.push('完成任务可以推进关系发展')
     }
 
-    // 关键信息洞察
-    if (scores.keyInfoScore < 8) {
-      insights.push('建议记录更多关键信息，如重要日期、喜好禁忌')
-    }
-
-    // 时间活跃度洞察
-    if (scores.timeScore < 5) {
-      insights.push('最近互动较少，建议主动发起对话')
-    }
-
-    return insights
+    return insights.slice(0, 3)
   }
 
   /**
-   * 获取下一步建议行动
-   */
-  private getNextActions(stage: ProgressStage, match: Match): string[] {
-    const actions = [...stage.suggestedActions]
-
-    // 根据具体情况补充建议
-    if (!match.hardware.birthday) {
-      actions.push('了解Ta的生日')
-    }
-    if (!match.software.loveLanguages?.length) {
-      actions.push('观察Ta接受爱的方式')
-    }
-    if (match.interactionStatus === 'chatted' && match.relationshipStage === 'new') {
-      actions.push('尝试约Ta出来见面')
-    }
-
-    return actions.slice(0, 5)
-  }
-
-  /**
-   * 默认推进值
+   * 获取默认推进值
    */
   private getDefaultProgressScore(): ProgressScore {
     return {
@@ -668,943 +637,185 @@ export class MatchService {
       stage: progressStages[0],
       breakdown: {
         infoCompleteness: 0,
-        interactionDepth: 0,
+        criticalInfoMastery: 0,
         taskCompletion: 0,
-        keyInfoMastery: 0,
-        timeActivity: 0,
       },
-      insights: ['开始收集对方信息吧'],
-      nextActions: ['记住对方的名字', '获取联系方式', '了解基本情况'],
+      insights: ['开始记录信息来推进关系'],
+      nextActions: ['了解基本信息', '获取联系方式'],
     }
   }
 
-  async getMatchList() {
-    try {
-      const client = getSupabaseClient()
-      const { data, error } = await client
-        .from('matches')
-        .select('*')
-        .order('created_at', { ascending: false })
+  /**
+   * 更新周期信息
+   */
+  async updateCycle(req?: Request, id?: number, body?: {
+    cycleStartDate?: string
+    cycleLength?: number
+  }) {
+    if (!id || !body) return { code: 400, msg: '参数错误', data: null }
+    
+    const client = getSupabaseClient()
 
-      if (error) {
-        console.error('Get match list error:', error)
-        return { code: 500, data: [], message: `获取列表失败: ${error.message}` }
-      }
-
-      const matches = (data as DbMatch[]).map(this.dbToMatch)
-      
-      // 批量获取所有 match 的维度数据
-      const matchIds = matches.map(m => m.id)
-      const { data: dimensionValues } = await client
-        .from('profile_dimension_values')
-        .select('match_id, dimension_key, value')
-        .in('match_id', matchIds)
-
-      // 按 match_id 分组维度数据
-      const dimensionByMatchId = new Map<number, Map<string, unknown>>()
-      if (dimensionValues) {
-        for (const dv of dimensionValues) {
-          if (!dimensionByMatchId.has(dv.match_id)) {
-            dimensionByMatchId.set(dv.match_id, new Map())
-          }
-          dimensionByMatchId.get(dv.match_id)!.set(dv.dimension_key, dv.value)
-        }
-      }
-
-      return {
-        code: 200,
-        data: matches.map(m => {
-          // 合并维度数据
-          const dimMap = dimensionByMatchId.get(m.id)
-          let age = m.hardware?.age || 0
-          let occupation = m.hardware?.occupation || ''
-          let mbti = m.software?.mbti || ''
-          let zodiac = m.hardware?.zodiac || ''
-          let interests = m.software?.interests || []
-          
-          if (dimMap) {
-            // birthYear -> age
-            const birthYear = dimMap.get('birthYear')
-            if (birthYear !== undefined) {
-              const year = Number(birthYear)
-              if (!isNaN(year) && year > 1900) {
-                age = new Date().getFullYear() - year
-              }
-            }
-            // 其他字段
-            if (dimMap.has('occupation')) occupation = String(dimMap.get('occupation'))
-            if (dimMap.has('mbti')) mbti = String(dimMap.get('mbti'))
-            if (dimMap.has('zodiac')) zodiac = String(dimMap.get('zodiac'))
-            if (dimMap.has('hobbies')) {
-              const hobbies = dimMap.get('hobbies')
-              interests = Array.isArray(hobbies) ? hobbies : [String(hobbies)]
-            }
-          }
-          
-          return {
-            id: m.id,
-            name: m.name,
-            age,
-            occupation,
-            mbti,
-            zodiac,
-            meetingScene: m.meetingScene,
-            relationshipStage: m.relationshipStage,
-            interactionStatus: m.interactionStatus,
-            impression: m.impression,
-            interests,
-            status: m.status,
-            nextAction: m.nextAction,
-            lastContact: this.formatLastContact(m.lastContact),
-          }
-        }),
-        message: 'success',
-      }
-    } catch (error) {
-      console.error('Get match list error:', error)
-      return { code: 500, data: [], message: '获取列表失败' }
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
     }
+
+    if (body.cycleStartDate !== undefined) {
+      updateData.cycle_start_date = body.cycleStartDate
+    }
+    if (body.cycleLength !== undefined) {
+      updateData.cycle_length = body.cycleLength
+    }
+
+    const { data, error } = await client
+      .from('matches')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      return { code: 500, msg: '更新失败', data: null }
+    }
+
+    return { code: 200, msg: '更新成功', data }
   }
 
-  async getMatchDetail(id: number) {
-    try {
-      const client = getSupabaseClient()
-      const { data, error } = await client
-        .from('matches')
-        .select('*')
-        .eq('id', id)
-        .single()
+  /**
+   * 获取周期信息
+   */
+  async getCycleInfo(req?: Request, id?: number) {
+    if (!id) return { code: 400, msg: '缺少对象ID', data: null }
+    
+    const client = getSupabaseClient()
 
-      if (error || !data) {
-        return { code: 404, data: null, message: 'Not found' }
-      }
+    const { data, error } = await client
+      .from('matches')
+      .select('cycle_start_date, cycle_length')
+      .eq('id', id)
+      .single()
 
-      const match = this.dbToMatch(data as DbMatch)
-      
-      // 从维度表获取数据，优先使用维度数据
-      const enrichedMatch = await this.enrichWithDimensionData(match)
+    if (error || !data) {
+      return { code: 404, msg: '未找到对象', data: null }
+    }
 
-      // 获取真实的任务统计
-      const taskStats = await this.taskService.getTaskStats(match.id)
+    const cycleStartDate = (data as any).cycle_start_date
+    const cycleLength = (data as any).cycle_length || 28
 
-      // 计算推进值
-      const progressScore = await this.calculateProgressScore(match.id)
-
+    if (!cycleStartDate) {
       return {
         code: 200,
-        data: {
-          ...enrichedMatch,
-          progress: this.calculateProgress(enrichedMatch),
-          progressScore,
-          stats: {
-            tasks: taskStats.total,
-            completedTasks: taskStats.completed,
-            quizScore: 80,
-            dates: 2,
-          },
-        },
-        message: 'success',
+        msg: '获取成功',
+        data: null,
       }
-    } catch (error) {
-      console.error('Get match detail error:', error)
-      return { code: 500, data: null, message: '获取详情失败' }
+    }
+
+    // 计算当前周期状态
+    const startDate = new Date(cycleStartDate)
+    const today = new Date()
+    const dayDiff = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+    const currentDay = (dayDiff % cycleLength) + 1
+
+    // 判断周期阶段
+    let phase = 'follicular'
+    let phaseName = '卵泡期'
+    let description = '精力充沛，适合主动出击'
+    const recommendations: string[] = []
+
+    if (currentDay <= 5) {
+      phase = 'menstrual'
+      phaseName = '月经期'
+      description = '身体需要休息，多关心体贴'
+      recommendations.push('避免安排体力活动')
+      recommendations.push('可以准备热水袋等贴心物品')
+      recommendations.push('多问候关心身体状况')
+    } else if (currentDay <= 14) {
+      phase = 'follicular'
+      phaseName = '卵泡期'
+      description = '精力充沛，适合主动出击'
+      recommendations.push('适合安排约会活动')
+      recommendations.push('可以尝试新的话题和互动')
+      recommendations.push('对方情绪较为稳定')
+    } else if (currentDay <= 17) {
+      phase = 'ovulation'
+      phaseName = '排卵期'
+      description = '魅力高峰期，互动效果最佳'
+      recommendations.push('最佳约会时期')
+      recommendations.push('适合进行重要对话')
+      recommendations.push('注意对方可能更加敏感')
+    } else if (currentDay <= 21) {
+      phase = 'luteal_early'
+      phaseName = '黄体早期'
+      description = '情绪稳定，适合日常互动'
+      recommendations.push('保持正常互动频率')
+      recommendations.push('适合轻松的话题')
+    } else if (currentDay <= 25) {
+      phase = 'luteal_mid'
+      phaseName = '黄体中期'
+      description = '可能出现经前症状，需要耐心'
+      recommendations.push('多些耐心和理解')
+      recommendations.push('避免敏感话题')
+      recommendations.push('可以准备一些小惊喜')
+    } else {
+      phase = 'luteal_late'
+      phaseName = '黄体晚期'
+      description = '经前症状明显，格外关心'
+      recommendations.push('格外关心和体贴')
+      recommendations.push('避免安排重要活动')
+      recommendations.push('准备应对情绪波动')
+    }
+
+    return {
+      code: 200,
+      msg: '获取成功',
+      data: {
+        day: currentDay,
+        phase,
+        phaseName,
+        description,
+        recommendations,
+        cycleLength,
+        startDate: cycleStartDate,
+      },
     }
   }
 
   /**
    * 获取推进值详情
    */
-  async getProgressScore(matchId: number) {
-    const progressScore = await this.calculateProgressScore(matchId)
+  async getProgressDetail(req?: Request, id?: number) {
+    if (!id) return { code: 400, msg: '缺少对象ID', data: null }
+    const progressScore = await this.calculateProgressScore(id)
     return {
       code: 200,
+      msg: '获取成功',
       data: progressScore,
-      message: 'success',
     }
   }
 
-  async createMatch(body: Partial<Match> & { 
-    name?: string
-    gender?: string
-    hardware?: Partial<HardwareInfo>
-    software?: Partial<SoftwareInfo>
-    meetingScene?: string
-    meetingDate?: string
-    relationshipStage?: string
-    interactionStatus?: string
-    impression?: number
-    impressionTags?: string[]
-    notes?: string
-  }) {
-    try {
-      const client = getSupabaseClient()
-      
-      const newMatch = {
-        name: body.name || '',
-        gender: body.gender || 'female',
-        meeting_scene: body.meetingScene || 'other',
-        meeting_date: body.meetingDate || new Date().toISOString().split('T')[0],
-        relationship_stage: body.relationshipStage || 'new',
-        interaction_status: body.interactionStatus || 'just_met',
-        impression: body.impression || 0,
-        impression_tags: body.impressionTags || [],
-        key_info: [],
-        notes: body.notes || '',
-        status: this.mapStageToStatus(body.relationshipStage || 'new'),
-        next_action: this.generateNextAction(body.meetingScene || 'other', body.interactionStatus || 'just_met'),
-        last_contact: new Date().toISOString(),
-        cycle_start_date: null,
-        cycle_length: 28,
-      }
-
-      const { data, error } = await client
-        .from('matches')
-        .insert(newMatch)
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Create match error:', error)
-        return { code: 500, data: null, message: `创建失败: ${error.message}` }
-      }
-
-      const matchId = (data as DbMatch).id
-      
-      // 同步到维度表
-      this.syncToDimensions(matchId, body.hardware || {}, body.software || {}).catch(err => {
-        console.error('同步到维度表失败:', err)
-      })
-
-      return {
-        code: 200,
-        data: this.dbToMatch(data as DbMatch),
-        message: 'success',
-      }
-    } catch (error) {
-      console.error('Create match error:', error)
-      return { code: 500, data: null, message: '创建失败' }
-    }
-  }
-
-  async updateMatch(id: number, body: Partial<Match>) {
-    try {
-      const client = getSupabaseClient()
-
-      // 先获取现有数据
-      const { data: existing, error: fetchError } = await client
-        .from('matches')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (fetchError || !existing) {
-        return { code: 404, data: null, message: 'Not found' }
-      }
-
-      const existingMatch = existing as DbMatch
-
-      // 如果更新了关系阶段，同步更新status
-      const updatedStatus = body.relationshipStage 
-        ? this.mapStageToStatus(body.relationshipStage)
-        : existingMatch.status
-
-      const updateData: Record<string, unknown> = {
-        status: updatedStatus,
-        updated_at: new Date().toISOString(),
-      }
-
-      // 只更新提供的字段
-      if (body.name) updateData.name = body.name
-      if (body.gender) updateData.gender = body.gender
-      if (body.meetingScene) updateData.meeting_scene = body.meetingScene
-      if (body.meetingDate) updateData.meeting_date = body.meetingDate
-      if (body.relationshipStage) updateData.relationship_stage = body.relationshipStage
-      if (body.interactionStatus) updateData.interaction_status = body.interactionStatus
-      if (body.impression !== undefined) updateData.impression = body.impression
-      if (body.impressionTags) updateData.impression_tags = body.impressionTags
-      if (body.keyInfo) updateData.key_info = body.keyInfo
-      if (body.notes !== undefined) updateData.notes = body.notes
-      if (body.nextAction !== undefined) updateData.next_action = body.nextAction
-
-      const { data, error } = await client
-        .from('matches')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Update match error:', error)
-        return { code: 500, data: null, message: `更新失败: ${error.message}` }
-      }
-
-      // 同步到维度表
-      if (body.hardware || body.software) {
-        this.syncToDimensions(id, body.hardware || {}, body.software || {}).catch(err => {
-          console.error('同步到维度表失败:', err)
-        })
-      }
-
-      return {
-        code: 200,
-        data: this.dbToMatch(data as DbMatch),
-        message: 'success',
-      }
-    } catch (error) {
-      console.error('Update match error:', error)
-      return { code: 500, data: null, message: '更新失败' }
-    }
-  }
-
-  async deleteMatch(id: number) {
-    try {
-      const client = getSupabaseClient()
-      const { error } = await client
-        .from('matches')
-        .delete()
-        .eq('id', id)
-
-      if (error) {
-        console.error('Delete match error:', error)
-        return { code: 500, data: null, message: `删除失败: ${error.message}` }
-      }
-
-      return { code: 200, data: null, message: 'success' }
-    } catch (error) {
-      console.error('Delete match error:', error)
-      return { code: 500, data: null, message: '删除失败' }
-    }
-  }
-
-  async getRecommendations(id: number) {
-    const matchResult = await this.getMatchDetail(id)
-    if (matchResult.code !== 200 || !matchResult.data) {
-      return { code: 404, data: null, message: 'Not found' }
-    }
-
-    const match = matchResult.data as Match
-    const recommendations = {
-      topics: this.recommendTopics(match),
-      tasks: this.recommendTasks(match),
-      tips: this.recommendTips(match),
-    }
-
+  /**
+   * 获取推进值分数（简化版）
+   */
+  async getProgressValue(req?: Request, id?: number) {
+    if (!id) return { code: 400, msg: '缺少对象ID', data: null }
+    const progressScore = await this.calculateProgressScore(id)
     return {
       code: 200,
-      data: recommendations,
-      message: 'success',
+      msg: '获取成功',
+      data: progressScore?.total || 0,
     }
   }
 
   /**
-   * 使用大模型生成话题推荐
+   * 获取推荐建议（基于推进值详情）
    */
-  async getAITopics(id: number, req: Request) {
-    const matchResult = await this.getMatchDetail(id)
-    if (matchResult.code !== 200 || !matchResult.data) {
-      return { code: 404, data: null, message: 'Not found' }
-    }
-
-    const match = matchResult.data as Match
-
-    try {
-      const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
-      const config = new Config()
-      const client = new LLMClient(config, customHeaders)
-
-      const prompt = this.buildTopicsPrompt(match)
-      
-      const messages = [
-        {
-          role: 'system' as const,
-          content: '你是一位专业的情感顾问和恋爱教练，擅长根据对方的性格特点、兴趣爱好和关系阶段，推荐合适的聊天话题和互动方式。你的建议应该具体、实用、易于执行。',
-        },
-        {
-          role: 'user' as const,
-          content: prompt,
-        },
-      ]
-
-      const response = await client.invoke(messages, { temperature: 0.8 })
-      
-      return {
-        code: 200,
-        data: {
-          topics: this.parseTopicsResponse(response.content),
-          rawContent: response.content,
-        },
-        message: 'success',
-      }
-    } catch (error) {
-      console.error('AI topics error:', error)
-      return {
-        code: 200,
-        data: {
-          topics: this.recommendTopics(match),
-          rawContent: null,
-        },
-        message: 'success (fallback)',
-      }
-    }
-  }
-
-  /**
-   * 使用大模型生成互动建议
-   */
-  async getAIInteraction(id: number, situation: string | undefined, req: Request) {
-    const matchResult = await this.getMatchDetail(id)
-    if (matchResult.code !== 200 || !matchResult.data) {
-      return { code: 404, data: null, message: 'Not found' }
-    }
-
-    const match = matchResult.data as Match
-
-    try {
-      const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
-      const config = new Config()
-      const client = new LLMClient(config, customHeaders)
-
-      const prompt = this.buildInteractionPrompt(match, situation)
-      
-      const messages = [
-        {
-          role: 'system' as const,
-          content: '你是一位专业的情感顾问和恋爱教练，擅长根据对方的性格特点、兴趣爱好和当前情况，提供具体的互动建议和行动方案。你的建议应该具体、实用、考虑对方感受。',
-        },
-        {
-          role: 'user' as const,
-          content: prompt,
-        },
-      ]
-
-      const response = await client.invoke(messages, { temperature: 0.8 })
-      
-      const suggestions = this.parseInteractionResponse(response.content)
-      
-      // 将 AI 建议自动转换为任务
-      const createdTasks = this.taskService.createTasksFromAI(id, suggestions)
-      
-      return {
-        code: 200,
-        data: {
-          suggestions,
-          tasks: createdTasks,
-          rawContent: response.content,
-        },
-        message: 'success',
-      }
-    } catch (error) {
-      console.error('AI interaction error:', error)
-      
-      const suggestions = this.recommendTips(match)
-      
-      const createdTasks = this.taskService.createTasksFromAI(id, suggestions.map(s => ({
-        action: s,
-        reason: '根据当前情况推荐',
-        tips: '请根据实际情况灵活调整',
-      })))
-      
-      return {
-        code: 200,
-        data: {
-          suggestions,
-          tasks: createdTasks,
-          rawContent: null,
-        },
-        message: 'success (fallback)',
-      }
-    }
-  }
-
-  private buildTopicsPrompt(match: Match): string {
-    const tagLabels = match.impressionTags.map(t => impressionTagLabels[t] || t).join('、')
-    const sceneLabel = meetingSceneLabels[match.meetingScene] || match.meetingScene
-    const stageLabel = relationshipStageLabels[match.relationshipStage] || match.relationshipStage
-    const statusLabel = interactionStatusLabels[match.interactionStatus] || match.interactionStatus
-    const hw = match.hardware
-    const sw = match.software
-    
-    const hardwareInfo: string[] = []
-    if (hw?.age) hardwareInfo.push(`年龄：${hw.age}岁`)
-    if (hw?.height) hardwareInfo.push(`身高：${hw.height}`)
-    if (hw?.zodiac) hardwareInfo.push(`星座：${hw.zodiac}`)
-    if (hw?.occupation) hardwareInfo.push(`职业：${hw.occupation}`)
-    if (hw?.location) hardwareInfo.push(`所在地：${hw.location}`)
-    
-    const softwareInfo: string[] = []
-    if (sw?.mbti) softwareInfo.push(`MBTI：${sw.mbti}`)
-    if (sw?.personality) softwareInfo.push(`性格：${sw.personality}`)
-    if (sw?.interests?.length) softwareInfo.push(`兴趣：${sw.interests.join('、')}`)
-    if (sw?.hobbies) softwareInfo.push(`爱好：${sw.hobbies}`)
-    if (sw?.likes) softwareInfo.push(`喜欢：${sw.likes}`)
-    if (sw?.dislikes) softwareInfo.push(`讨厌：${sw.dislikes}`)
-    
-    const keyInfoStr = match.keyInfo?.map(k => `${k.icon} ${k.label}：${k.value}`).join('\n') || '无'
-    
-    return `请为以下情况推荐3-5个聊天话题：
-
-【对方硬件信息】（外在属性）
-${hardwareInfo.join('\n') || '暂无信息'}
-
-【对方软件信息】（内在特质）
-${softwareInfo.join('\n') || '暂无信息'}
-
-【关键信息】
-${keyInfoStr}
-
-【初印象】
-- 标签：${tagLabels}
-- 心动指数：${match.impression}/5
-
-【认识场景】
-- 通过「${sceneLabel}」认识
-
-【当前状态】
-- 关系阶段：${stageLabel}
-- 互动状态：${statusLabel}
-- 备注：${match.notes || '无'}
-
-请根据以上信息，推荐适合的聊天话题。每个话题请说明：
-1. 话题内容
-2. 为什么适合这个话题（结合对方的MBTI、兴趣、关键信息等）
-3. 如何自然地开启这个话题
-
-请用JSON格式返回，格式如下：
-{
-  "topics": [
-    {
-      "title": "话题标题",
-      "reason": "适合原因",
-      "opener": "如何开场"
-    }
-  ]
-}`
-  }
-
-  private buildInteractionPrompt(match: Match, situation: string | undefined): string {
-    const tagLabels = match.impressionTags.map(t => impressionTagLabels[t] || t).join('、')
-    const sceneLabel = meetingSceneLabels[match.meetingScene] || match.meetingScene
-    const stageLabel = relationshipStageLabels[match.relationshipStage] || match.relationshipStage
-    const statusLabel = interactionStatusLabels[match.interactionStatus] || match.interactionStatus
-    const hw = match.hardware
-    const sw = match.software
-    
-    const hardwareInfo: string[] = []
-    if (hw?.age) hardwareInfo.push(`年龄：${hw.age}岁`)
-    if (hw?.height) hardwareInfo.push(`身高：${hw.height}`)
-    if (hw?.zodiac) hardwareInfo.push(`星座：${hw.zodiac}`)
-    if (hw?.occupation) hardwareInfo.push(`职业：${hw.occupation}`)
-    if (hw?.location) hardwareInfo.push(`所在地：${hw.location}`)
-    
-    const softwareInfo: string[] = []
-    if (sw?.mbti) softwareInfo.push(`MBTI：${sw.mbti}`)
-    if (sw?.personality) softwareInfo.push(`性格：${sw.personality}`)
-    if (sw?.interests?.length) softwareInfo.push(`兴趣：${sw.interests.join('、')}`)
-    if (sw?.hobbies) softwareInfo.push(`爱好：${sw.hobbies}`)
-    if (sw?.likes) softwareInfo.push(`喜欢：${sw.likes}`)
-    if (sw?.dislikes) softwareInfo.push(`讨厌：${sw.dislikes}`)
-    if (sw?.dealBreakers) softwareInfo.push(`雷区：${sw.dealBreakers}`)
-    
-    const commPrefs: string[] = []
-    if (sw?.communicationPreferences?.effectiveWays?.length) {
-      commPrefs.push(`有效方式：${sw.communicationPreferences.effectiveWays.join('、')}`)
-    }
-    if (sw?.communicationPreferences?.ineffectiveWays?.length) {
-      commPrefs.push(`无效方式：${sw.communicationPreferences.ineffectiveWays.join('、')}`)
-    }
-    if (sw?.communicationPreferences?.landmines?.length) {
-      commPrefs.push(`绝对雷区：${sw.communicationPreferences.landmines.join('、')}`)
-    }
-    
-    const loveLangs = sw?.loveLanguages?.length ? sw.loveLanguages.join(' > ') : null
-    
-    const cycleInfo = this.calculateCyclePhase(match.cycleStartDate, match.cycleLength)
-    const cycleStr = cycleInfo 
-      ? `当前阶段：${cycleInfo.phaseName}（Day ${cycleInfo.day}）\n状态描述：${cycleInfo.description}\n建议方向：${cycleInfo.recommendations.join('、')}`
-      : '未设置周期信息'
-    
-    const keyInfoStr = match.keyInfo?.map(k => `${k.icon} ${k.label}：${k.value}`).join('\n') || '无'
-    
-    return `请为以下情况提供互动建议：
-
-【对方硬件信息】（外在属性）
-${hardwareInfo.join('\n') || '暂无信息'}
-
-【对方软件信息】（内在特质）
-${softwareInfo.join('\n') || '暂无信息'}
-
-【关键信息】
-${keyInfoStr}
-
-【交流偏好】（重要！）
-${commPrefs.join('\n') || '暂无信息'}
-
-【爱的语言】
-${loveLangs || '暂无信息'}
-
-【激素周期状态】（女性特有，非常重要！）
-${cycleStr}
-
-【初印象】
-- 标签：${tagLabels}
-- 心动指数：${match.impression}/5
-
-【认识场景】
-- 通过「${sceneLabel}」认识
-
-【当前状态】
-- 关系阶段：${stageLabel}
-- 互动状态：${statusLabel}
-- 备注：${match.notes || '无'}
-${situation ? `\n【当前情况】\n${situation}` : ''}
-
-请根据以上信息，提供3-5条具体的互动建议。
-
-**重要原则**：
-1. 如果对方处于PMS期（黄体期后期），建议要更温和、给更多空间
-2. 如果对方处于排卵期，适合主动约会或深度交流
-3. 如果对方处于月经期，建议以关心和陪伴为主，不要安排太多活动
-4. 结合对方的交流偏好，推荐有效的方式，避免雷区
-
-请用JSON格式返回，格式如下：
-{
-  "suggestions": [
-    {
-      "action": "具体行动",
-      "reason": "适合原因（结合周期阶段、MBTI、兴趣等）",
-      "tips": "注意事项（结合周期状态提醒）"
-    }
-  ]
-}`
-  }
-
-  private parseTopicsResponse(content: string): Array<{ title: string; reason: string; opener: string }> {
-    try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0])
-        if (parsed.topics && Array.isArray(parsed.topics)) {
-          return parsed.topics
-        }
-      }
-    } catch {
-      // 解析失败
-    }
-    
-    return [
-      { title: '聊聊最近的趣事', reason: '轻松自然的话题', opener: '最近有什么有趣的事吗？' },
-      { title: '分享生活日常', reason: '增进了解', opener: '今天过得怎么样？' },
-      { title: '聊聊兴趣爱好', reason: '找到共同话题', opener: '你平时喜欢做什么？' },
-    ]
-  }
-
-  private parseInteractionResponse(content: string): Array<{ action: string; reason: string; tips: string }> {
-    try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0])
-        if (parsed.suggestions && Array.isArray(parsed.suggestions)) {
-          return parsed.suggestions
-        }
-      }
-    } catch {
-      // 解析失败
-    }
-    
-    return [
-      { action: '发送一条关心的消息', reason: '表达关心', tips: '保持自然，不要过于频繁' },
-      { action: '分享一件有趣的事', reason: '增加互动', tips: '选择轻松有趣的内容' },
-      { action: '记住对方的小习惯', reason: '展示细心', tips: '在合适的时机体现出来' },
-    ]
-  }
-
-  private mapStageToStatus(stage: string): string {
-    const mapping: Record<string, string> = {
-      new: 'new',
-      contacting: 'contacting',
-      dating: 'dating',
-      progressing: 'progressing',
-    }
-    return mapping[stage] || 'new'
-  }
-
-  private formatLastContact(dateStr: string): string {
-    const date = new Date(dateStr)
-    const now = new Date()
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-    if (diffDays === 0) return '今天'
-    if (diffDays === 1) return '昨天'
-    if (diffDays < 7) return `${diffDays}天前`
-    return `${Math.floor(diffDays / 7)}周前`
-  }
-
-  private calculateProgress(match: Match): number {
-    const progressMap: Record<string, number> = {
-      new: 10,
-      contacting: 30,
-      dating: 60,
-      progressing: 80,
-      paused: 0,
-    }
-    return progressMap[match.status] || 0
-  }
-
-  private generateNextAction(scene: string, interactionStatus: string): string {
-    const statusActions: Record<string, string> = {
-      just_met: '尝试获取联系方式',
-      got_contact: '发第一条消息打招呼',
-      chatted: '找话题继续聊下去',
-      good_vibe: '尝试约出来见面',
-      met_up: '安排下一次约会',
-      dating_regularly: '计划一个特别的约会',
-      ambiguous: '适时表达心意',
-      confirming: '准备正式表白',
-    }
-    
-    if (statusActions[interactionStatus]) {
-      return statusActions[interactionStatus]
-    }
-    
-    const actions: Record<string, string> = {
-      blind_date: '发消息约下次见面',
-      pickup: '发第一条消息',
-      app_meetup: '延续线上话题',
-      party: '约出来单独见面',
-      workplace: '找个理由搭话',
-      school: '约一起去图书馆',
-      activity: '约下次一起运动',
-      other: '主动联系',
-    }
-    return actions[scene] || '主动联系'
-  }
-
-  private recommendTopics(match: Match): string[] {
-    const baseTopics = [
-      '聊聊最近的一次旅行',
-      '分享童年趣事',
-      '讨论喜欢的电影',
-    ]
-    const interests = match.software?.interests || []
-    if (interests.includes('旅行')) {
-      baseTopics.push('最想去哪里旅行？')
-    }
-    if (interests.includes('美食')) {
-      baseTopics.push('分享美食经历')
-    }
-    return baseTopics.slice(0, 3)
-  }
-
-  private recommendTasks(match: Match): string[] {
-    return [
-      '发送一条关心的消息',
-      '分享一件有趣的事',
-      '记住对方的一个小习惯',
-    ]
-  }
-
-  private recommendTips(match: Match): string[] {
-    const tips: Record<string, string[]> = {
-      blind_date: ['展示真诚和稳定', '聊聊生活规划', '了解对方家庭观念'],
-      pickup: ['保持轻松自然', '寻找共同话题', '适度展示自己'],
-      app_meetup: ['延续线上热度', '安排有趣活动', '创造浪漫氛围'],
-      party: ['利用共同朋友', '组织小团体活动', '自然接触'],
-    }
-    return tips[match.meetingScene] || ['真诚对待', '保持联系', '创造机会']
-  }
-
-  // ============== 周期追踪功能 ==============
-
-  calculateCyclePhase(cycleStartDate: string | undefined, cycleLength: number = 28): {
-    day: number
-    phase: string
-    phaseName: string
-    description: string
-    recommendations: string[]
-  } | null {
-    if (!cycleStartDate) return null
-    
-    const startDate = new Date(cycleStartDate)
-    const now = new Date()
-    const diffDays = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-    
-    const currentDay = (diffDays % cycleLength) + 1
-    
-    if (currentDay <= 5) {
-      return {
-        day: currentDay,
-        phase: 'menstrual',
-        phaseName: '月经期',
-        description: '身体需要休息，可能疲惫、敏感',
-        recommendations: ['少安排活动', '多关心体贴', '避免争论']
-      }
-    } else if (currentDay <= 13) {
-      return {
-        day: currentDay,
-        phase: 'follicular',
-        phaseName: '卵泡期',
-        description: '能量上升，心态积极，适合深度交流',
-        recommendations: ['可以约出来', '聊聊深度话题', '一起规划未来']
-      }
-    } else if (currentDay <= 16) {
-      return {
-        day: currentDay,
-        phase: 'ovulation',
-        phaseName: '排卵期',
-        description: '精力充沛，表达欲强，魅力值max',
-        recommendations: ['让她多说', '表达欣赏', '适合表白或约会']
-      }
-    } else if (currentDay <= 21) {
-      return {
-        day: currentDay,
-        phase: 'luteal_early',
-        phaseName: '黄体期早期',
-        description: '状态稳定，适合日常互动',
-        recommendations: ['正常交流', '保持节奏', '关注情绪变化']
-      }
-    } else {
-      return {
-        day: currentDay,
-        phase: 'luteal_late',
-        phaseName: '黄体期晚期(PMS)',
-        description: '可能情绪波动、敏感、疲惫',
-        recommendations: ['多点耐心', '少安排活动', '避免敏感话题']
-      }
-    }
-  }
-
-  async getCycleInfo(id: number) {
-    const matchResult = await this.getMatchDetail(id)
-    if (matchResult.code !== 200 || !matchResult.data) {
-      return { code: 404, data: null, message: 'Not found' }
-    }
-
-    const match = matchResult.data as Match
-    const cycleInfo = this.calculateCyclePhase(match.cycleStartDate, match.cycleLength)
-
+  async getRecommendations(req?: Request, id?: number) {
+    if (!id) return { code: 400, msg: '缺少对象ID', data: null }
+    const progressScore = await this.calculateProgressScore(id)
     return {
       code: 200,
-      data: {
-        cycleStartDate: match.cycleStartDate,
-        cycleLength: match.cycleLength,
-        currentPhase: cycleInfo,
-      },
-      message: 'success',
-    }
-  }
-
-  async updateCycleInfo(id: number, cycleStartDate: string, cycleLength: number = 28) {
-    try {
-      const client = getSupabaseClient()
-      const { data, error } = await client
-        .from('matches')
-        .update({
-          cycle_start_date: cycleStartDate,
-          cycle_length: cycleLength,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Update cycle info error:', error)
-        return { code: 500, data: null, message: `更新失败: ${error.message}` }
-      }
-
-      return {
-        code: 200,
-        data: this.dbToMatch(data as DbMatch),
-        message: 'success',
-      }
-    } catch (error) {
-      console.error('Update cycle info error:', error)
-      return { code: 500, data: null, message: '更新失败' }
-    }
-  }
-
-  /**
-   * 同步 hardware/software 到维度值表
-   */
-  private async syncToDimensions(
-    matchId: number,
-    hardware: Partial<HardwareInfo>,
-    software: Partial<SoftwareInfo>
-  ): Promise<void> {
-    try {
-      const client = getSupabaseClient()
-      const dimensionValues: Array<{
-        match_id: number
-        dimension_key: string
-        value: unknown
-        source: string
-      }> = []
-
-      // 同步 hardware 字段
-      for (const [field, dimensionKey] of Object.entries(hardwareToDimensionMap)) {
-        const value = (hardware as Record<string, unknown>)[field]
-        if (value !== undefined && value !== null && value !== '') {
-          // 特殊处理 age → birthYear
-          if (field === 'age') {
-            const age = Number(value)
-            if (!isNaN(age) && age > 0) {
-              dimensionValues.push({
-                match_id: matchId,
-                dimension_key: dimensionKey,
-                value: new Date().getFullYear() - age,
-                source: 'hardware_software_sync'
-              })
-            }
-          } else {
-            dimensionValues.push({
-              match_id: matchId,
-              dimension_key: dimensionKey,
-              value,
-              source: 'hardware_software_sync'
-            })
-          }
-        }
-      }
-
-      // 同步 software 字段
-      for (const [field, dimensionKey] of Object.entries(softwareToDimensionMap)) {
-        const value = (software as Record<string, unknown>)[field]
-        if (value !== undefined && value !== null && value !== '') {
-          dimensionValues.push({
-            match_id: matchId,
-            dimension_key: dimensionKey,
-            value: Array.isArray(value) ? value : String(value),
-            source: 'hardware_software_sync'
-          })
-        }
-      }
-
-      if (dimensionValues.length === 0) return
-
-      // 使用 upsert 批量插入
-      for (const dv of dimensionValues) {
-        const { data, error } = await client
-          .from('profile_dimension_values')
-          .upsert({
-            match_id: dv.match_id,
-            dimension_key: dv.dimension_key,
-            value: dv.value,
-            source: dv.source,
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'match_id,dimension_key'
-          })
-          .select()
-        
-        if (error) {
-          console.error(`同步维度 ${dv.dimension_key} 失败:`, error)
-        } else {
-          console.log(`同步维度 ${dv.dimension_key} 成功:`, data)
-        }
-      }
-
-      console.log(`已同步 ${dimensionValues.length} 条维度值到 match ${matchId}`)
-    } catch (err) {
-      console.error('同步维度值失败:', err)
+      msg: '获取成功',
+      data: progressScore?.nextActions || [],
     }
   }
 }
