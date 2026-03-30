@@ -48,6 +48,11 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
   const [statusBarHeight, setStatusBarHeight] = useState(0)
   const [quickQuestions, setQuickQuestions] = useState<string[]>([])
   const [questionsLoading, setQuestionsLoading] = useState(false)
+  
+  // 计算快捷问题区域高度（动态）
+  const quickQuestionsHeight = quickQuestions.length > 0 
+    ? 44 + Math.ceil(quickQuestions.length / 2) * 32 + (questionsLoading ? 36 : 0)
+    : 0
 
   // 获取状态栏高度
   useEffect(() => {
@@ -429,7 +434,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
           top: `${headerHeight + (context ? 20 : 0)}px`,
           left: 0,
           right: 0,
-          bottom: '120px'
+          bottom: `${120 + quickQuestionsHeight}px`
         }}
       >
         <View className="p-4">

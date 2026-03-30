@@ -79,6 +79,62 @@ export class ChatService {
   }
 
   /**
+   * 清理LLM返回的内容，去除think标签和重复内容
+   */
+  private cleanLLMContent(content: string): string {
+    let cleaned = content
+    
+    // 移除 think 标签及其内容
+    cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '')
+    
+    // 移除其他可能的思考标签
+    cleaned = cleaned.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+    
+    // 移除开头可能的标签（没有闭合的情况）
+    cleaned = cleaned.replace(/^<[^>]+>/i, '')
+    
+    // 清理多余空白
+    cleaned = cleaned.trim()
+    
+    // 检查是否有重复内容（内容出现两次）
+    if (cleaned.length > 100) {
+      const halfLen = Math.floor(cleaned.length / 2)
+      const firstHalf = cleaned.substring(0, halfLen).trim()
+      const secondHalf = cleaned.substring(halfLen).trim()
+      
+      // 如果相似度超过80%，认为是重复
+      if (firstHalf.length > 0 && secondHalf.length > 0) {
+        const similarity = this.calculateSimilarity(firstHalf, secondHalf)
+        if (similarity > 0.8) {
+          cleaned = firstHalf
+        }
+      }
+    }
+    
+    return cleaned
+  }
+
+  /**
+   * 计算两个字符串的相似度
+   */
+  private calculateSimilarity(str1: string, str2: string): number {
+    const len1 = str1.length
+    const len2 = str2.length
+    const maxLen = Math.max(len1, len2)
+    
+    if (maxLen === 0) return 1
+    
+    // 简单的相似度计算：计算相同字符的比例
+    let matches = 0
+    const minLen = Math.min(len1, len2)
+    for (let i = 0; i < minLen; i++) {
+      if (str1[i] === str2[i]) matches++
+    }
+    
+    return matches / maxLen
+  }
+
+  /**
    * 从对话内容中提取关键信息
    */
   private async extractKeyInfoFromChat(
@@ -658,16 +714,19 @@ ${chatSummary}
 
       const response = await client.invoke(fullMessages, { temperature: 0.8 })
 
+      // 清理LLM返回的内容
+      const cleanedContent = this.cleanLLMContent(response.content)
+
       // 保存用户消息和AI回复到数据库
       if (context?.matchId && messages.length > 0) {
         const lastMessage = messages[messages.length - 1]
         if (lastMessage.role === 'user') {
           await this.saveMessage(context.matchId, 'user', lastMessage.content)
         }
-        await this.saveMessage(context.matchId, 'assistant', response.content)
+        await this.saveMessage(context.matchId, 'assistant', cleanedContent)
 
         // 异步提取关键信息并更新档案（不阻塞响应）
-        this.extractAndUpdateProfile(lastMessage.content, response.content, context, req).catch(err => {
+        this.extractAndUpdateProfile(lastMessage.content, cleanedContent, context, req).catch(err => {
           console.error('Extract and update profile error:', err)
         })
       }
@@ -675,7 +734,7 @@ ${chatSummary}
       return {
         code: 200,
         data: {
-          content: response.content,
+          content: cleanedContent,
         },
         message: 'success',
       }
