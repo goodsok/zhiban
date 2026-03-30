@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useRouter } from '@tarojs/taro'
+import { useLoad, useDidShow, useRouter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
@@ -244,6 +244,11 @@ const PortraitPage: FC = () => {
 
   useLoad(() => {
     console.log('Portrait page loaded.', router.params.matchId)
+    fetchData()
+  })
+
+  useDidShow(() => {
+    // 每次页面显示时刷新数据（从维度编辑页返回时会触发）
     fetchData()
   })
 

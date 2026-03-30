@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useRouter, navigateTo } from '@tarojs/taro'
+import { useLoad, useDidShow, useRouter, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState, useCallback } from 'react'
 import { Network } from '@/network'
@@ -101,6 +101,11 @@ const DetailPage: FC = () => {
 
   useLoad(() => {
     console.log('Detail page loaded.', router.params.id)
+    fetchDetail()
+  })
+
+  useDidShow(() => {
+    // 每次页面显示时刷新数据（从维度编辑页返回时会触发）
     fetchDetail()
   })
 
