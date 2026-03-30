@@ -161,6 +161,89 @@ const softwareToDimensionMap: Record<string, {
   }
 }
 
+// 反向映射：维度 key → hardware/software 字段
+const dimensionToHardwareMap: Record<string, {
+  field: string
+  transform?: (value: unknown) => unknown
+}> = {
+  birthYear: {
+    field: 'age',
+    transform: (value) => {
+      const birthYear = Number(value)
+      if (isNaN(birthYear) || birthYear <= 0) return null
+      const currentYear = new Date().getFullYear()
+      return currentYear - birthYear
+    }
+  },
+  height: {
+    field: 'height',
+    transform: (value) => `${value}cm`
+  },
+  zodiac: {
+    field: 'zodiac',
+    transform: (value) => {
+      const zodiacLabels: Record<string, string> = {
+        'aries': '白羊座', 'taurus': '金牛座', 'gemini': '双子座', 'cancer': '巨蟹座',
+        'leo': '狮子座', 'virgo': '处女座', 'libra': '天秤座', 'scorpio': '天蝎座',
+        'sagittarius': '射手座', 'capricorn': '摩羯座', 'aquarius': '水瓶座', 'pisces': '双鱼座'
+      }
+      return zodiacLabels[String(value)] || String(value)
+    }
+  },
+  bloodType: { field: 'bloodType' },
+  bodyType: {
+    field: 'bodyType',
+    transform: (value) => {
+      const bodyTypeLabels: Record<string, string> = {
+        'slim': '偏瘦', 'average': '匀称', 'athletic': '健壮', 'curvy': '丰满', 'plump': '偏胖'
+      }
+      return bodyTypeLabels[String(value)] || String(value)
+    }
+  },
+  appearance: { field: 'style' },
+  currentCity: { field: 'location' },
+  occupation: { field: 'occupation' },
+  company: { field: 'company' }
+}
+
+const dimensionToSoftwareMap: Record<string, {
+  field: string
+  transform?: (value: unknown) => unknown
+}> = {
+  mbti: { field: 'mbti' },
+  coreTemperament: { field: 'personality' },
+  emotionalExpressionStyle: {
+    field: 'emotionalStyle',
+    transform: (value) => {
+      const styleLabels: Record<string, string> = {
+        'expressive': '直接表达', 'reserved': '含蓄内敛', 'selective': '因人而异', 'avoidant': '回避表达'
+      }
+      return styleLabels[String(value)] || String(value)
+    }
+  },
+  hobbies: { field: 'interests' },
+  moneyPhilosophy: {
+    field: 'spendingStyle',
+    transform: (value) => {
+      const styleLabels: Record<string, string> = {
+        'frugal': '节俭', 'balanced': '平衡', 'enjoyment': '享受当下', 'investor': '投资导向'
+      }
+      return styleLabels[String(value)] || String(value)
+    }
+  },
+  communicationStyle: {
+    field: 'communicationStyle',
+    transform: (value) => {
+      const styleLabels: Record<string, string> = {
+        'direct': '直接坦率', 'indirect': '委婉含蓄', 'balanced': '因人而异'
+      }
+      return styleLabels[String(value)] || String(value)
+    }
+  },
+  marriageNonNegotiables: { field: 'dealBreakers' },
+  loveLanguage: { field: 'loveLanguages' }
+}
+
 export interface DimensionDefinition {
   id: number
   dimension_key: string
@@ -442,6 +525,9 @@ export class DimensionService {
             changed_reason: body.changed_reason || null
           })
       }
+
+      // 同步更新 hardware/software 字段
+      await this.syncDimensionToHardwareSoftware(matchId, dimensionKey, body.value)
 
       return { code: 200, msg: 'success', data }
     } catch (err) {
@@ -758,6 +844,138 @@ export class DimensionService {
       console.error('迁移失败:', errorMsg)
       errors.push(errorMsg)
       return { code: 500, msg: errorMsg, data: { migrated, errors } }
+    }
+  }
+
+  /**
+   * 同步维度值到 hardware/software 字段
+   * 当维度值变更时，自动更新对应的 hardware/software 字段
+   */
+  private async syncDimensionToHardwareSoftware(
+    matchId: number,
+    dimensionKey: string,
+    value: unknown
+  ): Promise<void> {
+    try {
+      const supabase = getSupabaseClient()
+      
+      // 检查是否是 hardware 字段
+      const hardwareMapping = dimensionToHardwareMap[dimensionKey]
+      // 检查是否是 software 字段
+      const softwareMapping = dimensionToSoftwareMap[dimensionKey]
+
+      if (!hardwareMapping && !softwareMapping) {
+        // 不是需要同步的维度
+        return
+      }
+
+      // 获取当前 match 的 hardware/software
+      const { data: match } = await supabase
+        .from('matches')
+        .select('hardware, software')
+        .eq('id', matchId)
+        .single()
+
+      if (!match) {
+        console.error(`Match ${matchId} not found`)
+        return
+      }
+
+      const updateData: { hardware?: Record<string, unknown>; software?: Record<string, unknown> } = {}
+
+      if (hardwareMapping) {
+        const hardware = (match.hardware as Record<string, unknown>) || {}
+        const transformedValue = hardwareMapping.transform ? hardwareMapping.transform(value) : value
+        updateData.hardware = {
+          ...hardware,
+          [hardwareMapping.field]: transformedValue
+        }
+      }
+
+      if (softwareMapping) {
+        const software = (match.software as Record<string, unknown>) || {}
+        const transformedValue = softwareMapping.transform ? softwareMapping.transform(value) : value
+        updateData.software = {
+          ...software,
+          [softwareMapping.field]: transformedValue
+        }
+      }
+
+      // 更新 match
+      const { error: updateError } = await supabase
+        .from('matches')
+        .update({
+          ...updateData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', matchId)
+
+      if (updateError) {
+        console.error(`同步维度值到 hardware/software 失败:`, updateError)
+      } else {
+        console.log(`已同步维度 ${dimensionKey} 到 match ${matchId}`)
+      }
+    } catch (err) {
+      console.error('同步维度值异常:', err)
+    }
+  }
+
+  /**
+   * 批量同步维度值到 hardware/software
+   * 从 hardware/software 数据更新维度值
+   */
+  async syncFromHardwareSoftware(matchId: number): Promise<{ code: number; msg: string; data: { synced: number } }> {
+    try {
+      const supabase = getSupabaseClient()
+      
+      const { data: match } = await supabase
+        .from('matches')
+        .select('hardware, software')
+        .eq('id', matchId)
+        .single()
+
+      if (!match) {
+        return { code: 404, msg: 'Match not found', data: { synced: 0 } }
+      }
+
+      const hardware = match.hardware as Record<string, unknown> || {}
+      const software = match.software as Record<string, unknown> || {}
+      let synced = 0
+
+      // 同步 hardware 字段
+      for (const [field, mapping] of Object.entries(hardwareToDimensionMap)) {
+        const value = hardware[field]
+        if (value === undefined || value === null || value === '') continue
+
+        const transformedValue = mapping.transform ? mapping.transform(value) : value
+        if (transformedValue === null || transformedValue === undefined) continue
+
+        await this.setDimensionValue(matchId, mapping.dimensionKey, {
+          value: transformedValue,
+          source: 'hardware_software_sync'
+        })
+        synced++
+      }
+
+      // 同步 software 字段
+      for (const [field, mapping] of Object.entries(softwareToDimensionMap)) {
+        const value = software[field]
+        if (value === undefined || value === null || value === '') continue
+
+        const transformedValue = mapping.transform ? mapping.transform(value) : value
+        if (transformedValue === null || transformedValue === undefined) continue
+
+        await this.setDimensionValue(matchId, mapping.dimensionKey, {
+          value: transformedValue,
+          source: 'hardware_software_sync'
+        })
+        synced++
+      }
+
+      return { code: 200, msg: 'success', data: { synced } }
+    } catch (err) {
+      console.error('同步 hardware/software 到维度值异常:', err)
+      return { code: 500, msg: String(err), data: { synced: 0 } }
     }
   }
 }

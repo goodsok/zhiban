@@ -4,6 +4,36 @@ import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
 import { getSupabaseClient } from '@/storage/database/supabase-client'
 import { TaskService } from '../task/task.service'
 
+// 硬件字段到维度 key 的映射
+const hardwareToDimensionMap: Record<string, string> = {
+  age: 'birthYear',
+  height: 'height',
+  zodiac: 'zodiac',
+  bloodType: 'bloodType',
+  bodyType: 'bodyType',
+  style: 'appearance',
+  location: 'currentCity',
+  occupation: 'occupation',
+  company: 'company',
+  position: 'jobLevel',
+  wechat: 'wechat',
+  phone: 'phone',
+  birthday: 'birthday'
+}
+
+// 软件字段到维度 key 的映射
+const softwareToDimensionMap: Record<string, string> = {
+  mbti: 'mbti',
+  personality: 'coreTemperament',
+  emotionalStyle: 'emotionalExpressionStyle',
+  interests: 'hobbies',
+  hobbies: 'hobbies',
+  spendingStyle: 'moneyPhilosophy',
+  communicationStyle: 'communicationStyle',
+  dealBreakers: 'marriageNonNegotiables',
+  loveLanguages: 'loveLanguage'
+}
+
 // 印象标签映射
 const impressionTagLabels: Record<string, string> = {
   nice: '性格好',
@@ -714,6 +744,13 @@ export class MatchService {
         return { code: 500, data: null, message: `创建失败: ${error.message}` }
       }
 
+      const matchId = (data as DbMatch).id
+      
+      // 异步同步到维度表
+      this.syncToDimensions(matchId, body.hardware || {}, body.software || {}).catch(err => {
+        console.error('同步到维度表失败:', err)
+      })
+
       return {
         code: 200,
         data: this.dbToMatch(data as DbMatch),
@@ -785,6 +822,13 @@ export class MatchService {
       if (error) {
         console.error('Update match error:', error)
         return { code: 500, data: null, message: `更新失败: ${error.message}` }
+      }
+
+      // 异步同步到维度表（仅同步更新的字段）
+      if (body.hardware || body.software) {
+        this.syncToDimensions(id, body.hardware || {}, body.software || {}).catch(err => {
+          console.error('同步到维度表失败:', err)
+        })
       }
 
       return {
@@ -1361,6 +1405,92 @@ ${situation ? `\n【当前情况】\n${situation}` : ''}
     } catch (error) {
       console.error('Update cycle info error:', error)
       return { code: 500, data: null, message: '更新失败' }
+    }
+  }
+
+  /**
+   * 同步 hardware/software 到维度值表
+   */
+  private async syncToDimensions(
+    matchId: number,
+    hardware: Partial<HardwareInfo>,
+    software: Partial<SoftwareInfo>
+  ): Promise<void> {
+    try {
+      const client = getSupabaseClient()
+      const dimensionValues: Array<{
+        match_id: number
+        dimension_key: string
+        value: unknown
+        source: string
+      }> = []
+
+      // 同步 hardware 字段
+      for (const [field, dimensionKey] of Object.entries(hardwareToDimensionMap)) {
+        const value = (hardware as Record<string, unknown>)[field]
+        if (value !== undefined && value !== null && value !== '') {
+          // 特殊处理 age → birthYear
+          if (field === 'age') {
+            const age = Number(value)
+            if (!isNaN(age) && age > 0) {
+              dimensionValues.push({
+                match_id: matchId,
+                dimension_key: dimensionKey,
+                value: new Date().getFullYear() - age,
+                source: 'hardware_software_sync'
+              })
+            }
+          } else {
+            dimensionValues.push({
+              match_id: matchId,
+              dimension_key: dimensionKey,
+              value,
+              source: 'hardware_software_sync'
+            })
+          }
+        }
+      }
+
+      // 同步 software 字段
+      for (const [field, dimensionKey] of Object.entries(softwareToDimensionMap)) {
+        const value = (software as Record<string, unknown>)[field]
+        if (value !== undefined && value !== null && value !== '') {
+          dimensionValues.push({
+            match_id: matchId,
+            dimension_key: dimensionKey,
+            value: Array.isArray(value) ? value : String(value),
+            source: 'hardware_software_sync'
+          })
+        }
+      }
+
+      if (dimensionValues.length === 0) return
+
+      // 使用 upsert 批量插入
+      for (const dv of dimensionValues) {
+        const { data, error } = await client
+          .from('profile_dimension_values')
+          .upsert({
+            match_id: dv.match_id,
+            dimension_key: dv.dimension_key,
+            value: dv.value,
+            source: dv.source,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'match_id,dimension_key'
+          })
+          .select()
+        
+        if (error) {
+          console.error(`同步维度 ${dv.dimension_key} 失败:`, error)
+        } else {
+          console.log(`同步维度 ${dv.dimension_key} 成功:`, data)
+        }
+      }
+
+      console.log(`已同步 ${dimensionValues.length} 条维度值到 match ${matchId}`)
+    } catch (err) {
+      console.error('同步维度值失败:', err)
     }
   }
 }
