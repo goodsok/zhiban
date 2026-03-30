@@ -165,23 +165,35 @@ export class ChatService {
 - 兴趣爱好 (interests，数组)
 - 喜欢的事物 (likes)
 - 讨厌的事物 (dislikes)
-- 有效的交流方式 (effectiveWays)
-- 无效的交流方式 (ineffectiveWays)
-- 雷区/忌讳 (landmines)
-- 爱的语言 (loveLanguages)
+- 沟通偏好 (communicationPreferences，嵌套对象):
+  - effectiveWays: 有效的沟通方式数组
+  - ineffectiveWays: 无效的沟通方式数组
+  - landmines: 雷区/忌讳数组
+- 爱的语言 (loveLanguages，数组，可选值: "精心时刻"、"肯定的言辞"、"接受礼物"、"服务的行动"、"身体接触")
 - 其他重要信息 (keyInfo，如纪念日、特殊习惯等)
 
-请以JSON格式返回，格式如下：
+请严格按以下JSON格式返回（注意 communicationPreferences 是嵌套对象）：
 {
   "hardware": {
     "age": 数字或null,
     "birthday": "字符串或null",
-    ...
+    "zodiac": "字符串或null",
+    "location": "字符串或null",
+    "occupation": "字符串或null",
+    "height": "字符串或null"
   },
   "software": {
     "mbti": "字符串或null",
+    "personality": "字符串或null",
     "interests": ["数组"] 或 null,
-    ...
+    "likes": "字符串或null",
+    "dislikes": "字符串或null",
+    "communicationPreferences": {
+      "effectiveWays": ["数组"] 或 null,
+      "ineffectiveWays": ["数组"] 或 null,
+      "landmines": ["数组"] 或 null
+    },
+    "loveLanguages": ["数组"] 或 null
   },
   "keyInfo": [
     {"type": "类型", "label": "标签", "value": "值"}
