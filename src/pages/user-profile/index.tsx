@@ -1,4 +1,4 @@
-import { View, Text } from '@tarojs/components'
+import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -7,7 +7,7 @@ import CustomHeader from '@/components/custom-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader, User, Heart, Sparkles, MessageCircle, Save } from 'lucide-react-taro'
+import { Loader, User, Heart, Sparkles, MessageCircle, Save, Target, X } from 'lucide-react-taro'
 
 interface UserProfile {
   nickname: string | null
@@ -45,6 +45,7 @@ interface UserProfile {
     socialEnergy: 'high' | 'medium' | 'low' | null
     expressionStyle: 'expressive' | 'reserved' | null
     preferredTopics: string[]
+    topicAvoid: string[]
   }
   lastUpdated: string
 }
@@ -122,11 +123,83 @@ const timeSlotOptions = [
   { value: 'night', label: '深夜', icon: '🦉' },
 ]
 
+const educationOptions = [
+  { value: 'high_school', label: '高中及以下' },
+  { value: 'college', label: '大专' },
+  { value: 'bachelor', label: '本科' },
+  { value: 'master', label: '硕士' },
+  { value: 'phd', label: '博士' },
+]
+
+const expressionStyleOptions = [
+  { value: 'expressive', label: '直率表达', desc: '喜欢直接表达想法和感受' },
+  { value: 'reserved', label: '含蓄内敛', desc: '比较含蓄，不喜欢太直白' },
+]
+
+const hobbyOptions = [
+  { value: 'reading', label: '阅读', icon: '📚' },
+  { value: 'music', label: '音乐', icon: '🎵' },
+  { value: 'movie', label: '电影', icon: '🎬' },
+  { value: 'game', label: '游戏', icon: '🎮' },
+  { value: 'sports', label: '运动', icon: '🏃' },
+  { value: 'travel', label: '旅行', icon: '✈️' },
+  { value: 'food', label: '美食', icon: '🍜' },
+  { value: 'photography', label: '摄影', icon: '📷' },
+  { value: 'art', label: '艺术', icon: '🎨' },
+  { value: 'pet', label: '宠物', icon: '🐱' },
+]
+
+const interestOptions = [
+  { value: 'tech', label: '科技', icon: '💻' },
+  { value: 'finance', label: '金融', icon: '📊' },
+  { value: 'fashion', label: '时尚', icon: '👗' },
+  { value: 'health', label: '健康养生', icon: '🧘' },
+  { value: 'psychology', label: '心理学', icon: '🧠' },
+  { value: 'history', label: '历史', icon: '🏛️' },
+  { value: 'nature', label: '自然', icon: '🌿' },
+  { value: 'car', label: '汽车', icon: '🚗' },
+]
+
+const preferredTraitOptions = [
+  { value: 'kind', label: '善良' },
+  { value: 'smart', label: '聪明' },
+  { value: 'funny', label: '幽默' },
+  { value: 'responsible', label: '有责任感' },
+  { value: 'ambitious', label: '有上进心' },
+  { value: 'gentle', label: '温柔' },
+  { value: 'confident', label: '自信' },
+  { value: 'independent', label: '独立' },
+  { value: 'family_oriented', label: '顾家' },
+  { value: 'open_minded', label: '思想开放' },
+]
+
+const dealBreakerOptions = [
+  { value: 'smoking', label: '抽烟' },
+  { value: 'drinking', label: '酗酒' },
+  { value: 'gambling', label: '赌博' },
+  { value: 'cheating', label: '不忠诚' },
+  { value: 'controlling', label: '控制欲强' },
+  { value: 'lazy', label: '懒惰' },
+  { value: 'rude', label: '不尊重人' },
+  { value: 'jealous', label: '爱吃醋' },
+]
+
+const topicOptions = [
+  { value: 'daily', label: '日常生活', icon: '☀️' },
+  { value: 'work', label: '工作事业', icon: '💼' },
+  { value: 'emotion', label: '情感心理', icon: '💗' },
+  { value: 'hobby', label: '兴趣爱好', icon: '🎯' },
+  { value: 'future', label: '未来规划', icon: '🔮' },
+  { value: 'relationship', label: '感情话题', icon: '💕' },
+  { value: 'food', label: '美食', icon: '🍽️' },
+  { value: 'travel', label: '旅行', icon: '🌍' },
+]
+
 const UserProfilePage: FC = () => {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [profile, setProfile] = useState<UserProfile>(defaultProfile)
-  const [activeSection, setActiveSection] = useState<'basic' | 'personality' | 'relationship' | 'behavior'>('basic')
+  const [activeSection, setActiveSection] = useState<'basic' | 'personality' | 'relationship' | 'interests' | 'expectation' | 'behavior'>('basic')
 
   useLoad(() => {
     fetchProfile()
@@ -227,30 +300,34 @@ const UserProfilePage: FC = () => {
 
       {/* Tab 切换 */}
       <View className="px-4 pt-4">
-        <View className="flex bg-gray-100 rounded-lg p-1">
-          {[
-            { key: 'basic', label: '基本信息' },
-            { key: 'personality', label: '性格情感' },
-            { key: 'relationship', label: '恋爱观' },
-            { key: 'behavior', label: '行为偏好' },
-          ].map((tab) => (
-            <View
-              key={tab.key}
-              className={`flex-1 py-2 rounded-md text-center ${
-                activeSection === tab.key ? 'bg-white shadow-sm' : ''
-              }`}
-              onClick={() => setActiveSection(tab.key as typeof activeSection)}
-            >
-              <Text
-                className={`block text-sm ${
-                  activeSection === tab.key ? 'text-gray-900 font-medium' : 'text-gray-500'
+        <ScrollView scrollX className="whitespace-nowrap">
+          <View className="flex bg-gray-100 rounded-lg p-1 inline-flex min-w-full">
+            {[
+              { key: 'basic', label: '基本信息' },
+              { key: 'personality', label: '性格情感' },
+              { key: 'relationship', label: '恋爱观' },
+              { key: 'interests', label: '兴趣爱好' },
+              { key: 'expectation', label: '期望对象' },
+              { key: 'behavior', label: '行为偏好' },
+            ].map((tab) => (
+              <View
+                key={tab.key}
+                className={`flex-shrink-0 px-3 py-2 rounded-md text-center ${
+                  activeSection === tab.key ? 'bg-white shadow-sm' : ''
                 }`}
+                onClick={() => setActiveSection(tab.key as typeof activeSection)}
               >
-                {tab.label}
-              </Text>
-            </View>
-          ))}
-        </View>
+                <Text
+                  className={`block text-sm ${
+                    activeSection === tab.key ? 'text-gray-900 font-medium' : 'text-gray-500'
+                  }`}
+                >
+                  {tab.label}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
       </View>
 
       {/* 基本信息 */}
@@ -305,6 +382,39 @@ const UserProfilePage: FC = () => {
                   maxlength={4}
                   type="number"
                 />
+              </View>
+            </View>
+
+            {/* 身高 */}
+            <View className="mb-4">
+              <Text className="block text-xs text-gray-500 mb-2">身高 (cm)</Text>
+              <View className="bg-gray-50 rounded-lg px-4 py-3">
+                <Input
+                  className="w-full bg-transparent text-sm"
+                  placeholder="例如：175"
+                  value={profile.height?.toString() || ''}
+                  onInput={(e) => updateProfile({ height: parseInt(e.detail.value) || null })}
+                  maxlength={3}
+                  type="number"
+                />
+              </View>
+            </View>
+
+            {/* 学历 */}
+            <View className="mb-4">
+              <Text className="block text-xs text-gray-500 mb-2">学历</Text>
+              <View className="flex flex-wrap gap-2">
+                {educationOptions.map((option) => (
+                  <View
+                    key={option.value}
+                    className={`px-3 py-2 rounded-lg border ${
+                      profile.education === option.value ? 'border-black bg-gray-50' : 'border-gray-100'
+                    }`}
+                    onClick={() => updateProfile({ education: option.value })}
+                  >
+                    <Text className="block text-sm text-gray-700">{option.label}</Text>
+                  </View>
+                ))}
               </View>
             </View>
 
@@ -528,6 +638,102 @@ const UserProfilePage: FC = () => {
         </View>
       )}
 
+      {/* 兴趣爱好 */}
+      {activeSection === 'interests' && (
+        <View className="p-4">
+          {/* 爱好 */}
+          <View className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+            <View className="flex items-center gap-2 mb-3">
+              <Heart size={14} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">爱好（可多选）</Text>
+            </View>
+            <View className="flex flex-wrap gap-2">
+              {hobbyOptions.map((option) => (
+                <View
+                  key={option.value}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
+                    profile.hobbies.includes(option.value) ? 'border-black bg-gray-50' : 'border-gray-100'
+                  }`}
+                  onClick={() => toggleArrayItem('hobbies', option.value)}
+                >
+                  <Text className="block text-base">{option.icon}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* 兴趣领域 */}
+          <View className="bg-white rounded-xl border border-gray-100 p-4">
+            <View className="flex items-center gap-2 mb-3">
+              <Sparkles size={14} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">兴趣领域（可多选）</Text>
+            </View>
+            <View className="flex flex-wrap gap-2">
+              {interestOptions.map((option) => (
+                <View
+                  key={option.value}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
+                    profile.interests.includes(option.value) ? 'border-black bg-gray-50' : 'border-gray-100'
+                  }`}
+                  onClick={() => toggleArrayItem('interests', option.value)}
+                >
+                  <Text className="block text-base">{option.icon}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* 期望对象 */}
+      {activeSection === 'expectation' && (
+        <View className="p-4">
+          {/* 期望特质 */}
+          <View className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+            <View className="flex items-center gap-2 mb-3">
+              <Target size={14} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">期望的特质（可多选）</Text>
+            </View>
+            <View className="flex flex-wrap gap-2">
+              {preferredTraitOptions.map((option) => (
+                <View
+                  key={option.value}
+                  className={`px-3 py-2 rounded-lg border ${
+                    profile.preferredTraits.includes(option.value) ? 'border-black bg-gray-50' : 'border-gray-100'
+                  }`}
+                  onClick={() => toggleArrayItem('preferredTraits', option.value)}
+                >
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* 不能接受的点 */}
+          <View className="bg-white rounded-xl border border-gray-100 p-4">
+            <View className="flex items-center gap-2 mb-3">
+              <X size={14} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">不能接受的点（可多选）</Text>
+            </View>
+            <View className="flex flex-wrap gap-2">
+              {dealBreakerOptions.map((option) => (
+                <View
+                  key={option.value}
+                  className={`px-3 py-2 rounded-lg border ${
+                    profile.dealBreakers.includes(option.value) ? 'border-black bg-gray-50' : 'border-gray-100'
+                  }`}
+                  onClick={() => toggleArrayItem('dealBreakers', option.value)}
+                >
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* 行为偏好 */}
       {activeSection === 'behavior' && (
         <View className="p-4">
@@ -607,7 +813,7 @@ const UserProfilePage: FC = () => {
           </View>
 
           {/* 活跃时段 */}
-          <View className="bg-white rounded-xl border border-gray-100 p-4">
+          <View className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
             <Text className="block text-sm font-semibold text-gray-900 mb-3">活跃时段（可多选）</Text>
             <View className="flex flex-wrap gap-2">
               {timeSlotOptions.map((option) => (
@@ -617,6 +823,75 @@ const UserProfilePage: FC = () => {
                     (profile.behavior?.activeTimeSlots || []).includes(option.value) ? 'border-black bg-gray-50' : 'border-gray-100'
                   }`}
                   onClick={() => toggleBehaviorArray('activeTimeSlots', option.value)}
+                >
+                  <Text className="block text-base">{option.icon}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* 表达风格 */}
+          <View className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">表达风格</Text>
+            <View className="space-y-2">
+              {expressionStyleOptions.map((option) => (
+                <View
+                  key={option.value}
+                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                    profile.behavior?.expressionStyle === option.value ? 'border-black bg-gray-50' : 'border-gray-100'
+                  }`}
+                  onClick={() => setProfile(prev => ({
+                    ...prev,
+                    behavior: { ...prev.behavior, expressionStyle: option.value as any } as any,
+                  }))}
+                >
+                  <View>
+                    <Text className="block text-sm text-gray-800">{option.label}</Text>
+                    <Text className="block text-xs text-gray-400">{option.desc}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* 偏爱话题 */}
+          <View className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">偏爱话题（可多选）</Text>
+            <View className="flex flex-wrap gap-2">
+              {topicOptions.map((option) => (
+                <View
+                  key={option.value}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
+                    (profile.behavior?.preferredTopics || []).includes(option.value) ? 'border-black bg-gray-50' : 'border-gray-100'
+                  }`}
+                  onClick={() => toggleBehaviorArray('preferredTopics', option.value)}
+                >
+                  <Text className="block text-base">{option.icon}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* 回避话题 */}
+          <View className="bg-white rounded-xl border border-gray-100 p-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">回避话题（可多选）</Text>
+            <View className="flex flex-wrap gap-2">
+              {topicOptions.map((option) => (
+                <View
+                  key={option.value}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
+                    (profile.behavior?.topicAvoid || []).includes(option.value) ? 'border-black bg-gray-50' : 'border-gray-100'
+                  }`}
+                  onClick={() => {
+                    const arr = profile.behavior?.topicAvoid || []
+                    const newArr = arr.includes(option.value) ? arr.filter(v => v !== option.value) : [...arr, option.value]
+                    setProfile(prev => ({
+                      ...prev,
+                      behavior: { ...prev.behavior, topicAvoid: newArr } as any,
+                    }))
+                  }}
                 >
                   <Text className="block text-base">{option.icon}</Text>
                   <Text className="block text-sm text-gray-700">{option.label}</Text>

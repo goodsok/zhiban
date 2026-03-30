@@ -49,6 +49,7 @@ export interface FullUserProfile {
     socialEnergy: 'high' | 'medium' | 'low' | null
     expressionStyle: 'expressive' | 'reserved' | null
     preferredTopics: string[]
+    topicAvoid: string[]
   }
   lastUpdated: string
 }
@@ -539,6 +540,7 @@ export class UserProfileService {
         socialEnergy: (behavior.social_energy as 'high' | 'medium' | 'low') || null,
         expressionStyle: (behavior.expression_style as 'expressive' | 'reserved') || null,
         preferredTopics: (behavior.preferred_topics as string[]) || [],
+        topicAvoid: (behavior.topic_avoid as string[]) || [],
       } : undefined,
       lastUpdated: (profile?.updated_at as string) || new Date().toISOString(),
     }
