@@ -56,6 +56,64 @@ export interface FullUserProfile {
 @Injectable()
 export class UserProfileService {
   /**
+   * 确保用户档案存在
+   */
+  private async ensureProfileExists(userId: number): Promise<void> {
+    const client = getSupabaseClient()
+
+    const { data: existingProfile, error: checkError } = await client
+      .from('user_profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('ensureProfileExists check error:', checkError)
+    }
+
+    if (!existingProfile) {
+      const defaultProfile = this.getDefaultProfile()
+      
+      // 使用 upsert 而不是 insert，避免重复插入问题
+      const { error: upsertError } = await client
+        .from('user_profiles')
+        .upsert({
+          id: userId,
+          nickname: null,
+          gender: 'male',
+          ...defaultProfile.personality,
+          ...defaultProfile.emotional,
+          relationship_goal: defaultProfile.relationshipGoal,
+          attachment_style: defaultProfile.attachmentStyle,
+          love_language: defaultProfile.loveLanguage,
+          hobbies: defaultProfile.hobbies,
+          interests: defaultProfile.interests,
+          preferred_traits: defaultProfile.preferredTraits,
+          deal_breakers: defaultProfile.dealBreakers,
+          confidence: 0,
+        }, { onConflict: 'id' })
+
+      if (upsertError) {
+        console.error('ensureProfileExists upsert error:', upsertError)
+      }
+
+      // 同时确保行为偏好记录存在
+      const { error: behaviorError } = await client
+        .from('user_behavior_preferences')
+        .upsert({
+          user_id: userId,
+          active_time_slots: [],
+          preferred_topics: [],
+          topic_avoid: [],
+        }, { onConflict: 'user_id' })
+
+      if (behaviorError) {
+        console.error('ensureProfileExists behavior upsert error:', behaviorError)
+      }
+    }
+  }
+
+  /**
    * 获取或创建用户档案
    */
   async getOrCreateProfile(userId: number): Promise<FullUserProfile> {
@@ -124,6 +182,9 @@ export class UserProfileService {
   ): Promise<FullUserProfile> {
     const client = getSupabaseClient()
 
+    // 先确保记录存在
+    await this.ensureProfileExists(userId)
+
     // 准备更新数据
     const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
@@ -169,12 +230,16 @@ export class UserProfileService {
     if (data.dealBreakers !== undefined) updateData.deal_breakers = data.dealBreakers
 
     // 更新档案
-    const { data: profile } = await client
+    const { data: profile, error } = await client
       .from('user_profiles')
       .update(updateData)
       .eq('id', userId)
       .select()
       .single()
+
+    if (error) {
+      console.error('Update profile error:', error)
+    }
 
     // 如果有行为偏好，也更新
     if (data.behavior) {
