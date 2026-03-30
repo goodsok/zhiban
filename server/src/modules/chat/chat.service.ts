@@ -252,6 +252,7 @@ export class ChatService {
 
   /**
    * 生成智能快捷问题
+   * 根据用户与对象的互动状态、聊天内容推测困惑，给出推进关系的建议
    */
   async generateQuickQuestions(context: ChatContext | null, req: Request): Promise<string[]> {
     if (!context) {
@@ -259,137 +260,168 @@ export class ChatService {
     }
 
     try {
-      // 从数据库获取最新的档案信息
       const client = getSupabaseClient()
-      const { data: latestMatch, error } = await client
-        .from('matches')
-        .select('hardware, software, relationship_stage, interaction_status')
-        .eq('id', context.matchId)
-        .single()
 
-      // 使用最新的档案信息，如果获取失败则使用传入的 context
-      let hw: Record<string, unknown>
-      let sw: Record<string, unknown>
-      let relationshipStage: string
-      let interactionStatus: string
+      // 1. 获取最近的聊天历史
+      const { data: chatHistory } = await client
+        .from('chat_histories')
+        .select('role, content, created_at')
+        .eq('match_id', context.matchId)
+        .order('created_at', { ascending: false })
+        .limit(10)
 
-      if (latestMatch && !error) {
-        const match = latestMatch as {
-          hardware: Record<string, unknown>
-          software: Record<string, unknown>
-          relationship_stage: string
-          interaction_status: string
+      const recentChats = (chatHistory || []) as Array<{ role: string; content: string; created_at: string }>
+      
+      // 2. 使用传入的 context 作为主要信息来源（前端状态是最新的）
+      const interactionStatus = context.interactionStatus
+      const cycleInfo = context.cycleInfo
+
+      // 3. 如果有聊天历史，用 LLM 分析用户关注点并生成个性化问题
+      if (recentChats.length >= 2) {
+        try {
+          const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
+          const config = new Config()
+          const llmClient = new LLMClient(config, customHeaders)
+
+          const chatSummary = recentChats
+            .slice(0, 6)
+            .reverse()
+            .map(c => `${c.role === 'user' ? '用户' : 'AI'}：${c.content.slice(0, 80)}`)
+            .join('\n')
+
+          const prompt = `分析用户聊天记录，推测用户困惑，生成3个后续问题。
+
+阶段：${interactionStatus}
+困惑：${this.getConfusionByStatus(interactionStatus)}
+
+聊天记录：
+${chatSummary}
+
+要求：针对聊天中提到的具体问题，生成用户可能想继续问的问题。
+每问一行，15字内，不要编号：`
+
+          const response = await llmClient.invoke([
+            { role: 'user', content: prompt }
+          ], { temperature: 0.7 })
+
+          const questions = response.content
+            .split('\n')
+            .map(q => q.replace(/^[-•\d.、)]+\s*/, '').trim())
+            .filter(q => q.length > 0 && q.length <= 20)
+            .slice(0, 3)
+
+          if (questions.length === 3) {
+            return questions
+          }
+        } catch (llmError) {
+          console.error('LLM generate questions error:', llmError)
         }
-        hw = match.hardware || {}
-        sw = match.software || {}
-        relationshipStage = match.relationship_stage
-        interactionStatus = match.interaction_status
-      } else {
-        hw = context.hardware as Record<string, unknown>
-        sw = context.software as Record<string, unknown>
-        relationshipStage = context.relationshipStage
-        interactionStatus = context.interactionStatus
       }
 
-      const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
-      const config = new Config()
-      const llmClient = new LLMClient(config, customHeaders)
-
-      // 构建档案缺失信息
-      const missingInfo: string[] = []
-      if (!hw?.age) missingInfo.push('年龄')
-      if (!hw?.birthday) missingInfo.push('生日')
-      if (!hw?.location) missingInfo.push('所在地')
-      if (!hw?.occupation) missingInfo.push('职业')
-      if (!sw?.mbti) missingInfo.push('MBTI')
-      if (!sw?.personality) missingInfo.push('性格')
-      if (!sw?.interests || (sw.interests as string[]).length === 0) missingInfo.push('兴趣爱好')
-      if (!sw?.loveLanguages || (sw.loveLanguages as string[]).length === 0) missingInfo.push('爱的语言')
-      if (!sw?.communicationPreferences || !(sw.communicationPreferences as Record<string, string[]>).landmines?.length) missingInfo.push('雷区')
-
-      const prompt = `你是一个恋爱顾问。根据以下信息，生成3个最有价值的快捷问题，帮助用户更好地了解对方或推进关系。
-
-对方档案：
-- 姓名：${context.matchName}
-- 关系阶段：${relationshipStage}
-- 互动状态：${interactionStatus}
-- 已知信息：年龄${hw?.age || '未知'}，职业${hw?.occupation || '未知'}，MBTI${sw?.mbti || '未知'}
-- 缺失信息：${missingInfo.join('、') || '无'}
-${context.cycleInfo ? `- 当前周期：${context.cycleInfo.phaseName}（Day ${context.cycleInfo.day}）` : ''}
-
-要求：
-1. 问题要简短（15字以内），适合点击直接发送
-2. 优先填补缺失的关键信息
-3. 根据关系阶段给出推进建议
-4. 如果有周期信息，给出周期相关的关心建议
-
-请直接返回3个问题，用换行分隔，不要编号和其他文字。`
-
-      const response = await llmClient.invoke([
-        { role: 'user', content: prompt }
-      ], { temperature: 0.7 })
-
-      // 解析问题列表
-      const questions = response.content
-        .split('\n')
-        .map(q => q.replace(/^\d+[.、]\s*/, '').trim())
-        .filter(q => q.length > 0 && q.length <= 20)
-        .slice(0, 3)
-
-      return questions.length > 0 ? questions : this.getDefaultQuickQuestions(context)
+      // 4. 使用预设的阶段问题
+      return this.getContextualQuickQuestions(
+        context.relationshipStage, 
+        interactionStatus, 
+        cycleInfo
+      )
     } catch (error) {
       console.error('Generate quick questions error:', error)
-      return this.getDefaultQuickQuestions(context)
+      return this.getContextualQuickQuestions(
+        context.relationshipStage, 
+        context.interactionStatus, 
+        context.cycleInfo
+      )
     }
   }
 
   /**
-   * 获取默认快捷问题
+   * 根据互动状态获取用户可能的困惑描述
    */
-  private getDefaultQuickQuestions(context: ChatContext): string[] {
-    const { relationshipStage, interactionStatus, cycleInfo } = context
+  private getConfusionByStatus(status: string): string {
+    const confusions: Record<string, string> = {
+      just_met: '刚认识，不知道怎么留下好印象、怎么要联系方式',
+      got_contact: '有联系方式但不知道怎么开场、怕第一条消息发不好',
+      chatted: '聊过但不够深入，不知道怎么约出来、不确定对方是否感兴趣',
+      good_vibe: '感觉不错但不知道怎么升级关系、什么时候约合适',
+      met_up: '见过面了但不知道约会效果如何、怎么继续推进',
+      dating_regularly: '经常约会但不知道怎么更进一步、什么时候表白',
+      ambiguous: '暧昧期卡住了，想突破又怕失去、不确定对方心意',
+      confirming: '准备确认关系但不知道怎么表白、怕被拒绝',
+    }
+    return confusions[status] || '不知道怎么推进关系'
+  }
+
+  /**
+   * 根据互动状态获取上下文相关的快捷问题
+   * 注意：这些问题是用户会问AI助手的问题，不是问对象的问题
+   */
+  private getContextualQuickQuestions(
+    relationshipStage: string, 
+    interactionStatus: string, 
+    cycleInfo?: { day: number; phase: string; phaseName: string; description: string }
+  ): string[] {
     const questions: string[] = []
 
-    // 根据互动状态
-    const statusQuestions: Record<string, string> = {
-      just_met: '如何自然地获取联系方式？',
-      got_contact: '第一条消息发什么好？',
-      chatted: '怎么延续话题不冷场？',
-      good_vibe: '什么时候适合约出来？',
-      met_up: '约会后怎么跟进？',
-      dating_regularly: '如何让关系更进一步？',
-      ambiguous: '暧昧期怎么突破？',
-      confirming: '如何准备表白？',
-    }
-    if (statusQuestions[interactionStatus]) {
-      questions.push(statusQuestions[interactionStatus])
+    // 根据互动状态给出用户最可能问AI的问题
+    const statusQuestions: Record<string, string[]> = {
+      just_met: [
+        '怎么自然地认识她？',
+        '怎么给她留下好印象？',
+        '怎么要联系方式不尴尬？'
+      ],
+      got_contact: [
+        '第一条消息发什么好？',
+        '怎么开场不会被冷落？',
+        '怎么找共同话题？'
+      ],
+      chatted: [
+        '怎么让聊天更深入？',
+        '怎么约她出来见面？',
+        '她回复慢是不感兴趣吗？'
+      ],
+      good_vibe: [
+        '怎么升级关系？',
+        '什么时候约她合适？',
+        '怎么试探她的心意？'
+      ],
+      met_up: [
+        '约会后怎么跟进？',
+        '怎么判断约会效果？',
+        '下次约什么活动好？'
+      ],
+      dating_regularly: [
+        '怎么让关系更进一步？',
+        '什么时候表白合适？',
+        '怎么让她更依赖我？'
+      ],
+      ambiguous: [
+        '怎么突破暧昧期？',
+        '怎么确认她的心意？',
+        '怎么制造心动瞬间？'
+      ],
+      confirming: [
+        '怎么表白成功率高？',
+        '表白说什么比较好？',
+        '被拒绝了怎么处理？'
+      ],
     }
 
-    // 根据周期
-    if (cycleInfo) {
+    if (statusQuestions[interactionStatus]) {
+      questions.push(...statusQuestions[interactionStatus])
+    }
+
+    // 如果有周期信息，替换一个周期相关问题
+    if (cycleInfo && questions.length >= 2) {
       if (cycleInfo.phase === 'menstrual') {
-        questions.push('她经期怎么表达关心？')
+        questions[2] = '她经期怎么关心她？'
       } else if (cycleInfo.phase === 'ovulation') {
-        questions.push('现在适合约她吗？')
+        questions[2] = '现在约她合适吗？'
       } else if (cycleInfo.phase === 'luteal_late') {
-        questions.push('PMS期间要注意什么？')
+        questions[2] = '她情绪不好怎么安慰？'
       }
     }
 
-    // 根据阶段
-    const stageQuestions: Record<string, string> = {
-      new: '怎么快速了解她？',
-      contacting: '怎么增加互动频率？',
-      dating: '约会去哪里比较好？',
-      progressing: '如何准备表白？',
-    }
-    if (stageQuestions[relationshipStage]) {
-      questions.push(stageQuestions[relationshipStage])
-    }
-
-    questions.push('给我一些聊天话题建议')
-
-    return [...new Set(questions)].slice(0, 3)
+    return questions.slice(0, 3)
   }
 
 
