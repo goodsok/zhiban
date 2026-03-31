@@ -26,7 +26,8 @@ import {
   Database,
   Check,
   X,
-  Pencil
+  Pencil,
+  MessageCirclePlus
 } from 'lucide-react-taro'
 
 // 推进值接口
@@ -436,6 +437,19 @@ const DetailPage: FC = () => {
       <View className="px-4 pb-4">
         <Text className="block text-sm font-semibold text-gray-900 mb-2">操作</Text>
         <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
+          <View 
+            className="flex items-center justify-between px-4 py-3"
+            onClick={() => navigateTo({ url: `/pages/interaction-create/index?matchId=${detail.id}` })}
+          >
+            <View className="flex items-center gap-3">
+              <MessageCirclePlus size={18} color="#6366F1" />
+              <Text className="block text-sm text-gray-700">记录互动</Text>
+            </View>
+            <View className="flex items-center gap-2">
+              <Text className="block text-xs text-indigo-500">快速添加</Text>
+              <ChevronRight size={16} color="#D1D5DB" />
+            </View>
+          </View>
           <View 
             className="flex items-center justify-between px-4 py-3"
             onClick={goToTasks}

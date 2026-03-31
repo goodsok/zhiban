@@ -3,7 +3,7 @@ import { useLoad, useDidShow, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
-import { Plus, ChevronRight, Sparkles, Heart, Sun, Moon, Cloud } from 'lucide-react-taro'
+import { Plus, ChevronRight, Sparkles, Heart, Sun, Moon, Cloud, MessageCirclePlus } from 'lucide-react-taro'
 
 interface Match {
   id: number
@@ -127,9 +127,8 @@ const Index: FC = () => {
               <View
                 key={match.id}
                 className="bg-white rounded-xl border border-gray-100 p-4 mb-3"
-                onClick={() => goToDetail(match.id)}
               >
-                <View className="flex items-center justify-between">
+                <View className="flex items-center justify-between" onClick={() => goToDetail(match.id)}>
                   <View className="flex-1 min-w-0">
                     <View className="flex items-center gap-2 mb-1">
                       <Text className="block text-base font-semibold text-gray-900 flex-shrink-0">
@@ -152,6 +151,27 @@ const Index: FC = () => {
                   <ChevronRight size={20} color="#D1D5DB" />
                 </View>
                 
+                {/* 快捷操作按钮 */}
+                <View className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                  <View 
+                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-indigo-50 rounded-lg"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigateTo({ url: `/pages/interaction-create/index?matchId=${match.id}` })
+                    }}
+                  >
+                    <MessageCirclePlus size={14} color="#6366F1" />
+                    <Text className="block text-xs font-medium text-indigo-600">记录互动</Text>
+                  </View>
+                  <View 
+                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-gray-50 rounded-lg"
+                    onClick={() => goToDetail(match.id)}
+                  >
+                    <Sparkles size={14} color="#6B7280" />
+                    <Text className="block text-xs font-medium text-gray-600">查看档案</Text>
+                  </View>
+                </View>
+                
                 {/* 周期阶段显示 */}
                 {cycleInfo && phaseConf && (
                   <View className={`mt-3 pt-3 border-t border-gray-100 ${phaseConf.bgColor} -mx-4 -mb-4 px-4 py-3 rounded-b-xl`}>
@@ -164,14 +184,6 @@ const Index: FC = () => {
                     <Text className="block text-xs text-gray-500">
                       {cycleInfo.recommendations[0] || '保持关注'}
                     </Text>
-                  </View>
-                )}
-                
-                {/* 下一步行动提示（无周期时显示） */}
-                {!cycleInfo && match.nextAction && (
-                  <View className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
-                    <Sparkles size={14} color="#6366F1" />
-                    <Text className="block text-xs text-gray-500">{match.nextAction}</Text>
                   </View>
                 )}
               </View>
