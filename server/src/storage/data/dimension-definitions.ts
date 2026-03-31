@@ -27,6 +27,13 @@ export interface DimensionDefinition {
   importance: 'critical' | 'important' | 'optional'
   source_allowed: string[]
   sort_order: number
+  /**
+   * 关系适用性
+   * - short_term: 仅适用于短期关系（约会、暧昧、FWB等）
+   * - long_term: 仅适用于长期关系（认真恋爱、婚姻）
+   * - universal: 通用，适用于所有关系类型
+   */
+  relationship_applicability?: 'short_term' | 'long_term' | 'universal'
 }
 
 // ==================== Layer 1: 静态属性 ====================
@@ -1923,9 +1930,894 @@ export const layer3Dimensions: DimensionDefinition[] = [
   }
 ]
 
+// ==================== Layer 4: 短期关系属性 ====================
+// 适用于约会对象、暧昧对象、FWB等短期关系场景的维度
+
+export const layer4Dimensions: DimensionDefinition[] = [
+  // ==================== 4.1 性观念与亲密 ====================
+  {
+    dimension_key: 'sexualAttitude',
+    display_name: '性观念',
+    description: '对性和身体亲密的态度与价值观',
+    layer: 4,
+    category: 'sexual_intimacy',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'conservative', label: '传统保守' },
+      { value: 'moderate', label: '开放适中' },
+      { value: 'liberal', label: '开放自由' },
+      { value: 'casual', label: '随意开放' }
+    ],
+    input_type: 'select',
+    weight: 1.5,
+    importance: 'critical',
+    source_allowed: ['manual'],
+    sort_order: 300,
+    relationship_applicability: 'universal'
+  },
+  {
+    dimension_key: 'physicalIntimacyTimeline',
+    display_name: '身体亲密时间线',
+    description: '对发生身体亲密的时间预期',
+    layer: 4,
+    category: 'sexual_intimacy',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'first_date', label: '第一次约会即可' },
+      { value: 'few_dates', label: '几次约会后' },
+      { value: 'after_trust', label: '建立信任后' },
+      { value: 'after_commitment', label: '确定关系后' },
+      { value: 'after_marriage', label: '婚后' }
+    ],
+    input_type: 'select',
+    weight: 1.4,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 301,
+    relationship_applicability: 'universal'
+  },
+  {
+    dimension_key: 'sexualExperienceLevel',
+    display_name: '性经验丰富度',
+    description: '过往性经验的丰富程度',
+    layer: 4,
+    category: 'sexual_intimacy',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'inexperienced', label: '经验很少' },
+      { value: 'limited', label: '经验有限' },
+      { value: 'moderate', label: '经验适中' },
+      { value: 'experienced', label: '经验丰富' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 302,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'safeSexAttitude',
+    display_name: '安全性行为态度',
+    description: '对安全性行为的重视程度',
+    layer: 4,
+    category: 'sexual_intimacy',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'very_strict', label: '非常严格' },
+      { value: 'careful', label: '比较谨慎' },
+      { value: 'flexible', label: '灵活视情况' },
+      { value: 'casual', label: '不太在意' }
+    ],
+    input_type: 'select',
+    weight: 1.3,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 303,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'sexualCompatibilityImportance',
+    display_name: '性契合度重要性',
+    description: '认为性契合在关系中的重要程度',
+    layer: 4,
+    category: 'sexual_intimacy',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=不重要，100=非常重要',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 304,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'physicalAffectionStyle',
+    display_name: '肢体亲密度偏好',
+    description: '在公开场合和私下对身体接触的舒适度',
+    layer: 4,
+    category: 'sexual_intimacy',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'very_affectionate', label: '非常喜欢肢体接触' },
+      { value: 'moderate', label: '适度亲昵' },
+      { value: 'private_only', label: '私下亲密' },
+      { value: 'reserved', label: '比较含蓄' }
+    ],
+    input_type: 'select',
+    weight: 1.1,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 305,
+    relationship_applicability: 'universal'
+  },
+
+  // ==================== 4.2 关系形式偏好 ====================
+  {
+    dimension_key: 'relationshipFormPreference',
+    display_name: '关系形式偏好',
+    description: '对关系形式的接受和偏好',
+    layer: 4,
+    category: 'relationship_form',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 独占恋爱、开放式关系、无标签关系、异地恋',
+    weight: 1.4,
+    importance: 'critical',
+    source_allowed: ['manual'],
+    sort_order: 310,
+    relationship_applicability: 'universal'
+  },
+  {
+    dimension_key: 'exclusivityExpectation',
+    display_name: '独占性期望',
+    description: '对关系排他性的期望程度',
+    layer: 4,
+    category: 'relationship_form',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'strictly_exclusive', label: '必须排他' },
+      { value: 'prefer_exclusive', label: '偏好排他' },
+      { value: 'flexible', label: '可以协商' },
+      { value: 'open_acceptable', label: '接受开放' }
+    ],
+    input_type: 'select',
+    weight: 1.5,
+    importance: 'critical',
+    source_allowed: ['manual'],
+    sort_order: 311,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'labelingPreference',
+    display_name: '关系标签化偏好',
+    description: '对给关系贴标签（如男女朋友）的态度',
+    layer: 4,
+    category: 'relationship_form',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'need_label', label: '需要明确标签' },
+      { value: 'prefer_label', label: '偏好有标签' },
+      { value: 'flexible', label: '标签不重要' },
+      { value: 'avoid_label', label: '不想贴标签' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 312,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'casualDatingAcceptance',
+    display_name: '随意约会接受度',
+    description: '对没有长期承诺的约会关系的态度',
+    layer: 4,
+    category: 'relationship_form',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'prefer_casual', label: '偏好随意约会' },
+      { value: 'accept', label: '可以接受' },
+      { value: 'hesitant', label: '有些犹豫' },
+      { value: 'reject', label: '不接受' }
+    ],
+    input_type: 'select',
+    weight: 1.3,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 313,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'fwbAcceptance',
+    display_name: '朋友变恋人接受度',
+    description: '对从朋友发展为亲密关系的态度',
+    layer: 4,
+    category: 'relationship_form',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'open_to_it', label: '可以接受' },
+      { value: 'case_by_case', label: '视情况而定' },
+      { value: 'prefer_separate', label: '朋友恋人分开' },
+      { value: 'uncomfortable', label: '不太舒服' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 314,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'multiplePartnerAcceptance',
+    display_name: '多伴侣接受度',
+    description: '对同时与多人约会或保持关系的态度',
+    layer: 4,
+    category: 'relationship_form',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'open_to_it', label: '可以接受' },
+      { value: 'with_transparency', label: '坦诚前提下可接受' },
+      { value: 'case_by_case', label: '视情况而定' },
+      { value: 'not_acceptable', label: '不能接受' }
+    ],
+    input_type: 'select',
+    weight: 1.3,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 315,
+    relationship_applicability: 'short_term'
+  },
+
+  // ==================== 4.3 情感投入与边界 ====================
+  {
+    dimension_key: 'emotionalBoundaryStyle',
+    display_name: '情感边界设定',
+    description: '在关系中对情感投入的边界控制方式',
+    layer: 4,
+    category: 'emotional_investment',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'all_in', label: '全情投入' },
+      { value: 'gradual', label: '逐步开放' },
+      { value: 'guarded', label: '有保留' },
+      { value: 'compartmentalized', label: '情感隔离' }
+    ],
+    input_type: 'select',
+    weight: 1.4,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 320,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'emotionalInvestmentSpeed',
+    display_name: '情感投入速度',
+    description: '在感情中投入情感的快慢节奏',
+    layer: 4,
+    category: 'emotional_investment',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'very_fast', label: '很快投入' },
+      { value: 'fast', label: '比较快' },
+      { value: 'moderate', label: '循序渐进' },
+      { value: 'slow', label: '慢热型' },
+      { value: 'very_slow', label: '非常慢热' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 321,
+    relationship_applicability: 'universal'
+  },
+  {
+    dimension_key: 'emotionalDetachmentAbility',
+    display_name: '情感抽离能力',
+    description: '在关系结束后或需要时抽离情感的能力',
+    layer: 4,
+    category: 'emotional_investment',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=难以抽离，100=容易抽离',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 322,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'feelingsExpressionTiming',
+    display_name: '表达感觉的时机',
+    description: '多久之后会表达喜欢或爱的感觉',
+    layer: 4,
+    category: 'emotional_investment',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'early', label: '很早就说' },
+      { value: 'when_sure', label: '确定后说' },
+      { value: 'wait_for_partner', label: '等对方先说' },
+      { value: 'rarely', label: '很少表达' }
+    ],
+    input_type: 'select',
+    weight: 1.1,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 323,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'emotionalAvailabilityLevel',
+    display_name: '情感可用性',
+    description: '当前能够投入感情的程度',
+    layer: 4,
+    category: 'emotional_investment',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'fully_available', label: '完全可用' },
+      { value: 'mostly_available', label: '大部分可用' },
+      { value: 'partially_available', label: '部分可用' },
+      { value: 'limited', label: '情感受限' },
+      { value: 'unavailable', label: '暂时不可用' }
+    ],
+    input_type: 'select',
+    weight: 1.5,
+    importance: 'critical',
+    source_allowed: ['manual'],
+    sort_order: 324,
+    relationship_applicability: 'universal'
+  },
+
+  // ==================== 4.4 时间可用性 ====================
+  {
+    dimension_key: 'availabilityForDating',
+    display_name: '恋爱时间可用性',
+    description: '当前可用于恋爱的时间和精力',
+    layer: 4,
+    category: 'time_availability',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'fully_available', label: '充分可用' },
+      { value: 'mostly_available', label: '大部分可用' },
+      { value: 'limited', label: '时间有限' },
+      { value: 'irregular', label: '时间不规律' },
+      { value: 'mostly_unavailable', label: '很少有时间' }
+    ],
+    input_type: 'select',
+    weight: 1.4,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 330,
+    relationship_applicability: 'universal'
+  },
+  {
+    dimension_key: 'meetingFrequencyExpectation',
+    display_name: '见面频率期望',
+    description: '期望与约会对象见面的频率',
+    layer: 4,
+    category: 'time_availability',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'daily', label: '每天都见' },
+      { value: 'few_times_week', label: '每周几次' },
+      { value: 'weekly', label: '每周一次' },
+      { value: 'biweekly', label: '每两周一次' },
+      { value: 'flexible', label: '灵活安排' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 331,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'responseTimePreference',
+    display_name: '回复消息偏好',
+    description: '自己回复消息的习惯速度',
+    layer: 4,
+    category: 'time_availability',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'instant', label: '基本秒回' },
+      { value: 'within_hour', label: '一小时内' },
+      { value: 'within_day', label: '当天回复' },
+      { value: 'when_available', label: '有空才回' },
+      { value: 'unpredictable', label: '不太稳定' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 332,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'schedulingFlexibility',
+    display_name: '日程安排灵活性',
+    description: '临时约会的可接受程度',
+    layer: 4,
+    category: 'time_availability',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'very_flexible', label: '非常灵活' },
+      { value: 'somewhat_flexible', label: '比较灵活' },
+      { value: 'needs_notice', label: '需要提前约' },
+      { value: 'strict_schedule', label: '日程固定' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 333,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'longDistanceAcceptance',
+    display_name: '异地恋接受度',
+    description: '对异地关系的接受程度',
+    layer: 4,
+    category: 'time_availability',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'open_to_it', label: '可以接受' },
+      { value: 'with_end_date', label: '有结束日期可以' },
+      { value: 'hesitant', label: '有些犹豫' },
+      { value: 'not_acceptable', label: '不接受' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 334,
+    relationship_applicability: 'universal'
+  },
+  {
+    dimension_key: 'travelWillingness',
+    display_name: '见面出行意愿',
+    description: '为了见面愿意付出的出行代价',
+    layer: 4,
+    category: 'time_availability',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'very_willing', label: '愿意长途奔波' },
+      { value: 'willing', label: '可以跨城市' },
+      { value: 'moderate', label: '同城内可以' },
+      { value: 'limited', label: '附近最好' },
+      { value: 'prefer_close', label: '只想见附近的' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 335,
+    relationship_applicability: 'short_term'
+  },
+
+  // ==================== 4.5 隐私与公开 ====================
+  {
+    dimension_key: 'privacyProtectionLevel',
+    display_name: '隐私保护倾向',
+    description: '在关系中对隐私的重视程度',
+    layer: 4,
+    category: 'privacy_public',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'very_open', label: '非常开放' },
+      { value: 'selective', label: '选择性开放' },
+      { value: 'compartmentalized', label: '严格区隔' },
+      { value: 'very_private', label: '高度保密' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 340,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'socialMediaPublicStatus',
+    display_name: '社交媒体公开偏好',
+    description: '是否愿意在社交媒体上公开关系状态',
+    layer: 4,
+    category: 'privacy_public',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'like_to_share', label: '喜欢分享' },
+      { value: 'okay_to_post', label: '可以发' },
+      { value: 'keep_private', label: '保持私密' },
+      { value: 'avoid_completely', label: '完全避免' }
+    ],
+    input_type: 'select',
+    weight: 1.1,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 341,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'friendsIntroductionTiming',
+    display_name: '介绍给朋友时机',
+    description: '多久后会介绍约会对象给朋友认识',
+    layer: 4,
+    category: 'privacy_public',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'early', label: '很早就介绍' },
+      { value: 'after_stable', label: '稳定后介绍' },
+      { value: 'after_commitment', label: '确定关系后' },
+      { value: 'hesitant', label: '比较犹豫' },
+      { value: 'prefer_not', label: '不想介绍' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 342,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'familyIntroductionTiming',
+    display_name: '介绍给家人时机',
+    description: '多久后会介绍约会对象给家人认识',
+    layer: 4,
+    category: 'privacy_public',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'early', label: '比较早介绍' },
+      { value: 'after_serious', label: '认真后介绍' },
+      { value: 'after_commitment', label: '确定关系后' },
+      { value: 'before_marriage', label: '谈婚论嫁时' },
+      { value: 'hesitant', label: '比较犹豫' }
+    ],
+    input_type: 'select',
+    weight: 1.1,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 343,
+    relationship_applicability: 'long_term'
+  },
+  {
+    dimension_key: 'phonePrivacyBoundary',
+    display_name: '手机隐私边界',
+    description: '对伴侣使用自己手机的态度',
+    layer: 4,
+    category: 'privacy_public',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'fully_open', label: '完全开放' },
+      { value: 'mostly_open', label: '大部分开放' },
+      { value: 'selective', label: '选择性开放' },
+      { value: 'private', label: '保持私密' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 344,
+    relationship_applicability: 'short_term'
+  },
+
+  // ==================== 4.6 短期关系模式 ====================
+  {
+    dimension_key: 'shortTermRelationshipExperience',
+    display_name: '短期关系经历',
+    description: '过往短期关系的经历情况',
+    layer: 4,
+    category: 'short_term_patterns',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'extensive', label: '经历丰富' },
+      { value: 'some', label: '有一些经历' },
+      { value: 'limited', label: '经历有限' },
+      { value: 'none', label: '没有经历' }
+    ],
+    input_type: 'select',
+    weight: 0.8,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 350,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'typicalRelationshipDuration',
+    display_name: '典型关系持续时长',
+    description: '过往恋爱关系通常维持的时间',
+    layer: 4,
+    category: 'short_term_patterns',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'weeks', label: '几周' },
+      { value: 'months', label: '几个月' },
+      { value: 'half_year', label: '半年左右' },
+      { value: 'year_plus', label: '一年以上' },
+      { value: 'varies', label: '差异很大' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 351,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'relationshipEndingStyle',
+    display_name: '关系结束风格',
+    description: '通常如何结束一段关系',
+    layer: 4,
+    category: 'short_term_patterns',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'direct_talk', label: '直接沟通' },
+      { value: 'gradual_distance', label: '逐渐疏远' },
+      { value: 'ghosting', label: '消失断联' },
+      { value: 'mutual_discussion', label: '协商结束' }
+    ],
+    input_type: 'select',
+    weight: 1.1,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 352,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'postBreakupContactAttitude',
+    display_name: '分手后联系态度',
+    description: '对分手后保持联系的态度',
+    layer: 4,
+    category: 'short_term_patterns',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'stay_friends', label: '可以做朋友' },
+      { value: 'casual_contact', label: '偶尔联系' },
+      { value: 'no_contact', label: '不再联系' },
+      { value: 'case_by_case', label: '视情况而定' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 353,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'reboundRelationshipAttitude',
+    display_name: '反弹关系态度',
+    description: '对分手后快速开始新关系的态度',
+    layer: 4,
+    category: 'short_term_patterns',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'quick_to_date', label: '很快开始新关系' },
+      { value: 'takes_time', label: '需要时间恢复' },
+      { value: 'depends', label: '看情况' },
+      { value: 'avoids', label: '避免反弹关系' }
+    ],
+    input_type: 'select',
+    weight: 0.9,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 354,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'datingMultiplePeopleStyle',
+    display_name: '多人约会风格',
+    description: '同时与多人约会时的处理方式',
+    layer: 4,
+    category: 'short_term_patterns',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'transparent', label: '坦诚告知' },
+      { value: 'dont_ask_dont_tell', label: '不问不说' },
+      { value: 'exclusive_focus', label: '一次只专注一人' },
+      { value: 'not_applicable', label: '不适用' }
+    ],
+    input_type: 'select',
+    weight: 1.1,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 355,
+    relationship_applicability: 'short_term'
+  },
+
+  // ==================== 4.7 约会节奏与信号 ====================
+  {
+    dimension_key: 'datingPacePreference',
+    display_name: '约会节奏偏好',
+    description: '希望关系发展的快慢节奏',
+    layer: 4,
+    category: 'dating_dynamics',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'very_fast', label: '快速发展' },
+      { value: 'fast', label: '比较快' },
+      { value: 'moderate', label: '适中节奏' },
+      { value: 'slow', label: '慢慢来' },
+      { value: 'very_slow', label: '非常慢' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 360,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'initiativeStyle',
+    display_name: '主动程度',
+    description: '在约会中主动发起的倾向',
+    layer: 4,
+    category: 'dating_dynamics',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'very_initiative', label: '非常主动' },
+      { value: 'initiative', label: '比较主动' },
+      { value: 'balanced', label: '有来有往' },
+      { value: 'passive', label: '比较被动' },
+      { value: 'very_passive', label: '非常被动' }
+    ],
+    input_type: 'select',
+    weight: 1.1,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 361,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'signalSensitivity',
+    display_name: '信号敏感度',
+    description: '对对方释放的约会信号的敏感程度',
+    layer: 4,
+    category: 'dating_dynamics',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'very_sensitive', label: '非常敏感' },
+      { value: 'sensitive', label: '比较敏感' },
+      { value: 'moderate', label: '一般' },
+      { value: 'oblivious', label: '不太敏感' },
+      { value: 'clueless', label: '完全不懂' }
+    ],
+    input_type: 'select',
+    weight: 0.9,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 362,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'gamesPlayingAttitude',
+    display_name: '恋爱游戏态度',
+    description: '对"欲擒故纵"等约会策略的态度',
+    layer: 4,
+    category: 'dating_dynamics',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'plays_games', label: '会玩套路' },
+      { value: 'sometimes', label: '偶尔为之' },
+      { value: 'straightforward', label: '直接坦诚' },
+      { value: 'hates_games', label: '讨厌套路' }
+    ],
+    input_type: 'select',
+    weight: 1.0,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 363,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'flirtingStyle',
+    display_name: '调情风格',
+    description: '表达兴趣和吸引力的方式',
+    layer: 4,
+    category: 'dating_dynamics',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 言语挑逗、肢体接触、眼神交流、送礼物',
+    weight: 0.8,
+    importance: 'optional',
+    source_allowed: ['manual', 'chat_analysis'],
+    sort_order: 364,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'dealbreakerList',
+    display_name: '约会底线清单',
+    description: '绝对不能接受的约会对象特质',
+    layer: 4,
+    category: 'dating_dynamics',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '如: 吸烟、酗酒、不尊重人、撒谎',
+    weight: 1.3,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 365,
+    relationship_applicability: 'universal'
+  },
+
+  // ==================== 4.8 生活状态 ====================
+  {
+    dimension_key: 'currentDatingStatus',
+    display_name: '当前约会状态',
+    description: '目前是否在与其他人约会',
+    layer: 4,
+    category: 'current_status',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'single', label: '单身，未约会' },
+      { value: 'casually_dating', label: '随意约会中' },
+      { value: 'seeing_someone', label: '在接触某人' },
+      { value: 'in_relationship', label: '恋爱中' },
+      { value: 'complicated', label: '关系复杂' }
+    ],
+    input_type: 'select',
+    weight: 1.5,
+    importance: 'critical',
+    source_allowed: ['manual'],
+    sort_order: 370,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'readinessForRelationship',
+    display_name: '恋爱准备度',
+    description: '心理和现实层面准备好进入关系的程度',
+    layer: 4,
+    category: 'current_status',
+    data_type: 'int',
+    validation_rules: { min: 0, max: 100 },
+    input_type: 'slider',
+    help_text: '0=完全没准备好，100=完全准备好了',
+    weight: 1.4,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 371,
+    relationship_applicability: 'universal'
+  },
+  {
+    dimension_key: 'recentBreakupStatus',
+    display_name: '近期分手状态',
+    description: '最近是否刚结束一段关系',
+    layer: 4,
+    category: 'current_status',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'no_recent_breakup', label: '近期没有' },
+      { value: 'within_month', label: '一个月内' },
+      { value: 'within_three_months', label: '三个月内' },
+      { value: 'within_six_months', label: '半年内' },
+      { value: 'still_healing', label: '还在疗伤' }
+    ],
+    input_type: 'select',
+    weight: 1.2,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 372,
+    relationship_applicability: 'short_term'
+  },
+  {
+    dimension_key: 'lifePriorityRanking',
+    display_name: '生活优先级排序',
+    description: '当前生活中各项事务的优先级',
+    layer: 4,
+    category: 'current_status',
+    data_type: 'string[]',
+    input_type: 'multiselect',
+    placeholder: '按优先级排序：事业、学业、恋爱、家庭、自我成长',
+    weight: 1.1,
+    importance: 'important',
+    source_allowed: ['manual'],
+    sort_order: 373,
+    relationship_applicability: 'universal'
+  }
+]
+
 // 导出所有维度
 export const allDimensions: DimensionDefinition[] = [
   ...layer1Dimensions,
   ...layer2Dimensions,
-  ...layer3Dimensions
+  ...layer3Dimensions,
+  ...layer4Dimensions
 ]

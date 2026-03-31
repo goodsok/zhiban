@@ -377,6 +377,9 @@ export const dimensionDefinitions = pgTable("dimension_definitions", {
 	weight: decimal("weight", { precision: 3, scale: 2 }).default('1.00'), // 用于推进值计算
 	importance: varchar("importance", { length: 20 }).default('optional'), // critical, important, optional
 	
+	// 关系适用性
+	relationshipApplicability: varchar("relationship_applicability", { length: 20 }).default('universal'), // short_term, long_term, universal
+	
 	// 来源控制
 	sourceAllowed: jsonb("source_allowed").default(['manual']), // manual, ai_extract, chat_analysis, questionnaire
 	
@@ -389,6 +392,7 @@ export const dimensionDefinitions = pgTable("dimension_definitions", {
 	index("dimension_definitions_layer_idx").using("btree", table.layer.asc().nullsLast().op("int4_ops")),
 	index("dimension_definitions_category_idx").using("btree", table.category.asc().nullsLast().op("text_ops")),
 	index("dimension_definitions_active_idx").using("btree", table.isActive.asc().nullsLast().op("bool_ops")).where(sql`is_active = true`),
+	index("dimension_definitions_applicability_idx").using("btree", table.relationshipApplicability.asc().nullsLast().op("text_ops")),
 	unique("dimension_definitions_dimension_key_unique").on(table.dimensionKey),
 	pgPolicy("dimension_definitions_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
 	pgPolicy("dimension_definitions_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
