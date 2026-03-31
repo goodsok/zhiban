@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Inject, forwardRef } from '@nestjs/common'
 import { Request } from 'express'
 import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
 import { getSupabaseClient } from '@/storage/database/supabase-client'
+import { RelationshipEnergyService } from './relationship-energy.service'
 
 // 互动事件类型
 export type InteractionType = 'date' | 'chat' | 'call' | 'video' | 'message' | 'gift' | 'physical' | 'social' | 'other'
@@ -103,7 +104,10 @@ const MOOD_QUALITY_MAP: Record<Mood, number> = {
 
 @Injectable()
 export class InteractionService {
-  constructor() {}
+  constructor(
+    @Inject(forwardRef(() => RelationshipEnergyService))
+    private readonly energyService: RelationshipEnergyService,
+  ) {}
 
   /**
    * 获取互动类型配置
@@ -195,8 +199,16 @@ export class InteractionService {
     // 计算质量分数
     const qualityScore = dto.qualityScore ?? (dto.mood ? MOOD_QUALITY_MAP[dto.mood] : null)
     
-    // 计算能量变化
-    const energyChange = this.calculateEnergyChange(dto.interactionType, qualityScore, dto.durationMinutes)
+    // 使用新的能量计算方法（时机加成 + 互动组合）
+    const energyCalc = await this.energyService.calculateInteractionEnergy(
+      matchId,
+      dto.interactionType,
+      dto.mood || 'neutral',
+      !!dto.breakthroughMoment,
+      dto.durationMinutes
+    )
+    
+    const energyChange = energyCalc.totalEnergy
 
     const insertData = {
       match_id: matchId,
@@ -249,12 +261,33 @@ export class InteractionService {
     }
 
     // 更新关系能量
-    // 这里需要导入 RelationshipEnergyService，避免循环依赖
-    // 将在后续集成时实现
+    const changeDetail = energyCalc.comboDetected
+      ? `互动 + 组合【${energyCalc.comboDetected}】`
+      : '互动记录'
+    
+    await this.energyService.calculateAndUpdateEnergy(
+      matchId,
+      energyCalc.comboDetected ? 'combo' : 'interaction',
+      changeDetail,
+      data.id
+    )
 
+    // 返回结果包含能量计算详情
+    const result = this.transformEvent(data)
     return {
       code: 200,
-      data: this.transformEvent(data),
+      data: {
+        ...result,
+        energyDetail: {
+          baseEnergy: energyCalc.baseEnergy,
+          qualityMultiplier: energyCalc.qualityMultiplier,
+          timingMultiplier: energyCalc.timingMultiplier,
+          bonusEnergy: energyCalc.bonusEnergy,
+          activeBoosters: energyCalc.activeBoosters,
+          activePenalties: energyCalc.activePenalties,
+          comboDetected: energyCalc.comboDetected,
+        },
+      },
       message: 'success',
     }
   }

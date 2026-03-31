@@ -60,19 +60,7 @@ export class InteractionController {
     @Body() body: CreateInteractionDto,
     @Req() req: Request,
   ) {
-    const result = await this.interactionService.createEvent(parseInt(matchId), body, req)
-    
-    // 创建成功后更新关系能量
-    if (result.code === 200 && result.data) {
-      await this.energyService.calculateAndUpdateEnergy(
-        parseInt(matchId),
-        'interaction',
-        `创建互动: ${body.interactionType}`,
-        result.data.id
-      )
-    }
-    
-    return result
+    return this.interactionService.createEvent(parseInt(matchId), body, req)
   }
 
   /**
@@ -180,6 +168,33 @@ export class InteractionController {
       parseInt(matchId),
       'manual',
       '手动触发计算'
+    )
+  }
+
+  /**
+   * 获取当前时机效果和建议
+   * GET /api/interaction/match/:matchId/energy/timing
+   */
+  @Get('match/:matchId/energy/timing')
+  async getTimingEffects(@Param('matchId') matchId: string) {
+    return this.energyService.getActiveTimingEffects(parseInt(matchId))
+  }
+
+  /**
+   * 计算互动预期能量贡献（创建前预览）
+   * POST /api/interaction/match/:matchId/energy/preview
+   */
+  @Post('match/:matchId/energy/preview')
+  async previewEnergy(
+    @Param('matchId') matchId: string,
+    @Body() body: { interactionType: string; mood: string; breakthrough?: boolean; duration?: number },
+  ) {
+    return this.energyService.calculateInteractionEnergy(
+      parseInt(matchId),
+      body.interactionType,
+      body.mood,
+      body.breakthrough || false,
+      body.duration
     )
   }
 }

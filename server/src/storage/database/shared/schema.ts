@@ -412,6 +412,16 @@ export const relationshipEnergy = pgTable("relationship_energy", {
 	breakthroughCount: integer("breakthrough_count").default(0).notNull(),
 	dimensionCompleteness: integer("dimension_completeness").default(0).notNull(),
 	
+	// 关系阶段
+	currentStage: varchar("current_stage", { length: 32 }).default('刚刚认识'),
+	// '刚刚认识' | '初识期' | '热恋初期' | '热恋期' | '稳定期' | '深化期' | '成熟期'
+	
+	// 时机效果
+	activeBoosters: jsonb("active_boosters").default([]),
+	// 当前激活的时机加成 ['early_relationship', 'ovulation_intimacy', ...]
+	activePenalties: jsonb("active_penalties").default([]),
+	// 当前激活的时机衰减 ['long_silence', 'conflict_period', ...]
+	
 	// 上次计算时间
 	calculatedAt: timestamp("calculated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	
