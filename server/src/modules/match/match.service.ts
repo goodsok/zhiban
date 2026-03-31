@@ -3,6 +3,7 @@ import { Request } from 'express'
 import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
 import { getSupabaseClient } from '@/storage/database/supabase-client'
 import { TaskService } from '../task/task.service'
+import { RelationshipEnergyService } from '../interaction/relationship-energy.service'
 
 // 印象标签映射
 const impressionTagLabels: Record<string, string> = {
@@ -173,6 +174,7 @@ export class MatchService {
   constructor(
     @Inject(forwardRef(() => TaskService))
     private readonly taskService: TaskService,
+    private readonly energyService: RelationshipEnergyService,
   ) {}
 
   // 转换数据库字段为前端格式
@@ -370,6 +372,10 @@ export class MatchService {
     
     // 计算推进值
     const progressScore = await this.calculateProgressScore(id)
+    
+    // 获取关系能量
+    const energyResult = await this.energyService.getEnergy(id)
+    const energy = energyResult.code === 200 ? energyResult.data : null
 
     return {
       code: 200,
@@ -378,6 +384,7 @@ export class MatchService {
         ...match,
         stats: taskStats,
         progressScore,
+        energy,
       },
     }
   }

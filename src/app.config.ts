@@ -12,6 +12,9 @@ export default defineAppConfig({
     'pages/date-edit/index',
     'pages/portrait/index',
     'pages/user-profile/index',
+    'pages/interactions/index',
+    'pages/interaction-create/index',
+    'pages/interaction-detail/index',
   ],
   window: {
     backgroundTextStyle: 'light',

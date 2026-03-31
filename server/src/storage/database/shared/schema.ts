@@ -311,6 +311,153 @@ export const userBehaviorPreferences = pgTable("user_behavior_preferences", {
 	pgPolicy("user_behavior_preferences_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
 ]);
 
+// ==================== 互动事件系统 ====================
+
+// 互动事件表 - 记录约会、聊天等互动事件
+export const interactionEvents = pgTable("interaction_events", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	
+	// 互动类型
+	interactionType: varchar("interaction_type", { length: 32 }).notNull(),
+	// 'date' | 'chat' | 'call' | 'video' | 'message' | 'gift' | 'physical' | 'social' | 'other'
+	
+	// 互动分类
+	interactionCategory: varchar("interaction_category", { length: 32 }),
+	// 'online' | 'offline' | 'hybrid'
+	
+	// 时间信息
+	startedAt: timestamp("started_at", { withTimezone: true, mode: 'string' }),
+	endedAt: timestamp("ended_at", { withTimezone: true, mode: 'string' }),
+	durationMinutes: integer("duration_minutes"),
+	
+	// 发起方
+	initiator: varchar("initiator", { length: 16 }),
+	// 'self' | 'partner' | 'mutual'
+	
+	// 地点（线下约会）
+	location: text("location"),
+	locationType: varchar("location_type", { length: 32 }),
+	// 'restaurant' | 'cinema' | 'outdoor' | 'home' | 'online' | 'cafe' | 'shopping' | 'entertainment' | 'other'
+	
+	// 互动内容
+	title: varchar("title", { length: 128 }),
+	description: text("description"),
+	activities: jsonb("activities").default([]),
+	// ['吃饭', '看电影', '散步']
+	
+	// 互动质量评估
+	qualityScore: integer("quality_score"),
+	// 0-100
+	mood: varchar("mood", { length: 32 }),
+	// 'excellent' | 'good' | 'neutral' | 'awkward' | 'bad'
+	
+	// 关系影响
+	energyChange: integer("energy_change").default(0),
+	// 关系能量变化 (+/-)
+	breakthroughMoment: text("breakthrough_moment"),
+	// 突破性时刻描述
+	issuesEncountered: text("issues_encountered"),
+	// 遇到的问题
+	
+	// 新发现（从互动中获取的维度信息）
+	newInsights: jsonb("new_insights").default([]),
+	// [{ dimensionKey: 'hobbies', value: '摄影', source: '互动中提到' }]
+	
+	// 关联
+	relatedTaskId: integer("related_task_id"),
+	// 如果是从任务转化来的
+	chatRecordIds: jsonb("chat_record_ids").default([]),
+	// 关联的聊天记录
+	
+	// 元信息
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("interaction_events_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	index("interaction_events_type_idx").using("btree", table.interactionType.asc().nullsLast().op("text_ops")),
+	index("interaction_events_started_at_idx").using("btree", table.startedAt.desc().nullsLast().op("timestamptz_ops")),
+	index("interaction_events_quality_idx").using("btree", table.qualityScore.asc().nullsLast().op("int4_ops")),
+	pgPolicy("interaction_events_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("interaction_events_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("interaction_events_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("interaction_events_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
+// 关系能量表 - 存储每个对象的关系能量状态
+export const relationshipEnergy = pgTable("relationship_energy", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	
+	// 能量总值 (0-100)
+	totalEnergy: integer("total_energy").default(0).notNull(),
+	
+	// 三大维度分数 (0-100)
+	informationScore: integer("information_score").default(0).notNull(),
+	// 信息维度：知道多少关于对方
+	interactionScore: integer("interaction_score").default(0).notNull(),
+	// 互动维度：互动频率和质量
+	emotionalScore: integer("emotional_score").default(0).notNull(),
+	// 情感维度：亲密程度
+	
+	// 能量趋势
+	trend: varchar("trend", { length: 16 }).default('stable').notNull(),
+	// 'rising' | 'stable' | 'declining' | 'stagnant'
+	
+	// 关键指标
+	totalInteractions: integer("total_interactions").default(0).notNull(),
+	avgQualityScore: integer("avg_quality_score").default(0).notNull(),
+	lastInteractionDays: integer("last_interaction_days").default(-1).notNull(),
+	// -1 表示从未互动
+	breakthroughCount: integer("breakthrough_count").default(0).notNull(),
+	dimensionCompleteness: integer("dimension_completeness").default(0).notNull(),
+	
+	// 上次计算时间
+	calculatedAt: timestamp("calculated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	
+	// 元信息
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("relationship_energy_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	index("relationship_energy_total_idx").using("btree", table.totalEnergy.desc().nullsLast().op("int4_ops")),
+	pgPolicy("relationship_energy_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("relationship_energy_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("relationship_energy_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("relationship_energy_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
+// 关系能量历史表 - 记录能量变化历史
+export const relationshipEnergyHistory = pgTable("relationship_energy_history", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	
+	// 能量快照
+	totalEnergy: integer("total_energy").notNull(),
+	informationScore: integer("information_score").notNull(),
+	interactionScore: integer("interaction_score").notNull(),
+	emotionalScore: integer("emotional_score").notNull(),
+	
+	// 变化原因
+	changeReason: varchar("change_reason", { length: 32 }).notNull(),
+	// 'interaction' | 'dimension_update' | 'time_decay' | 'breakthrough' | 'manual'
+	changeDetail: text("change_detail"),
+	// 详细说明
+	
+	// 关联事件
+	relatedEventId: integer("related_event_id"),
+	// 关联的互动事件ID
+	
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("relationship_energy_history_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	index("relationship_energy_history_created_at_idx").using("btree", table.createdAt.desc().nullsLast().op("timestamptz_ops")),
+	pgPolicy("relationship_energy_history_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("relationship_energy_history_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("relationship_energy_history_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("relationship_energy_history_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
 // 档案对象表
 export const matches = pgTable("matches", {
 	id: serial().primaryKey().notNull(),

@@ -13,9 +13,10 @@ import { ProfileAnalysisModule } from '@/modules/profile-analysis/profile-analys
 import { PortraitModule } from '@/modules/portrait/portrait.module';
 import { UserProfileModule } from '@/modules/user-profile/user-profile.module';
 import { DimensionModule } from '@/modules/dimension/dimension.module';
+import { InteractionModule } from '@/modules/interaction/interaction.module';
 
 @Module({
-  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule, PortraitModule, UserProfileModule, DimensionModule],
+  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule, PortraitModule, UserProfileModule, DimensionModule, InteractionModule],
   controllers: [AppController],
   providers: [AppService],
 })

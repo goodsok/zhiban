@@ -49,6 +49,14 @@ interface ProgressScore {
   nextActions: string[]
 }
 
+interface EnergyData {
+  current: number
+  level: string
+  trend: string
+  thisWeek: number
+  recentCount: number
+}
+
 interface MatchDetail {
   id: number
   name: string
@@ -63,6 +71,7 @@ interface MatchDetail {
   progressScore?: ProgressScore
   cycleStartDate?: string
   cycleLength?: number
+  energy?: EnergyData
 }
 
 interface CycleInfo {
@@ -326,6 +335,55 @@ const DetailPage: FC = () => {
                 ))}
               </View>
             )}
+          </View>
+        </View>
+      )}
+
+      {/* 关系能量卡片 */}
+      {detail.energy && (
+        <View className="px-4 pb-4">
+          <View 
+            className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100 p-4"
+            onClick={() => navigateTo({ url: `/pages/interactions/index?matchId=${detail.id}` })}
+          >
+            <View className="flex items-center justify-between mb-3">
+              <View className="flex items-center gap-2">
+                <View className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                  <Sun size={16} color="#F59E0B" />
+                </View>
+                <Text className="block text-sm font-semibold text-gray-900">关系能量</Text>
+              </View>
+              <ChevronRight size={16} color="#9CA3AF" />
+            </View>
+            
+            <View className="flex items-end justify-between">
+              <View>
+                <View className="flex items-end gap-1">
+                  <Text className="block text-3xl font-bold text-amber-600">{detail.energy.current}</Text>
+                  <Text className="block text-sm text-gray-400 pb-1">/ 100</Text>
+                </View>
+                <View className="flex items-center gap-2 mt-1">
+                  <Text className="block text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700">
+                    {detail.energy.level}
+                  </Text>
+                  <Text className="block text-xs text-gray-500">
+                    {detail.energy.trend === 'rising' ? '↑ 上升中' : detail.energy.trend === 'declining' ? '↓ 下降中' : '→ 稳定'}
+                  </Text>
+                </View>
+              </View>
+              
+              <View className="text-right">
+                <Text className="block text-xs text-gray-400">本周互动</Text>
+                <Text className="block text-lg font-semibold text-gray-900">{detail.energy.thisWeek}</Text>
+                <Text className="block text-xs text-gray-400">次</Text>
+              </View>
+            </View>
+
+            <View className="mt-3 pt-3 border-t border-amber-100">
+              <Text className="block text-xs text-gray-500">
+                最近 {detail.energy.recentCount} 次互动已贡献能量
+              </Text>
+            </View>
           </View>
         </View>
       )}
