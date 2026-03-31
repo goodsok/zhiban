@@ -134,6 +134,7 @@ export interface Match {
   id: number
   name: string
   gender: string
+  relationshipType: string  // long_term | short_term | both | undefined
   dimensions: DimensionValue[]  // 维度数据
   meetingScene: string
   meetingDate: string
@@ -154,6 +155,7 @@ interface DbMatch {
   id: number
   name: string
   gender: string
+  relationship_type: string
   meeting_scene: string
   meeting_date: string
   impression: number
@@ -183,6 +185,7 @@ export class MatchService {
       id: db.id,
       name: db.name,
       gender: db.gender,
+      relationshipType: db.relationship_type || 'undefined',
       dimensions: [],  // 从维度表填充
       meetingScene: db.meeting_scene,
       meetingDate: db.meeting_date,
@@ -395,6 +398,7 @@ export class MatchService {
   async updateMatch(req?: Request, id?: number, body?: Partial<{
     name: string
     gender: string
+    relationshipType: string  // long_term | short_term | both | undefined
     meetingScene: string
     meetingDate: string
     notes: string
@@ -412,6 +416,7 @@ export class MatchService {
 
     if (body.name !== undefined) updateData.name = body.name
     if (body.gender !== undefined) updateData.gender = body.gender
+    if (body.relationshipType !== undefined) updateData.relationship_type = body.relationshipType
     if (body.meetingScene !== undefined) updateData.meeting_scene = body.meetingScene
     if (body.meetingDate !== undefined) updateData.meeting_date = body.meetingDate
     if (body.notes !== undefined) updateData.notes = body.notes
@@ -452,6 +457,35 @@ export class MatchService {
     }
 
     return { code: 200, msg: '删除成功', data: null }
+  }
+
+  /**
+   * 更新关系类型
+   */
+  async updateRelationshipType(id: number, relationshipType: string) {
+    const validTypes = ['long_term', 'short_term', 'both', 'undefined']
+    if (!validTypes.includes(relationshipType)) {
+      return { code: 400, msg: '无效的关系类型', data: null }
+    }
+
+    const client = getSupabaseClient()
+
+    const { data, error } = await client
+      .from('matches')
+      .update({
+        relationship_type: relationshipType,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      return { code: 500, msg: '更新失败', data: null }
+    }
+
+    const match = this.dbToMatch(data as DbMatch)
+    return { code: 200, msg: '更新成功', data: match }
   }
 
   /**

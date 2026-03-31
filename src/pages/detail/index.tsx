@@ -12,8 +12,6 @@ import DimensionViewer from '@/components/dimension-viewer'
 import CustomHeader from '@/components/custom-header'
 import { 
   ChevronRight,
-  Calendar,
-  ClipboardList,
   Loader,
   MessageCircle,
   Heart,
@@ -27,8 +25,41 @@ import {
   Check,
   X,
   Pencil,
-  MessageCirclePlus
+  MessageCirclePlus,
+  ClipboardList,
+  Target
 } from 'lucide-react-taro'
+
+// 关系类型
+type RelationshipType = 'long_term' | 'short_term' | 'both' | 'undefined'
+
+// 关系类型配置
+const RELATIONSHIP_TYPE_CONFIG: Record<RelationshipType, { label: string; color: string; bgColor: string; description: string }> = {
+  long_term: { 
+    label: '长期关系', 
+    color: '#10B981', 
+    bgColor: 'bg-emerald-50',
+    description: '小火慢炖，稳扎稳打'
+  },
+  short_term: { 
+    label: '短期关系', 
+    color: '#F59E0B', 
+    bgColor: 'bg-amber-50',
+    description: '下猛药，快速推进'
+  },
+  both: { 
+    label: '灵活关系', 
+    color: '#8B5CF6', 
+    bgColor: 'bg-violet-50',
+    description: '看情况，随机应变'
+  },
+  undefined: { 
+    label: '未设置', 
+    color: '#9CA3AF', 
+    bgColor: 'bg-gray-50',
+    description: '点击设置关系类型'
+  },
+}
 
 // 推进值接口
 interface ProgressScore {
@@ -62,6 +93,7 @@ interface MatchDetail {
   id: number
   name: string
   gender: string
+  relationshipType: RelationshipType
   notes: string
   status: string
   stats: {
@@ -108,6 +140,9 @@ const DetailPage: FC = () => {
   // 备注编辑状态
   const [editingNotes, setEditingNotes] = useState(false)
   const [notesValue, setNotesValue] = useState('')
+  
+  // 关系类型选择状态
+  const [selectingRelationshipType, setSelectingRelationshipType] = useState(false)
 
   useLoad(() => {
     console.log('Detail page loaded.', router.params.id)
@@ -191,8 +226,28 @@ const DetailPage: FC = () => {
     }
   }, [detail, notesValue])
 
+  // 保存关系类型
+  const saveRelationshipType = useCallback(async (type: RelationshipType) => {
+    if (!detail) return
+    
+    try {
+      setSaving(true)
+      await Network.request({
+        url: `/api/match/${detail.id}`,
+        method: 'PUT',
+        data: { relationshipType: type }
+      })
+      
+      setDetail(prev => prev ? { ...prev, relationshipType: type } : prev)
+      setSelectingRelationshipType(false)
+    } catch (error) {
+      console.error('Save relationship type error:', error)
+    } finally {
+      setSaving(false)
+    }
+  }, [detail])
+
   const goToTasks = () => navigateTo({ url: `/pages/tasks/index?matchId=${detail?.id}` })
-  const goToDates = () => navigateTo({ url: `/pages/dates/index?matchId=${detail?.id}` })
   const goToPortrait = () => navigateTo({ url: `/pages/portrait/index?matchId=${detail?.id}` })
 
   const getChatContext = () => {
@@ -267,6 +322,75 @@ const DetailPage: FC = () => {
             )}
           </CardContent>
         </Card>
+      </View>
+
+      {/* 关系类型卡片 */}
+      <View className="px-4 pb-4">
+        {selectingRelationshipType ? (
+          <View className="bg-white rounded-xl border border-gray-100 p-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">选择关系类型</Text>
+            <View className="space-y-2">
+              {(['long_term', 'short_term', 'both'] as RelationshipType[]).map(type => {
+                const config = RELATIONSHIP_TYPE_CONFIG[type]
+                const isSelected = detail?.relationshipType === type
+                return (
+                  <View
+                    key={type}
+                    className={`flex items-center justify-between p-3 rounded-xl border-2 ${
+                      isSelected ? 'border-black bg-gray-50' : 'border-gray-100'
+                    }`}
+                    onClick={() => saveRelationshipType(type)}
+                  >
+                    <View className="flex items-center gap-3">
+                      <View 
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: config.color }}
+                      />
+                      <View>
+                        <Text className="block text-sm font-medium text-gray-900">{config.label}</Text>
+                        <Text className="block text-xs text-gray-500">{config.description}</Text>
+                      </View>
+                    </View>
+                    {isSelected && <Check size={16} color="#000" />}
+                  </View>
+                )
+              })}
+            </View>
+            <View 
+              className="mt-3 text-center text-xs text-gray-400"
+              onClick={() => setSelectingRelationshipType(false)}
+            >
+              <Text className="block">取消</Text>
+            </View>
+          </View>
+        ) : (
+          <View 
+            className={`rounded-xl border p-4 ${RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].bgColor}`}
+            style={{ borderColor: RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].color }}
+            onClick={() => setSelectingRelationshipType(true)}
+          >
+            <View className="flex items-center justify-between">
+              <View className="flex items-center gap-3">
+                <Target 
+                  size={20} 
+                  color={RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].color} 
+                />
+                <View>
+                  <Text 
+                    className="block text-sm font-semibold"
+                    style={{ color: RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].color }}
+                  >
+                    {RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].label}
+                  </Text>
+                  <Text className="block text-xs text-gray-500">
+                    {RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].description}
+                  </Text>
+                </View>
+              </View>
+              <Pencil size={14} color="#9CA3AF" />
+            </View>
+          </View>
+        )}
       </View>
 
       {/* 推进值卡片 */}
@@ -456,25 +580,12 @@ const DetailPage: FC = () => {
           >
             <View className="flex items-center gap-3">
               <ClipboardList size={18} color="#374151" />
-              <Text className="block text-sm text-gray-700">任务</Text>
+              <Text className="block text-sm text-gray-700">互动任务</Text>
             </View>
             <View className="flex items-center gap-2">
               <Text className="block text-xs text-gray-400">
                 {detail.stats.completedTasks}/{detail.stats.tasks}
               </Text>
-              <ChevronRight size={16} color="#D1D5DB" />
-            </View>
-          </View>
-          <View 
-            className="flex items-center justify-between px-4 py-3"
-            onClick={goToDates}
-          >
-            <View className="flex items-center gap-3">
-              <Calendar size={18} color="#374151" />
-              <Text className="block text-sm text-gray-700">约会记录</Text>
-            </View>
-            <View className="flex items-center gap-2">
-              <Text className="block text-xs text-gray-400">{detail.stats.dates}次</Text>
               <ChevronRight size={16} color="#D1D5DB" />
             </View>
           </View>

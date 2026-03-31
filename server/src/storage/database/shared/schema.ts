@@ -473,6 +473,8 @@ export const matches = pgTable("matches", {
 	id: serial().primaryKey().notNull(),
 	name: varchar("name", { length: 64 }).notNull(),
 	gender: varchar("gender", { length: 16 }).default('female'),
+	// 关系类型：long_term（长期关系）、short_term（短期关系）、both（都有）、undefined（未设置）
+	relationshipType: varchar("relationship_type", { length: 16 }).default('undefined'),
 	// 认识场景
 	meetingScene: varchar("meeting_scene", { length: 32 }).default('other'),
 	meetingDate: varchar("meeting_date", { length: 32 }),

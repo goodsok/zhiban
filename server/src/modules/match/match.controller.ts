@@ -34,6 +34,7 @@ export class MatchController {
   async updateMatch(@Param('id') id: string, @Body() body: Partial<{
     name: string
     gender: string
+    relationshipType: string
     meetingScene: string
     meetingDate: string
     impression: number
@@ -49,6 +50,11 @@ export class MatchController {
   @Post(':id/delete')
   async deleteMatch(@Param('id') id: string, @Req() req: Request) {
     return await this.matchService.deleteMatch(req, Number(id))
+  }
+
+  @Post(':id/relationship-type')
+  async updateRelationshipType(@Param('id') id: string, @Body() body: { relationshipType: string }) {
+    return await this.matchService.updateRelationshipType(Number(id), body.relationshipType)
   }
 
   @Get(':id/recommend')
