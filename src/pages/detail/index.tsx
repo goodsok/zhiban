@@ -554,7 +554,7 @@ const DetailPage: FC = () => {
           <Text className="block text-sm font-semibold text-gray-900">档案数据</Text>
           <Text className="block text-xs text-gray-400">点击编辑</Text>
         </View>
-        <DimensionViewer matchId={detail.id} />
+        <DimensionViewer matchId={detail.id} relationshipType={detail.relationshipType} />
       </View>
 
       {/* 快捷入口 */}

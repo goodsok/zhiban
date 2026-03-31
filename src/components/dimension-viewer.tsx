@@ -23,6 +23,7 @@ import Taro from '@tarojs/taro'
 
 interface DimensionViewerProps {
   matchId: number
+  relationshipType?: 'long_term' | 'short_term' | 'both' | 'undefined'
   onEdit?: (dimensionKey: string) => void
 }
 
@@ -35,19 +36,19 @@ interface DimensionGroup {
   }>
 }
 
-export const DimensionViewer: FC<DimensionViewerProps> = ({ matchId, onEdit }) => {
+export const DimensionViewer: FC<DimensionViewerProps> = ({ matchId, relationshipType, onEdit }) => {
   const [loading, setLoading] = useState(true)
   const [dimensionGroups, setDimensionGroups] = useState<DimensionGroup[]>([])
   const [completeness, setCompleteness] = useState<Array<{ layer: number; completeness: number }>>([])
 
   useEffect(() => {
     fetchDimensions()
-  }, [matchId])
+  }, [matchId, relationshipType])
 
   const fetchDimensions = async () => {
     try {
       setLoading(true)
-      const res = await getMatchDimensions(matchId)
+      const res = await getMatchDimensions(matchId, relationshipType)
       if (res.code === 200 && res.data) {
         // 按层级和分类分组
         const groups: Record<string, DimensionGroup> = {}

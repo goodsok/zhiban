@@ -52,6 +52,8 @@ export interface DimensionWithDefinition {
 export interface MatchDimensionProfile {
   dimensions: Record<string, DimensionWithDefinition>
   completeness: Array<{ layer: number; completeness: number }>
+  applicableCount: number  // 适用的维度数量
+  filledCount: number      // 已填写的维度数量
 }
 
 /**
@@ -94,13 +96,18 @@ export async function getDimensionDefinition(dimensionKey: string): Promise<{
 
 /**
  * 获取对象的维度数据（带定义和完成度）
+ * 支持根据关系类型筛选维度
  */
-export async function getMatchDimensions(matchId: number): Promise<{
+export async function getMatchDimensions(
+  matchId: number,
+  relationshipType?: 'long_term' | 'short_term' | 'both' | 'undefined'
+): Promise<{
   code: number
   msg: string
   data: MatchDimensionProfile
 }> {
-  const res = await Network.request({ url: `/api/dimension/profile/${matchId}` })
+  const params = relationshipType ? `?relationshipType=${relationshipType}` : ''
+  const res = await Network.request({ url: `/api/dimension/profile/${matchId}${params}` })
   return res.data
 }
 

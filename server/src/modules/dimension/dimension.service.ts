@@ -379,28 +379,53 @@ export class DimensionService {
 
   /**
    * 获取对象的维度值（带维度定义信息）
+   * 支持根据关系类型筛选维度
    */
-  async getMatchDimensionsWithDefinitions(matchId: number): Promise<{ 
+  async getMatchDimensionsWithDefinitions(
+    matchId: number,
+    relationshipType?: 'long_term' | 'short_term' | 'both' | 'undefined'
+  ): Promise<{ 
     code: number; 
     msg: string; 
     data: {
       dimensions: Record<string, { definition: DimensionDefinition; value: DimensionValue | null }>
       completeness: { layer: number; completeness: number }[]
+      applicableCount: number  // 适用的维度数量
+      filledCount: number      // 已填写的维度数量
     }
   }> {
     try {
       const supabase = getSupabaseClient()
       
-      // 获取维度定义
-      const { data: definitions, error: defError } = await supabase
+      // 构建维度定义查询
+      let defQuery = supabase
         .from('dimension_definitions')
         .select('*')
         .eq('is_active', true)
-        .order('layer')
-        .order('sort_order')
+
+      // 根据关系类型筛选维度
+      // - long_term: 显示 universal + long_term
+      // - short_term: 显示 universal + short_term
+      // - both: 显示所有维度（universal + long_term + short_term）
+      // - undefined: 显示 universal 维度（默认）
+      if (relationshipType === 'long_term') {
+        defQuery = defQuery.in('relationship_applicability', ['universal', 'long_term'])
+      } else if (relationshipType === 'short_term') {
+        defQuery = defQuery.in('relationship_applicability', ['universal', 'short_term'])
+      } else if (relationshipType === 'both') {
+        // 显示所有维度，不需要额外筛选
+      } else {
+        // undefined 或默认情况，只显示 universal
+        defQuery = defQuery.eq('relationship_applicability', 'universal')
+      }
+
+      defQuery = defQuery.order('layer').order('sort_order')
+
+      // 获取维度定义
+      const { data: definitions, error: defError } = await defQuery
 
       if (defError) {
-        return { code: 500, msg: defError.message, data: { dimensions: {}, completeness: [] } }
+        return { code: 500, msg: defError.message, data: { dimensions: {}, completeness: [], applicableCount: 0, filledCount: 0 } }
       }
 
       // 获取维度值
@@ -410,17 +435,21 @@ export class DimensionService {
         .eq('match_id', matchId)
 
       if (valError) {
-        return { code: 500, msg: valError.message, data: { dimensions: {}, completeness: [] } }
+        return { code: 500, msg: valError.message, data: { dimensions: {}, completeness: [], applicableCount: 0, filledCount: 0 } }
       }
 
       // 组合数据
       const dimensionsMap: Record<string, { definition: DimensionDefinition; value: DimensionValue | null }> = {}
       const valueMap = new Map(values?.map(v => [v.dimension_key, v]))
+      let filledCount = 0
 
       for (const def of definitions || []) {
+        const hasValue = valueMap.has(def.dimension_key)
+        if (hasValue) filledCount++
+        
         dimensionsMap[def.dimension_key] = {
           definition: def as DimensionDefinition,
-          value: valueMap.get(def.dimension_key) || null
+          value: hasValue ? valueMap.get(def.dimension_key)! : null
         }
       }
 
@@ -447,12 +476,14 @@ export class DimensionService {
         msg: 'success', 
         data: { 
           dimensions: dimensionsMap,
-          completeness
+          completeness,
+          applicableCount: definitions?.length || 0,
+          filledCount
         }
       }
     } catch (err) {
       console.error('获取维度数据异常:', err)
-      return { code: 500, msg: String(err), data: { dimensions: {}, completeness: [] } }
+      return { code: 500, msg: String(err), data: { dimensions: {}, completeness: [], applicableCount: 0, filledCount: 0 } }
     }
   }
 

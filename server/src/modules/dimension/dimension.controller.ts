@@ -50,11 +50,17 @@ export class DimensionController {
 
   /**
    * 获取对象的维度数据（带定义和完成度）
-   * GET /api/dimension/profile/:matchId
+   * GET /api/dimension/profile/:matchId?relationshipType=long_term
    */
   @Get('profile/:matchId')
-  async getMatchDimensionsWithDefinitions(@Param('matchId') matchId: string) {
-    return await this.dimensionService.getMatchDimensionsWithDefinitions(parseInt(matchId))
+  async getMatchDimensionsWithDefinitions(
+    @Param('matchId') matchId: string,
+    @Query('relationshipType') relationshipType?: 'long_term' | 'short_term' | 'both' | 'undefined'
+  ) {
+    return await this.dimensionService.getMatchDimensionsWithDefinitions(
+      parseInt(matchId),
+      relationshipType
+    )
   }
 
   /**
