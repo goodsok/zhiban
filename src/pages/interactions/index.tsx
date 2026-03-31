@@ -238,13 +238,6 @@ export default function InteractionsPage() {
             </View>
             <Text className="block text-base text-gray-500 mb-2">暂无互动记录</Text>
             <Text className="block text-sm text-gray-400 mb-6">点击下方按钮记录你们的互动</Text>
-            <View 
-              className="flex items-center gap-2 bg-black px-6 py-3 rounded-full"
-              onClick={goCreateInteraction}
-            >
-              <Plus size={18} color="#fff" />
-              <Text className="block text-sm text-white">记录第一次互动</Text>
-            </View>
           </View>
         ) : (
           Object.entries(groupedEvents).map(([date, dateEvents]) => (
@@ -362,7 +355,9 @@ export default function InteractionsPage() {
         >
           <View className="flex items-center justify-center gap-2">
             <Plus size={20} color="#fff" />
-            <Text className="block text-base font-medium text-white">记录新互动</Text>
+            <Text className="block text-base font-medium text-white">
+              {events.length === 0 ? '记录第一次互动' : '记录新互动'}
+            </Text>
           </View>
         </Button>
       </View>
