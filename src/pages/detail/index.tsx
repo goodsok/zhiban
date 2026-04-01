@@ -156,6 +156,8 @@ const DetailPage: FC = () => {
   const needRefresh = useRef(false)
   // 首次加载标记
   const isFirstLoad = useRef(true)
+  // 维度组件刷新触发器
+  const [dimensionRefreshKey, setDimensionRefreshKey] = useState(0)
 
   useLoad(() => {
     console.log('Detail page loaded.', router.params.id)
@@ -175,6 +177,7 @@ const DetailPage: FC = () => {
       needRefresh.current = false
       // 清除缓存，强制刷新
       clearDimensionCache(Number(router.params.id))
+      setDimensionRefreshKey(prev => prev + 1)
       fetchDetail()
     }
   })
@@ -584,7 +587,7 @@ const DetailPage: FC = () => {
           <Text className="block text-sm font-semibold text-gray-900">档案维度</Text>
           <Text className="block text-xs text-gray-400">点击编辑</Text>
         </View>
-        <DimensionViewer matchId={detail.id} relationshipType={detail.relationshipType} />
+        <DimensionViewer matchId={detail.id} relationshipType={detail.relationshipType} refreshKey={dimensionRefreshKey} />
       </View>
 
       {/* ==================== 第三屏：备注 ==================== */}

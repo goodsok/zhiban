@@ -35,6 +35,8 @@ interface DimensionViewerProps {
   enableCache?: boolean
   /** 是否启用延迟加载，默认 true */
   enableLazyLoad?: boolean
+  /** 刷新触发器，值变化时重新获取数据 */
+  refreshKey?: number
 }
 
 interface DimensionGroup {
@@ -88,7 +90,8 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
   relationshipType, 
   onEdit,
   enableCache = true,
-  enableLazyLoad = true
+  enableLazyLoad = true,
+  refreshKey
 }) => {
   const [loading, setLoading] = useState(true)
   const [dimensionGroups, setDimensionGroups] = useState<DimensionGroup[]>([])
@@ -105,7 +108,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
 
   useEffect(() => {
     fetchDimensions()
-  }, [matchId, relationshipType])
+  }, [matchId, relationshipType, refreshKey])
 
   // 重置折叠状态（当关系类型变化时）
   useEffect(() => {
