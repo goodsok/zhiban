@@ -1,12 +1,12 @@
 import { View, Text } from '@tarojs/components'
 import { useLoad, useRouter, navigateBack } from '@tarojs/taro'
 import type { FC } from 'react'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import CustomHeader from '@/components/custom-header'
-import { Check, Loader } from 'lucide-react-taro'
+import { Check, Loader, Search, Plus, X } from 'lucide-react-taro'
 import {
   getDimensionDefinition,
   setDimensionValue,
@@ -26,6 +26,9 @@ const DimensionEditPage: FC = () => {
   const [currentValue, setCurrentValue] = useState<any>(null)
   const [inputValue, setInputValue] = useState<string>('')
   const [multiSelectValues, setMultiSelectValues] = useState<string[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [customInputValue, setCustomInputValue] = useState('')
+  const [showCustomInput, setShowCustomInput] = useState(false)
 
   useLoad(() => {
     if (matchId && dimensionKey) {
@@ -113,9 +116,34 @@ const DimensionEditPage: FC = () => {
     })
   }
 
+  const handleAddCustomValue = () => {
+    if (customInputValue.trim() && !multiSelectValues.includes(customInputValue.trim())) {
+      setMultiSelectValues(prev => [...prev, customInputValue.trim()])
+      setCustomInputValue('')
+      setShowCustomInput(false)
+    }
+  }
+
+  const handleRemoveValue = (value: string) => {
+    setMultiSelectValues(prev => prev.filter(v => v !== value))
+  }
+
   const handleEnumSelect = (optionValue: string) => {
     setInputValue(optionValue)
   }
+
+  // 过滤选项
+  const filteredOptions = useMemo(() => {
+    if (!definition?.enum_options || !searchQuery) {
+      return definition?.enum_options || []
+    }
+    return definition.enum_options.filter(option => 
+      option.label.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [definition?.enum_options, searchQuery])
+
+  // 是否显示搜索框（选项超过10个时显示）
+  const showSearch = (definition?.enum_options?.length || 0) > 10
 
   const renderInput = () => {
     if (!definition) return null
@@ -124,41 +152,142 @@ const DimensionEditPage: FC = () => {
       case 'select':
         return (
           <View className="space-y-2">
-            {definition.enum_options?.map((option) => (
-              <View
-                key={option.value}
-                className={`flex items-center justify-between p-3 rounded-lg border ${
-                  inputValue === option.value
-                    ? 'border-black bg-gray-50'
-                    : 'border-gray-200 bg-white'
-                }`}
-                onClick={() => handleEnumSelect(option.value)}
-              >
-                <Text className="text-sm">{option.label}</Text>
-                {inputValue === option.value && (
-                  <Check size={16} color="#000" />
-                )}
+            {/* 搜索框 */}
+            {showSearch && (
+              <View className="bg-gray-50 rounded-lg px-4 py-3 mb-3 flex items-center gap-2">
+                <Search size={16} color="#9CA3AF" />
+                <View className="flex-1">
+                  <Input
+                    value={searchQuery}
+                    onInput={(e) => setSearchQuery(e.detail.value)}
+                    placeholder="搜索..."
+                    className="w-full bg-transparent text-sm"
+                  />
+                </View>
               </View>
-            ))}
+            )}
+            
+            {/* 选项列表 */}
+            <View className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              {filteredOptions.map((option, index) => (
+                <View
+                  key={option.value}
+                  className={`flex items-center justify-between px-4 py-3 ${
+                    index !== filteredOptions.length - 1 ? 'border-b border-gray-50' : ''
+                  } ${inputValue === option.value ? 'bg-gray-50' : ''}`}
+                  onClick={() => handleEnumSelect(option.value)}
+                >
+                  <Text className="text-sm text-gray-900">{option.label}</Text>
+                  {inputValue === option.value && (
+                    <Check size={16} color="#000" />
+                  )}
+                </View>
+              ))}
+              {filteredOptions.length === 0 && (
+                <View className="px-4 py-8 flex items-center justify-center">
+                  <Text className="text-sm text-gray-400">没有找到匹配项</Text>
+                </View>
+              )}
+            </View>
           </View>
         )
       
       case 'multiselect':
         return (
-          <View className="flex flex-wrap gap-2">
-            {definition.enum_options?.map((option) => (
-              <Badge
-                key={option.value}
-                className={`${
-                  multiSelectValues.includes(option.value)
-                    ? 'bg-black text-white'
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-                onClick={() => handleMultiSelect(option.value)}
-              >
-                {option.label}
-              </Badge>
-            ))}
+          <View>
+            {/* 搜索框 */}
+            {showSearch && (
+              <View className="bg-gray-50 rounded-lg px-4 py-3 mb-3 flex items-center gap-2">
+                <Search size={16} color="#9CA3AF" />
+                <View className="flex-1">
+                  <Input
+                    value={searchQuery}
+                    onInput={(e) => setSearchQuery(e.detail.value)}
+                    placeholder="搜索..."
+                    className="w-full bg-transparent text-sm"
+                  />
+                </View>
+              </View>
+            )}
+            
+            {/* 已选择的标签 */}
+            {multiSelectValues.length > 0 && (
+              <View className="mb-4">
+                <Text className="text-xs text-gray-500 mb-2">已选择 ({multiSelectValues.length})</Text>
+                <View className="flex flex-wrap gap-2">
+                  {multiSelectValues.map(value => {
+                    const option = definition.enum_options?.find(o => o.value === value)
+                    return (
+                      <View
+                        key={value}
+                        className="flex items-center gap-1 bg-black rounded-full px-3 py-2"
+                      >
+                        <Text className="text-sm text-white">{option?.label || value}</Text>
+                        <View onClick={() => handleRemoveValue(value)}>
+                          <X size={14} color="#fff" />
+                        </View>
+                      </View>
+                    )
+                  })}
+                </View>
+              </View>
+            )}
+            
+            {/* 可选标签 */}
+            <View className="mb-2">
+              <Text className="text-xs text-gray-500 mb-2">可选项</Text>
+              <View className="flex flex-wrap gap-2">
+                {filteredOptions
+                  .filter(option => !multiSelectValues.includes(option.value))
+                  .map(option => (
+                    <Badge
+                      key={option.value}
+                      className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      onClick={() => handleMultiSelect(option.value)}
+                    >
+                      {option.label}
+                    </Badge>
+                  ))}
+                {filteredOptions.filter(option => !multiSelectValues.includes(option.value)).length === 0 && (
+                  <Text className="text-sm text-gray-400">暂无可选项</Text>
+                )}
+              </View>
+            </View>
+            
+            {/* 自定义输入 */}
+            <View className="mt-4 pt-4 border-t border-gray-100">
+              {!showCustomInput ? (
+                <View 
+                  className="flex items-center gap-2 text-gray-500"
+                  onClick={() => setShowCustomInput(true)}
+                >
+                  <Plus size={16} color="#9CA3AF" />
+                  <Text className="text-sm">添加自定义选项</Text>
+                </View>
+              ) : (
+                <View className="flex items-center gap-2">
+                  <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                    <Input
+                      value={customInputValue}
+                      onInput={(e) => setCustomInputValue(e.detail.value)}
+                      placeholder="输入自定义内容..."
+                      className="w-full bg-transparent text-sm"
+                    />
+                  </View>
+                  <Button
+                    size="sm"
+                    className="bg-black"
+                    onClick={handleAddCustomValue}
+                    disabled={!customInputValue.trim()}
+                  >
+                    <Text className="text-white text-xs">添加</Text>
+                  </Button>
+                  <View onClick={() => { setShowCustomInput(false); setCustomInputValue('') }}>
+                    <X size={20} color="#9CA3AF" />
+                  </View>
+                </View>
+              )}
+            </View>
           </View>
         )
       
@@ -222,7 +351,7 @@ const DimensionEditPage: FC = () => {
       <CustomHeader title={definition.display_name} />
       
       {/* 顶部信息 */}
-      <View className="p-4">
+      <View className="p-4 bg-white border-b border-gray-100">
         <View className="flex items-center gap-2 mb-2">
           <Text className="text-lg font-semibold text-gray-900">{definition.display_name}</Text>
           {definition.importance === 'critical' && (
@@ -243,8 +372,7 @@ const DimensionEditPage: FC = () => {
       </View>
       
       {/* 输入区域 */}
-      <View className="px-4">
-        <Text className="text-sm font-medium text-gray-700 mb-2">当前值</Text>
+      <View className="p-4">
         {renderInput()}
       </View>
       
