@@ -159,6 +159,14 @@ const DetailPage: FC = () => {
   // 维度组件刷新触发器
   const [dimensionRefreshKey, setDimensionRefreshKey] = useState(0)
 
+  // 处理维度编辑，设置刷新标记
+  const handleDimensionEdit = useCallback((dimensionKey: string) => {
+    needRefresh.current = true
+    navigateTo({
+      url: `/pages/dimension-edit/index?matchId=${detail?.id}&dimensionKey=${dimensionKey}`
+    })
+  }, [detail?.id])
+
   useLoad(() => {
     console.log('Detail page loaded.', router.params.id)
     fetchDetail()
@@ -587,7 +595,7 @@ const DetailPage: FC = () => {
           <Text className="block text-sm font-semibold text-gray-900">档案维度</Text>
           <Text className="block text-xs text-gray-400">点击编辑</Text>
         </View>
-        <DimensionViewer matchId={detail.id} relationshipType={detail.relationshipType} refreshKey={dimensionRefreshKey} />
+        <DimensionViewer matchId={detail.id} relationshipType={detail.relationshipType} refreshKey={dimensionRefreshKey} onEdit={handleDimensionEdit} />
       </View>
 
       {/* ==================== 第三屏：备注 ==================== */}
