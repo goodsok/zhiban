@@ -1,15 +1,14 @@
 /**
  * 维度展示组件
- * 按层级展示对象的维度数据
+ * 按层级展示对象的维度数据，支持折叠展开
  */
 
 import { View, Text } from '@tarojs/components'
 import type { FC } from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChevronRight, Database, Loader } from 'lucide-react-taro'
+import { ChevronRight, ChevronDown, ChevronUp, Database, Loader, Info } from 'lucide-react-taro'
 import {
   getMatchDimensions,
   layerNames,
@@ -36,14 +35,63 @@ interface DimensionGroup {
   }>
 }
 
+// 需要说明的维度配置
+const DIMENSION_HELP: Record<string, string> = {
+  // Layer 2 - 性格特质
+  riskAttitude: '面对不确定性时的倾向：追求冒险还是偏好稳妥',
+  extroversionLevel: '社交能量的来源：从外部世界（社交）还是内心世界（独处）获取能量',
+  conflictStyle: '面对分歧时的处理方式：直面解决、回避退让、折中妥协等',
+  stressResponse: '遇到压力时的典型反应：主动化解、情绪宣泄、封闭自我等',
+  commitmentStyle: '对关系承诺的态度：慎重承诺、轻松承诺、避免承诺',
+  intimacyNeeds: '对情感和身体亲密的需求强度',
+  jealousyLevel: '对伴侣与他人互动的敏感程度',
+  attachmentStyle: '在亲密关系中的依恋模式：安全型、焦虑型、回避型等',
+  
+  // Layer 3 - 生活偏好
+  friendshipStyle: '交友和维持友谊的方式',
+  communicationStyle: '日常沟通的习惯和偏好',
+  humorStyle: '幽默表达的方式',
+  listeningStyle: '倾听他人时的习惯',
+  argumentStyle: '争论和表达不同意见的方式',
+  textingStyle: '发消息的习惯：秒回、延迟回复、简洁、详尽等',
+  
+  // Layer 4 - 互动策略
+  safeSexAttitude: '对安全性行为的重视程度',
+  sexualCompatibilityImportance: '认为性契合在关系中的重要程度',
+  casualDatingAcceptance: '对没有长期承诺的约会关系的态度',
+  fwbAcceptance: '对从朋友发展为亲密关系的态度（Friends with Benefits）',
+  multiplePartnerAcceptance: '对同时与多人约会或保持关系的态度',
+  emotionalInvestmentSpeed: '在感情中投入情感的快慢节奏',
+  reboundRelationshipAttitude: '对分手后快速开始新关系的态度',
+  datingMultiplePeopleStyle: '同时与多人约会时的处理方式：坦诚告知、不问不说、一次只专注一人',
+  signalSensitivity: '对对方释放的约会信号（暗示、邀约等）的敏感程度',
+  gamesPlayingAttitude: '对"欲擒故纵"等约会策略的态度',
+  flirtingStyle: '表达兴趣和吸引力的方式',
+  emotionalDetachmentAbility: '从情感关系中抽离的能力',
+  emotionalBoundaryStyle: '设定和维护情感边界的方式',
+  physicalAffectionStyle: '在公开场合和私下对身体接触的舒适度',
+}
+
 export const DimensionViewer: FC<DimensionViewerProps> = ({ matchId, relationshipType, onEdit }) => {
   const [loading, setLoading] = useState(true)
   const [dimensionGroups, setDimensionGroups] = useState<DimensionGroup[]>([])
   const [completeness, setCompleteness] = useState<Array<{ layer: number; completeness: number }>>([])
+  const [applicableCount, setApplicableCount] = useState(0)
+  const [filledCount, setFilledCount] = useState(0)
+  
+  // 折叠状态
+  const [expandedLayers, setExpandedLayers] = useState<Set<number>>(new Set([1])) // 默认展开 Layer 1
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set()) // 分类折叠状态
 
   useEffect(() => {
     fetchDimensions()
   }, [matchId, relationshipType])
+
+  // 重置折叠状态（当关系类型变化时）
+  useEffect(() => {
+    setExpandedLayers(new Set([1]))
+    setExpandedCategories(new Set())
+  }, [relationshipType])
 
   const fetchDimensions = async () => {
     try {
@@ -76,6 +124,8 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({ matchId, relationshi
         
         setDimensionGroups(sortedGroups)
         setCompleteness(res.data.completeness)
+        setApplicableCount(res.data.applicableCount || 0)
+        setFilledCount(res.data.filledCount || 0)
       }
     } catch (err) {
       console.error('获取维度数据失败:', err)
@@ -84,8 +134,44 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({ matchId, relationshi
     }
   }
 
+  // 按层级分组的维度数据
+  const layersData = useMemo(() => {
+    const layers: Record<number, DimensionGroup[]> = {}
+    for (const group of dimensionGroups) {
+      if (!layers[group.layer]) {
+        layers[group.layer] = []
+      }
+      layers[group.layer].push(group)
+    }
+    return layers
+  }, [dimensionGroups])
+
   const getCompleteness = (layer: number): number => {
     return completeness.find(c => c.layer === layer)?.completeness || 0
+  }
+
+  const toggleLayer = (layer: number) => {
+    setExpandedLayers(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(layer)) {
+        newSet.delete(layer)
+      } else {
+        newSet.add(layer)
+      }
+      return newSet
+    })
+  }
+
+  const toggleCategory = (groupKey: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(groupKey)) {
+        newSet.delete(groupKey)
+      } else {
+        newSet.add(groupKey)
+      }
+      return newSet
+    })
   }
 
   const handleDimensionClick = (dimensionKey: string) => {
@@ -116,74 +202,155 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({ matchId, relationshi
     )
   }
 
+  const sortedLayers = Object.keys(layersData).map(Number).sort((a, b) => a - b)
+
   return (
     <View className="dimension-viewer">
-      {dimensionGroups.map((group, index) => (
-        <View key={`${group.layer}-${group.category}`} className="mb-4">
-          {/* 层级标题（仅在每个层级第一次出现时显示） */}
-          {index === 0 || dimensionGroups[index - 1].layer !== group.layer ? (
-            <View className="mb-2">
-              <View className="flex items-center justify-between mb-1">
-                <Text className="block text-base font-semibold text-gray-800">
-                  {layerNames[group.layer] || `Layer ${group.layer}`}
-                </Text>
-                <Badge variant="outline" className="text-xs">
-                  {getCompleteness(group.layer)}% 完成
-                </Badge>
+      {/* 维度统计概览 */}
+      <View className="mb-4 p-3 bg-white rounded-xl border border-gray-100">
+        <View className="flex items-center justify-between">
+          <Text className="block text-xs text-gray-500">已填写维度</Text>
+          <View className="flex items-center gap-1">
+            <Text className="block text-sm font-semibold text-gray-900">{filledCount}</Text>
+            <Text className="block text-xs text-gray-400">/ {applicableCount}</Text>
+          </View>
+        </View>
+        <Progress 
+          value={applicableCount > 0 ? Math.round((filledCount / applicableCount) * 100) : 0} 
+          className="h-1 mt-2 bg-gray-100" 
+        />
+      </View>
+
+      {/* 按层级展示 */}
+      {sortedLayers.map((layer) => {
+        const groups = layersData[layer]
+        const isLayerExpanded = expandedLayers.has(layer)
+        const layerComplete = getCompleteness(layer)
+        
+        return (
+          <View key={layer} className="mb-3">
+            {/* 层级标题栏 - 可点击折叠 */}
+            <View 
+              className="bg-white rounded-xl border border-gray-100 p-3"
+              onClick={() => toggleLayer(layer)}
+            >
+              <View className="flex items-center justify-between">
+                <View className="flex items-center gap-2 flex-1">
+                  <Text className="block text-sm font-semibold text-gray-900">
+                    {layerNames[layer] || `Layer ${layer}`}
+                  </Text>
+                  <Badge variant="outline" className="text-xs">
+                    {layerComplete}%
+                  </Badge>
+                </View>
+                <View className="flex items-center gap-2">
+                  <Progress value={layerComplete} className="w-16 h-1 bg-gray-100" />
+                  {isLayerExpanded ? (
+                    <ChevronUp size={16} color="#9CA3AF" />
+                  ) : (
+                    <ChevronDown size={16} color="#9CA3AF" />
+                  )}
+                </View>
               </View>
-              <Progress value={getCompleteness(group.layer)} className="h-1 mb-2" />
-              <Text className="block text-xs text-gray-500 mb-2">
-                {layerDescriptions[group.layer]}
+              
+              {/* 层级描述 */}
+              <Text className="block text-xs text-gray-400 mt-1">
+                {layerDescriptions[layer]}
               </Text>
             </View>
-          ) : null}
-          
-          {/* 分类卡片 */}
-          <Card className="mb-2">
-            <CardHeader className="pb-2 pt-3 px-3">
-              <CardTitle className="text-sm font-medium text-gray-700">
-                {categoryNames[group.category] || group.category}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-3 pb-3 pt-0">
-              <View className="space-y-2">
-                {group.dimensions.map((item) => {
-                  const hasValue = item.value !== null && item.value !== undefined && item.value.value !== null
-                  const displayValue = hasValue 
-                    ? formatDimensionValue(item.definition, item.value!.value)
-                    : '-'
+            
+            {/* 展开后的分类列表 */}
+            {isLayerExpanded && (
+              <View className="mt-2">
+                {groups.map((group) => {
+                  const groupKey = `${group.layer}-${group.category}`
+                  const isCategoryExpanded = expandedCategories.has(groupKey)
+                  
+                  // 计算该分类下已填写的维度数
+                  const filledInCategory = group.dimensions.filter(
+                    item => item.value !== null && item.value !== undefined && item.value.value !== null
+                  ).length
                   
                   return (
-                    <View
-                      key={item.definition.dimension_key}
-                      className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
-                      onClick={() => handleDimensionClick(item.definition.dimension_key)}
-                    >
-                      <View className="flex items-center">
-                        {item.definition.importance === 'critical' && (
-                          <View className="w-1 h-1 rounded-full bg-red-500 mr-1" />
+                    <View key={groupKey} className="mb-2">
+                      {/* 分类标题 - 可点击折叠 */}
+                      <View 
+                        className="bg-gray-50 rounded-lg p-3 flex items-center justify-between"
+                        onClick={() => toggleCategory(groupKey)}
+                      >
+                        <View className="flex items-center gap-2">
+                          <Text className="block text-xs font-medium text-gray-700">
+                            {categoryNames[group.category] || group.category}
+                          </Text>
+                          <Text className="block text-xs text-gray-400">
+                            {filledInCategory}/{group.dimensions.length}
+                          </Text>
+                        </View>
+                        {isCategoryExpanded ? (
+                          <ChevronUp size={14} color="#9CA3AF" />
+                        ) : (
+                          <ChevronDown size={14} color="#9CA3AF" />
                         )}
-                        {item.definition.importance === 'important' && (
-                          <View className="w-1 h-1 rounded-full bg-amber-500 mr-1" />
-                        )}
-                        <Text className="text-sm text-gray-600">
-                          {item.definition.display_name}
-                        </Text>
                       </View>
-                      <View className="flex items-center">
-                        <Text className={`text-sm ${hasValue ? 'text-gray-800' : 'text-gray-400'}`}>
-                          {displayValue}
-                        </Text>
-                        <ChevronRight size={16} color="#D1D5DB" className="ml-1" />
-                      </View>
+                      
+                      {/* 展开后的维度列表 */}
+                      {isCategoryExpanded && (
+                        <View className="bg-white rounded-lg border border-gray-100 mt-1 overflow-hidden">
+                          {group.dimensions.map((item, idx) => {
+                            const hasValue = item.value !== null && item.value !== undefined && item.value.value !== null
+                            const displayValue = hasValue 
+                              ? formatDimensionValue(item.definition, item.value!.value)
+                              : '-'
+                            const hasHelp = DIMENSION_HELP[item.definition.dimension_key]
+                            
+                            return (
+                              <View
+                                key={item.definition.dimension_key}
+                                className={`flex items-center justify-between py-3 px-3 ${
+                                  idx < group.dimensions.length - 1 ? 'border-b border-gray-50' : ''
+                                }`}
+                                onClick={() => handleDimensionClick(item.definition.dimension_key)}
+                              >
+                                <View className="flex items-center flex-1 mr-2">
+                                  {/* 重要性标记 */}
+                                  {item.definition.importance === 'critical' && (
+                                    <View className="w-1 h-1 rounded-full bg-red-500 mr-2" />
+                                  )}
+                                  {item.definition.importance === 'important' && (
+                                    <View className="w-1 h-1 rounded-full bg-amber-500 mr-2" />
+                                  )}
+                                  
+                                  <Text className="text-sm text-gray-700">
+                                    {item.definition.display_name}
+                                  </Text>
+                                  
+                                  {/* 维度说明提示 */}
+                                  {hasHelp && (
+                                    <View className="ml-1">
+                                      <Info size={12} color="#9CA3AF" />
+                                    </View>
+                                  )}
+                                </View>
+                                
+                                <View className="flex items-center">
+                                  <Text className={`text-sm ${hasValue ? 'text-gray-800' : 'text-gray-400'}`}>
+                                    {displayValue}
+                                  </Text>
+                                  <ChevronRight size={14} color="#D1D5DB" className="ml-1" />
+                                </View>
+                              </View>
+                            )
+                          })}
+                        </View>
+                      )}
                     </View>
                   )
                 })}
               </View>
-            </CardContent>
-          </Card>
-        </View>
-      ))}
+            )}
+          </View>
+        )
+      })}
     </View>
   )
 }

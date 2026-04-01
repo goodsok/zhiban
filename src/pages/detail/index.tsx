@@ -12,6 +12,8 @@ import DimensionViewer from '@/components/dimension-viewer'
 import CustomHeader from '@/components/custom-header'
 import { 
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Loader,
   MessageCircle,
   Heart,
@@ -27,7 +29,8 @@ import {
   Pencil,
   MessageCirclePlus,
   ClipboardList,
-  Target
+  Zap,
+  ChartPie
 } from 'lucide-react-taro'
 
 // 关系类型
@@ -143,6 +146,9 @@ const DetailPage: FC = () => {
   
   // 关系类型选择状态
   const [selectingRelationshipType, setSelectingRelationshipType] = useState(false)
+  
+  // 数据概览展开状态
+  const [showDataOverview, setShowDataOverview] = useState(false)
 
   useLoad(() => {
     console.log('Detail page loaded.', router.params.id)
@@ -280,17 +286,21 @@ const DetailPage: FC = () => {
     )
   }
 
+  const relationTypeConfig = RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined']
+
   return (
     <View className="min-h-screen bg-gray-50 pb-24">
       <CustomHeader title="档案" />
 
-      {/* 基本信息卡片 */}
+      {/* ==================== 第一屏：核心信息 ==================== */}
+      
+      {/* 基本信息卡片：姓名 + 关系类型 */}
       <View className="p-4">
         <Card className="border border-gray-100">
           <CardContent className="p-4">
             {/* 姓名可编辑 */}
             {editingName ? (
-              <View className="flex items-center gap-2">
+              <View className="flex items-center gap-2 mb-3">
                 <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
                   <Input
                     className="w-full text-xl font-bold"
@@ -315,297 +325,247 @@ const DetailPage: FC = () => {
                 </View>
               </View>
             ) : (
-              <View className="flex items-center gap-2" onClick={() => setEditingName(true)}>
+              <View className="flex items-center gap-2 mb-3" onClick={() => setEditingName(true)}>
                 <Text className="block text-xl font-bold text-gray-900">{detail.name}</Text>
                 <Pencil size={14} color="#9CA3AF" />
+              </View>
+            )}
+            
+            {/* 关系类型标签 */}
+            {selectingRelationshipType ? (
+              <View className="mt-2">
+                <Text className="block text-xs text-gray-500 mb-2">选择关系类型</Text>
+                <View className="flex flex-wrap gap-2">
+                  {(['long_term', 'short_term', 'both'] as RelationshipType[]).map(type => {
+                    const config = RELATIONSHIP_TYPE_CONFIG[type]
+                    const isSelected = detail?.relationshipType === type
+                    return (
+                      <View
+                        key={type}
+                        className={`px-3 py-2 rounded-full border-2 ${
+                          isSelected ? 'border-black' : 'border-gray-200'
+                        }`}
+                        style={{ backgroundColor: isSelected ? config.bgColor.replace('bg-', '') : 'transparent' }}
+                        onClick={() => saveRelationshipType(type)}
+                      >
+                        <Text 
+                          className="block text-xs font-medium"
+                          style={{ color: isSelected ? config.color : '#6B7280' }}
+                        >
+                          {config.label}
+                        </Text>
+                      </View>
+                    )
+                  })}
+                  <View 
+                    className="px-3 py-2 rounded-full border border-gray-200"
+                    onClick={() => setSelectingRelationshipType(false)}
+                  >
+                    <Text className="block text-xs text-gray-400">取消</Text>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <View 
+                className="flex items-center gap-2"
+                onClick={() => setSelectingRelationshipType(true)}
+              >
+                <View 
+                  className="px-2 py-1 rounded-full"
+                  style={{ backgroundColor: relationTypeConfig.bgColor.replace('bg-', '') }}
+                >
+                  <Text 
+                    className="block text-xs font-medium"
+                    style={{ color: relationTypeConfig.color }}
+                  >
+                    {relationTypeConfig.label}
+                  </Text>
+                </View>
+                <Pencil size={12} color="#9CA3AF" />
               </View>
             )}
           </CardContent>
         </Card>
       </View>
 
-      {/* 关系类型卡片 */}
+      {/* 快捷操作：网格布局 */}
       <View className="px-4 pb-4">
-        {selectingRelationshipType ? (
-          <View className="bg-white rounded-xl border border-gray-100 p-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">选择关系类型</Text>
-            <View className="space-y-2">
-              {(['long_term', 'short_term', 'both'] as RelationshipType[]).map(type => {
-                const config = RELATIONSHIP_TYPE_CONFIG[type]
-                const isSelected = detail?.relationshipType === type
-                return (
-                  <View
-                    key={type}
-                    className={`flex items-center justify-between p-3 rounded-xl border-2 ${
-                      isSelected ? 'border-black bg-gray-50' : 'border-gray-100'
-                    }`}
-                    onClick={() => saveRelationshipType(type)}
-                  >
-                    <View className="flex items-center gap-3">
-                      <View 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: config.color }}
-                      />
-                      <View>
-                        <Text className="block text-sm font-medium text-gray-900">{config.label}</Text>
-                        <Text className="block text-xs text-gray-500">{config.description}</Text>
-                      </View>
-                    </View>
-                    {isSelected && <Check size={16} color="#000" />}
-                  </View>
-                )
-              })}
-            </View>
-            <View 
-              className="mt-3 text-center text-xs text-gray-400"
-              onClick={() => setSelectingRelationshipType(false)}
-            >
-              <Text className="block">取消</Text>
-            </View>
-          </View>
-        ) : (
+        <View className="grid grid-cols-4 gap-2">
+          {/* 记录互动 */}
           <View 
-            className={`rounded-xl border p-4 ${RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].bgColor}`}
-            style={{ borderColor: RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].color }}
-            onClick={() => setSelectingRelationshipType(true)}
+            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-gray-100"
+            onClick={() => navigateTo({ url: `/pages/interaction-create/index?matchId=${detail.id}` })}
           >
-            <View className="flex items-center justify-between">
-              <View className="flex items-center gap-3">
-                <Target 
-                  size={20} 
-                  color={RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].color} 
-                />
-                <View>
-                  <Text 
-                    className="block text-sm font-semibold"
-                    style={{ color: RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].color }}
-                  >
-                    {RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].label}
-                  </Text>
-                  <Text className="block text-xs text-gray-500">
-                    {RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined'].description}
-                  </Text>
-                </View>
-              </View>
-              <Pencil size={14} color="#9CA3AF" />
+            <View className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center mb-1">
+              <MessageCirclePlus size={20} color="#6366F1" />
             </View>
+            <Text className="block text-xs text-gray-700">记录互动</Text>
           </View>
-        )}
-      </View>
-
-      {/* 推进值卡片 */}
-      {detail.progressScore && (
-        <View className="px-4 pb-4">
-          <View className="bg-white rounded-xl border border-gray-100 p-4">
-            <View className="flex items-center justify-between mb-3">
-              <View className="flex items-center gap-2">
-                <TrendingUp size={16} color="#000" />
-                <Text className="block text-sm font-semibold text-gray-900">关系推进</Text>
-              </View>
-              <View className="flex items-center gap-1">
-                <Text className="block text-2xl font-bold text-gray-900">{detail.progressScore.total}</Text>
-                <Text className="block text-xs text-gray-400">/100</Text>
-              </View>
+          
+          {/* 互动任务 */}
+          <View 
+            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-gray-100"
+            onClick={goToTasks}
+          >
+            <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1">
+              <ClipboardList size={20} color="#374151" />
             </View>
-            
-            <View className="mb-3">
-              <Progress 
-                value={detail.progressScore.total} 
-                className="h-2 bg-gray-100" 
-              />
-            </View>
-
-            <View className="flex items-center justify-between mb-2">
-              <View className="flex items-center gap-2">
-                <View className="w-2 h-2 rounded-full bg-black" />
-                <Text className="block text-sm font-medium text-gray-900">
-                  {detail.progressScore.stage.name}
-                </Text>
-              </View>
-              <Text className="block text-xs text-gray-500">
-                {detail.progressScore.stage.description}
+            <Text className="block text-xs text-gray-700">任务</Text>
+            {detail.stats.tasks > 0 && (
+              <Text className="block text-xs text-gray-400">
+                {detail.stats.completedTasks}/{detail.stats.tasks}
               </Text>
-            </View>
-
-            {/* 分项得分 */}
-            <View className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-100">
-              <View className="text-center">
-                <Text className="block text-xs text-gray-400">信息完整度</Text>
-                <Text className="block text-sm font-semibold text-gray-700">
-                  {detail.progressScore.breakdown.infoCompleteness.toFixed(0)}
-                </Text>
-              </View>
-              <View className="text-center">
-                <Text className="block text-xs text-gray-400">关键信息</Text>
-                <Text className="block text-sm font-semibold text-gray-700">
-                  {detail.progressScore.breakdown.criticalInfoMastery.toFixed(0)}
-                </Text>
-              </View>
-              <View className="text-center">
-                <Text className="block text-xs text-gray-400">任务完成</Text>
-                <Text className="block text-sm font-semibold text-gray-700">
-                  {detail.progressScore.breakdown.taskCompletion.toFixed(0)}
-                </Text>
-              </View>
-            </View>
-
-            {/* 洞察建议 */}
-            {detail.progressScore.insights.length > 0 && (
-              <View className="mt-3 pt-3 border-t border-gray-100">
-                {detail.progressScore.insights.map((insight, i) => (
-                  <View key={i} className="flex items-start gap-2 mb-1">
-                    <Text className="block text-xs text-gray-400">•</Text>
-                    <Text className="block text-xs text-gray-600">{insight}</Text>
-                  </View>
-                ))}
-              </View>
             )}
           </View>
-        </View>
-      )}
-
-      {/* 关系能量卡片 */}
-      {detail.energy && (
-        <View className="px-4 pb-4">
+          
+          {/* 人物画像 */}
           <View 
-            className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100 p-4"
-            onClick={() => navigateTo({ url: `/pages/interactions/index?matchId=${detail.id}` })}
+            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-gray-100"
+            onClick={goToPortrait}
           >
-            <View className="flex items-center justify-between mb-3">
-              <View className="flex items-center gap-2">
-                <View className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                  <Sun size={16} color="#F59E0B" />
-                </View>
-                <Text className="block text-sm font-semibold text-gray-900">关系能量</Text>
-              </View>
-              <ChevronRight size={16} color="#9CA3AF" />
+            <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1">
+              <Brain size={20} color="#374151" />
             </View>
-            
-            <View className="flex items-end justify-between">
-              <View>
-                <View className="flex items-end gap-1">
-                  <Text className="block text-3xl font-bold text-amber-600">{detail.energy.current}</Text>
-                  <Text className="block text-sm text-gray-400 pb-1">/ 100</Text>
-                </View>
-                <View className="flex items-center gap-2 mt-1">
-                  <Text className="block text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700">
-                    {detail.energy.level}
-                  </Text>
-                  <Text className="block text-xs text-gray-500">
-                    {detail.energy.trend === 'rising' ? '↑ 上升中' : detail.energy.trend === 'declining' ? '↓ 下降中' : '→ 稳定'}
-                  </Text>
-                </View>
-              </View>
-              
-              <View className="text-right">
-                <Text className="block text-xs text-gray-400">本周互动</Text>
-                <Text className="block text-lg font-semibold text-gray-900">{detail.energy.thisWeek}</Text>
-                <Text className="block text-xs text-gray-400">次</Text>
-              </View>
-            </View>
-
-            <View className="mt-3 pt-3 border-t border-amber-100">
-              <Text className="block text-xs text-gray-500">
-                最近 {detail.energy.recentCount} 次互动已贡献能量
-              </Text>
-            </View>
+            <Text className="block text-xs text-gray-700">画像</Text>
           </View>
+          
+          {/* 周期追踪 */}
+          {cycleInfo ? (
+            <View 
+              className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-gray-100"
+              onClick={() => navigateTo({ url: `/pages/cycle/index?matchId=${detail.id}` })}
+            >
+              <View className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center mb-1">
+                <Activity size={20} color="#EC4899" />
+              </View>
+              <Text className="block text-xs text-gray-700">周期</Text>
+              <Text className="block text-xs text-gray-400">Day {cycleInfo.day}</Text>
+            </View>
+          ) : (
+            <View 
+              className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-gray-100"
+              onClick={() => navigateTo({ url: `/pages/cycle/index?matchId=${detail.id}` })}
+            >
+              <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1">
+                <Activity size={20} color="#9CA3AF" />
+              </View>
+              <Text className="block text-xs text-gray-700">周期</Text>
+            </View>
+          )}
         </View>
-      )}
+      </View>
 
-      {/* 周期追踪 */}
-      {cycleInfo && (() => {
-        const phaseConf = phaseConfig[cycleInfo.phase] || phaseConfig.follicular
-        const PhaseIcon = phaseConf.icon
-        return (
-          <View className="px-4 pb-4">
-            <View className="flex items-center gap-2 mb-2">
-              <Activity size={14} color="#6B7280" />
-              <Text className="block text-sm font-semibold text-gray-900">周期状态</Text>
+      {/* 关键数据概览 */}
+      <View className="px-4 pb-4">
+        <View className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          {/* 概览标题栏 - 可点击展开 */}
+          <View 
+            className="flex items-center justify-between p-4 cursor-pointer"
+            onClick={() => setShowDataOverview(!showDataOverview)}
+          >
+            <View className="flex items-center gap-2">
+              <ChartPie size={16} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">数据概览</Text>
             </View>
-            <View className={`${phaseConf.bgColor} rounded-xl p-4`}>
-              <View className="flex items-center justify-between mb-2">
-                <View className="flex items-center gap-2">
-                  <PhaseIcon size={16} color={phaseConf.color} />
-                  <Text className="block font-semibold" style={{ color: phaseConf.color }}>
-                    {cycleInfo.phaseName}
-                  </Text>
-                </View>
-                <Text className="block text-xs text-gray-500">Day {cycleInfo.day}</Text>
-              </View>
-              <Text className="block text-sm text-gray-600 mb-3">{cycleInfo.description}</Text>
-              <View className="space-y-1">
-                {cycleInfo.recommendations.slice(0, 3).map((rec, i) => (
-                  <View key={i} className="flex items-start gap-2">
-                    <Text className="block text-xs text-gray-400">•</Text>
-                    <Text className="block text-xs text-gray-600">{rec}</Text>
+            <View className="flex items-center gap-2">
+              {/* 简要数据 */}
+              <View className="flex items-center gap-3">
+                {detail.progressScore && (
+                  <View className="flex items-center gap-1">
+                    <TrendingUp size={12} color="#10B981" />
+                    <Text className="block text-xs font-medium text-gray-600">{detail.progressScore.total}</Text>
                   </View>
-                ))}
+                )}
+                {detail.energy && (
+                  <View className="flex items-center gap-1">
+                    <Zap size={12} color="#F59E0B" />
+                    <Text className="block text-xs font-medium text-gray-600">{detail.energy.current}</Text>
+                  </View>
+                )}
               </View>
+              {showDataOverview ? <ChevronUp size={16} color="#9CA3AF" /> : <ChevronDown size={16} color="#9CA3AF" />}
             </View>
           </View>
-        )
-      })()}
+          
+          {/* 展开的详细数据 */}
+          {showDataOverview && (
+            <View className="px-4 pb-4 border-t border-gray-100">
+              {/* 推进值 */}
+              {detail.progressScore && (
+                <View className="mt-3">
+                  <View className="flex items-center justify-between mb-2">
+                    <Text className="block text-xs text-gray-500">关系推进</Text>
+                    <View className="flex items-center gap-1">
+                      <Text className="block text-lg font-bold text-gray-900">{detail.progressScore.total}</Text>
+                      <Text className="block text-xs text-gray-400">/100</Text>
+                    </View>
+                  </View>
+                  <Progress value={detail.progressScore.total} className="h-1 bg-gray-100" />
+                  <Text className="block text-xs text-gray-500 mt-1">{detail.progressScore.stage.name}</Text>
+                </View>
+              )}
+              
+              {/* 关系能量 */}
+              {detail.energy && (
+                <View 
+                  className="mt-3 p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg"
+                  onClick={() => navigateTo({ url: `/pages/interactions/index?matchId=${detail.id}` })}
+                >
+                  <View className="flex items-center justify-between">
+                    <View className="flex items-center gap-2">
+                      <Sun size={14} color="#F59E0B" />
+                      <Text className="block text-xs text-gray-600">关系能量</Text>
+                    </View>
+                    <View className="flex items-center gap-2">
+                      <Text className="block text-lg font-bold text-amber-600">{detail.energy.current}</Text>
+                      <Text className="block text-xs text-gray-400">本周 {detail.energy.thisWeek} 次</Text>
+                      <ChevronRight size={14} color="#D1D5DB" />
+                    </View>
+                  </View>
+                </View>
+              )}
+              
+              {/* 周期状态 */}
+              {cycleInfo && (
+                <View className="mt-3">
+                  {(() => {
+                    const phaseConf = phaseConfig[cycleInfo.phase] || phaseConfig.follicular
+                    const PhaseIcon = phaseConf.icon
+                    return (
+                      <View className={`${phaseConf.bgColor} rounded-lg p-3`}>
+                        <View className="flex items-center justify-between">
+                          <View className="flex items-center gap-2">
+                            <PhaseIcon size={14} color={phaseConf.color} />
+                            <Text className="block text-xs font-medium" style={{ color: phaseConf.color }}>
+                              {cycleInfo.phaseName}
+                            </Text>
+                          </View>
+                          <Text className="block text-xs text-gray-500">Day {cycleInfo.day}</Text>
+                        </View>
+                        <Text className="block text-xs text-gray-600 mt-1">{cycleInfo.description}</Text>
+                      </View>
+                    )
+                  })()}
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      </View>
 
-      {/* 维度数据 */}
+      {/* ==================== 第二屏：维度数据 ==================== */}
+      
       <View className="px-4 pb-4">
         <View className="flex items-center gap-2 mb-2">
           <Database size={14} color="#6B7280" />
-          <Text className="block text-sm font-semibold text-gray-900">档案数据</Text>
+          <Text className="block text-sm font-semibold text-gray-900">档案维度</Text>
           <Text className="block text-xs text-gray-400">点击编辑</Text>
         </View>
         <DimensionViewer matchId={detail.id} relationshipType={detail.relationshipType} />
       </View>
 
-      {/* 快捷入口 */}
-      <View className="px-4 pb-4">
-        <Text className="block text-sm font-semibold text-gray-900 mb-2">操作</Text>
-        <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
-          <View 
-            className="flex items-center justify-between px-4 py-3"
-            onClick={() => navigateTo({ url: `/pages/interaction-create/index?matchId=${detail.id}` })}
-          >
-            <View className="flex items-center gap-3">
-              <MessageCirclePlus size={18} color="#6366F1" />
-              <Text className="block text-sm text-gray-700">记录互动</Text>
-            </View>
-            <View className="flex items-center gap-2">
-              <Text className="block text-xs text-indigo-500">快速添加</Text>
-              <ChevronRight size={16} color="#D1D5DB" />
-            </View>
-          </View>
-          <View 
-            className="flex items-center justify-between px-4 py-3"
-            onClick={goToTasks}
-          >
-            <View className="flex items-center gap-3">
-              <ClipboardList size={18} color="#374151" />
-              <Text className="block text-sm text-gray-700">互动任务</Text>
-            </View>
-            <View className="flex items-center gap-2">
-              <Text className="block text-xs text-gray-400">
-                {detail.stats.completedTasks}/{detail.stats.tasks}
-              </Text>
-              <ChevronRight size={16} color="#D1D5DB" />
-            </View>
-          </View>
-          <View 
-            className="flex items-center justify-between px-4 py-3"
-            onClick={goToPortrait}
-          >
-            <View className="flex items-center gap-3">
-              <Brain size={18} color="#374151" />
-              <Text className="block text-sm text-gray-700">人物画像</Text>
-            </View>
-            <View className="flex items-center gap-2">
-              <Text className="block text-xs text-gray-400">AI分析</Text>
-              <ChevronRight size={16} color="#D1D5DB" />
-            </View>
-          </View>
-        </View>
-      </View>
-
-      {/* 备注 */}
+      {/* ==================== 第三屏：备注 ==================== */}
+      
       <View className="px-4 pb-4">
         <Text className="block text-sm font-semibold text-gray-900 mb-2">备注</Text>
         {editingNotes ? (
