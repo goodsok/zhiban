@@ -1009,4 +1009,51 @@ export class DimensionService {
       return { code: 500, msg: String(err), data: { synced: 0 } }
     }
   }
+
+  /**
+   * 更新维度定义的枚举选项
+   * 从本地 dimension-definitions.ts 同步 enum_options 到数据库
+   */
+  async updateDimensionEnumOptions(): Promise<{ code: number; msg: string; data: { updated: number; errors: string[] } }> {
+    try {
+      const supabase = getSupabaseClient()
+      const errors: string[] = []
+      let updated = 0
+
+      // 获取需要更新的维度定义（有 enum_options 的）
+      const dimensionsWithEnums = allDimensions.filter(d => d.enum_options && d.enum_options.length > 0)
+
+      console.log(`准备更新 ${dimensionsWithEnums.length} 个维度定义的枚举选项...`)
+
+      for (const dim of dimensionsWithEnums) {
+        const { error } = await supabase
+          .from('dimension_definitions')
+          .update({
+            enum_options: dim.enum_options,
+            input_type: dim.input_type,
+            data_type: dim.data_type,
+            updated_at: new Date().toISOString()
+          })
+          .eq('dimension_key', dim.dimension_key)
+
+        if (error) {
+          errors.push(`${dim.dimension_key}: ${error.message}`)
+          console.error(`更新 ${dim.dimension_key} 失败:`, error)
+        } else {
+          updated++
+        }
+      }
+
+      console.log(`成功更新 ${updated} 个维度定义的枚举选项`)
+
+      return {
+        code: errors.length === 0 ? 200 : 500,
+        msg: errors.length === 0 ? 'success' : '部分更新失败',
+        data: { updated, errors }
+      }
+    } catch (err) {
+      console.error('更新维度枚举选项异常:', err)
+      return { code: 500, msg: String(err), data: { updated: 0, errors: [String(err)] } }
+    }
+  }
 }

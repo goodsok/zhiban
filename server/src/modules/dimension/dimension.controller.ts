@@ -146,4 +146,13 @@ export class DimensionController {
   async migrateHardwareSoftwareToDimensions() {
     return await this.dimensionService.migrateHardwareSoftwareToDimensions()
   }
+
+  /**
+   * 更新维度定义的枚举选项
+   * POST /api/dimension/update-enum-options
+   */
+  @Post('update-enum-options')
+  async updateDimensionEnumOptions() {
+    return await this.dimensionService.updateDimensionEnumOptions()
+  }
 }
