@@ -1,7 +1,7 @@
 import { View, Text } from '@tarojs/components'
 import { useLoad, useDidShow, useRouter, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { Network } from '@/network'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input'
 import ChatDialog from '@/components/chat-dialog'
 import DimensionViewer from '@/components/dimension-viewer'
 import CustomHeader from '@/components/custom-header'
+import { SkeletonProfile } from '@/components/skeleton'
+import { getMatchDetailWithCache, clearDimensionCache } from '@/utils/cache'
 import { 
   ChevronRight,
   ChevronDown,
@@ -149,15 +151,32 @@ const DetailPage: FC = () => {
   
   // 数据概览展开状态
   const [showDataOverview, setShowDataOverview] = useState(false)
+  
+  // 是否需要强制刷新（从编辑页返回时）
+  const needRefresh = useRef(false)
+  // 首次加载标记
+  const isFirstLoad = useRef(true)
 
   useLoad(() => {
     console.log('Detail page loaded.', router.params.id)
     fetchDetail()
+    isFirstLoad.current = false
   })
 
   useDidShow(() => {
-    // 每次页面显示时刷新数据（从维度编辑页返回时会触发）
-    fetchDetail()
+    // 首次加载时已经调用过 fetchDetail，不需要重复调用
+    if (isFirstLoad.current) {
+      return
+    }
+    
+    // 只有在需要刷新时才重新获取数据
+    // 从维度编辑页返回时会触发
+    if (needRefresh.current) {
+      needRefresh.current = false
+      // 清除缓存，强制刷新
+      clearDimensionCache(Number(router.params.id))
+      fetchDetail()
+    }
   })
 
   const fetchDetail = async () => {
@@ -166,17 +185,25 @@ const DetailPage: FC = () => {
 
     try {
       setLoading(true)
-      const res = await Network.request({
-        url: `/api/match/${id}`,
-        method: 'GET'
-      })
-      console.log('Fetch detail response:', res.data)
-      if (res.data?.code === 200 && res.data?.data) {
-        setDetail(res.data.data)
-        setNameValue(res.data.data.name || '')
-        setNotesValue(res.data.data.notes || '')
+      
+      // 使用缓存获取数据
+      const { data, fromCache } = await getMatchDetailWithCache(
+        Number(id),
+        () => Network.request({
+          url: `/api/match/${id}`,
+          method: 'GET'
+        }).then(res => res.data)
+      )
+      
+      console.log('Fetch detail response:', { data, fromCache })
+      
+      if (data?.code === 200 && data?.data) {
+        setDetail(data.data)
+        setNameValue(data.data.name || '')
+        setNotesValue(data.data.notes || '')
         
-        if (res.data.data.cycleStartDate) {
+        // 周期信息使用缓存，只有强制刷新时才重新获取
+        if (data.data.cycleStartDate && !fromCache) {
           const cycleRes = await Network.request({ url: `/api/match/${id}/cycle` })
           if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
             setCycleInfo(cycleRes.data.data)
@@ -271,11 +298,7 @@ const DetailPage: FC = () => {
   }
 
   if (loading) {
-    return (
-      <View className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader size={24} color="#6B7280" className="animate-spin" />
-      </View>
-    )
+    return <SkeletonProfile />
   }
 
   if (!detail) {
