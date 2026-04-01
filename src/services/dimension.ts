@@ -183,16 +183,30 @@ export function formatDimensionValue(
     return '-'
   }
   
-  switch (definition.data_type) {
-    case 'enum': {
-      const option = definition.enum_options?.find(opt => opt.value === value)
-      return option?.label || value
+  // 优先处理有 enum_options 的情况（无论是 string、enum 还是 string[] 类型）
+  const enumOptions = definition.enum_options
+  if (enumOptions && enumOptions.length > 0) {
+    // 单选值（string 或 enum 类型）
+    if (typeof value === 'string') {
+      const option = enumOptions.find(opt => opt.value === value)
+      if (option) return option.label
     }
+    // 多选值（string[] 类型）
+    if (Array.isArray(value)) {
+      const labels = value.map(v => {
+        const option = enumOptions.find(opt => opt.value === v)
+        return option?.label || v
+      })
+      return labels.join('、')
+    }
+  }
+  
+  switch (definition.data_type) {
     case 'string[]': {
       if (Array.isArray(value)) {
         return value.join('、')
       }
-      return value
+      return String(value)
     }
     case 'int':
     case 'float':
