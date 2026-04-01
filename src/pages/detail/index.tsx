@@ -1,7 +1,7 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useDidShow, useRouter, navigateTo } from '@tarojs/taro'
+import { useLoad, useRouter, navigateTo, eventCenter } from '@tarojs/taro'
 import type { FC } from 'react'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Network } from '@/network'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -152,42 +152,35 @@ const DetailPage: FC = () => {
   // 数据概览展开状态
   const [showDataOverview, setShowDataOverview] = useState(false)
   
-  // 是否需要强制刷新（从编辑页返回时）
-  const needRefresh = useRef(false)
-  // 首次加载标记
-  const isFirstLoad = useRef(true)
   // 维度组件刷新触发器
   const [dimensionRefreshKey, setDimensionRefreshKey] = useState(0)
 
-  // 处理维度编辑，设置刷新标记
+  // 处理维度编辑
   const handleDimensionEdit = useCallback((dimensionKey: string) => {
-    needRefresh.current = true
     navigateTo({
       url: `/pages/dimension-edit/index?matchId=${detail?.id}&dimensionKey=${dimensionKey}`
     })
   }, [detail?.id])
 
+  // 监听维度保存成功事件
+  useEffect(() => {
+    const handleDimensionSaved = () => {
+      // 清除缓存
+      clearDimensionCache(Number(router.params.id))
+      // 触发维度组件刷新
+      setDimensionRefreshKey(prev => prev + 1)
+    }
+    
+    eventCenter.on('dimension:saved', handleDimensionSaved)
+    
+    return () => {
+      eventCenter.off('dimension:saved', handleDimensionSaved)
+    }
+  }, [router.params.id])
+
   useLoad(() => {
     console.log('Detail page loaded.', router.params.id)
     fetchDetail()
-    isFirstLoad.current = false
-  })
-
-  useDidShow(() => {
-    // 首次加载时已经调用过 fetchDetail，不需要重复调用
-    if (isFirstLoad.current) {
-      return
-    }
-    
-    // 只有在需要刷新时才重新获取数据
-    // 从维度编辑页返回时会触发
-    if (needRefresh.current) {
-      needRefresh.current = false
-      // 清除缓存，强制刷新
-      clearDimensionCache(Number(router.params.id))
-      setDimensionRefreshKey(prev => prev + 1)
-      fetchDetail()
-    }
   })
 
   const fetchDetail = async () => {

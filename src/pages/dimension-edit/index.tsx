@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useRouter, navigateBack } from '@tarojs/taro'
+import { useLoad, useRouter, navigateBack, eventCenter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
@@ -96,6 +96,8 @@ const DimensionEditPage: FC = () => {
       const res = await setDimensionValue(matchId, dimensionKey, value)
       
       if (res.code === 200) {
+        // 通知档案页刷新维度数据
+        eventCenter.trigger('dimension:saved', { matchId, dimensionKey })
         navigateBack()
       } else {
         console.error('保存失败:', res.msg)
