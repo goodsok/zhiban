@@ -374,7 +374,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                                   }`}
                                   onClick={() => handleDimensionClick(item.definition.dimension_key)}
                                 >
-                                  <View className="flex items-center flex-1 mr-2">
+                                  <View className="flex items-center shrink-0 mr-2">
                                     {/* 重要性标记 */}
                                     {item.definition.importance === 'critical' && (
                                       <View className="w-1 h-1 rounded-full bg-red-500 mr-2" />
@@ -383,7 +383,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                                       <View className="w-1 h-1 rounded-full bg-amber-500 mr-2" />
                                     )}
                                     
-                                    <Text className="text-sm text-gray-700">
+                                    <Text className="text-sm text-gray-700 whitespace-nowrap">
                                       {item.definition.display_name}
                                     </Text>
                                     
@@ -395,11 +395,15 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                                     )}
                                   </View>
                                   
-                                  <View className="flex items-center">
-                                    <Text className={`text-sm ${hasValue ? 'text-gray-800' : 'text-gray-400'}`}>
+                                  <View className="flex items-center flex-1 justify-end min-w-0">
+                                    <Text 
+                                      className={`text-sm ${hasValue ? 'text-gray-800' : 'text-gray-400'} truncate`}
+                                    >
                                       {displayValue}
                                     </Text>
-                                    <ChevronRight size={14} color="#D1D5DB" className="ml-1" />
+                                    <View className="shrink-0 ml-1">
+                                      <ChevronRight size={14} color="#D1D5DB" />
+                                    </View>
                                   </View>
                                 </View>
                               )
