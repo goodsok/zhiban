@@ -1032,6 +1032,9 @@ export class DimensionService {
             enum_options: dim.enum_options,
             input_type: dim.input_type,
             data_type: dim.data_type,
+            description: dim.description,
+            help_text: dim.help_text,
+            placeholder: dim.placeholder,
             updated_at: new Date().toISOString()
           })
           .eq('dimension_key', dim.dimension_key)
