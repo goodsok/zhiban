@@ -18,6 +18,7 @@ export default defineAppConfig({
     'pages/knowledge-detail/index',
     'pages/knowledge-cycle/index',
     'pages/knowledge-icebreaker/index',
+    'pages/knowledge-scenario/index',
   ],
   window: {
     backgroundTextStyle: 'light',
