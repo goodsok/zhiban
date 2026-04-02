@@ -52,16 +52,16 @@ const DiscoverPage: FC = () => {
 
       {/* 知识分类入口 - 两列网格 */}
       <View className="p-4">
-        <View className="flex flex-wrap gap-3">
+        <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
           {categories.map((category) => {
             const CategoryIcon = category.icon
             return (
               <View
                 key={category.id}
-                className="w-[calc(50%-6px)]"
+                style={{ width: '48%', marginBottom: '12px' }}
                 onClick={() => goToCategory(category.pagePath)}
               >
-                <View className={`${category.bgColor} rounded-2xl p-4 h-full`}>
+                <View className={`${category.bgColor} rounded-2xl p-4`}>
                   {/* 图标 */}
                   <View className={`w-11 h-11 ${category.iconBg} rounded-xl flex items-center justify-center mb-3`}>
                     <CategoryIcon size={22} color={category.id === 'cycle' ? '#111827' : '#374151'} />
