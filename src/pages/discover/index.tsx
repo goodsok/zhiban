@@ -20,8 +20,8 @@ const categories: KnowledgeCategory[] = [
     subtitle: '了解周期规律，把握最佳时机',
     icon: Moon,
     pagePath: '/pages/knowledge-cycle/index',
-    bgColor: 'bg-gray-900',
-    iconBg: 'bg-white',
+    bgColor: 'bg-white border border-gray-200',
+    iconBg: 'bg-gray-100',
   },
   {
     id: 'icebreaker',
@@ -38,8 +38,8 @@ const categories: KnowledgeCategory[] = [
     subtitle: '模拟真实场景，提升互动能力',
     icon: Theater,
     pagePath: '/pages/knowledge-scenario/index',
-    bgColor: 'bg-gray-900',
-    iconBg: 'bg-white',
+    bgColor: 'bg-white border border-gray-200',
+    iconBg: 'bg-gray-100',
   },
 ]
 
@@ -73,14 +73,14 @@ const DiscoverPage: FC = () => {
                 <View className={`${category.bgColor} rounded-2xl p-4`}>
                   {/* 图标 */}
                   <View className={`w-11 h-11 ${category.iconBg} rounded-xl flex items-center justify-center mb-3`}>
-                    <CategoryIcon size={22} color={category.id === 'cycle' ? '#111827' : '#374151'} />
+                    <CategoryIcon size={22} color="#374151" />
                   </View>
                   {/* 标题 */}
-                  <Text className={`block text-base font-semibold ${category.id === 'cycle' ? 'text-white' : 'text-gray-900'}`}>
+                  <Text className="block text-base font-semibold text-gray-900">
                     {category.title}
                   </Text>
                   {/* 副标题 */}
-                  <Text className={`block text-xs mt-1 leading-tight ${category.id === 'cycle' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <Text className="block text-xs mt-1 leading-tight text-gray-500">
                     {category.subtitle}
                   </Text>
                 </View>
