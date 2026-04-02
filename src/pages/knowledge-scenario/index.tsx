@@ -3,7 +3,7 @@ import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import CustomHeader from '@/components/custom-header'
-import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command, ArrowRightLeft, Cat, Anchor, Scale } from 'lucide-react-taro'
+import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command, ArrowRightLeft, Cat, Anchor, Scale, Zap } from 'lucide-react-taro'
 
 interface DialogueCase {
   id: string
@@ -619,6 +619,79 @@ const scenarios: Scenario[] = [
         wrongReply: '为什么不？我们明明挺好的！',
         rightReply: '你当初选择和我见面，是因为你觉得值得了解我。那个判断力，应该不会错吧？',
         analysis: '提醒她过去的选择是有道理的，让她为了"自己的判断没错"而继续下去。',
+      },
+    ],
+  },
+  {
+    id: 'high-energy-speed',
+    title: '高能量速推',
+    description: '多轮互动+高能量对话，快速推进关系',
+    icon: Zap,
+    color: '#EF4444',
+    bgColor: 'bg-red-50',
+    cases: [
+      {
+        id: 'hes-1',
+        scene: '见面即暧昧',
+        context: '第一次见面，快速建立亲密感',
+        taSays: '你本人比照片好看诶。',
+        wrongReply: '谢谢，你也挺好看的。',
+        rightReply: '是吗？那你心跳有没有加速？来，让我摸摸。（伸手假装要摸她心跳）',
+        analysis: '见面第一句话就开始调情。把她的夸奖转化成肢体互动的机会，直接进入暧昧状态。',
+      },
+      {
+        id: 'hes-2',
+        scene: '情绪过山车',
+        context: '通过多轮对话制造情绪起伏',
+        taSays: '你今天挺开心的样子。',
+        wrongReply: '是啊，和你出来挺开心的。',
+        rightReply: '开心？我其实有点紧张。（停顿）因为遇到一个我想好好表现的人。（认真看她）不过看你的表情，好像完全不在意我？',
+        analysis: '高能量=情绪起伏。先示弱→再深情→再调侃，三连击制造情绪过山车，让她在这个过程中对你投入情绪。',
+      },
+      {
+        id: 'hes-3',
+        scene: '价值交换',
+        context: '互相分享秘密，快速拉近心理距离',
+        taSays: '你谈过几次恋爱？',
+        wrongReply: '三次吧，你呢？',
+        rightReply: '这个......我得先确定一件事。你能不能保守秘密？（神秘）好，那我先说一个我的秘密，你听完得说一个你的。',
+        analysis: '把普通问题升级为"秘密交换"的仪式感。双向的自我暴露是建立亲密关系最快的方式。',
+      },
+      {
+        id: 'hes-4',
+        scene: '未来预设',
+        context: '描绘共同未来，制造预期',
+        taSays: '这个地方真不错。',
+        wrongReply: '是啊，下次再来。',
+        rightReply: '是吧？以后周末我们可以经常来。对了，下周有部电影好像不错，你周三还是周五有空？',
+        analysis: '不是问"要不要再来"，而是直接预设"以后经常来"。连续抛出下一个邀约，让她感觉你们已经是一个固定的组合。',
+      },
+      {
+        id: 'hes-5',
+        scene: '身体进挪',
+        context: '快速推进肢体接触',
+        taSays: '（走在一起）',
+        wrongReply: '（保持距离走着）',
+        rightReply: '（过马路时牵她手腕）小心车。（过完马路没有松开）你手有点凉啊，我帮你暖暖。（握紧一点）',
+        analysis: '创造合理的接触理由（过马路），然后自然延续。不要问"我可以牵你吗"，行动比语言更快。',
+      },
+      {
+        id: 'hes-6',
+        scene: '当天转场',
+        context: '一次约会推进多个地点',
+        taSays: '吃完饭我们去哪？',
+        wrongReply: '你想去哪？',
+        rightReply: '先别告诉你。（神秘）走，带你去个地方。（第一站：咖啡厅聊天）接下来还有第二站......（第二站：散步看夜景）第三站有个惊喜。（第三站：她喜欢的甜品店）',
+        analysis: '一次约会安排多个地点，让她有"我们经历了很多"的感觉。地点切换会产生时间加速的错觉，让关系推进更快。',
+      },
+      {
+        id: 'hes-7',
+        scene: '当晚确认',
+        context: '约会结束前确认关系',
+        taSays: '今天很开心，谢谢你。',
+        wrongReply: '我也是，回去注意安全。',
+        rightReply: '等一下。（认真看她）我不想让你回去......虽然今天才第一次见面，但感觉像认识很久了。你呢？你什么感觉？',
+        analysis: '抓住约会结束的高能量时刻，直接确认关系。不要让情绪冷却，趁热打铁。',
       },
     ],
   },
