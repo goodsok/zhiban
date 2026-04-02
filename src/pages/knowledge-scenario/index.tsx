@@ -3,7 +3,7 @@ import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import CustomHeader from '@/components/custom-header'
-import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle } from 'lucide-react-taro'
+import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield } from 'lucide-react-taro'
 
 interface DialogueCase {
   id: string
@@ -171,6 +171,61 @@ const scenarios: Scenario[] = [
         wrongReply: '我喜欢你，做我对象吧。',
         rightReply: '我最近发现一件事......我好像习惯了每天和你聊天。你呢？',
         analysis: '不要突兀表白，先表达依赖感，观察对方反应。对方回应积极再进一步。',
+      },
+    ],
+  },
+  {
+    id: 'shit-test',
+    title: '废物测试',
+    description: '识别并正确应对对方的心理测试',
+    icon: Shield,
+    color: '#8B5CF6',
+    bgColor: 'bg-violet-50',
+    cases: [
+      {
+        id: 'st-1',
+        scene: '贬低型测试',
+        context: '刚认识不久，对方突然说了一句带刺的话',
+        taSays: '你条件一般啊，怎么敢来相亲的？',
+        wrongReply: '我确实不太优秀，但我会努力的...',
+        rightReply: '条件一般？那看来我得靠人格魅力取胜了。（笑）你条件这么好，看上我什么了？',
+        analysis: '不要自卑解释，也不要愤怒反击。用幽默化解，同时反问把球踢回去。',
+      },
+      {
+        id: 'st-2',
+        scene: '服从型测试',
+        context: '刚认识不久，对方让你做这做那',
+        taSays: '你去帮我买杯奶茶吧，要半糖少冰。',
+        wrongReply: '好的，我这就去。（屁颠屁颠去买）',
+        rightReply: '可以啊，但咱们还不熟吧？要不这样，你请我吃饭，我请奶茶，扯平。',
+        analysis: '不要无条件服从，也不要生硬拒绝。用"交换"的方式建立平等关系。',
+      },
+      {
+        id: 'st-3',
+        scene: '否定型测试',
+        context: '对方对你的某个特征提出质疑',
+        taSays: '你太矮了，我前男友180。',
+        wrongReply: '矮怎么了？矮也有矮的好处...（开始辩解）',
+        rightReply: '确实不高，不过我站得稳啊。话说你多高？咱俩站一起会不会很萌？',
+        analysis: '坦然接受自己的"缺点"，不要辩解。把话题转向两人之间的互动，而不是单独讨论自己。',
+      },
+      {
+        id: 'st-4',
+        scene: '嫉妒型测试',
+        context: '对方故意提其他异性',
+        taSays: '刚才那个人一直盯着我看，烦死了。',
+        wrongReply: '谁啊？我去找他！（激动）',
+        rightReply: '正常，你这么好看被看很正常。不过你告诉我这个是想让我吃醋吗？（偷笑）',
+        analysis: '不要表现出过度吃醋或愤怒，那显得你很没安全感。轻松调侃，反而显得自信。',
+      },
+      {
+        id: 'st-5',
+        scene: '考验型测试',
+        context: '对方问一些敏感问题',
+        taSays: '你是不是只想要我身体？',
+        wrongReply: '没有！我是真心喜欢你的！',
+        rightReply: '身体是加分项，但不是全部。如果只是想要身体，我不会花这么多时间陪你聊天。',
+        analysis: '不要急着否认，也不要被带入"自证陷阱"。坦诚但有底线，反而更可信。',
       },
     ],
   },
