@@ -3,7 +3,7 @@ import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import CustomHeader from '@/components/custom-header'
-import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command, ArrowRightLeft, Cat, Anchor } from 'lucide-react-taro'
+import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command, ArrowRightLeft, Cat, Anchor, Scale } from 'lucide-react-taro'
 
 interface DialogueCase {
   id: string
@@ -555,6 +555,70 @@ const scenarios: Scenario[] = [
         wrongReply: '（没有肢体接触）',
         rightReply: '（每次牵手时，你用拇指轻轻摩挲她的手背）记住这个感觉，这是我对你的专属密码。',
         analysis: '用特定的触摸方式和安全感、亲密感绑定。重复之后，这个小动作本身就成了一种暗号。',
+      },
+    ],
+  },
+  {
+    id: 'consistency',
+    title: '一致性',
+    description: '利用她对自己形象的认同，引导行为',
+    icon: Scale,
+    color: '#14B8A6',
+    bgColor: 'bg-teal-50',
+    cases: [
+      {
+        id: 'con-1',
+        scene: '贴标签法',
+        context: '你想让她做某件事',
+        taSays: '（没有主动联系你）',
+        wrongReply: '你怎么都不主动找我？（抱怨）',
+        rightReply: '我一直觉得你是个很有主动性的女生，不会像其他女生那样等着男生来追。',
+        analysis: '先给她贴一个积极的标签（"有主动性"），她会倾向于用行动证明这个标签是对的。',
+      },
+      {
+        id: 'con-2',
+        scene: '小承诺引导',
+        context: '你想约她出来',
+        taSays: '最近忙死了。',
+        wrongReply: '那等你空了再说吧。',
+        rightReply: '忙归忙，但你应该不会是那种因为工作就放弃生活的人吧？周末出来放松一下？',
+        analysis: '暗示她"不是那种放弃生活的人"，她会为了证明自己确实不是，而答应你的邀约。',
+      },
+      {
+        id: 'con-3',
+        scene: '强化过去行为',
+        context: '她之前做过类似的事',
+        taSays: '不知道穿什么去约会。',
+        wrongReply: '随便穿就行。',
+        rightReply: '上次你穿那条白裙子就很好看，你的眼光一直很在线的。',
+        analysis: '用她过去的好选择来强化"你眼光很好"这个标签，她会继续做出好的选择。',
+      },
+      {
+        id: 'con-4',
+        scene: '公开承诺',
+        context: '在朋友面前让她表态',
+        taSays: '（朋友问你们的关系）',
+        wrongReply: '（替她回答）我们就是朋友。',
+        rightReply: '（让她自己说）你觉得呢？上次不是说好下周一起去看电影吗？',
+        analysis: '在公开场合让她确认承诺，她会为了保持"言行一致"的形象而更认真地对待。',
+      },
+      {
+        id: 'con-5',
+        scene: '身份认同',
+        context: '你想让她表现得更亲密',
+        taSays: '（行为有点冷淡）',
+        wrongReply: '你能不能热情一点？（要求）',
+        rightReply: '我印象中的你是个很懂得关心人的女生，对在乎的人都很好。',
+        analysis: '唤起她对自己的正面认同，她会用行动来证明"我就是那样的人"。',
+      },
+      {
+        id: 'con-6',
+        scene: '逆向一致性',
+        context: '她想放弃时',
+        taSays: '我觉得我们不合适。',
+        wrongReply: '为什么不？我们明明挺好的！',
+        rightReply: '你当初选择和我见面，是因为你觉得值得了解我。那个判断力，应该不会错吧？',
+        analysis: '提醒她过去的选择是有道理的，让她为了"自己的判断没错"而继续下去。',
       },
     ],
   },
