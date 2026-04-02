@@ -16,6 +16,8 @@ export default defineAppConfig({
     'pages/interaction-create/index',
     'pages/interaction-detail/index',
     'pages/knowledge-detail/index',
+    'pages/knowledge-cycle/index',
+    'pages/knowledge-icebreaker/index',
   ],
   window: {
     backgroundTextStyle: 'light',
