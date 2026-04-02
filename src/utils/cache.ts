@@ -5,6 +5,9 @@
 
 import Taro from '@tarojs/taro'
 
+// 缓存版本号 - 当维度定义更新时需要更新此版本号
+const CACHE_VERSION = 'v2_20250401'
+
 // 缓存配置
 const CACHE_CONFIG = {
   // 缓存过期时间（毫秒）
@@ -12,16 +15,17 @@ const CACHE_CONFIG = {
   MATCH_DETAIL: 2 * 60 * 1000, // 2分钟
 }
 
-// 缓存键名
+// 缓存键名（带版本号）
 const CACHE_KEYS = {
-  DIMENSION_DATA: (matchId: number) => `dimension_data_${matchId}`,
-  MATCH_DETAIL: (matchId: number) => `match_detail_${matchId}`,
+  DIMENSION_DATA: (matchId: number) => `dimension_data_${matchId}_${CACHE_VERSION}`,
+  MATCH_DETAIL: (matchId: number) => `match_detail_${matchId}_${CACHE_VERSION}`,
 }
 
 interface CacheData<T> {
   data: T
   timestamp: number
   expireTime: number
+  version: string
 }
 
 /**
@@ -33,6 +37,7 @@ export const setCache = async <T>(key: string, data: T, expireTime: number): Pro
       data,
       timestamp: Date.now(),
       expireTime,
+      version: CACHE_VERSION,
     }
     await Taro.setStorageSync(key, JSON.stringify(cacheData))
   } catch (err) {
@@ -50,6 +55,12 @@ export const getCache = async <T>(key: string): Promise<T | null> => {
     if (!cacheStr) return null
 
     const cacheData: CacheData<T> = JSON.parse(cacheStr)
+    
+    // 检查版本是否匹配
+    if (cacheData.version !== CACHE_VERSION) {
+      await Taro.removeStorageSync(key)
+      return null
+    }
     
     // 检查是否过期
     if (Date.now() - cacheData.timestamp > cacheData.expireTime) {
@@ -82,13 +93,15 @@ export const removeCache = async (key: string): Promise<void> => {
 export const clearDimensionCache = async (matchId?: number): Promise<void> => {
   try {
     if (matchId) {
+      // 清除当前版本的缓存
       Taro.removeStorageSync(CACHE_KEYS.DIMENSION_DATA(matchId))
       Taro.removeStorageSync(CACHE_KEYS.MATCH_DETAIL(matchId))
     } else {
-      // 清除所有以 dimension_data_ 和 match_detail_ 开头的缓存
+      // 清除所有版本的维度相关缓存
       const info = Taro.getStorageInfoSync()
       const keys = (info as unknown as { keys: string[] }).keys || []
       for (const key of keys) {
+        // 匹配所有版本的缓存键
         if (key.startsWith('dimension_data_') || key.startsWith('match_detail_')) {
           Taro.removeStorageSync(key)
         }
