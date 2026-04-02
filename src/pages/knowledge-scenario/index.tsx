@@ -3,7 +3,7 @@ import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import CustomHeader from '@/components/custom-header'
-import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command } from 'lucide-react-taro'
+import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command, ArrowRightLeft } from 'lucide-react-taro'
 
 interface DialogueCase {
   id: string
@@ -354,6 +354,70 @@ const scenarios: Scenario[] = [
         wrongReply: '放心，我对那种事没兴趣。',
         rightReply: '好，今天只聊天。不过我得先说好，我可能会忍不住夸你好看，这个不算犯规吧？',
         analysis: '接受她的边界，但不要刻意装作"无欲无求"。坦诚表达欣赏，反而让她更放松。',
+      },
+    ],
+  },
+  {
+    id: 'push-pull',
+    title: '推拉',
+    description: '制造情绪起伏，增加吸引力',
+    icon: ArrowRightLeft,
+    color: '#06B6D4',
+    bgColor: 'bg-cyan-50',
+    cases: [
+      {
+        id: 'pp-1',
+        scene: '夸奖后拉远',
+        context: '对方做了让你欣赏的事',
+        taSays: '（发来一张好看的照片）',
+        wrongReply: '太好看了！你真漂亮！',
+        rightReply: '这张照片拍得不错......不过我觉得上次那张更自然。',
+        analysis: '先给肯定，再给小否定。让她在想"到底哪里不够好"，产生想要证明自己的冲动。',
+      },
+      {
+        id: 'pp-2',
+        scene: '冷淡后回暖',
+        context: '之前聊得很好，突然变得冷淡',
+        taSays: '你怎么不理我了？',
+        wrongReply: '抱歉抱歉，我最近太忙了！（急忙解释）',
+        rightReply: '没啊，就是在想，咱们聊得这么开心，会不会太快了。我想慢一点了解你。',
+        analysis: '用"思考关系"作为冷淡的理由，让她感到被重视，而不是被忽略。',
+      },
+      {
+        id: 'pp-3',
+        scene: '欲擒故纵',
+        context: '对方表现得很主动',
+        taSays: '周末有空吗？想约你出来。',
+        wrongReply: '有空有空！去哪里？',
+        rightReply: '周末啊......让我想想。（停顿）行，不过我得先确认下工作安排。周五告诉你？',
+        analysis: '不要秒答应。让她等待，展示你的时间不是随叫随到的，增加你的价值感。',
+      },
+      {
+        id: 'pp-4',
+        scene: '调侃式拒绝',
+        context: '对方提出邀约或请求',
+        taSays: '你什么时候请我吃饭呀？',
+        wrongReply: '随时都可以！你想吃什么？',
+        rightReply: '你这么主动约我，会让我觉得你很缺朋友。（笑）不过看在你这么诚恳的份上，下周吧。',
+        analysis: '先调侃她"太主动"，降低她的姿态，再答应。让她感到你是在"赏脸"，而不是迫不及待。',
+      },
+      {
+        id: 'pp-5',
+        scene: '肯定后质疑',
+        context: '对方分享自己的成就',
+        taSays: '我这次考试考了第一名！',
+        wrongReply: '太厉害了！你真棒！',
+        rightReply: '第一名啊......厉害是厉害，不过你是不是没怎么睡觉？看着有点憔悴。',
+        analysis: '肯定她的成就，但把关注点转移到她的状态上。让她感到你关心的是她这个人，而不是她的成绩。',
+      },
+      {
+        id: 'pp-6',
+        scene: '近推远拉',
+        context: '关系暧昧时',
+        taSays: '你觉得我怎么样？',
+        wrongReply: '你很好啊，我很喜欢你。',
+        rightReply: '怎么说呢......（认真看她）你有时候很可爱，有时候又挺烦人的。这种反差还挺好玩的。',
+        analysis: '不要只给正面评价。用"可爱+烦人"的反差，让她想"我哪里烦人了"，增加互动张力。',
       },
     ],
   },
