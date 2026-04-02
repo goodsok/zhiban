@@ -3,7 +3,7 @@ import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import CustomHeader from '@/components/custom-header'
-import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield } from 'lucide-react-taro'
+import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock } from 'lucide-react-taro'
 
 interface DialogueCase {
   id: string
@@ -226,6 +226,70 @@ const scenarios: Scenario[] = [
         wrongReply: '没有！我是真心喜欢你的！',
         rightReply: '身体是加分项，但不是全部。如果只是想要身体，我不会花这么多时间陪你聊天。',
         analysis: '不要急着否认，也不要被带入"自证陷阱"。坦诚但有底线，反而更可信。',
+      },
+    ],
+  },
+  {
+    id: 'anti-slut-defense',
+    title: '反荡妇机制',
+    description: '识别并化解对方的防御心理',
+    icon: Lock,
+    color: '#EC4899',
+    bgColor: 'bg-pink-50',
+    cases: [
+      {
+        id: 'asd-1',
+        scene: '事后合理化',
+        context: '亲密接触后，对方开始表现出不安',
+        taSays: '我平时不是这样的，真的，我不太随便...',
+        wrongReply: '嗯，我知道。（沉默）',
+        rightReply: '我知道，你是被我的人格魅力迷住了，不怪你。（笑）而且咱们这样挺好的，不是吗？',
+        analysis: '帮她"合理化"行为，让她觉得这不是她的"本性"，而是被你吸引的"意外"。不要让她陷入自我否定。',
+      },
+      {
+        id: 'asd-2',
+        scene: '进度过快',
+        context: '你们进展很快，对方突然刹车',
+        taSays: '我们是不是太快了？我还没准备好...',
+        wrongReply: '没事，不急。（然后继续推进）',
+        rightReply: '你说得对，是我太急了。咱们慢慢来，我等你。今晚就聊天，好吗？',
+        analysis: '尊重她的边界，不要试图说服她"放松一点"。主动后退，反而让她更有安全感。',
+      },
+      {
+        id: 'asd-3',
+        scene: '担心被评判',
+        context: '对方担心自己的行为会被看轻',
+        taSays: '你会不会觉得我很轻浮？',
+        wrongReply: '不会啊，这有什么。',
+        rightReply: '轻浮？你明明是喜欢我才这样的。我能感受到你的认真，怎么会这么想？',
+        analysis: '不要敷衍否认，要把她的行为重新定义为"因为喜欢你"，让她感到被尊重和重视。',
+      },
+      {
+        id: 'asd-4',
+        scene: '酒精借口',
+        context: '借助酒精做了亲密的事，第二天',
+        taSays: '昨晚喝多了，什么都不记得了...',
+        wrongReply: '你喝多了？不是吧，你明明很清醒。',
+        rightReply: '是吗？那你可能忘了，昨晚你拉着我不让走，说舍不得我。（笑）下次我少让你喝点。',
+        analysis: '不要拆穿她的"借口"，给她留台阶。把重点放在"她很主动"的正面描述上，让她感到被珍视。',
+      },
+      {
+        id: 'asd-5',
+        scene: '朋友面前装矜持',
+        context: '在朋友面前刻意保持距离',
+        taSays: '（当着朋友的面）我们就是普通朋友啦~',
+        wrongReply: '（一脸尴尬）啊...对...',
+        rightReply: '（自然配合）对，朋友。不过我是那种很专一的朋友。（微笑看她）',
+        analysis: '不要在朋友面前让她难堪。配合她的"表演"，但留一个暧昧的小尾巴，私下再确认关系。',
+      },
+      {
+        id: 'asd-6',
+        scene: '提前预防',
+        context: '约会开始前，对方先声明',
+        taSays: '说好哦，今天只能聊天，不能做别的。',
+        wrongReply: '放心，我对那种事没兴趣。',
+        rightReply: '好，今天只聊天。不过我得先说好，我可能会忍不住夸你好看，这个不算犯规吧？',
+        analysis: '接受她的边界，但不要刻意装作"无欲无求"。坦诚表达欣赏，反而让她更放松。',
       },
     ],
   },
