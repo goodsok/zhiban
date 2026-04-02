@@ -1,159 +1,258 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad } from '@tarojs/taro'
+import { useLoad, useDidShow, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Sparkles, Lightbulb, Heart, MessageCircle } from 'lucide-react-taro'
+import { useState } from 'react'
+import { Network } from '@/network'
+import { ChevronDown, ChevronUp, ChevronRight, Moon, Sun, Heart, Cloud, Sparkles, RefreshCw, BookOpen } from 'lucide-react-taro'
 
-const discoverItems = [
-  {
-    id: 1,
-    type: 'topic',
-    title: '破冰话题：最近一次旅行',
-    desc: '聊聊旅行经历，了解对方的生活态度',
-    scene: '首次约会',
-    hot: true,
-  },
-  {
-    id: 2,
-    type: 'tip',
-    title: '约会技巧：如何制造惊喜',
-    desc: '小惊喜能让感情迅速升温',
-    scene: '接触中',
-    hot: false,
-  },
-  {
-    id: 3,
-    type: 'topic',
-    title: '深入了解：童年回忆',
-    desc: '分享童年趣事，增进了解',
-    scene: '约会中',
-    hot: false,
-  },
-  {
-    id: 4,
-    type: 'tip',
-    title: '搭讪技巧：开场白大全',
-    desc: '不同场景的开场白建议',
-    scene: '搭讪',
-    hot: true,
-  },
-]
+// 周期阶段图标和颜色配置
+const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: string }> = {
+  menstrual: { icon: Moon, color: '#6B7280', bgColor: 'bg-gray-100' },
+  follicular: { icon: Sun, color: '#10B981', bgColor: 'bg-emerald-50' },
+  ovulation: { icon: Heart, color: '#EC4899', bgColor: 'bg-pink-50' },
+  luteal_early: { icon: Sun, color: '#3B82F6', bgColor: 'bg-blue-50' },
+  luteal_mid: { icon: Cloud, color: '#F59E0B', bgColor: 'bg-amber-50' },
+  luteal_late: { icon: Moon, color: '#EF4444', bgColor: 'bg-red-50' },
+}
+
+interface HormoneCycleKnowledge {
+  id: number
+  phase_key: string
+  phase_name: string
+  day_range: string
+  description: string | null
+  hormone_status: Record<string, string>
+  characteristics: {
+    emotion?: string
+    thinking?: string
+    social?: string
+    body?: string
+    libido?: string
+    appearance?: string
+  }
+  recommendations: {
+    best_actions?: string[]
+    avoid_actions?: string[]
+    self_care?: string[]
+  } | null
+  partner_tips: string | null
+  sort_order: number
+}
+
+interface IcebreakerTopic {
+  id: number
+  topic: string
+  category: string
+}
 
 const DiscoverPage: FC = () => {
+  const [cycleKnowledge, setCycleKnowledge] = useState<HormoneCycleKnowledge[]>([])
+  const [expandedPhase, setExpandedPhase] = useState<string | null>(null)
+  const [icebreakerTopics, setIcebreakerTopics] = useState<IcebreakerTopic[]>([])
+  const [loading, setLoading] = useState(true)
+  const [topicsLoading, setTopicsLoading] = useState(false)
+
   useLoad(() => {
     console.log('Discover page loaded.')
   })
 
+  useDidShow(() => {
+    fetchCycleKnowledge()
+    fetchIcebreakerTopics()
+  })
+
+  const fetchCycleKnowledge = async () => {
+    try {
+      setLoading(true)
+      const res = await Network.request({ url: '/api/knowledge/hormone-cycle' })
+      console.log('Cycle knowledge response:', res.data)
+      if (res.data?.code === 200 && res.data?.data) {
+        setCycleKnowledge(res.data.data)
+      }
+    } catch (error) {
+      console.error('Fetch cycle knowledge error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchIcebreakerTopics = async () => {
+    try {
+      setTopicsLoading(true)
+      const res = await Network.request({ url: '/api/topic/icebreaker' })
+      console.log('Icebreaker topics response:', res.data)
+      if (res.data?.code === 200 && res.data?.data) {
+        setIcebreakerTopics(res.data.data)
+      }
+    } catch (error) {
+      console.error('Fetch icebreaker topics error:', error)
+    } finally {
+      setTopicsLoading(false)
+    }
+  }
+
+  const togglePhase = (phaseKey: string) => {
+    setExpandedPhase(prev => prev === phaseKey ? null : phaseKey)
+  }
+
+  const goToPhaseDetail = (phaseKey: string) => {
+    navigateTo({ url: `/pages/knowledge-detail/index?phaseKey=${phaseKey}` })
+  }
+
   return (
     <View className="min-h-screen bg-gray-50 pb-20">
-      {/* 头部 */}
-      <View className="bg-gradient-to-r from-indigo-500 to-purple-500 p-6 rounded-b-3xl">
-        <Text className="block text-white text-2xl font-bold mb-2">发现</Text>
-        <Text className="block text-white text-opacity-80">探索更多互动技巧和话题</Text>
+      {/* 顶部 - 与首页风格一致 */}
+      <View className="bg-white px-4 py-4 border-b border-gray-100">
+        <Text className="block text-xl font-bold text-gray-900">发现</Text>
       </View>
 
-      {/* 场景推荐 */}
+      {/* 周期知识区域 */}
       <View className="p-4">
-        <Text className="block font-semibold text-gray-800 mb-3">场景推荐</Text>
-        <View className="grid grid-cols-2 gap-3">
-          <Card className="shadow-sm border-0">
-            <CardContent className="p-4 text-center">
-              <View className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center mx-auto mb-2">
-                <Text className="block text-2xl">💑</Text>
-              </View>
-              <Text className="block font-medium text-gray-800">相亲</Text>
-              <Text className="block text-xs text-gray-400">快速破冰技巧</Text>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-0">
-            <CardContent className="p-4 text-center">
-              <View className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
-                <Text className="block text-2xl">👋</Text>
-              </View>
-              <Text className="block font-medium text-gray-800">搭讪</Text>
-              <Text className="block text-xs text-gray-400">开场白推荐</Text>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-0">
-            <CardContent className="p-4 text-center">
-              <View className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-2">
-                <Text className="block text-2xl">📱</Text>
-              </View>
-              <Text className="block font-medium text-gray-800">App见面</Text>
-              <Text className="block text-xs text-gray-400">线下约会建议</Text>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-0">
-            <CardContent className="p-4 text-center">
-              <View className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-2">
-                <Text className="block text-2xl">🎉</Text>
-              </View>
-              <Text className="block font-medium text-gray-800">聚会</Text>
-              <Text className="block text-xs text-gray-400">社交技巧</Text>
-            </CardContent>
-          </Card>
-        </View>
-      </View>
-
-      {/* 热门内容 */}
-      <View className="p-4">
-        <View className="flex items-center justify-between mb-3">
-          <Text className="block font-semibold text-gray-800">热门内容</Text>
-          <Badge variant="outline" className="text-xs">
-            <Sparkles size={12} color="#6366F1" />
-            <Text className="ml-1">AI推荐</Text>
-          </Badge>
+        <View className="flex items-center gap-2 mb-3">
+          <BookOpen size={16} color="#111827" />
+          <Text className="block text-sm font-semibold text-gray-900">周期科学</Text>
         </View>
 
-        {discoverItems.map((item) => (
-          <Card key={item.id} className="mb-3 shadow-sm border-0">
-            <CardContent className="p-4">
-              <View className="flex items-start gap-3">
-                <View className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  item.type === 'topic' ? 'bg-indigo-100' : 'bg-amber-100'
-                }`}
+        {loading ? (
+          <View className="text-center py-8">
+            <Text className="block text-gray-400">加载中...</Text>
+          </View>
+        ) : (
+          <View className="space-y-2">
+            {cycleKnowledge.map((phase) => {
+              const config = phaseConfig[phase.phase_key] || phaseConfig.menstrual
+              const PhaseIcon = config.icon
+              const isExpanded = expandedPhase === phase.phase_key
+
+              return (
+                <View
+                  key={phase.phase_key}
+                  className="bg-white rounded-xl border border-gray-100 overflow-hidden"
                 >
-                  {item.type === 'topic' ? (
-                    <MessageCircle size={20} color="#6366F1" />
-                  ) : (
-                    <Lightbulb size={20} color="#F59E0B" />
-                  )}
-                </View>
-                <View className="flex-1">
-                  <View className="flex items-center gap-2 mb-1">
-                    <Text className="block font-medium text-gray-800">{item.title}</Text>
-                    {item.hot && (
-                      <Badge className="bg-pink-500 text-white text-xs">热门</Badge>
+                  {/* 折叠标题栏 */}
+                  <View
+                    className="flex items-center justify-between p-4"
+                    onClick={() => togglePhase(phase.phase_key)}
+                  >
+                    <View className="flex items-center gap-3">
+                      <View className={`w-8 h-8 rounded-full ${config.bgColor} flex items-center justify-center`}>
+                        <PhaseIcon size={16} color={config.color} />
+                      </View>
+                      <View>
+                        <View className="flex items-center gap-2">
+                          <Text className="block text-sm font-semibold text-gray-900">{phase.phase_name}</Text>
+                          <Text className="block text-xs text-gray-400">Day {phase.day_range}</Text>
+                        </View>
+                        <Text className="block text-xs text-gray-500 mt-1 line-clamp-1">
+                          {phase.description || ''}
+                        </Text>
+                      </View>
+                    </View>
+                    {isExpanded ? (
+                      <ChevronUp size={20} color="#9CA3AF" />
+                    ) : (
+                      <ChevronDown size={20} color="#9CA3AF" />
                     )}
                   </View>
-                  <Text className="block text-sm text-gray-500 mb-2">{item.desc}</Text>
-                  <Badge variant="outline" className="text-xs text-gray-500">
-                    适用：{item.scene}
-                  </Badge>
+
+                  {/* 展开内容 */}
+                  {isExpanded && (
+                    <View className="px-4 pb-4 border-t border-gray-50">
+                      {/* 阶段特点 */}
+                      <View className="mt-3">
+                        <Text className="block text-xs font-medium text-gray-700 mb-2">阶段特点</Text>
+                        <View className="space-y-2">
+                          {phase.characteristics?.emotion && (
+                            <View className="flex items-start gap-2">
+                              <Text className="block text-xs text-gray-400 w-12 shrink-0">情绪</Text>
+                              <Text className="block text-xs text-gray-600">{phase.characteristics.emotion}</Text>
+                            </View>
+                          )}
+                          {phase.characteristics?.social && (
+                            <View className="flex items-start gap-2">
+                              <Text className="block text-xs text-gray-400 w-12 shrink-0">社交</Text>
+                              <Text className="block text-xs text-gray-600">{phase.characteristics.social}</Text>
+                            </View>
+                          )}
+                          {phase.characteristics?.body && (
+                            <View className="flex items-start gap-2">
+                              <Text className="block text-xs text-gray-400 w-12 shrink-0">身体</Text>
+                              <Text className="block text-xs text-gray-600">{phase.characteristics.body}</Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+
+                      {/* 伴侣建议 */}
+                      {phase.partner_tips && (
+                        <View className="mt-3 p-3 bg-gray-50 rounded-lg">
+                          <Text className="block text-xs font-medium text-gray-700 mb-1">给TA的建议</Text>
+                          <Text className="block text-xs text-gray-600">{phase.partner_tips}</Text>
+                        </View>
+                      )}
+
+                      {/* 查看详情 */}
+                      <View
+                        className="mt-3 flex items-center justify-end gap-1"
+                        onClick={() => goToPhaseDetail(phase.phase_key)}
+                      >
+                        <Text className="block text-xs text-gray-500">查看完整知识</Text>
+                        <ChevronRight size={14} color="#9CA3AF" />
+                      </View>
+                    </View>
+                  )}
                 </View>
-              </View>
-            </CardContent>
-          </Card>
-        ))}
+              )
+            })}
+          </View>
+        )}
       </View>
 
-      {/* 每日一题 */}
-      <View className="p-4">
-        <Card className="shadow-sm border-0 bg-gradient-to-r from-pink-50 to-purple-50">
-          <CardContent className="p-4">
-            <View className="flex items-center gap-3 mb-3">
-              <Heart size={20} color="#EC4899" />
-              <Text className="block font-semibold text-gray-800">每日话题</Text>
-            </View>
-            <Text className="block text-gray-700 mb-3">
-              你觉得什么样的约会最浪漫？
-            </Text>
-            <Text className="block text-sm text-gray-500">
-              这个问题可以帮助你了解对方的浪漫期待，为未来的约会做准备。
-            </Text>
-          </CardContent>
-        </Card>
+      {/* 破冰话题区域 */}
+      <View className="p-4 pt-0">
+        <View className="flex items-center justify-between mb-3">
+          <View className="flex items-center gap-2">
+            <Sparkles size={16} color="#111827" />
+            <Text className="block text-sm font-semibold text-gray-900">破冰话题</Text>
+          </View>
+          <View
+            className="flex items-center gap-1 text-gray-500"
+            onClick={fetchIcebreakerTopics}
+          >
+            <RefreshCw size={14} color="#9CA3AF" className={topicsLoading ? 'animate-spin' : ''} />
+            <Text className="block text-xs">换一批</Text>
+          </View>
+        </View>
+
+        {topicsLoading && icebreakerTopics.length === 0 ? (
+          <View className="text-center py-8">
+            <Text className="block text-gray-400">加载中...</Text>
+          </View>
+        ) : icebreakerTopics.length > 0 ? (
+          <View className="space-y-2">
+            {icebreakerTopics.map((topic, index) => (
+              <View
+                key={topic.id || index}
+                className="bg-white rounded-xl border border-gray-100 p-4"
+              >
+                <View className="flex items-start gap-3">
+                  <View className="w-6 h-6 rounded-full bg-black flex items-center justify-center shrink-0">
+                    <Text className="block text-xs text-white font-medium">{index + 1}</Text>
+                  </View>
+                  <View className="flex-1">
+                    <Text className="block text-sm font-medium text-gray-900 mb-1">{topic.topic}</Text>
+                    <Text className="block text-xs text-gray-500">{topic.category}</Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View className="bg-white rounded-xl border border-gray-100 p-8 text-center">
+            <Text className="block text-gray-400">暂无话题推荐</Text>
+            <Text className="block text-xs text-gray-300 mt-1">点击上方「换一批」重试</Text>
+          </View>
+        )}
       </View>
     </View>
   )
