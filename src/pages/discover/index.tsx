@@ -1,7 +1,7 @@
 import { View, Text } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Moon, MessageCircle, ChevronRight } from 'lucide-react-taro'
+import { Moon, MessageCircle } from 'lucide-react-taro'
 
 interface KnowledgeCategory {
   id: string
@@ -50,35 +50,35 @@ const DiscoverPage: FC = () => {
         <Text className="block text-xl font-bold text-gray-900">发现</Text>
       </View>
 
-      {/* 知识分类入口 */}
-      <View className="p-4 space-y-3">
-        {categories.map((category) => {
-          const CategoryIcon = category.icon
-          return (
-            <View
-              key={category.id}
-              className={`${category.bgColor} rounded-2xl p-5`}
-              onClick={() => goToCategory(category.pagePath)}
-            >
-              <View className="flex items-center justify-between">
-                <View className="flex items-center gap-4">
-                  <View className={`w-12 h-12 ${category.iconBg} rounded-xl flex items-center justify-center`}>
-                    <CategoryIcon size={24} color={category.id === 'cycle' ? '#111827' : '#374151'} />
+      {/* 知识分类入口 - 两列网格 */}
+      <View className="p-4">
+        <View className="flex flex-wrap gap-3">
+          {categories.map((category) => {
+            const CategoryIcon = category.icon
+            return (
+              <View
+                key={category.id}
+                className="w-[calc(50%-6px)]"
+                onClick={() => goToCategory(category.pagePath)}
+              >
+                <View className={`${category.bgColor} rounded-2xl p-4 h-full`}>
+                  {/* 图标 */}
+                  <View className={`w-11 h-11 ${category.iconBg} rounded-xl flex items-center justify-center mb-3`}>
+                    <CategoryIcon size={22} color={category.id === 'cycle' ? '#111827' : '#374151'} />
                   </View>
-                  <View>
-                    <Text className={`block text-lg font-semibold ${category.id === 'cycle' ? 'text-white' : 'text-gray-900'}`}>
-                      {category.title}
-                    </Text>
-                    <Text className={`block text-xs mt-1 ${category.id === 'cycle' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {category.subtitle}
-                    </Text>
-                  </View>
+                  {/* 标题 */}
+                  <Text className={`block text-base font-semibold ${category.id === 'cycle' ? 'text-white' : 'text-gray-900'}`}>
+                    {category.title}
+                  </Text>
+                  {/* 副标题 */}
+                  <Text className={`block text-xs mt-1 leading-tight ${category.id === 'cycle' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {category.subtitle}
+                  </Text>
                 </View>
-                <ChevronRight size={20} color={category.id === 'cycle' ? '#9CA3AF' : '#D1D5DB'} />
               </View>
-            </View>
-          )
-        })}
+            )
+          })}
+        </View>
       </View>
 
       {/* 提示文字 */}
