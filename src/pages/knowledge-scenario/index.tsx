@@ -3,7 +3,7 @@ import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import CustomHeader from '@/components/custom-header'
-import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock } from 'lucide-react-taro'
+import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command } from 'lucide-react-taro'
 
 interface DialogueCase {
   id: string
@@ -226,6 +226,70 @@ const scenarios: Scenario[] = [
         wrongReply: '没有！我是真心喜欢你的！',
         rightReply: '身体是加分项，但不是全部。如果只是想要身体，我不会花这么多时间陪你聊天。',
         analysis: '不要急着否认，也不要被带入"自证陷阱"。坦诚但有底线，反而更可信。',
+      },
+    ],
+  },
+  {
+    id: 'compliance-test',
+    title: '服从性测试',
+    description: '识别并应对对方的各种试探',
+    icon: Command,
+    color: '#F59E0B',
+    bgColor: 'bg-amber-50',
+    cases: [
+      {
+        id: 'ct-1',
+        scene: '小事试探',
+        context: '刚认识不久，对方让你做一件小事',
+        taSays: '你帮我把外套拿着吧。',
+        wrongReply: '好的。（乖乖拿着）',
+        rightReply: '行啊，不过你得请我喝杯奶茶作为回报。（笑）',
+        analysis: '不要无条件服从。用"交换"的方式建立平等关系，让她知道你的付出是有价值的。',
+      },
+      {
+        id: 'ct-2',
+        scene: '时间试探',
+        context: '对方让你等待或改变时间',
+        taSays: '我临时有事，你等我一个小时吧。',
+        wrongReply: '没关系，我等你。（傻等一小时）',
+        rightReply: '一个小时有点久啊。要不你先忙，改天再约？我也不是闲着没事干的人。',
+        analysis: '不要让你的时间显得廉价。展示你有自己的生活，不是随时待命的。',
+      },
+      {
+        id: 'ct-3',
+        scene: '金钱试探',
+        context: '刚认识就让你花钱',
+        taSays: '我想买个包，你送我吧~',
+        wrongReply: '好啊，多少钱？（准备掏钱）',
+        rightReply: '这个包挺好看的。不过咱们刚认识，我送礼物的标准是确定关系后。等你成为我女朋友再说？（笑）',
+        analysis: '不要当提款机。用幽默的方式设置边界，同时把话题引向"确定关系"。',
+      },
+      {
+        id: 'ct-4',
+        scene: '情绪试探',
+        context: '对方无故发脾气，看你反应',
+        taSays: '（突然冷淡）没事，我没事，你别管我。',
+        wrongReply: '怎么了？是不是我做错什么了？你告诉我啊！（急切讨好）',
+        rightReply: '感觉你今天心情不太好。我先不打扰你了，你想聊的时候再说。',
+        analysis: '不要被她的情绪牵着走。展示你的情绪稳定性，不当情绪垃圾桶。',
+      },
+      {
+        id: 'ct-5',
+        scene: '社交试探',
+        context: '让你在朋友面前做某事',
+        taSays: '当着我朋友的面，说你喜欢我。',
+        wrongReply: '（尴尬）我...我喜欢你...',
+        rightReply: '喜欢是要看表现的，不是嘴上说说的。你朋友在场，我得表现得矜持一点。（笑）',
+        analysis: '不要被当众"逼供"。用幽默化解尴尬，同时保持自己的框架。',
+      },
+      {
+        id: 'ct-6',
+        scene: '底线试探',
+        context: '对方提出不合理要求',
+        taSays: '你把你手机密码告诉我吧。',
+        wrongReply: '好啊，是xxxxxx。',
+        rightReply: '这可不行，我手机里都是商业机密。（笑）不过你要是想知道我在跟谁聊天，我可以当面给你看。',
+        analysis: '保护隐私边界。用幽默拒绝不合理要求，同时提供替代方案展示坦诚。',
       },
     ],
   },
