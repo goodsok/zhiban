@@ -266,5 +266,24 @@ export const categoryNames: Record<string, string> = {
   energy: '能量模式',
   self: '自我认知',
   control: '控制感',
-  background: '成长背景'
+  background: '成长背景',
+  // Layer 2 分类
+  communication: '沟通风格',
+  life_attitude: '生活态度',
+  love_style: '恋爱风格',
+  // Layer 3 分类
+  interests: '兴趣爱好',
+  lifestyle: '生活方式',
+  dating: '约会偏好',
+  communication_pref: '沟通偏好',
+  current: '当前状态',
+  // Layer 4 分类
+  sexual_intimacy: '性与亲密',
+  dating_dynamics: '约会动态',
+  emotional_investment: '情感投入',
+  privacy_public: '隐私公开',
+  relationship_form: '关系形式',
+  short_term_patterns: '短期模式',
+  current_status: '当前状态',
+  time_availability: '时间安排'
 }
