@@ -3,7 +3,7 @@ import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import CustomHeader from '@/components/custom-header'
-import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command, ArrowRightLeft, Cat } from 'lucide-react-taro'
+import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command, ArrowRightLeft, Cat, Anchor } from 'lucide-react-taro'
 
 interface DialogueCase {
   id: string
@@ -482,6 +482,79 @@ const scenarios: Scenario[] = [
         wrongReply: '好啊，周六周日都可以！',
         rightReply: '周六不行，有安排了。周日......让我看看，（停顿）行，周日下午吧，不过我只能出来3小时，晚上还有事。',
         analysis: '即使有空，也不要表现得太闲。让她觉得你的时间是稀缺的、珍贵的，她才会更珍惜和你在一起的机会。',
+      },
+    ],
+  },
+  {
+    id: 'anchoring',
+    title: '心锚',
+    description: '建立情绪触发器，让她时时想起你',
+    icon: Anchor,
+    color: '#6366F1',
+    bgColor: 'bg-indigo-50',
+    cases: [
+      {
+        id: 'an-1',
+        scene: '词语心锚',
+        context: '你们有一个特别的称呼或词语',
+        taSays: '你在干嘛呢？',
+        wrongReply: '在加班，你呢？',
+        rightReply: '小笨蛋，我在想你啊。（"小笨蛋"成为专属称呼）',
+        analysis: '创造一个只属于你们俩的称呼或词语。以后她每次听到这个词，都会条件反射地想到你。',
+      },
+      {
+        id: 'an-2',
+        scene: '场景心锚',
+        context: '一起去过某个特别的地方',
+        taSays: '这地方真不错。',
+        wrongReply: '是吧，下次再来。',
+        rightReply: '以后你每次来这儿，都会想起今天和我在一块儿。（笑）这可是我们的地盘了。',
+        analysis: '把特定的地点和你们的回忆绑定。以后她经过这里，或者看到类似的地方，就会想起你。',
+      },
+      {
+        id: 'an-3',
+        scene: '歌曲心锚',
+        context: '一起听到某首歌',
+        taSays: '这首歌好好听。',
+        wrongReply: '嗯，挺不错的。',
+        rightReply: '以后这就是我们的歌了。你每次听到，都得想我一下。',
+        analysis: '把一首歌变成"我们的歌"。以后她在任何地方听到这首歌，都会不自觉地想起你。',
+      },
+      {
+        id: 'an-4',
+        scene: '动作心锚',
+        context: '聊天时做一个特定的小动作',
+        taSays: '哈哈你太逗了。',
+        wrongReply: '是吧是吧。',
+        rightReply: '（每次她笑的时候，你轻轻点一下她的额头）以后我一做这个动作，你就会想起今天开心的时候。',
+        analysis: '用特定的动作和她的积极情绪绑定。重复几次后，这个动作本身就成了一种情绪触发器。',
+      },
+      {
+        id: 'an-5',
+        scene: '气味心锚',
+        context: '你用了某个特别的香水',
+        taSays: '你身上什么味道？挺好闻的。',
+        wrongReply: '哦，随便喷的香水。',
+        rightReply: '这是我的专属味道。以后你闻到这个味道，就知道我在附近了。',
+        analysis: '气味是最强的记忆触发器。固定用一款香水，让她把你的气味和你本人绑定。',
+      },
+      {
+        id: 'an-6',
+        scene: '情绪心锚',
+        context: '她情绪低落时你在身边',
+        taSays: '今天好难过......',
+        wrongReply: '别难过了，会好起来的。',
+        rightReply: '（认真倾听、陪伴）以后你难过的时候，就想起还有我在。我会一直在的。',
+        analysis: '在她最脆弱的时候给予陪伴和支持。以后她遇到困难，第一时间想到的就是你。',
+      },
+      {
+        id: 'an-7',
+        scene: '触觉心锚',
+        context: '特定的触摸方式',
+        taSays: '（走在一起）',
+        wrongReply: '（没有肢体接触）',
+        rightReply: '（每次牵手时，你用拇指轻轻摩挲她的手背）记住这个感觉，这是我对你的专属密码。',
+        analysis: '用特定的触摸方式和安全感、亲密感绑定。重复之后，这个小动作本身就成了一种暗号。',
       },
     ],
   },
