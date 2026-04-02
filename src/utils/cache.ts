@@ -6,7 +6,7 @@
 import Taro from '@tarojs/taro'
 
 // 缓存版本号 - 当维度定义更新时需要更新此版本号
-const CACHE_VERSION = 'v2_20250402'
+const CACHE_VERSION = 'v2_20250403'
 
 // 缓存配置
 const CACHE_CONFIG = {
