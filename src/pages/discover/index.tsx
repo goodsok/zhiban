@@ -38,7 +38,7 @@ const categories: KnowledgeCategory[] = [
     subtitle: '模拟真实场景，提升互动能力',
     icon: Theater,
     pagePath: '/pages/knowledge-scenario/index',
-    bgColor: 'bg-blue-500',
+    bgColor: 'bg-gray-900',
     iconBg: 'bg-white',
   },
 ]
