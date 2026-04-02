@@ -3,7 +3,7 @@ import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import CustomHeader from '@/components/custom-header'
-import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command, ArrowRightLeft } from 'lucide-react-taro'
+import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command, ArrowRightLeft, Cat } from 'lucide-react-taro'
 
 interface DialogueCase {
   id: string
@@ -418,6 +418,70 @@ const scenarios: Scenario[] = [
         wrongReply: '你很好啊，我很喜欢你。',
         rightReply: '怎么说呢......（认真看她）你有时候很可爱，有时候又挺烦人的。这种反差还挺好玩的。',
         analysis: '不要只给正面评价。用"可爱+烦人"的反差，让她想"我哪里烦人了"，增加互动张力。',
+      },
+    ],
+  },
+  {
+    id: 'cat-string',
+    title: '猫绳理论',
+    description: '让她主动追逐你，而不是你追她',
+    icon: Cat,
+    color: '#F97316',
+    bgColor: 'bg-orange-50',
+    cases: [
+      {
+        id: 'cs-1',
+        scene: '展示价值不主动',
+        context: '你想让她注意到你',
+        taSays: '（看到你的朋友圈/动态）',
+        wrongReply: '（主动私信）看到你点赞了，在干嘛呢？',
+        rightReply: '（发一条精彩的朋友圈，但不主动联系她）',
+        analysis: '像逗猫一样，在她面前晃动"精彩生活"这根绳子，但不主动递过去。让她好奇、让她主动靠近你。',
+      },
+      {
+        id: 'cs-2',
+        scene: '给甜头就收回',
+        context: '聊天聊得很开心时',
+        taSays: '哈哈你太逗了！',
+        wrongReply: '是吧？我还好多故事呢，我跟你说......（继续聊）',
+        rightReply: '哈哈，说起来还有更有意思的......哎呀，我得先去处理个事，回头再聊。',
+        analysis: '在最高潮时主动结束。让她意犹未尽，期待下次聊天。不要一次性把所有有趣的东西都展示完。',
+      },
+      {
+        id: 'cs-3',
+        scene: '让她追着你',
+        context: '你想约她出来',
+        taSays: '（没有主动联系你）',
+        wrongReply: '周末有空吗？我想约你。',
+        rightReply: '（发一条：在某个好玩的地方的照片）今天这地方不错，下次带你来。',
+        analysis: '不要直接约，而是展示"带你去"的可能性。这根绳子在她面前晃，她如果想抓，会主动问你"什么时候带我去"。',
+      },
+      {
+        id: 'cs-4',
+        scene: '间歇性奖励',
+        context: '回复消息的节奏',
+        taSays: '你又在干嘛呢？',
+        wrongReply: '没干嘛，你呢？（秒回）',
+        rightReply: '（有时秒回，有时隔半小时，有时隔两小时）',
+        analysis: '像老虎机一样，不规则的奖励最能让人上瘾。如果每次都秒回，你的关注就变得廉价了。',
+      },
+      {
+        id: 'cs-5',
+        scene: '悬念钩子',
+        context: '你想分享一个有趣的事',
+        taSays: '你今天过得怎么样？',
+        wrongReply: '挺好的，今天去了一个新餐厅，味道不错。',
+        rightReply: '今天发生了一件超离谱的事......算了，有点长，改天见面再说。',
+        analysis: '说一半留一半。让她追问"什么事啊快说"，制造悬念和期待。见面的理由也自然有了。',
+      },
+      {
+        id: 'cs-6',
+        scene: '制造稀缺感',
+        context: '她想约你但你有空',
+        taSays: '周末出来玩吧？',
+        wrongReply: '好啊，周六周日都可以！',
+        rightReply: '周六不行，有安排了。周日......让我看看，（停顿）行，周日下午吧，不过我只能出来3小时，晚上还有事。',
+        analysis: '即使有空，也不要表现得太闲。让她觉得你的时间是稀缺的、珍贵的，她才会更珍惜和你在一起的机会。',
       },
     ],
   },
