@@ -1,7 +1,7 @@
 import { View, Text } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Moon, MessageCircle, Theater } from 'lucide-react-taro'
+import { Moon, MessageCircle, Theater, Zap } from 'lucide-react-taro'
 
 interface KnowledgeCategory {
   id: string
@@ -38,6 +38,15 @@ const categories: KnowledgeCategory[] = [
     subtitle: '模拟真实场景，提升互动能力',
     icon: Theater,
     pagePath: '/pages/knowledge-scenario/index',
+    bgColor: 'bg-white border border-gray-200',
+    iconBg: 'bg-gray-100',
+  },
+  {
+    id: 'speed-plan',
+    title: '速推方案',
+    subtitle: 'AI生成个性化推进方案',
+    icon: Zap,
+    pagePath: '/pages/speed-plan/index',
     bgColor: 'bg-white border border-gray-200',
     iconBg: 'bg-gray-100',
   },

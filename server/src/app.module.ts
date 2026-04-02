@@ -14,9 +14,10 @@ import { PortraitModule } from '@/modules/portrait/portrait.module';
 import { UserProfileModule } from '@/modules/user-profile/user-profile.module';
 import { DimensionModule } from '@/modules/dimension/dimension.module';
 import { InteractionModule } from '@/modules/interaction/interaction.module';
+import { SpeedPlanModule } from '@/modules/speed-plan/speed-plan.module';
 
 @Module({
-  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule, PortraitModule, UserProfileModule, DimensionModule, InteractionModule],
+  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule, PortraitModule, UserProfileModule, DimensionModule, InteractionModule, SpeedPlanModule],
   controllers: [AppController],
   providers: [AppService],
 })
