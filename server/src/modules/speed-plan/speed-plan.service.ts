@@ -251,15 +251,29 @@ export class SpeedPlanService {
       return b?.name || code
     })
 
-    const systemPrompt = `你是一位恋爱关系推进专家，擅长根据对象特点制定个性化的关系推进方案。
-你需要根据用户提供的信息，生成一个切实可行、有步骤的行动方案。
+    // 目标行为的友好表述映射
+    const targetDisplayNames: Record<string, string> = {
+      'sex': '亲密关系',
+      'stay_over': '过夜相处',
+      'intimate_touch': '亲密接触',
+    }
+    const targetDisplayName = targetDisplayNames[targetBehavior] || target?.name || targetBehavior
+
+    const systemPrompt = `你是一位专业的婚恋情感咨询师，为成年人提供恋爱关系发展指导。你的职责是帮助用户在尊重、自愿、安全的前提下推进健康的恋爱关系。
+
+重要原则：
+1. 所有建议必须建立在双方自愿、相互尊重的基础上
+2. 强调情感连接和信任建立的重要性
+3. 关注对方的感受和边界
+4. 提供的是关系发展指导，而非技术指导
 
 输出要求：
 1. 方案应该具体、可执行
 2. 每个步骤都要有明确的时间节点
 3. 考虑对象的性格特点（MBTI、依恋类型）
 4. 给出具体的聊天话题或行动建议
-5. 指出需要注意的禁忌和风险
+5. 指出需要注意的边界和尊重事项
+6. 强调情感交流和氛围营造的重要性
 
 输出格式：
 【总体策略】（一句话概括）
@@ -269,7 +283,7 @@ export class SpeedPlanService {
    - 具体行动
    - 话术示例
 2. ...
-【注意事项】
+【注意事项】（特别强调尊重边界和双方意愿）
 【备选方案】（如果计划受阻）`
 
     const userMessage = `请为以下情况生成关系推进方案：
@@ -290,13 +304,13 @@ ${progressNames.length > 0 ? progressNames.join('、') : '刚开始认识'}
 - 互动次数：${objectInfo.interactionCount}
 
 【目标】
-在${targetHours}小时内达成"${target?.name || targetBehavior}"
+在${targetHours}小时内推进到"${targetDisplayName}"阶段
 
 【难度系数】
 ${difficulty.score}/10（${difficulty.level}）
 影响因素：${difficulty.factors.length > 0 ? difficulty.factors.join('、') : '无特殊因素'}
 
-请生成具体的推进方案。`
+请生成具体的推进方案，重点围绕情感连接、氛围营造、时机把握等方面给出建议。`
 
     try {
       const response = await client.invoke([
