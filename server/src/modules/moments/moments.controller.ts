@@ -3,6 +3,19 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import { Request } from 'express'
 import { MomentsService } from './moments.service'
 
+// 定义文件类型，兼容小程序和H5
+type UploadedFileType = {
+  fieldname: string
+  originalname: string
+  encoding: string
+  mimetype: string
+  buffer?: Buffer
+  size: number
+  destination?: string
+  filename?: string
+  path?: string
+}
+
 @Controller('moments')
 export class MomentsController {
   constructor(private readonly momentsService: MomentsService) {}
@@ -13,7 +26,7 @@ export class MomentsController {
   @Post('upload-image')
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: UploadedFileType,
     @Req() req: Request
   ) {
     return this.momentsService.uploadImage(file, req)

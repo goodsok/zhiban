@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Request } from 'express'
-import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
-import { S3Storage } from '@/storage/s3/s3-storage'
+import { LLMClient, Config, HeaderUtils, S3Storage } from 'coze-coding-dev-sdk'
 import { getSupabaseClient } from '@/storage/database/supabase-client'
 
 // 朋友圈类型定义
@@ -37,25 +36,42 @@ export class MomentsService {
   private storage: S3Storage
 
   constructor() {
-    this.storage = new S3Storage()
+    this.storage = new S3Storage({
+      endpointUrl: process.env.COZE_BUCKET_ENDPOINT_URL,
+      accessKey: '',
+      secretKey: '',
+      bucketName: process.env.COZE_BUCKET_NAME,
+      region: 'cn-beijing',
+    })
   }
 
   /**
    * 上传图片
    */
-  async uploadImage(file: Express.Multer.File, request: Request) {
+  async uploadImage(file: { path?: string; buffer?: Buffer; mimetype?: string }, request: Request) {
     try {
       // 支持两种方式：file.path (小程序) 或 file.buffer (H5)
       let key: string
+      const contentType = file.mimetype || 'image/jpeg'
+      const ext = contentType.split('/')[1] || 'jpg'
 
-      if (file.path) {
-        // 小程序端：文件已保存到临时路径
-        key = await this.storage.uploadFromPath({ path: file.path, timeout: 30000 })
-      } else if (file.buffer) {
+      if (file.buffer) {
         // H5端：文件在内存中
-        const base64Data = file.buffer.toString('base64')
-        const contentType = file.mimetype || 'image/jpeg'
-        key = await this.storage.uploadFromBase64({ base64Data, contentType })
+        key = await this.storage.uploadFile({
+          fileContent: file.buffer,
+          fileName: `moments/${Date.now()}.${ext}`,
+          contentType,
+        })
+      } else if (file.path) {
+        // 小程序端：文件已保存到临时路径，需要读取文件内容
+        // 注意：在 NestJS 环境中，需要使用 fs 读取临时文件
+        const fs = await import('fs')
+        const buffer = fs.readFileSync(file.path)
+        key = await this.storage.uploadFile({
+          fileContent: buffer,
+          fileName: `moments/${Date.now()}.${ext}`,
+          contentType,
+        })
       } else {
         return { code: 400, msg: '文件数据无效', data: null }
       }
@@ -89,7 +105,16 @@ export class MomentsService {
     const { matchId, postType, purpose, inputContent, personaTags } = input
 
     // 1. 获取对象信息（如果有）
-    let objectInfo = null
+    let objectInfo: {
+      name: string
+      gender: string
+      relationshipType: string
+      mbti: string
+      attachmentType: string
+      occupation: string
+      hobbies: string
+      personality: string
+    } | null = null
     if (matchId) {
       objectInfo = await this.getMatchInfo(matchId, request)
     }
@@ -226,7 +251,16 @@ export class MomentsService {
     const { matchId, inputContent, imageUrls } = input
 
     // 1. 获取对象信息（如果有）
-    let objectInfo = null
+    let objectInfo: {
+      name: string
+      gender: string
+      relationshipType: string
+      mbti: string
+      attachmentType: string
+      occupation: string
+      hobbies: string
+      personality: string
+    } | null = null
     if (matchId) {
       objectInfo = await this.getMatchInfo(matchId, request)
     }
