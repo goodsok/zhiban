@@ -427,16 +427,18 @@ export class MomentsService {
       if (!profile) return null
 
       return {
+        // MBTI
+        mbti: profile.mbti,
         // 大五人格
-        openness: profile.openness, // 开放性
-        conscientiousness: profile.conscientiousness, // 尽责性
-        extraversion: profile.extraversion, // 外向性
-        agreeableness: profile.agreeableness, // 宜人性
-        neuroticism: profile.neuroticism, // 神经质
+        openness: profile.personality_openness, // 开放性
+        conscientiousness: profile.personality_conscientiousness, // 尽责性
+        extraversion: profile.personality_extraversion, // 外向性
+        agreeableness: profile.personality_agreeableness, // 宜人性
+        neuroticism: profile.personality_neuroticism, // 神经质
         // 情感特点
-        stability: profile.stability, // 稳定性
-        expressiveness: profile.expressiveness, // 表达性
-        empathy: profile.empathy, // 同理心
+        stability: profile.emotional_stability, // 稳定性
+        expressiveness: profile.emotional_expression, // 表达性
+        empathy: profile.emotional_empathy, // 同理心
         // 依恋风格
         attachmentStyle: profile.attachment_style,
         // 行为偏好
@@ -618,9 +620,14 @@ ${PERSONA_TAGS.map(t => `- ${t.name}：${t.description}`).join('\n')}
       if (userInfo) {
         textContent += `\n\n我的性格特点（请根据此调整建议风格）：`
         
+        // MBTI
+        if (userInfo.mbti) {
+          textContent += `\n- MBTI：${userInfo.mbti}`
+        }
+        
         // 大五人格
         if (userInfo.extraversion !== undefined) {
-          const isExtrovert = userInfo.extraversion > 0.5
+          const isExtrovert = userInfo.extraversion > 50
           textContent += `\n- 性格倾向：${isExtrovert ? '外向型（E）- 喜欢直接、热情的表达方式' : '内向型（I）- 偏好含蓄、深度的表达方式'}`
         }
         
