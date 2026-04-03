@@ -265,8 +265,11 @@ export class MomentsService {
       objectInfo = await this.getMatchInfo(matchId, request)
     }
 
-    // 2. 分析（支持图片和文字）
-    const analysis = await this.analyzeWithLLM(inputContent || '', imageUrls || [], objectInfo, request)
+    // 2. 获取用户档案信息（用于个性化建议）
+    const userInfo = await this.getUserProfile(request)
+
+    // 3. 分析（支持图片和文字）
+    const analysis = await this.analyzeWithLLM(inputContent || '', imageUrls || [], objectInfo, userInfo, request)
 
     // 3. 保存分析记录
     const client = getSupabaseClient()
@@ -398,6 +401,56 @@ export class MomentsService {
   }
 
   /**
+   * 获取用户档案信息（用于朋友圈分析建议个性化）
+   */
+  private async getUserProfile(request: Request) {
+    try {
+      // 当前系统单用户，固定 userId = 1
+      const userId = 1
+
+      const client = getSupabaseClient()
+
+      // 获取用户档案
+      const { data: profile } = await client
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      // 获取用户行为偏好
+      const { data: behavior } = await client
+        .from('user_behavior_preferences')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+
+      if (!profile) return null
+
+      return {
+        // 大五人格
+        openness: profile.openness, // 开放性
+        conscientiousness: profile.conscientiousness, // 尽责性
+        extraversion: profile.extraversion, // 外向性
+        agreeableness: profile.agreeableness, // 宜人性
+        neuroticism: profile.neuroticism, // 神经质
+        // 情感特点
+        stability: profile.stability, // 稳定性
+        expressiveness: profile.expressiveness, // 表达性
+        empathy: profile.empathy, // 同理心
+        // 依恋风格
+        attachmentStyle: profile.attachment_style,
+        // 行为偏好
+        communicationStyle: behavior?.communication_style, // 沟通风格
+        expressionStyle: behavior?.expression_style, // 表达风格
+        replySpeed: behavior?.reply_speed, // 回复速度
+      }
+    } catch (error) {
+      console.error('Get user profile error:', error)
+      return null
+    }
+  }
+
+  /**
    * 生成发圈建议
    */
   private async generateWithLLM(
@@ -504,6 +557,7 @@ ${PERSONA_TAGS.map(t => `- ${t.name}：${t.description}`).join('\n')}
     inputContent: string,
     imageUrls: string[],
     objectInfo: any,
+    userInfo: any,
     request: Request
   ) {
     const systemPrompt = `你是一位专业的社交媒体分析师，擅长从朋友圈内容中解读对方的情绪、兴趣、生活状态。
@@ -514,6 +568,12 @@ ${PERSONA_TAGS.map(t => `- ${t.name}：${t.description}`).join('\n')}
 3. 判断对方当前的生活重心
 4. 找出可以切入的话题
 5. 给出互动建议（点赞时机、评论话术）
+
+重要原则：
+- 如果提供了用户性格信息，评论话术和互动建议必须符合用户的说话风格
+- 外向型用户适合更直接、热情的表达
+- 内向型用户适合含蓄、深度的表达
+- 保持建议自然真实，不要刻意做作
 
 输出格式（JSON）：
 {
@@ -552,6 +612,50 @@ ${PERSONA_TAGS.map(t => `- ${t.name}：${t.description}`).join('\n')}
         textContent += `\n- 姓名：${objectInfo.name}`
         if (objectInfo.mbti) textContent += `\n- MBTI：${objectInfo.mbti}`
         if (objectInfo.hobbies) textContent += `\n- 兴趣爱好：${objectInfo.hobbies}`
+      }
+
+      // 添加用户性格信息（用于个性化建议风格）
+      if (userInfo) {
+        textContent += `\n\n我的性格特点（请根据此调整建议风格）：`
+        
+        // 大五人格
+        if (userInfo.extraversion !== undefined) {
+          const isExtrovert = userInfo.extraversion > 0.5
+          textContent += `\n- 性格倾向：${isExtrovert ? '外向型（E）- 喜欢直接、热情的表达方式' : '内向型（I）- 偏好含蓄、深度的表达方式'}`
+        }
+        
+        // 依恋风格
+        if (userInfo.attachmentStyle) {
+          const styleMap: Record<string, string> = {
+            secure: '安全型',
+            anxious: '焦虑型',
+            avoidant: '回避型',
+            disorganized: '恐惧型',
+          }
+          textContent += `\n- 依恋风格：${styleMap[userInfo.attachmentStyle] || userInfo.attachmentStyle}`
+        }
+        
+        // 表达风格
+        if (userInfo.expressionStyle) {
+          const styleMap: Record<string, string> = {
+            direct: '直接坦率',
+            subtle: '含蓄委婉',
+            humorous: '幽默风趣',
+            emotional: '感性细腻',
+            rational: '理性克制',
+          }
+          textContent += `\n- 表达风格：${styleMap[userInfo.expressionStyle] || userInfo.expressionStyle}`
+        }
+        
+        // 沟通风格
+        if (userInfo.communicationStyle) {
+          const styleMap: Record<string, string> = {
+            active: '主动出击型',
+            responsive: '回应引导型',
+            balanced: '平衡互动型',
+          }
+          textContent += `\n- 沟通风格：${styleMap[userInfo.communicationStyle] || userInfo.communicationStyle}`
+        }
       }
 
       userContent.push({ type: 'text', text: textContent })
