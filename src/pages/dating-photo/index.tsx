@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { View, Text, Image } from '@tarojs/components'
-import { useLoad, chooseImage, uploadFile } from '@tarojs/taro'
+import { useLoad, chooseImage, uploadFile, previewImage } from '@tarojs/taro'
 import type { FC } from 'react'
 import { Camera, X, Star, Sparkles, Wand } from 'lucide-react-taro'
 import { Network } from '@/network'
@@ -34,6 +34,14 @@ const DatingPhotoPage: FC = () => {
   useLoad(() => {
     console.log('Dating photo evaluation page loaded.')
   })
+
+  // 预览图片
+  const handlePreviewImage = (url: string, urls: string[]) => {
+    previewImage({
+      current: url,
+      urls: urls,
+    })
+  }
 
   const handleChoosePhoto = () => {
     if (photos.length >= 3) {
@@ -343,7 +351,10 @@ const DatingPhotoPage: FC = () => {
                     {/* 原始照片 */}
                     <View className="flex-1">
                       <Text className="block text-xs text-gray-500 mb-2 text-center">原始照片</Text>
-                      <View className="aspect-square rounded-xl overflow-hidden bg-gray-100">
+                      <View
+                        className="aspect-square rounded-xl overflow-hidden bg-gray-100"
+                        onClick={() => handlePreviewImage(optimizedPhoto.originalUrl, [optimizedPhoto.originalUrl, optimizedPhoto.optimizedUrl])}
+                      >
                         <Image
                           src={optimizedPhoto.originalUrl}
                           mode="aspectFill"
@@ -354,7 +365,10 @@ const DatingPhotoPage: FC = () => {
                     {/* 优化后照片 */}
                     <View className="flex-1">
                       <Text className="block text-xs text-purple-600 mb-2 text-center">优化示例</Text>
-                      <View className="aspect-square rounded-xl overflow-hidden bg-purple-50 border-2 border-purple-200">
+                      <View
+                        className="aspect-square rounded-xl overflow-hidden bg-purple-50 border-2 border-purple-200"
+                        onClick={() => handlePreviewImage(optimizedPhoto.optimizedUrl, [optimizedPhoto.originalUrl, optimizedPhoto.optimizedUrl])}
+                      >
                         <Image
                           src={optimizedPhoto.optimizedUrl}
                           mode="aspectFill"
@@ -365,7 +379,7 @@ const DatingPhotoPage: FC = () => {
                   </View>
                   <View className="mt-3 p-3 bg-purple-50 rounded-lg">
                     <Text className="block text-xs text-purple-700">
-                      💡 这是 AI 根据建议生成的示例照片，仅供参考。实际优化时，建议根据建议重新拍摄或调整。
+                      💡 点击图片可查看大图。这是 AI 根据建议生成的示例照片，仅供参考。实际优化时，建议根据建议重新拍摄或调整。
                     </Text>
                   </View>
                 </CardContent>
