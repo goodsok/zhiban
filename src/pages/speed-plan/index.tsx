@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useDidShow } from '@tarojs/taro'
+import Taro, { useLoad, useDidShow } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
@@ -7,6 +7,9 @@ import CustomHeader from '@/components/custom-header'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { ChevronRight, User, Target, Sparkles, Check, LoaderCircle } from 'lucide-react-taro'
+
+// 本地存储key
+const STORAGE_KEY = 'speed_plan_draft'
 
 // 行为层级定义
 const BEHAVIOR_LEVELS = [
@@ -26,6 +29,20 @@ const BEHAVIOR_LEVELS = [
   { level: 5, code: 'stay_over', name: '过夜', intimacy: 90 },
   { level: 5, code: 'sex', name: '发生关系', intimacy: 100 },
   { level: 6, code: 'relationship', name: '确认恋爱', intimacy: 80 },
+]
+
+// 当前进展分组
+const PROGRESS_GROUPS = [
+  {
+    title: '初识阶段',
+    levels: [1, 2],
+    items: BEHAVIOR_LEVELS.filter(b => b.level <= 2)
+  },
+  {
+    title: '暧昧阶段',
+    levels: [3, 4],
+    items: BEHAVIOR_LEVELS.filter(b => b.level === 3 || b.level === 4)
+  },
 ]
 
 // 常用目标行为
@@ -54,6 +71,14 @@ interface MatchDetail extends Match {
   interaction_count?: number
 }
 
+interface DraftData {
+  background: string
+  currentProgress: string[]
+  selectedMatchId?: number
+  targetHours: number
+  targetBehavior: string
+}
+
 const SpeedPlanPage: FC = () => {
   // 步骤状态
   const [currentStep, setCurrentStep] = useState(1)
@@ -75,11 +100,48 @@ const SpeedPlanPage: FC = () => {
 
   useLoad(() => {
     console.log('Speed plan page loaded.')
+    loadDraft()
   })
 
   useDidShow(() => {
     fetchMatches()
   })
+
+  // 加载草稿
+  const loadDraft = async () => {
+    try {
+      const draftStr = await Taro.getStorageSync(STORAGE_KEY)
+      if (draftStr) {
+        const draft: DraftData = JSON.parse(draftStr)
+        setBackground(draft.background || '')
+        setCurrentProgress(draft.currentProgress || [])
+        setTargetHours(draft.targetHours || 72)
+        setTargetBehavior(draft.targetBehavior || 'kiss')
+        // 如果有选中的对象，加载详情
+        if (draft.selectedMatchId) {
+          fetchMatchDetail(draft.selectedMatchId)
+        }
+      }
+    } catch (error) {
+      console.error('Load draft error:', error)
+    }
+  }
+
+  // 保存草稿
+  const saveDraft = async (data: Partial<DraftData>) => {
+    try {
+      const draft: DraftData = {
+        background: data.background ?? background,
+        currentProgress: data.currentProgress ?? currentProgress,
+        selectedMatchId: data.selectedMatchId ?? selectedMatch?.id,
+        targetHours: data.targetHours ?? targetHours,
+        targetBehavior: data.targetBehavior ?? targetBehavior,
+      }
+      await Taro.setStorageSync(STORAGE_KEY, JSON.stringify(draft))
+    } catch (error) {
+      console.error('Save draft error:', error)
+    }
+  }
 
   const fetchMatches = async () => {
     try {
@@ -114,6 +176,7 @@ const SpeedPlanPage: FC = () => {
           detail.interaction_count = energyRes.data.data.totalInteractions
         }
         setSelectedMatch(detail)
+        saveDraft({ selectedMatchId: matchId })
       }
     } catch (error) {
       console.error('Fetch match detail error:', error)
@@ -121,11 +184,11 @@ const SpeedPlanPage: FC = () => {
   }
 
   const toggleProgress = (code: string) => {
-    setCurrentProgress(prev => 
-      prev.includes(code) 
-        ? prev.filter(c => c !== code)
-        : [...prev, code]
-    )
+    const newProgress = currentProgress.includes(code) 
+      ? currentProgress.filter(c => c !== code)
+      : [...currentProgress, code]
+    setCurrentProgress(newProgress)
+    saveDraft({ currentProgress: newProgress })
   }
 
   const handleMatchSelect = async (match: Match) => {
@@ -157,6 +220,37 @@ const SpeedPlanPage: FC = () => {
       console.error('Generate plan error:', error)
     } finally {
       setGenerating(false)
+    }
+  }
+
+  const handleBackgroundChange = (value: string) => {
+    setBackground(value)
+    saveDraft({ background: value })
+  }
+
+  const handleTargetHoursChange = (hours: number) => {
+    setTargetHours(hours)
+    saveDraft({ targetHours: hours })
+  }
+
+  const handleTargetBehaviorChange = (behavior: string) => {
+    setTargetBehavior(behavior)
+    saveDraft({ targetBehavior: behavior })
+  }
+
+  const resetForm = async () => {
+    setCurrentStep(1)
+    setResult(null)
+    setBackground('')
+    setCurrentProgress([])
+    setSelectedMatch(null)
+    setTargetHours(72)
+    setTargetBehavior('kiss')
+    // 清除草稿
+    try {
+      await Taro.removeStorageSync(STORAGE_KEY)
+    } catch (error) {
+      console.error('Remove draft error:', error)
     }
   }
 
@@ -237,37 +331,43 @@ const SpeedPlanPage: FC = () => {
               <Text className="block text-base font-semibold text-gray-900">互动背景</Text>
             </View>
             
-            <View className="bg-gray-50 rounded-xl p-3 mb-4">
+            <View className="mb-4">
               <Textarea
                 className="w-full"
-                style={{ minHeight: '80px' }}
+                style={{ minHeight: '100px' }}
                 placeholder="描述互动背景，例如：相亲认识一周，微信聊了几天..."
                 value={background}
-                onInput={(e) => setBackground(e.detail.value)}
+                onInput={(e) => handleBackgroundChange(e.detail.value)}
               />
             </View>
 
-            <Text className="block text-sm text-gray-500 mb-2">当前进展（可多选）</Text>
-            <View className="flex flex-wrap gap-2">
-              {BEHAVIOR_LEVELS.filter(b => b.level <= 2).map((behavior) => (
-                <View
-                  key={behavior.code}
-                  className={`px-3 py-2 rounded-full ${
-                    currentProgress.includes(behavior.code)
-                      ? 'bg-black'
-                      : 'bg-gray-100'
-                  }`}
-                  onClick={() => toggleProgress(behavior.code)}
-                >
-                  <Text className={`block text-xs ${
-                    currentProgress.includes(behavior.code) ? 'text-white' : 'text-gray-600'
-                  }`}
-                  >
-                    {behavior.name}
-                  </Text>
+            <Text className="block text-sm text-gray-500 mb-3">当前进展（可多选）</Text>
+            
+            {PROGRESS_GROUPS.map((group) => (
+              <View key={group.title} className="mb-3">
+                <Text className="block text-xs text-gray-400 mb-2">{group.title}</Text>
+                <View className="flex flex-wrap gap-2">
+                  {group.items.map((behavior) => (
+                    <View
+                      key={behavior.code}
+                      className={`px-3 py-2 rounded-full ${
+                        currentProgress.includes(behavior.code)
+                          ? 'bg-black'
+                          : 'bg-gray-100'
+                      }`}
+                      onClick={() => toggleProgress(behavior.code)}
+                    >
+                      <Text className={`block text-xs ${
+                        currentProgress.includes(behavior.code) ? 'text-white' : 'text-gray-600'
+                      }`}
+                      >
+                        {behavior.name}
+                      </Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </View>
+              </View>
+            ))}
           </View>
 
           <View
@@ -417,7 +517,7 @@ const SpeedPlanPage: FC = () => {
                     className="w-full text-center"
                     type="number"
                     value={String(targetHours)}
-                    onInput={(e) => setTargetHours(Number(e.detail.value))}
+                    onInput={(e) => handleTargetHoursChange(Number(e.detail.value))}
                   />
                 </View>
                 <Text className="block text-gray-600">小时内</Text>
@@ -431,7 +531,7 @@ const SpeedPlanPage: FC = () => {
                     className={`px-3 py-2 rounded-full ${
                       targetHours === hours ? 'bg-black' : 'bg-gray-100'
                     }`}
-                    onClick={() => setTargetHours(hours)}
+                    onClick={() => handleTargetHoursChange(hours)}
                   >
                     <Text className={`block text-xs ${
                       targetHours === hours ? 'text-white' : 'text-gray-600'
@@ -454,7 +554,7 @@ const SpeedPlanPage: FC = () => {
                     className={`px-4 py-2 rounded-xl ${
                       targetBehavior === behavior.code ? 'bg-black' : 'bg-gray-100'
                     }`}
-                    onClick={() => setTargetBehavior(behavior.code)}
+                    onClick={() => handleTargetBehaviorChange(behavior.code)}
                   >
                     <Text className={`block text-sm ${
                       targetBehavior === behavior.code ? 'text-white' : 'text-gray-600'
@@ -515,13 +615,7 @@ const SpeedPlanPage: FC = () => {
           
           <View
             className="mt-4 bg-black rounded-xl py-3 flex items-center justify-center"
-            onClick={() => {
-              setCurrentStep(1)
-              setResult(null)
-              setBackground('')
-              setCurrentProgress([])
-              setSelectedMatch(null)
-            }}
+            onClick={resetForm}
           >
             <Text className="block text-white font-medium">重新生成</Text>
           </View>
