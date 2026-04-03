@@ -59,6 +59,29 @@ export class DatingService {
     return response.content
   }
 
+  private async callLLMWithImages(prompt: string, imageUrls: string[], req: Request): Promise<string> {
+    const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
+    const config = new Config()
+    const client = new LLMClient(config, customHeaders)
+
+    // 构建多模态消息内容
+    const userContent: Array<{ type: string; text?: string; image_url?: { url: string; detail: string } }> = []
+
+    // 添加文字
+    userContent.push({ type: 'text', text: prompt })
+
+    // 添加图片
+    for (const imageUrl of imageUrls) {
+      userContent.push({
+        type: 'image_url',
+        image_url: { url: imageUrl, detail: 'high' }
+      })
+    }
+
+    const response = await client.invoke([{ role: 'user', content: userContent as any }], { temperature: 0.7 })
+    return response.content
+  }
+
   async optimizeProfile(data: { nickname?: string; bio?: string; interests?: string }, req: Request): Promise<ProfileAnalysis> {
     const prompt = `你是一位专业的交友软件资料优化顾问。请分析以下交友资料，给出专业的优化建议。
 
@@ -125,36 +148,34 @@ export class DatingService {
   }
 
   async evaluatePhotos(photoUrls: string[], req: Request): Promise<PhotoScore> {
-    const prompt = `你是一位专业的交友软件照片评估专家。请分析这些照片的URL，从以下维度给出评分和建议：
-
-照片URL列表：
-${photoUrls.map((url, i) => `${i + 1}. ${url}`).join('\n')}
+    const prompt = `你是一位专业的交友软件照片评估专家。请仔细分析这些照片，从以下维度给出评分和建议：
 
 评估维度：
-1. 整体形象（0-100分）
-2. 照片质量（清晰度、构图、光线）
-3. 表情和神态
-4. 服装和形象
-5. 背景和环境
+1. 整体形象（0-100分）- 整体给人的第一印象
+2. 照片质量（0-100分）- 清晰度、构图、光线
+3. 表情和神态（0-100分）- 表情是否自然、有亲和力
+4. 服装和形象（0-100分）- 穿着打扮是否得体
+5. 背景和环境（0-100分）- 背景是否干净、有品味
+
+请仔细观察每张照片，给出真实的评价和建议。
 
 请以JSON格式返回，格式如下：
 {
-  "overallScore": 数字,
+  "overallScore": 数字（所有维度的平均分）,
   "dimensions": [
     {
       "name": "维度名称",
       "score": 分数,
-      "comment": "具体评价"
+      "comment": "具体评价（指出优缺点）"
     }
   ],
-  "suggestions": ["建议1", "建议2", "建议3"],
-  "summary": "总结性建议"
-}
-
-注意：由于只能看到照片URL，请基于URL和常见照片特点进行合理推断。`
+  "suggestions": ["具体改进建议1", "具体改进建议2", "具体改进建议3"],
+  "summary": "总结性评价（包含优势和改进方向）"
+}`
 
     try {
-      const response = await this.callLLM(prompt, req)
+      // 使用多模态能力分析图片
+      const response = await this.callLLMWithImages(prompt, photoUrls, req)
       console.log('[DatingService] Photo evaluation response:', response)
 
       const jsonMatch = response.match(/\{[\s\S]*\}/)
