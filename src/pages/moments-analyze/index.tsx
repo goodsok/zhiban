@@ -75,10 +75,23 @@ const MomentsAnalyzePage: FC = () => {
               name: 'file',
             })
 
-            // Network.uploadFile 返回的是解析后的响应体
-            const resData = uploadRes as unknown as { code: number; data: { url: string } }
+            console.log('Upload response:', uploadRes)
+            
+            // Taro.uploadFile 返回的 data 是字符串，需要解析
+            let resData: { code: number; data: { url: string } }
+            if (typeof uploadRes.data === 'string') {
+              resData = JSON.parse(uploadRes.data)
+            } else {
+              resData = uploadRes.data as unknown as { code: number; data: { url: string } }
+            }
+            
+            console.log('Parsed response:', resData)
+            
             if (resData.code === 200 && resData.data?.url) {
               setUploadedImages(prev => [...prev, resData.data.url])
+              showToast({ title: '上传成功', icon: 'success' })
+            } else {
+              showToast({ title: '上传失败', icon: 'error' })
             }
           } catch (uploadError) {
             console.error('Upload image error:', uploadError)
@@ -268,14 +281,16 @@ const MomentsAnalyzePage: FC = () => {
           
           <View className="flex flex-wrap gap-3">
             {uploadedImages.map((url, index) => (
-              <View key={index} className="relative">
+              <View key={index} className="relative w-20 h-20">
                 <Image
                   src={url}
                   className="w-20 h-20 rounded-xl"
+                  style={{ width: '80px', height: '80px' }}
                   mode="aspectFill"
                 />
                 <View
                   className="absolute -top-1 -right-1 w-5 h-5 bg-black rounded-full flex items-center justify-center"
+                  style={{ position: 'absolute', top: '-4px', right: '-4px' }}
                   onClick={() => removeImage(index)}
                 >
                   <X size={12} color="#fff" />
