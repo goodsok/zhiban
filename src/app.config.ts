@@ -21,6 +21,8 @@ export default defineAppConfig({
     'pages/knowledge-scenario/index',
     'pages/speed-plan/index',
     'pages/speed-plan-list/index',
+    'pages/story/index',
+    'pages/story-list/index',
   ],
   window: {
     backgroundTextStyle: 'light',

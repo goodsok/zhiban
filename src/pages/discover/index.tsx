@@ -1,7 +1,7 @@
 import { View, Text } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Moon, MessageCircle, Theater, Zap } from 'lucide-react-taro'
+import { Moon, MessageCircle, Theater, Zap, BookOpen } from 'lucide-react-taro'
 
 interface KnowledgeCategory {
   id: string
@@ -49,6 +49,15 @@ const categories: KnowledgeCategory[] = [
     pagePath: '/pages/speed-plan-list/index',
     bgColor: 'bg-white border border-gray-200',
     iconBg: 'bg-gray-100',
+  },
+  {
+    id: 'story',
+    title: '故事生成器',
+    subtitle: '把故事变成高能量内容',
+    icon: BookOpen,
+    pagePath: '/pages/story-list/index',
+    bgColor: 'bg-white border border-gray-200',
+    iconBg: 'bg-amber-50',
   },
 ]
 
