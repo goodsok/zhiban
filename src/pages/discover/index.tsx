@@ -1,7 +1,7 @@
 import { View, Text } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Moon, MessageCircle, Theater, Zap, BookOpen } from 'lucide-react-taro'
+import { Moon, MessageCircle, Theater, Zap, BookOpen, Smartphone } from 'lucide-react-taro'
 
 interface KnowledgeCategory {
   id: string
@@ -58,6 +58,15 @@ const categories: KnowledgeCategory[] = [
     pagePath: '/pages/story-list/index',
     bgColor: 'bg-white border border-gray-200',
     iconBg: 'bg-amber-50',
+  },
+  {
+    id: 'moments',
+    title: '朋友圈助手',
+    subtitle: '打造有吸引力的朋友圈',
+    icon: Smartphone,
+    pagePath: '/pages/moments/index',
+    bgColor: 'bg-white border border-gray-200',
+    iconBg: 'bg-indigo-50',
   },
 ]
 

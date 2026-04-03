@@ -23,6 +23,10 @@ export default defineAppConfig({
     'pages/speed-plan-list/index',
     'pages/story/index',
     'pages/story-list/index',
+    'pages/moments/index',
+    'pages/moments-create/index',
+    'pages/moments-analyze/index',
+    'pages/moments-history/index',
   ],
   window: {
     backgroundTextStyle: 'light',

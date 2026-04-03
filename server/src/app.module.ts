@@ -16,9 +16,10 @@ import { DimensionModule } from '@/modules/dimension/dimension.module';
 import { InteractionModule } from '@/modules/interaction/interaction.module';
 import { SpeedPlanModule } from '@/modules/speed-plan/speed-plan.module';
 import { StoryModule } from '@/modules/story/story.module';
+import { MomentsModule } from '@/modules/moments/moments.module';
 
 @Module({
-  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule, PortraitModule, UserProfileModule, DimensionModule, InteractionModule, SpeedPlanModule, StoryModule],
+  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule, PortraitModule, UserProfileModule, DimensionModule, InteractionModule, SpeedPlanModule, StoryModule, MomentsModule],
   controllers: [AppController],
   providers: [AppService],
 })
