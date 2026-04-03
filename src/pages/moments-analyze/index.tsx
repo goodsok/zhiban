@@ -192,20 +192,20 @@ const MomentsAnalyzePage: FC = () => {
               <Text className="block text-base font-semibold text-white">互动建议</Text>
             </View>
             
-            <View className="bg-white bg-opacity-20 rounded-xl p-3 mb-3">
-              <Text className="block text-sm text-white text-opacity-90 mb-1">点赞时机</Text>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.2)' }} className="rounded-xl p-3 mb-3">
+              <Text style={{ color: 'rgba(255,255,255,0.7)' }} className="block text-sm mb-1">点赞时机</Text>
               <Text className="block text-sm text-white">{analysis.advice.likeTiming}</Text>
             </View>
 
-            <View className="bg-white bg-opacity-20 rounded-xl p-3 mb-3">
-              <Text className="block text-sm text-white text-opacity-90 mb-1">评论话术</Text>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.2)' }} className="rounded-xl p-3 mb-3">
+              <Text style={{ color: 'rgba(255,255,255,0.7)' }} className="block text-sm mb-1">评论话术</Text>
               {analysis.advice.commentExamples.map((comment, index) => (
                 <Text key={index} className="block text-sm text-white mt-1">• {comment}</Text>
               ))}
             </View>
 
-            <View className="bg-white bg-opacity-20 rounded-xl p-3">
-              <Text className="block text-sm text-white text-opacity-90 mb-1">互动技巧</Text>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.2)' }} className="rounded-xl p-3">
+              <Text style={{ color: 'rgba(255,255,255,0.7)' }} className="block text-sm mb-1">互动技巧</Text>
               <Text className="block text-sm text-white">{analysis.advice.interactionTips}</Text>
             </View>
           </View>
