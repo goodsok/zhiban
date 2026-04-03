@@ -21,7 +21,7 @@ interface AnalysisResult {
 
 interface InteractionAdvice {
   likeTiming: string
-  highEnergyComments: Array<{ style: string; text: string }>
+  highEnergyComments: Array<{ style: string; text: string; purpose: string }>
   interactionTips: string
 }
 
@@ -198,13 +198,14 @@ const MomentsAnalyzePage: FC = () => {
             </View>
 
             <View style={{ backgroundColor: 'rgba(255,255,255,0.2)' }} className="rounded-xl p-3 mb-3">
-              <Text style={{ color: 'rgba(255,255,255,0.7)' }} className="block text-sm mb-2">⚡ 高能量评论话术</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)' }} className="block text-sm mb-2">⚡ 吸引型话术</Text>
               {analysis.advice.highEnergyComments?.map((comment, index) => (
-                <View key={index} className="mb-2 last:mb-0">
-                  <View className="flex items-center gap-1 mb-1">
+                <View key={index} className="mb-3 last:mb-0">
+                  <View className="flex items-center gap-2 mb-1">
                     <View className="px-2 py-1 bg-yellow-400 rounded">
                       <Text className="block text-xs text-yellow-900 font-medium">{comment.style}</Text>
                     </View>
+                    <Text style={{ color: 'rgba(255,255,255,0.6)' }} className="block text-xs">{comment.purpose}</Text>
                   </View>
                   <Text className="block text-sm text-white leading-relaxed">{comment.text}</Text>
                 </View>
