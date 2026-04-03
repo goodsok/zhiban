@@ -1,7 +1,7 @@
 import { View, Text } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Moon, MessageCircle, Theater, Zap, BookOpen, Smartphone } from 'lucide-react-taro'
+import { Moon, MessageCircle, Theater, Zap, BookOpen, Smartphone, Heart } from 'lucide-react-taro'
 
 interface KnowledgeCategory {
   id: string
@@ -67,6 +67,15 @@ const categories: KnowledgeCategory[] = [
     pagePath: '/pages/moments/index',
     bgColor: 'bg-white border border-gray-200',
     iconBg: 'bg-indigo-50',
+  },
+  {
+    id: 'dating-app',
+    title: '交友软件助手',
+    subtitle: '优化资料，提升匹配率',
+    icon: Heart,
+    pagePath: '/pages/dating-app/index',
+    bgColor: 'bg-white border border-gray-200',
+    iconBg: 'bg-rose-50',
   },
 ]
 

@@ -27,6 +27,10 @@ export default defineAppConfig({
     'pages/moments-create/index',
     'pages/moments-analyze/index',
     'pages/moments-history/index',
+    'pages/dating-app/index',
+    'pages/dating-profile/index',
+    'pages/dating-photo/index',
+    'pages/dating-opener/index',
   ],
   window: {
     backgroundTextStyle: 'light',
