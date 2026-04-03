@@ -107,17 +107,6 @@ const StoryListPage: FC = () => {
     <View className="min-h-screen bg-gray-50 pb-20">
       <CustomHeader title="故事生成器" />
 
-      {/* 新建按钮 */}
-      <View className="bg-white px-4 py-3 border-b border-gray-100">
-        <View
-          className="bg-black rounded-xl py-3 flex items-center justify-center gap-2"
-          onClick={goToCreate}
-        >
-          <Plus size={18} color="#fff" />
-          <Text className="block text-white font-medium">创建新故事</Text>
-        </View>
-      </View>
-
       {/* 列表 */}
       <View className="p-4">
         {loading ? (
@@ -140,7 +129,17 @@ const StoryListPage: FC = () => {
             </View>
           </View>
         ) : (
-          stories.map((story) => (
+          <>
+            {/* 新建按钮 */}
+            <View
+              className="bg-black rounded-xl py-3 flex items-center justify-center gap-2 mb-4"
+              onClick={goToCreate}
+            >
+              <Plus size={18} color="#fff" />
+              <Text className="block text-white font-medium">创建新故事</Text>
+            </View>
+            
+            {stories.map((story) => (
             <View
               key={story.id}
               className="bg-white rounded-xl border border-gray-100 p-4 mb-3"
@@ -199,6 +198,8 @@ const StoryListPage: FC = () => {
               </View>
             </View>
           ))
+          }
+          </>
         )}
       </View>
     </View>
