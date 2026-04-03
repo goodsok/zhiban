@@ -29,7 +29,7 @@ export class SpeedPlanController {
   @Get('list')
   async getPlanList(
     @Query('matchId') matchId?: number,
-    @Req() req?: Request
+    @Req() req: Request = {} as Request
   ) {
     return this.speedPlanService.getPlanList(matchId, req)
   }
