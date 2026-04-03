@@ -1,11 +1,11 @@
-import { View, Text, ScrollView } from '@tarojs/components'
-import { useLoad } from '@tarojs/taro'
+import { View, Text, ScrollView, Image } from '@tarojs/components'
+import { useLoad, chooseImage, showToast } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
 import { Textarea } from '@/components/ui/textarea'
-import { User, Search, LoaderCircle, Sparkles, MessageCircle, Heart } from 'lucide-react-taro'
+import { User, Search, LoaderCircle, Sparkles, MessageCircle, Heart, ImagePlus, X, Camera } from 'lucide-react-taro'
 
 interface Match {
   id: number
@@ -36,6 +36,9 @@ const MomentsAnalyzePage: FC = () => {
   const [matches, setMatches] = useState<Match[]>([])
   const [analyzing, setAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null)
+  // 图片上传相关状态
+  const [uploadedImages, setUploadedImages] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
 
   useLoad(() => {
     fetchMatches()
@@ -52,8 +55,51 @@ const MomentsAnalyzePage: FC = () => {
     }
   }
 
+  // 选择图片
+  const handleChooseImage = async () => {
+    try {
+      const result = await chooseImage({
+        count: 3 - uploadedImages.length, // 最多3张
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+      })
+
+      if (result.tempFilePaths && result.tempFilePaths.length > 0) {
+        setUploading(true)
+        
+        for (const tempFilePath of result.tempFilePaths) {
+          try {
+            const uploadRes = await Network.uploadFile({
+              url: '/api/moments/upload-image',
+              filePath: tempFilePath,
+              name: 'file',
+            })
+
+            // Network.uploadFile 返回的是解析后的响应体
+            const resData = uploadRes as unknown as { code: number; data: { url: string } }
+            if (resData.code === 200 && resData.data?.url) {
+              setUploadedImages(prev => [...prev, resData.data.url])
+            }
+          } catch (uploadError) {
+            console.error('Upload image error:', uploadError)
+            showToast({ title: '图片上传失败', icon: 'error' })
+          }
+        }
+        
+        setUploading(false)
+      }
+    } catch (error) {
+      console.error('Choose image error:', error)
+    }
+  }
+
+  // 删除图片
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index))
+  }
+
   const analyze = async () => {
-    if (!inputContent.trim()) return
+    if (!inputContent.trim() && uploadedImages.length === 0) return
     
     try {
       setAnalyzing(true)
@@ -63,8 +109,11 @@ const MomentsAnalyzePage: FC = () => {
         data: {
           matchId: selectedMatch?.id,
           inputContent: inputContent.trim(),
+          imageUrls: uploadedImages,
         }
       })
+      
+      console.log('Analyze response:', res.data)
       
       if (res.data?.code === 200 && res.data?.data) {
         setAnalysis(res.data.data)
@@ -154,6 +203,7 @@ const MomentsAnalyzePage: FC = () => {
             onClick={() => {
               setAnalysis(null)
               setInputContent('')
+              setUploadedImages([])
             }}
           >
             <Text className="block text-white font-medium">分析新内容</Text>
@@ -168,7 +218,7 @@ const MomentsAnalyzePage: FC = () => {
     <View className="min-h-screen bg-gray-50">
       <CustomHeader title="朋友圈分析" />
 
-      <View className="p-4">
+      <ScrollView className="p-4" scrollY>
         {/* 选择对象 */}
         <View className="bg-white rounded-2xl p-4 mb-4">
           <View className="flex items-center gap-2 mb-3">
@@ -209,18 +259,64 @@ const MomentsAnalyzePage: FC = () => {
           )}
         </View>
 
+        {/* 上传截图 */}
+        <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="flex items-center gap-2 mb-3">
+            <Camera size={18} color="#374151" />
+            <Text className="block text-base font-semibold text-gray-900">上传朋友圈截图</Text>
+          </View>
+          
+          <View className="flex flex-wrap gap-3">
+            {uploadedImages.map((url, index) => (
+              <View key={index} className="relative">
+                <Image
+                  src={url}
+                  className="w-20 h-20 rounded-xl"
+                  mode="aspectFill"
+                />
+                <View
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-black rounded-full flex items-center justify-center"
+                  onClick={() => removeImage(index)}
+                >
+                  <X size={12} color="#fff" />
+                </View>
+              </View>
+            ))}
+            
+            {uploadedImages.length < 3 && (
+              <View
+                className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center"
+                onClick={handleChooseImage}
+              >
+                {uploading ? (
+                  <LoaderCircle size={20} color="#9CA3AF" className="animate-spin" />
+                ) : (
+                  <>
+                    <ImagePlus size={20} color="#9CA3AF" />
+                    <Text className="block text-xs text-gray-400 mt-1">添加图片</Text>
+                  </>
+                )}
+              </View>
+            )}
+          </View>
+          
+          <Text className="block text-xs text-gray-400 mt-2">
+            最多上传3张截图，支持从相册选择或拍照
+          </Text>
+        </View>
+
         {/* 输入内容 */}
         <View className="bg-white rounded-2xl p-4 mb-4">
           <View className="flex items-center gap-2 mb-3">
             <Search size={18} color="#374151" />
-            <Text className="block text-base font-semibold text-gray-900">粘贴朋友圈内容</Text>
+            <Text className="block text-base font-semibold text-gray-900">补充文字内容（可选）</Text>
           </View>
           
           <View className="bg-gray-50 rounded-xl p-3 mb-3">
             <Textarea
               className="w-full"
-              style={{ minHeight: '150px' }}
-              placeholder="粘贴对方的朋友圈文案，或描述图片内容..."
+              style={{ minHeight: '100px' }}
+              placeholder="粘贴对方的朋友圈文案，或补充截图中的关键信息..."
               value={inputContent}
               onInput={(e) => setInputContent(e.detail.value)}
             />
@@ -233,8 +329,8 @@ const MomentsAnalyzePage: FC = () => {
 
         {/* 分析按钮 */}
         <View
-          className={`rounded-xl py-3 flex items-center justify-center gap-2 ${
-            inputContent.trim() ? 'bg-black' : 'bg-gray-200'
+          className={`rounded-xl py-3 flex items-center justify-center gap-2 mb-8 ${
+            (inputContent.trim() || uploadedImages.length > 0) ? 'bg-black' : 'bg-gray-200'
           }`}
           onClick={analyze}
         >
@@ -242,14 +338,14 @@ const MomentsAnalyzePage: FC = () => {
             <LoaderCircle size={18} color="#fff" className="animate-spin" />
           ) : (
             <>
-              <Sparkles size={18} color={inputContent.trim() ? '#fff' : '#9CA3AF'} />
-              <Text className={`block font-medium ${inputContent.trim() ? 'text-white' : 'text-gray-400'}`}>
+              <Sparkles size={18} color={(inputContent.trim() || uploadedImages.length > 0) ? '#fff' : '#9CA3AF'} />
+              <Text className={`block font-medium ${(inputContent.trim() || uploadedImages.length > 0) ? 'text-white' : 'text-gray-400'}`}>
                 开始分析
               </Text>
             </>
           )}
         </View>
-      </View>
+      </ScrollView>
     </View>
   )
 }

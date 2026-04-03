@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Request } from 'express'
 import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
+import { S3Storage } from '@/storage/s3/s3-storage'
 import { getSupabaseClient } from '@/storage/database/supabase-client'
 
 // 朋友圈类型定义
@@ -33,6 +34,45 @@ const PERSONA_TAGS = [
 
 @Injectable()
 export class MomentsService {
+  private storage: S3Storage
+
+  constructor() {
+    this.storage = new S3Storage()
+  }
+
+  /**
+   * 上传图片
+   */
+  async uploadImage(file: Express.Multer.File, request: Request) {
+    try {
+      // 支持两种方式：file.path (小程序) 或 file.buffer (H5)
+      let key: string
+
+      if (file.path) {
+        // 小程序端：文件已保存到临时路径
+        key = await this.storage.uploadFromPath({ path: file.path, timeout: 30000 })
+      } else if (file.buffer) {
+        // H5端：文件在内存中
+        const base64Data = file.buffer.toString('base64')
+        const contentType = file.mimetype || 'image/jpeg'
+        key = await this.storage.uploadFromBase64({ base64Data, contentType })
+      } else {
+        return { code: 400, msg: '文件数据无效', data: null }
+      }
+
+      // 生成预签名URL
+      const url = await this.storage.generatePresignedUrl({ key, expireTime: 600 })
+
+      return {
+        code: 200,
+        msg: 'success',
+        data: { url, key }
+      }
+    } catch (error) {
+      console.error('Upload image error:', error)
+      return { code: 500, msg: '上传失败', data: null }
+    }
+  }
   /**
    * 生成发圈建议
    */
@@ -178,11 +218,12 @@ export class MomentsService {
   async analyzeMoments(
     input: {
       matchId?: number
-      inputContent: string
+      inputContent?: string
+      imageUrls?: string[]
     },
     request: Request
   ) {
-    const { matchId, inputContent } = input
+    const { matchId, inputContent, imageUrls } = input
 
     // 1. 获取对象信息（如果有）
     let objectInfo = null
@@ -190,8 +231,8 @@ export class MomentsService {
       objectInfo = await this.getMatchInfo(matchId, request)
     }
 
-    // 2. 分析
-    const analysis = await this.analyzeWithLLM(inputContent, objectInfo, request)
+    // 2. 分析（支持图片和文字）
+    const analysis = await this.analyzeWithLLM(inputContent || '', imageUrls || [], objectInfo, request)
 
     // 3. 保存分析记录
     const client = getSupabaseClient()
@@ -199,7 +240,7 @@ export class MomentsService {
       .from('moments_analysis')
       .insert({
         match_id: matchId || null,
-        input_content: inputContent,
+        input_content: inputContent || '',
         analysis_result: analysis.result,
         interaction_advice: analysis.advice,
         status: 'active',
@@ -423,10 +464,11 @@ ${PERSONA_TAGS.map(t => `- ${t.name}：${t.description}`).join('\n')}
   }
 
   /**
-   * 分析对方朋友圈
+   * 分析对方朋友圈（支持图片和文字）
    */
   private async analyzeWithLLM(
     inputContent: string,
+    imageUrls: string[],
     objectInfo: any,
     request: Request
   ) {
@@ -454,23 +496,43 @@ ${PERSONA_TAGS.map(t => `- ${t.name}：${t.description}`).join('\n')}
   }
 }`
 
-    let userPrompt = `请分析以下朋友圈内容：\n\n${inputContent}`
-
-    if (objectInfo) {
-      userPrompt += `\n\n已知对象信息：`
-      userPrompt += `\n- 姓名：${objectInfo.name}`
-      if (objectInfo.mbti) userPrompt += `\n- MBTI：${objectInfo.mbti}`
-      if (objectInfo.hobbies) userPrompt += `\n- 兴趣爱好：${objectInfo.hobbies}`
-    }
-
     try {
       const customHeaders = HeaderUtils.extractForwardHeaders(request.headers as Record<string, string>)
       const config = new Config()
       const client = new LLMClient(config, customHeaders)
 
+      // 构建多模态消息内容
+      const userContent: Array<{ type: string; text?: string; image_url?: { url: string; detail: string } }> = []
+
+      // 添加文字描述
+      let textContent = ''
+      if (inputContent) {
+        textContent = `请分析以下朋友圈内容：\n\n文字内容：${inputContent}`
+      } else if (imageUrls.length > 0) {
+        textContent = '请分析以下朋友圈截图内容：'
+      }
+
+      // 添加对象信息
+      if (objectInfo) {
+        textContent += `\n\n已知对象信息：`
+        textContent += `\n- 姓名：${objectInfo.name}`
+        if (objectInfo.mbti) textContent += `\n- MBTI：${objectInfo.mbti}`
+        if (objectInfo.hobbies) textContent += `\n- 兴趣爱好：${objectInfo.hobbies}`
+      }
+
+      userContent.push({ type: 'text', text: textContent })
+
+      // 添加图片
+      for (const imageUrl of imageUrls) {
+        userContent.push({
+          type: 'image_url',
+          image_url: { url: imageUrl, detail: 'high' }
+        })
+      }
+
       const response = await client.invoke([
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
+        { role: 'user', content: userContent as any },
       ], { temperature: 0.7 })
 
       const content = response.content

@@ -1,10 +1,23 @@
-import { Controller, Post, Get, Delete, Param, Body, Query, Req } from '@nestjs/common'
+import { Controller, Post, Get, Delete, Param, Body, Query, Req, UseInterceptors, UploadedFile } from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
 import { Request } from 'express'
 import { MomentsService } from './moments.service'
 
 @Controller('moments')
 export class MomentsController {
   constructor(private readonly momentsService: MomentsService) {}
+
+  /**
+   * 上传图片
+   */
+  @Post('upload-image')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: Request
+  ) {
+    return this.momentsService.uploadImage(file, req)
+  }
 
   /**
    * 生成发圈建议
@@ -59,7 +72,8 @@ export class MomentsController {
   async analyzeMoments(
     @Body() body: {
       matchId?: number
-      inputContent: string
+      inputContent?: string
+      imageUrls?: string[]
     },
     @Req() req: Request
   ) {
