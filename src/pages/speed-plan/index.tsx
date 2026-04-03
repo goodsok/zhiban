@@ -535,6 +535,8 @@ const SpeedPlanPage: FC = () => {
                 placeholder="输入问题或反馈..."
                 value={chatInput}
                 onInput={(e) => setChatInput(e.detail.value)}
+                onConfirm={sendMessage}
+                confirmType="send"
               />
             </View>
             <View
