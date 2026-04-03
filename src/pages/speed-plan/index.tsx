@@ -1,12 +1,12 @@
-import { View, Text } from '@tarojs/components'
-import Taro, { useLoad, useDidShow } from '@tarojs/taro'
+import { View, Text, ScrollView } from '@tarojs/components'
+import Taro, { useLoad, useDidShow, useRouter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { ChevronRight, User, Target, Sparkles, Check, LoaderCircle } from 'lucide-react-taro'
+import { ChevronRight, User, Target, Sparkles, Check, LoaderCircle, Send } from 'lucide-react-taro'
 
 // 本地存储key
 const STORAGE_KEY = 'speed_plan_draft'
@@ -71,6 +71,29 @@ interface MatchDetail extends Match {
   interaction_count?: number
 }
 
+interface Message {
+  id: number
+  role: 'user' | 'assistant'
+  content: string
+  created_at: string
+}
+
+interface PlanDetail {
+  id: number
+  match_id: number
+  background: string
+  current_progress: string[]
+  target_hours: number
+  target_behavior: string
+  difficulty_score: number
+  difficulty_level: string
+  matches?: {
+    id: number
+    name: string
+    relationship_type?: string
+  }
+}
+
 interface DraftData {
   background: string
   currentProgress: string[]
@@ -80,34 +103,140 @@ interface DraftData {
 }
 
 const SpeedPlanPage: FC = () => {
-  // 步骤状态
-  const [currentStep, setCurrentStep] = useState(1)
+  const router = useRouter()
+  const planId = router.params.id ? Number(router.params.id) : null
   
-  // 表单数据
+  // 模式：新建 or 查看
+  const isViewMode = !!planId
+  
+  // 查看模式状态
+  const [plan, setPlan] = useState<PlanDetail | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [sending, setSending] = useState(false)
+  const [expandedMessages, setExpandedMessages] = useState<Set<number>>(new Set())
+  
+  // 新建模式状态
+  const [currentStep, setCurrentStep] = useState(1)
   const [background, setBackground] = useState('')
   const [currentProgress, setCurrentProgress] = useState<string[]>([])
   const [selectedMatch, setSelectedMatch] = useState<MatchDetail | null>(null)
   const [targetHours, setTargetHours] = useState(72)
   const [targetBehavior, setTargetBehavior] = useState('kiss')
-  
-  // 对象列表
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
-  
-  // 生成结果
-  const [result, setResult] = useState<string | null>(null)
 
   useLoad(() => {
-    console.log('Speed plan page loaded.')
-    loadDraft()
+    console.log('Speed plan page loaded, planId:', planId)
+    if (isViewMode) {
+      loadPlanDetail()
+    } else {
+      loadDraft()
+    }
   })
 
   useDidShow(() => {
-    fetchMatches()
+    if (!isViewMode) {
+      fetchMatches()
+    }
   })
 
-  // 加载草稿
+  // 加载方案详情
+  const loadPlanDetail = async () => {
+    if (!planId) return
+    
+    try {
+      setLoading(true)
+      const res = await Network.request({ url: `/api/speed-plan/${planId}` })
+      if (res.data?.code === 200 && res.data?.data) {
+        setPlan(res.data.data.plan)
+        setMessages(res.data.data.messages || [])
+        // 滚动到底部
+        setTimeout(() => {
+          Taro.createSelectorQuery()
+            .select('.message-list')
+            .scrollOffset()
+            .exec((scrollRes) => {
+              if (scrollRes[0]) {
+                // 已滚动到底部
+              }
+            })
+        }, 100)
+      }
+    } catch (error) {
+      console.error('Load plan detail error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 发送消息
+  const sendMessage = async () => {
+    if (!chatInput.trim() || !planId) return
+    
+    const userMessage = chatInput.trim()
+    setChatInput('')
+    setSending(true)
+    
+    // 先添加用户消息到列表
+    const tempUserMsg: Message = {
+      id: Date.now(),
+      role: 'user',
+      content: userMessage,
+      created_at: new Date().toISOString(),
+    }
+    setMessages(prev => [...prev, tempUserMsg])
+    
+    try {
+      const res = await Network.request({
+        url: `/api/speed-plan/${planId}/chat`,
+        method: 'POST',
+        data: { message: userMessage },
+      })
+      
+      if (res.data?.code === 200 && res.data?.data?.reply) {
+        // 添加AI回复
+        const aiMsg: Message = {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: res.data.data.reply,
+          created_at: new Date().toISOString(),
+        }
+        setMessages(prev => [...prev, aiMsg])
+      }
+    } catch (error) {
+      console.error('Send message error:', error)
+    } finally {
+      setSending(false)
+    }
+  }
+
+  // 切换消息展开状态
+  const toggleMessageExpand = (msgId: number) => {
+    setExpandedMessages(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(msgId)) {
+        newSet.delete(msgId)
+      } else {
+        newSet.add(msgId)
+      }
+      return newSet
+    })
+  }
+
+  // 快捷回复
+  const quickReplies = [
+    '调整方案',
+    '如果失败怎么办',
+    '换个思路',
+  ]
+
+  const handleQuickReply = (text: string) => {
+    setChatInput(text)
+  }
+
+  // 以下是新建模式的逻辑
   const loadDraft = async () => {
     try {
       const draftStr = await Taro.getStorageSync(STORAGE_KEY)
@@ -117,7 +246,6 @@ const SpeedPlanPage: FC = () => {
         setCurrentProgress(draft.currentProgress || [])
         setTargetHours(draft.targetHours || 72)
         setTargetBehavior(draft.targetBehavior || 'kiss')
-        // 如果有选中的对象，加载详情
         if (draft.selectedMatchId) {
           fetchMatchDetail(draft.selectedMatchId)
         }
@@ -127,7 +255,6 @@ const SpeedPlanPage: FC = () => {
     }
   }
 
-  // 保存草稿
   const saveDraft = async (data: Partial<DraftData>) => {
     try {
       const draft: DraftData = {
@@ -162,14 +289,12 @@ const SpeedPlanPage: FC = () => {
       const res = await Network.request({ url: `/api/match/${matchId}` })
       if (res.data?.code === 200 && res.data?.data) {
         const detail = res.data.data
-        // 获取周期信息
         if (detail.cycleStartDate) {
           const cycleRes = await Network.request({ url: `/api/match/${matchId}/cycle` })
           if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
             detail.cycle_phase = cycleRes.data.data.phase
           }
         }
-        // 获取互动能量
         const energyRes = await Network.request({ url: `/api/interaction/match/${matchId}/energy` })
         if (energyRes.data?.code === 200 && energyRes.data?.data) {
           detail.relationship_energy = energyRes.data.data.energy
@@ -195,13 +320,13 @@ const SpeedPlanPage: FC = () => {
     await fetchMatchDetail(match.id)
   }
 
-  const generatePlan = async () => {
+  const createPlan = async () => {
     if (!selectedMatch) return
     
     try {
       setGenerating(true)
       const res = await Network.request({
-        url: '/api/speed-plan/generate',
+        url: '/api/speed-plan/create',
         method: 'POST',
         data: {
           background,
@@ -213,11 +338,32 @@ const SpeedPlanPage: FC = () => {
       })
       
       if (res.data?.code === 200 && res.data?.data) {
-        setResult(res.data.data.plan)
+        // 添加初始消息
+        const initialMsg: Message = {
+          id: 1,
+          role: 'assistant',
+          content: res.data.data.initialMessage,
+          created_at: new Date().toISOString(),
+        }
+        setMessages([initialMsg])
+        setPlan({
+          id: res.data.data.planId,
+          match_id: selectedMatch.id,
+          background,
+          current_progress: currentProgress,
+          target_hours: targetHours,
+          target_behavior: targetBehavior,
+          difficulty_score: res.data.data.difficulty,
+          difficulty_level: res.data.data.difficultyLevel,
+          matches: { id: selectedMatch.id, name: selectedMatch.name },
+        })
+        // 切换到聊天模式
         setCurrentStep(4)
+        // 清除草稿
+        Taro.removeStorageSync(STORAGE_KEY)
       }
     } catch (error) {
-      console.error('Generate plan error:', error)
+      console.error('Create plan error:', error)
     } finally {
       setGenerating(false)
     }
@@ -236,22 +382,6 @@ const SpeedPlanPage: FC = () => {
   const handleTargetBehaviorChange = (behavior: string) => {
     setTargetBehavior(behavior)
     saveDraft({ targetBehavior: behavior })
-  }
-
-  const resetForm = async () => {
-    setCurrentStep(1)
-    setResult(null)
-    setBackground('')
-    setCurrentProgress([])
-    setSelectedMatch(null)
-    setTargetHours(72)
-    setTargetBehavior('kiss')
-    // 清除草稿
-    try {
-      await Taro.removeStorageSync(STORAGE_KEY)
-    } catch (error) {
-      console.error('Remove draft error:', error)
-    }
   }
 
   const getRelationshipTypeLabel = (type?: string) => {
@@ -283,6 +413,148 @@ const SpeedPlanPage: FC = () => {
     return '⭐⭐⭐⭐⭐'
   }
 
+  const getBehaviorName = (code: string) => {
+    const behavior = BEHAVIOR_LEVELS.find(b => b.code === code)
+    return behavior?.name || code
+  }
+
+  // 聊天模式渲染
+  if (isViewMode || currentStep === 4) {
+    return (
+      <View className="min-h-screen bg-gray-50 flex flex-col">
+        <CustomHeader title="速推方案" />
+
+        {/* 方案信息卡片 */}
+        {plan && (
+          <View className="bg-white px-4 py-3 border-b border-gray-100">
+            <View className="flex items-center justify-between">
+              <View className="flex items-center gap-2">
+                <View className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                  <Text className="block text-xs font-medium text-gray-600">
+                    {plan.matches?.name?.charAt(0) || '?'}
+                  </Text>
+                </View>
+                <View>
+                  <Text className="block text-sm font-medium text-gray-900">{plan.matches?.name}</Text>
+                  <View className="flex items-center gap-2 mt-1">
+                    <Text className="block text-xs text-gray-500">
+                      目标：{getBehaviorName(plan.target_behavior)}
+                    </Text>
+                    <Text className="block text-xs text-gray-400">|</Text>
+                    <Text className="block text-xs text-gray-500">
+                      {plan.target_hours >= 24 ? `${plan.target_hours / 24}天` : `${plan.target_hours}小时`}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View className="text-right">
+                <Text className="block text-xs text-gray-400">难度</Text>
+                <Text className="block text-sm">{getDifficultyStars(plan.difficulty_score)}</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* 消息列表 */}
+        <ScrollView 
+          className="message-list flex-1 p-4"
+          scrollY
+          scrollWithAnimation
+        >
+          {messages.map((msg) => {
+            const isExpanded = expandedMessages.has(msg.id)
+            const isLong = msg.content.length > 300
+            
+            return (
+              <View
+                key={msg.id}
+                className={`mb-4 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                style={{ display: 'flex' }}
+              >
+                <View
+                  className={`max-w-[85%] rounded-2xl p-3 ${
+                    msg.role === 'user' 
+                      ? 'bg-black' 
+                      : 'bg-white border border-gray-100'
+                  }`}
+                >
+                  <Text 
+                    className={`block text-sm whitespace-pre-wrap ${
+                      msg.role === 'user' ? 'text-white' : 'text-gray-700'
+                    }`}
+                    style={{ maxHeight: isLong && !isExpanded ? '200px' : 'none', overflow: 'hidden' }}
+                  >
+                    {msg.content}
+                  </Text>
+                  {isLong && (
+                    <View
+                      className={`mt-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                      style={{ display: 'flex' }}
+                      onClick={() => toggleMessageExpand(msg.id)}
+                    >
+                      <Text className={`block text-xs ${msg.role === 'user' ? 'text-gray-300' : 'text-blue-500'}`}>
+                        {isExpanded ? '收起' : '展开全部'}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )
+          })}
+          
+          {sending && (
+            <View className="mb-4 items-start" style={{ display: 'flex' }}>
+              <View className="bg-white border border-gray-100 rounded-2xl p-3">
+                <Text className="block text-sm text-gray-400">正在思考...</Text>
+              </View>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* 快捷回复 */}
+        <View className="bg-white px-4 py-2 border-t border-gray-100">
+          <View className="flex gap-2">
+            {quickReplies.map((text) => (
+              <View
+                key={text}
+                className="px-3 py-2 rounded-full bg-gray-100"
+                onClick={() => handleQuickReply(text)}
+              >
+                <Text className="block text-xs text-gray-600">{text}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* 输入框 */}
+        <View className="bg-white px-4 py-3 border-t border-gray-100">
+          <View className="flex items-center gap-2">
+            <View className="flex-1 bg-gray-50 rounded-xl px-4 py-2">
+              <Input
+                className="w-full"
+                placeholder="输入问题或反馈..."
+                value={chatInput}
+                onInput={(e) => setChatInput(e.detail.value)}
+              />
+            </View>
+            <View
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                chatInput.trim() ? 'bg-black' : 'bg-gray-200'
+              }`}
+              onClick={sendMessage}
+            >
+              <Send size={18} color={chatInput.trim() ? '#fff' : '#9CA3AF'} />
+            </View>
+          </View>
+        </View>
+
+        {/* 底部安全区 */}
+        <View className="h-4 bg-white" />
+      </View>
+    )
+  }
+
+  // 新建模式渲染（Step 1-3）
   return (
     <View className="min-h-screen bg-gray-50">
       <CustomHeader title="速推方案" />
@@ -444,7 +716,6 @@ const SpeedPlanPage: FC = () => {
             )}
           </View>
 
-          {/* 对象详情 */}
           {selectedMatch && (
             <View className="bg-white rounded-2xl p-4 mb-4">
               <Text className="block text-sm text-gray-500 mb-2">对象分析</Text>
@@ -507,7 +778,6 @@ const SpeedPlanPage: FC = () => {
               <Text className="block text-base font-semibold text-gray-900">设定目标</Text>
             </View>
             
-            {/* 目标时间 */}
             <View className="mb-4">
               <Text className="block text-sm text-gray-500 mb-2">目标时间</Text>
               <View className="flex items-center gap-2">
@@ -522,7 +792,6 @@ const SpeedPlanPage: FC = () => {
                 <Text className="block text-gray-600">小时内</Text>
               </View>
               
-              {/* 快捷选择 */}
               <View className="flex gap-2 mt-2">
                 {[24, 48, 72, 168].map((hours) => (
                   <View
@@ -543,7 +812,6 @@ const SpeedPlanPage: FC = () => {
               </View>
             </View>
 
-            {/* 目标行为 */}
             <View>
               <Text className="block text-sm text-gray-500 mb-2">目标行为</Text>
               <View className="flex flex-wrap gap-2">
@@ -567,7 +835,6 @@ const SpeedPlanPage: FC = () => {
             </View>
           </View>
 
-          {/* 难度预估 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-2">
               <Sparkles size={18} color="#F59E0B" />
@@ -590,7 +857,7 @@ const SpeedPlanPage: FC = () => {
             </View>
             <View
               className="flex-1 bg-black rounded-xl py-3 flex items-center justify-center"
-              onClick={generatePlan}
+              onClick={createPlan}
             >
               {generating ? (
                 <LoaderCircle size={18} color="#fff" className="animate-spin" />
@@ -598,25 +865,6 @@ const SpeedPlanPage: FC = () => {
                 <Text className="block text-white font-medium">生成方案</Text>
               )}
             </View>
-          </View>
-        </View>
-      )}
-
-      {/* Step 4: 生成结果 */}
-      {currentStep === 4 && result && (
-        <View className="p-4">
-          <View className="bg-white rounded-2xl p-4">
-            <Text className="block text-base font-semibold text-gray-900 mb-3">速推方案</Text>
-            <View className="bg-gray-50 rounded-xl p-4">
-              <Text className="block text-sm text-gray-700 whitespace-pre-wrap">{result}</Text>
-            </View>
-          </View>
-          
-          <View
-            className="mt-4 bg-black rounded-xl py-3 flex items-center justify-center"
-            onClick={resetForm}
-          >
-            <Text className="block text-white font-medium">重新生成</Text>
           </View>
         </View>
       )}

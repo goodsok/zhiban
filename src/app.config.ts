@@ -20,6 +20,7 @@ export default defineAppConfig({
     'pages/knowledge-icebreaker/index',
     'pages/knowledge-scenario/index',
     'pages/speed-plan/index',
+    'pages/speed-plan-list/index',
   ],
   window: {
     backgroundTextStyle: 'light',

@@ -26,9 +26,9 @@ const BEHAVIOR_LEVELS = [
 @Injectable()
 export class SpeedPlanService {
   /**
-   * 生成速推方案
+   * 创建方案并生成初始内容
    */
-  async generatePlan(
+  async createPlan(
     input: {
       background: string
       currentProgress: string[]
@@ -51,8 +51,8 @@ export class SpeedPlanService {
       targetHours
     )
 
-    // 3. 调用LLM生成方案
-    const plan = await this.generatePlanWithLLM(
+    // 3. 生成初始方案
+    const initialPlan = await this.generatePlanWithLLM(
       background,
       currentProgress,
       targetBehavior,
@@ -62,17 +62,221 @@ export class SpeedPlanService {
       request
     )
 
+    // 4. 保存到数据库
+    const client = getSupabaseClient()
+    const { data: plan, error } = await client
+      .from('speed_plans')
+      .insert({
+        match_id: matchId,
+        background,
+        current_progress: currentProgress,
+        target_hours: targetHours,
+        target_behavior: targetBehavior,
+        difficulty_score: difficulty.score,
+        difficulty_level: difficulty.level,
+        status: 'active',
+      })
+      .select()
+      .single()
+
+    if (error || !plan) {
+      return {
+        code: 500,
+        msg: '保存方案失败',
+        data: null,
+      }
+    }
+
+    // 5. 保存初始消息
+    await client
+      .from('speed_plan_messages')
+      .insert({
+        plan_id: plan.id,
+        role: 'assistant',
+        content: initialPlan,
+      })
+
+    return {
+      code: 200,
+      msg: 'success',
+      data: {
+        planId: plan.id,
+        initialMessage: initialPlan,
+        difficulty: difficulty.score,
+        difficultyLevel: difficulty.level,
+      }
+    }
+  }
+
+  /**
+   * 获取方案列表
+   */
+  async getPlanList(matchId: number | undefined, request: Request) {
+    const client = getSupabaseClient()
+    
+    let query = client
+      .from('speed_plans')
+      .select(`
+        id,
+        match_id,
+        background,
+        target_hours,
+        target_behavior,
+        difficulty_score,
+        difficulty_level,
+        status,
+        created_at,
+        matches(name)
+      `)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+
+    if (matchId) {
+      query = query.eq('match_id', matchId)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      return { code: 500, msg: '获取失败', data: null }
+    }
+
+    return {
+      code: 200,
+      msg: 'success',
+      data: { plans: data },
+    }
+  }
+
+  /**
+   * 获取方案详情
+   */
+  async getPlanDetail(planId: number, request: Request) {
+    const client = getSupabaseClient()
+
+    // 获取方案信息
+    const { data: plan, error: planError } = await client
+      .from('speed_plans')
+      .select(`
+        id,
+        match_id,
+        background,
+        current_progress,
+        target_hours,
+        target_behavior,
+        difficulty_score,
+        difficulty_level,
+        status,
+        created_at,
+        matches(id, name, relationship_type)
+      `)
+      .eq('id', planId)
+      .single()
+
+    if (planError || !plan) {
+      return { code: 404, msg: '方案不存在', data: null }
+    }
+
+    // 获取消息记录
+    const { data: messages } = await client
+      .from('speed_plan_messages')
+      .select('id, role, content, created_at')
+      .eq('plan_id', planId)
+      .order('created_at', { ascending: true })
+
     return {
       code: 200,
       msg: 'success',
       data: {
         plan,
-        difficulty: difficulty.score,
-        difficultyLevel: difficulty.level,
-        targetBehavior: targetBehavior,
-        targetHours,
-      }
+        messages: messages || [],
+      },
     }
+  }
+
+  /**
+   * 继续对话
+   */
+  async continueChat(planId: number, userMessage: string, request: Request) {
+    const client = getSupabaseClient()
+
+    // 1. 获取方案信息
+    const { data: plan, error: planError } = await client
+      .from('speed_plans')
+      .select(`
+        id,
+        match_id,
+        background,
+        current_progress,
+        target_hours,
+        target_behavior,
+        difficulty_score,
+        matches(id, name)
+      `)
+      .eq('id', planId)
+      .single()
+
+    if (planError || !plan) {
+      return { code: 404, msg: '方案不存在', data: null }
+    }
+
+    // 2. 获取历史消息
+    const { data: history } = await client
+      .from('speed_plan_messages')
+      .select('role, content')
+      .eq('plan_id', planId)
+      .order('created_at', { ascending: true })
+      .limit(20)
+
+    // 3. 保存用户消息
+    await client
+      .from('speed_plan_messages')
+      .insert({
+        plan_id: planId,
+        role: 'user',
+        content: userMessage,
+      })
+
+    // 4. 调用LLM生成回复
+    const reply = await this.continueChatWithLLM(
+      plan,
+      history || [],
+      userMessage,
+      request
+    )
+
+    // 5. 保存AI回复
+    await client
+      .from('speed_plan_messages')
+      .insert({
+        plan_id: planId,
+        role: 'assistant',
+        content: reply,
+      })
+
+    return {
+      code: 200,
+      msg: 'success',
+      data: { reply },
+    }
+  }
+
+  /**
+   * 删除方案
+   */
+  async deletePlan(planId: number, request: Request) {
+    const client = getSupabaseClient()
+
+    const { error } = await client
+      .from('speed_plans')
+      .update({ status: 'deleted' })
+      .eq('id', planId)
+
+    if (error) {
+      return { code: 500, msg: '删除失败', data: null }
+    }
+
+    return { code: 200, msg: 'success', data: null }
   }
 
   /**
@@ -81,20 +285,17 @@ export class SpeedPlanService {
   private async getMatchInfo(matchId: number, request: Request) {
     const client = getSupabaseClient()
 
-    // 获取基本信息
     const { data: match } = await client
       .from('matches')
       .select('*')
       .eq('id', matchId)
       .single()
 
-    // 获取维度数据
     const { data: dimensions } = await client
       .from('match_dimensions')
       .select('dimension_key, dimension_value')
       .eq('match_id', matchId)
 
-    // 获取互动能量
     const { data: interactions } = await client
       .from('interaction_events')
       .select('energy_value')
@@ -103,7 +304,6 @@ export class SpeedPlanService {
 
     const totalEnergy = interactions?.reduce((sum: number, i: { energy_value: number }) => sum + (i.energy_value || 0), 0) || 0
 
-    // 解析维度
     const dimensionMap: Record<string, string> = {}
     dimensions?.forEach((d: { dimension_key: string; dimension_value: string }) => {
       dimensionMap[d.dimension_key] = d.dimension_value
@@ -117,7 +317,7 @@ export class SpeedPlanService {
       progressScore: match?.progress_score || 0,
       relationshipEnergy: totalEnergy,
       interactionCount: interactions?.length || 0,
-      cyclePhase: '', // 可以后续补充周期信息
+      cyclePhase: '',
     }
   }
 
@@ -138,63 +338,46 @@ export class SpeedPlanService {
     },
     targetHours: number
   ): { score: number; level: string; factors: string[] } {
-    // 1. 获取当前最高层级
     const currentLevel = this.getCurrentLevel(currentProgress)
-    
-    // 2. 获取目标层级
     const target = BEHAVIOR_LEVELS.find(b => b.code === targetBehavior)
     const targetLevel = target?.level || 3
     
-    // 3. 层级差距（基础难度）
     const levelGap = Math.max(0, targetLevel - currentLevel)
     const baseDifficulty = levelGap * 2
 
-    // 4. 时间压力系数（基准时间72小时）
     const baseTime = 72
     const timePressure = baseTime / Math.max(targetHours, 1)
-    const timeFactor = Math.min(timePressure, 3) // 最高3倍
+    const timeFactor = Math.min(timePressure, 3)
 
-    // 5. 关系类型系数
     let relationshipFactor = 1
     if (objectInfo.relationshipType === 'long_term') {
-      relationshipFactor = 1.2 // 长期关系需要更多耐心
+      relationshipFactor = 1.2
     } else if (objectInfo.relationshipType === 'short_term') {
-      relationshipFactor = 0.8 // 短期关系可以更快
+      relationshipFactor = 0.8
     }
 
-    // 6. 依恋类型系数
     let attachmentFactor = 1
     if (objectInfo.attachmentType === 'secure') {
-      attachmentFactor = 0.9 // 安全型更容易推进
+      attachmentFactor = 0.9
     } else if (objectInfo.attachmentType === 'anxious') {
-      attachmentFactor = 0.8 // 焦虑型反而更容易快速推进
+      attachmentFactor = 0.8
     } else if (objectInfo.attachmentType === 'avoidant') {
-      attachmentFactor = 1.3 // 回避型更难推进
+      attachmentFactor = 1.3
     }
 
-    // 7. 推进值系数
     const progressFactor = Math.max(0.5, 1 - objectInfo.progressScore / 200)
-
-    // 8. 关系能量系数
     const energyFactor = Math.max(0.6, 1 - objectInfo.relationshipEnergy / 200)
-
-    // 9. 互动次数系数（互动越多越容易）
     const interactionFactor = Math.max(0.7, 1 - objectInfo.interactionCount / 20)
 
-    // 10. 综合难度
     const totalDifficulty = baseDifficulty * timeFactor * relationshipFactor * attachmentFactor * progressFactor * energyFactor * interactionFactor
-    
-    // 限制在1-10
     const score = Math.min(10, Math.max(1, Math.round(totalDifficulty)))
 
-    // 确定难度等级
     let level = '简单'
     if (score >= 8) level = '极难'
     else if (score >= 6) level = '困难'
     else if (score >= 4) level = '中等'
     else if (score >= 2) level = '较易'
 
-    // 收集影响因素
     const factors: string[] = []
     if (levelGap > 0) factors.push(`层级差距${levelGap}级`)
     if (timeFactor > 1.5) factors.push('时间紧迫')
@@ -206,9 +389,6 @@ export class SpeedPlanService {
     return { score, level, factors }
   }
 
-  /**
-   * 获取当前最高层级
-   */
   private getCurrentLevel(currentProgress: string[]): number {
     let maxLevel = 0
     currentProgress.forEach(code => {
@@ -221,7 +401,7 @@ export class SpeedPlanService {
   }
 
   /**
-   * 使用LLM生成方案
+   * 生成初始方案
    */
   private async generatePlanWithLLM(
     background: string,
@@ -251,7 +431,6 @@ export class SpeedPlanService {
       return b?.name || code
     })
 
-    // 目标行为的友好表述映射
     const targetDisplayNames: Record<string, string> = {
       'sex': '亲密关系',
       'stay_over': '过夜相处',
@@ -259,7 +438,6 @@ export class SpeedPlanService {
     }
     const targetDisplayName = targetDisplayNames[targetBehavior] || target?.name || targetBehavior
 
-    // 关系类型说明
     const relationshipTypeDesc: Record<string, string> = {
       'long_term': '长期关系（以结婚或长期伴侣为目标）',
       'short_term': '短期关系（双方都明确的恋爱尝试，不承诺长期发展）',
@@ -336,6 +514,67 @@ ${difficulty.score}/10（${difficulty.level}）
     } catch (error) {
       console.error('LLM generate plan error:', error)
       return '生成方案失败，请稍后重试'
+    }
+  }
+
+  /**
+   * 继续对话
+   */
+  private async continueChatWithLLM(
+    plan: any,
+    history: Array<{ role: string; content: string }>,
+    userMessage: string,
+    request: Request
+  ): Promise<string> {
+    const customHeaders = HeaderUtils.extractForwardHeaders(request.headers as Record<string, string>)
+    const config = new Config()
+    const client = new LLMClient(config, customHeaders)
+
+    const target = BEHAVIOR_LEVELS.find(b => b.code === plan.target_behavior)
+    const targetName = target?.name || plan.target_behavior
+
+    const systemPrompt = `你是一位专业的婚恋情感咨询师，正在帮助用户推进恋爱关系。
+
+当前方案背景：
+- 对象：${plan.matches?.name || '对方'}
+- 目标：在${plan.target_hours}小时内推进到"${targetName}"
+- 难度：${plan.difficulty_score}/10
+
+你的任务是：
+1. 根据用户的反馈调整方案
+2. 回答用户的具体问题
+3. 提供应对建议
+4. 保持真诚、尊重的态度
+
+回复要求：
+- 简洁实用，避免重复
+- 针对用户的具体问题回答
+- 如果用户说某步骤不合适，提供替代方案
+- 保持温暖的语气`
+
+    // 构建消息历史
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt },
+    ]
+
+    // 添加历史消息（最近10条）
+    const recentHistory = history.slice(-10)
+    recentHistory.forEach(msg => {
+      messages.push({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      })
+    })
+
+    // 添加当前用户消息
+    messages.push({ role: 'user', content: userMessage })
+
+    try {
+      const response = await client.invoke(messages, { temperature: 0.7 })
+      return response.content
+    } catch (error) {
+      console.error('LLM continue chat error:', error)
+      return '抱歉，回复失败，请稍后重试'
     }
   }
 }

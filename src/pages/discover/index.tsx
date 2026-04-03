@@ -46,7 +46,7 @@ const categories: KnowledgeCategory[] = [
     title: '速推方案',
     subtitle: 'AI生成个性化推进方案',
     icon: Zap,
-    pagePath: '/pages/speed-plan/index',
+    pagePath: '/pages/speed-plan-list/index',
     bgColor: 'bg-white border border-gray-200',
     iconBg: 'bg-gray-100',
   },
