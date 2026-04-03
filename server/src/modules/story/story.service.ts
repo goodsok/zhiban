@@ -61,7 +61,20 @@ export class StoryService {
     const { matchId, storyType, relationshipStage, originalContent, keyElements } = input
 
     // 1. 获取对象信息（如果有）
-    let objectInfo = null
+    let objectInfo: {
+      name: string
+      gender: string
+      relationshipType: string
+      mbti: string
+      attachmentType: string
+      occupation: string
+      hobbies: string
+      personality: string
+      values: string
+      progressScore: number
+      relationshipEnergy: number
+      interactionCount: number
+    } | null = null
     if (matchId) {
       objectInfo = await this.getMatchInfo(matchId, request)
     }
@@ -287,12 +300,47 @@ export class StoryService {
    */
   private async getMatchInfo(matchId: number, request: Request) {
     const client = getSupabaseClient()
-    const { data } = await client
+
+    const { data: match } = await client
       .from('matches')
       .select('*')
       .eq('id', matchId)
       .single()
-    return data
+
+    // 获取维度数据
+    const { data: dimensions } = await client
+      .from('match_dimensions')
+      .select('dimension_key, dimension_value')
+      .eq('match_id', matchId)
+
+    // 获取关系能量
+    const { data: interactions } = await client
+      .from('interaction_events')
+      .select('energy_value')
+      .eq('match_id', matchId)
+      .eq('status', 'completed')
+
+    const totalEnergy = interactions?.reduce((sum: number, i: { energy_value: number }) => sum + (i.energy_value || 0), 0) || 0
+
+    const dimensionMap: Record<string, string> = {}
+    dimensions?.forEach((d: { dimension_key: string; dimension_value: string }) => {
+      dimensionMap[d.dimension_key] = d.dimension_value
+    })
+
+    return {
+      name: match?.name || '',
+      gender: match?.gender || '',
+      relationshipType: dimensionMap['relationship_type'] || match?.relationship_type || 'both',
+      mbti: dimensionMap['mbti'] || '',
+      attachmentType: dimensionMap['attachment_type'] || '',
+      occupation: dimensionMap['occupation'] || '',
+      hobbies: dimensionMap['hobbies'] || '',
+      personality: dimensionMap['personality'] || '',
+      values: dimensionMap['values'] || '',
+      progressScore: match?.progress_score || 0,
+      relationshipEnergy: totalEnergy,
+      interactionCount: interactions?.length || 0,
+    }
   }
 
   /**
@@ -314,19 +362,23 @@ export class StoryService {
 你的任务是：
 1. 保持故事的真实性和核心内容
 2. 运用心理学技巧增强故事的吸引力
-3. 根据推进阶段调整故事的表达方式
+3. 根据推进阶段和目标对象特点调整故事的表达方式
 
 可用技巧：
 ${PSYCHOLOGICAL_TECHNIQUES.map(t => `- ${t.name}：${t.description}`).join('\n')}
+
+重要原则：
+1. 根据对象的MBTI类型调整表达方式（如E型外向适合热闹的故事，I型内向适合深度的故事）
+2. 根据对象的依恋类型选择技巧（如焦虑型适合稳定感的故事，回避型适合轻松的故事）
+3. 根据关系阶段调整亲密程度（初识期保持神秘，暧昧期增加张力）
+4. 根据对象的兴趣爱好，可以在故事中植入相关元素作为心锚
+5. 故事要自然流畅，不要刻意堆砌技巧
 
 输出格式：
 1. 改造后的故事（在故事中用 【】标注使用的技巧，如【悬念】、【反转】等）
 2. 技巧说明列表
 
-注意：
-- 故事要自然流畅，不要刻意堆砌技巧
-- 标注要放在对应句子的末尾
-- 保持故事的真实感，不要过度美化`
+注意：标注要放在对应句子的末尾，保持故事的真实感。`
 
     let userPrompt = `请帮我改造一个${storyTypeInfo.name}，用于${stageInfo}阶段。
 
@@ -356,7 +408,16 @@ ${PSYCHOLOGICAL_TECHNIQUES.map(t => `- ${t.name}：${t.description}`).join('\n')
     if (objectInfo) {
       userPrompt += `\n\n目标对象信息：`
       userPrompt += `\n- 姓名：${objectInfo.name}`
-      if (objectInfo.relationship_type) userPrompt += `\n- 关系类型：${objectInfo.relationship_type === 'long_term' ? '长期关系' : objectInfo.relationship_type === 'short_term' ? '短期关系' : '灵活'}`
+      if (objectInfo.gender) userPrompt += `\n- 性别：${objectInfo.gender === 'female' ? '女' : objectInfo.gender === 'male' ? '男' : objectInfo.gender}`
+      if (objectInfo.relationshipType) userPrompt += `\n- 关系类型：${objectInfo.relationshipType === 'long_term' ? '长期关系' : objectInfo.relationshipType === 'short_term' ? '短期关系' : '灵活'}`
+      if (objectInfo.mbti) userPrompt += `\n- MBTI：${objectInfo.mbti}`
+      if (objectInfo.attachmentType) userPrompt += `\n- 依恋类型：${objectInfo.attachmentType}`
+      if (objectInfo.occupation) userPrompt += `\n- 职业：${objectInfo.occupation}`
+      if (objectInfo.hobbies) userPrompt += `\n- 兴趣爱好：${objectInfo.hobbies}`
+      if (objectInfo.personality) userPrompt += `\n- 性格特点：${objectInfo.personality}`
+      if (objectInfo.values) userPrompt += `\n- 价值观：${objectInfo.values}`
+      if (objectInfo.progressScore > 0) userPrompt += `\n- 推进值：${objectInfo.progressScore}分`
+      if (objectInfo.interactionCount > 0) userPrompt += `\n- 互动次数：${objectInfo.interactionCount}次`
     }
 
     userPrompt += `\n\n请生成改造后的故事，并在故事中用【】标注使用的技巧。同时在最后列出每个技巧的说明。`
