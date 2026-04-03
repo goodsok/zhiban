@@ -1,7 +1,7 @@
 import { Controller, Post, Body, UseInterceptors, UploadedFile, HttpCode, HttpStatus, Req } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { Request } from 'express'
-import { DatingService, ProfileAnalysis, PhotoScore, OpenerResponse } from './dating.service'
+import { DatingService, ProfileAnalysis, PhotoScore, OpenerResponse, OptimizedPhoto } from './dating.service'
 
 @Controller('dating')
 export class DatingController {
@@ -47,6 +47,25 @@ export class DatingController {
   ): Promise<{ code: number; msg: string; data: PhotoScore }> {
     console.log('[DatingController] evaluatePhotos called with:', body.photoUrls?.length, 'photos')
     const result = await this.datingService.evaluatePhotos(body.photoUrls, req)
+    return {
+      code: 200,
+      msg: 'success',
+      data: result,
+    }
+  }
+
+  @Post('photo/generate-optimized')
+  @HttpCode(HttpStatus.OK)
+  async generateOptimizedPhoto(
+    @Body() body: { originalPhotoUrl: string; suggestions: string[] },
+    @Req() req: Request,
+  ): Promise<{ code: number; msg: string; data: OptimizedPhoto }> {
+    console.log('[DatingController] generateOptimizedPhoto called')
+    const result = await this.datingService.generateOptimizedPhoto(
+      body.originalPhotoUrl,
+      body.suggestions,
+      req
+    )
     return {
       code: 200,
       msg: 'success',

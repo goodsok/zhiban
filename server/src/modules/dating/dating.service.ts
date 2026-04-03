@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Request } from 'express'
-import { LLMClient, Config, HeaderUtils, S3Storage } from 'coze-coding-dev-sdk'
+import { LLMClient, Config, HeaderUtils, S3Storage, ImageGenerationClient } from 'coze-coding-dev-sdk'
 
 export interface ProfileAnalysis {
   overallScore: number
@@ -34,6 +34,12 @@ export interface OpenerResponse {
     reason: string
   }[]
   tips: string[]
+}
+
+export interface OptimizedPhoto {
+  originalUrl: string
+  optimizedUrl: string
+  improvements: string[]
 }
 
 @Injectable()
@@ -196,6 +202,49 @@ export class DatingService {
       ],
       suggestions: ['建议选择更清晰的照片', '可以尝试更多样的场景'],
       summary: '照片整体效果不错，继续优化可以提升吸引力。',
+    }
+  }
+
+  async generateOptimizedPhoto(
+    originalPhotoUrl: string,
+    suggestions: string[],
+    req: Request
+  ): Promise<OptimizedPhoto> {
+    const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
+    const config = new Config()
+    const client = new ImageGenerationClient(config, customHeaders)
+
+    // 构建优化提示词
+    const suggestionsText = suggestions.slice(0, 3).join('、')
+    const prompt = `Based on the original photo, create an optimized version for a dating app profile photo. Apply these improvements: ${suggestionsText}. Make the person look more attractive, confident, and approachable while maintaining their natural appearance. Improve lighting, background, and overall photo quality. Keep it realistic and natural.`
+
+    console.log('[DatingService] Generating optimized photo with prompt:', prompt)
+
+    try {
+      // 使用 image-to-image 生成优化照片
+      const response = await client.generate({
+        prompt,
+        image: originalPhotoUrl,
+        size: '2K',
+        watermark: false,
+      })
+
+      const helper = client.getResponseHelper(response)
+
+      if (helper.success && helper.imageUrls.length > 0) {
+        console.log('[DatingService] Optimized photo generated:', helper.imageUrls[0])
+        return {
+          originalUrl: originalPhotoUrl,
+          optimizedUrl: helper.imageUrls[0],
+          improvements: suggestions,
+        }
+      } else {
+        console.error('[DatingService] Image generation failed:', helper.errorMessages)
+        throw new Error(helper.errorMessages.join(', ') || 'Image generation failed')
+      }
+    } catch (error) {
+      console.error('[DatingService] Generate optimized photo error:', error)
+      throw error
     }
   }
 

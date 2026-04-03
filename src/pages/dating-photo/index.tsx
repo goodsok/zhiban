@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { View, Text, Image } from '@tarojs/components'
 import { useLoad, chooseImage, uploadFile } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Camera, X, Star, Sparkles } from 'lucide-react-taro'
+import { Camera, X, Star, Sparkles, Wand } from 'lucide-react-taro'
 import { Network } from '@/network'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,10 +18,18 @@ interface PhotoScore {
   summary: string
 }
 
+interface OptimizedPhoto {
+  originalUrl: string
+  optimizedUrl: string
+  improvements: string[]
+}
+
 const DatingPhotoPage: FC = () => {
   const [photos, setPhotos] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [analysis, setAnalysis] = useState<PhotoScore | null>(null)
+  const [generating, setGenerating] = useState(false)
+  const [optimizedPhoto, setOptimizedPhoto] = useState<OptimizedPhoto | null>(null)
 
   useLoad(() => {
     console.log('Dating photo evaluation page loaded.')
@@ -40,6 +48,7 @@ const DatingPhotoPage: FC = () => {
       const newPhotos = [...photos, ...res.tempFilePaths].slice(0, 3)
       setPhotos(newPhotos)
       setAnalysis(null)
+      setOptimizedPhoto(null)
     })
   }
 
@@ -47,6 +56,7 @@ const DatingPhotoPage: FC = () => {
     const newPhotos = photos.filter((_, i) => i !== index)
     setPhotos(newPhotos)
     setAnalysis(null)
+    setOptimizedPhoto(null)
   }
 
   const handleAnalyze = async () => {
@@ -93,6 +103,8 @@ const DatingPhotoPage: FC = () => {
 
       if (res.data?.code === 200 && res.data?.data) {
         setAnalysis(res.data.data)
+        // 存储第一张照片的URL用于后续生成优化
+        setOriginalPhotoUrl(uploadedUrls[0])
       }
     } catch (error) {
       console.error('Photo evaluation error:', error)
@@ -101,9 +113,40 @@ const DatingPhotoPage: FC = () => {
     }
   }
 
+  const [originalPhotoUrl, setOriginalPhotoUrl] = useState<string>('')
+
+  const handleGenerateOptimized = async () => {
+    if (!originalPhotoUrl || !analysis?.suggestions) {
+      return
+    }
+
+    setGenerating(true)
+    try {
+      const res = await Network.request({
+        url: '/api/dating/photo/generate-optimized',
+        method: 'POST',
+        data: {
+          originalPhotoUrl,
+          suggestions: analysis.suggestions,
+        },
+      })
+      console.log('Generate optimized photo response:', res.data)
+
+      if (res.data?.code === 200 && res.data?.data) {
+        setOptimizedPhoto(res.data.data)
+      }
+    } catch (error) {
+      console.error('Generate optimized photo error:', error)
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   const handleReset = () => {
     setPhotos([])
     setAnalysis(null)
+    setOptimizedPhoto(null)
+    setOriginalPhotoUrl('')
   }
 
   const getScoreColor = (score: number) => {
@@ -211,8 +254,8 @@ const DatingPhotoPage: FC = () => {
               <CardContent className="py-6">
                 <View className="flex flex-col items-center">
                   <View className="flex flex-row items-center">
-                    <Star size={24} color="#fff" className="mr-2" />
-                    <Text className="block text-5xl font-bold text-white">{analysis.overallScore}</Text>
+                    <Star size={24} color="#fff" />
+                    <Text className="block text-5xl font-bold text-white ml-2">{analysis.overallScore}</Text>
                   </View>
                   <Text className="block text-sm text-amber-100 mt-2">照片吸引力评分</Text>
                 </View>
@@ -262,6 +305,72 @@ const DatingPhotoPage: FC = () => {
                 ))}
               </CardContent>
             </Card>
+
+            {/* 生成优化示例按钮 */}
+            <Card className="bg-gradient-to-r from-purple-50 to-pink-50">
+              <CardContent className="py-4">
+                <View className="flex flex-col items-center">
+                  <Wand size={24} color="#9333ea" />
+                  <Text className="block text-sm font-medium text-gray-700 mt-2 mb-3">
+                    想看看优化后的效果？
+                  </Text>
+                  <Button
+                    variant="default"
+                    className="bg-purple-500 text-white rounded-xl px-6"
+                    disabled={generating}
+                    onClick={handleGenerateOptimized}
+                  >
+                    <Text className="text-white">{generating ? '生成中...' : '生成优化示例'}</Text>
+                  </Button>
+                  <Text className="block text-xs text-gray-400 mt-2">
+                    AI 将根据建议生成优化后的示例照片
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
+
+            {/* 优化后的照片 */}
+            {optimizedPhoto && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <View className="flex flex-row items-center">
+                    <Wand size={18} color="#9333ea" />
+                    <Text className="block text-base font-semibold text-gray-900 ml-2">优化示例</Text>
+                  </View>
+                </CardHeader>
+                <CardContent>
+                  <View className="flex flex-row gap-4">
+                    {/* 原始照片 */}
+                    <View className="flex-1">
+                      <Text className="block text-xs text-gray-500 mb-2 text-center">原始照片</Text>
+                      <View className="aspect-square rounded-xl overflow-hidden bg-gray-100">
+                        <Image
+                          src={optimizedPhoto.originalUrl}
+                          mode="aspectFill"
+                          style={{ width: '100%', height: '100%' }}
+                        />
+                      </View>
+                    </View>
+                    {/* 优化后照片 */}
+                    <View className="flex-1">
+                      <Text className="block text-xs text-purple-600 mb-2 text-center">优化示例</Text>
+                      <View className="aspect-square rounded-xl overflow-hidden bg-purple-50 border-2 border-purple-200">
+                        <Image
+                          src={optimizedPhoto.optimizedUrl}
+                          mode="aspectFill"
+                          style={{ width: '100%', height: '100%' }}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                  <View className="mt-3 p-3 bg-purple-50 rounded-lg">
+                    <Text className="block text-xs text-purple-700">
+                      💡 这是 AI 根据建议生成的示例照片，仅供参考。实际优化时，建议根据建议重新拍摄或调整。
+                    </Text>
+                  </View>
+                </CardContent>
+              </Card>
+            )}
 
             {/* 总结 */}
             <Card className="bg-amber-50">
