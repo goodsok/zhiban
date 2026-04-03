@@ -333,8 +333,7 @@ const SpeedPlanPage: FC = () => {
             
             <View className="mb-4">
               <Textarea
-                className="w-full"
-                style={{ minHeight: '100px' }}
+                className="w-full h-24"
                 placeholder="描述互动背景，例如：相亲认识一周，微信聊了几天..."
                 value={background}
                 onInput={(e) => handleBackgroundChange(e.detail.value)}
