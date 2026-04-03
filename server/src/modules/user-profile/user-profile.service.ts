@@ -13,6 +13,8 @@ export interface FullUserProfile {
   occupation: string | null
   education: string | null
   location: string | null
+  // MBTI 类型
+  mbti: string | null
   // 性格自评 (0-100)
   personality: {
     openness: number
@@ -200,6 +202,7 @@ export class UserProfileService {
     if (data.education !== undefined) updateData.education = data.education
     if (data.location !== undefined) updateData.location = data.location
     if (data.bio !== undefined) updateData.bio = data.bio
+    if (data.mbti !== undefined) updateData.mbti = data.mbti
 
     // 性格
     if (data.personality) {
@@ -473,6 +476,9 @@ export class UserProfileService {
     if (profile.personality_conscientiousness !== 50) score += 3
     if (profile.personality_neuroticism !== 50) score += 3
 
+    // MBTI（5分）
+    if (profile.mbti) score += 5
+
     // 恋爱观（每个5分，最多15分）
     if (profile.relationship_goal) score += 5
     if (profile.attachment_style) score += 5
@@ -512,6 +518,7 @@ export class UserProfileService {
       occupation: (profile?.occupation as string) || null,
       education: (profile?.education as string) || null,
       location: (profile?.location as string) || null,
+      mbti: (profile?.mbti as string) || null,
       personality: {
         openness: (profile?.personality_openness as number) || 50,
         conscientiousness: (profile?.personality_conscientiousness as number) || 50,
@@ -558,6 +565,7 @@ export class UserProfileService {
       occupation: null,
       education: null,
       location: null,
+      mbti: null,
       personality: {
         openness: 50,
         conscientiousness: 50,

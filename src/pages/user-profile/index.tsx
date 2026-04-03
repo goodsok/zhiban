@@ -18,6 +18,7 @@ interface UserProfile {
   occupation: string | null
   education: string | null
   location: string | null
+  mbti: string | null
   personality: {
     openness: number
     conscientiousness: number
@@ -59,6 +60,7 @@ const defaultProfile: UserProfile = {
   occupation: null,
   education: null,
   location: null,
+  mbti: null,
   personality: { openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50 },
   emotional: { stability: 50, expression: 50, empathy: 50 },
   relationshipGoal: null,
@@ -135,6 +137,26 @@ const educationOptions = [
 const expressionStyleOptions = [
   { value: 'expressive', label: '直率表达', desc: '喜欢直接表达想法和感受' },
   { value: 'reserved', label: '含蓄内敛', desc: '比较含蓄，不喜欢太直白' },
+]
+
+// MBTI 类型选项
+const mbtiOptions = [
+  { value: 'INTJ', label: 'INTJ', desc: '建筑师 - 富有想象力的战略家' },
+  { value: 'INTP', label: 'INTP', desc: '逻辑学家 - 创新的发明家' },
+  { value: 'ENTJ', label: 'ENTJ', desc: '指挥官 - 大胆的领导者' },
+  { value: 'ENTP', label: 'ENTP', desc: '辩论家 - 聪明的探索者' },
+  { value: 'INFJ', label: 'INFJ', desc: '提倡者 - 安静的理想主义者' },
+  { value: 'INFP', label: 'INFP', desc: '调停者 - 诗意的理想家' },
+  { value: 'ENFJ', label: 'ENFJ', desc: '主人公 - 富有魅力的领袖' },
+  { value: 'ENFP', label: 'ENFP', desc: '竞选者 - 热情的探索者' },
+  { value: 'ISTJ', label: 'ISTJ', desc: '物流师 - 可靠的实干家' },
+  { value: 'ISFJ', label: 'ISFJ', desc: '守卫者 - 专注的守护者' },
+  { value: 'ESTJ', label: 'ESTJ', desc: '总经理 - 高效的管理者' },
+  { value: 'ESFJ', label: 'ESFJ', desc: '执政官 - 热心的助人者' },
+  { value: 'ISTP', label: 'ISTP', desc: '鉴赏家 - 大胆的实验者' },
+  { value: 'ISFP', label: 'ISFP', desc: '探险家 - 灵活的艺术家' },
+  { value: 'ESTP', label: 'ESTP', desc: '企业家 - 精明的冒险者' },
+  { value: 'ESFP', label: 'ESFP', desc: '表演者 - 自发的娱乐者' },
 ]
 
 const hobbyOptions = [
@@ -472,6 +494,43 @@ const UserProfilePage: FC = () => {
             <Text className="block text-sm text-gray-600">
               💡 拖动滑块评估自己在每个维度上的倾向。这些信息会帮助AI更好地理解你，提供更贴合你性格的建议。
             </Text>
+          </View>
+
+          {/* MBTI 选择 */}
+          <View className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+            <View className="flex items-center gap-2 mb-3">
+              <Text className="block text-sm font-semibold text-gray-900">MBTI 人格类型</Text>
+              <Text className="block text-xs text-gray-400 ml-auto">选填</Text>
+            </View>
+            <Text className="block text-xs text-gray-400 mb-3">选择你的 MBTI 类型，帮助 AI 更精准地理解你的性格</Text>
+            <View className="grid grid-cols-4 gap-2">
+              {mbtiOptions.map((option) => (
+                <View
+                  key={option.value}
+                  className={`rounded-lg p-2 text-center ${
+                    profile.mbti === option.value
+                      ? 'bg-blue-500 border-2 border-blue-500'
+                      : 'bg-gray-50 border border-gray-200'
+                  }`}
+                  onClick={() => updateProfile({ mbti: profile.mbti === option.value ? null : option.value })}
+                >
+                  <Text
+                    className={`block text-sm font-medium ${
+                      profile.mbti === option.value ? 'text-white' : 'text-gray-700'
+                    }`}
+                  >
+                    {option.label}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            {profile.mbti && (
+              <View className="mt-3 bg-blue-50 rounded-lg p-2">
+                <Text className="block text-xs text-blue-600">
+                  {mbtiOptions.find(o => o.value === profile.mbti)?.desc}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
