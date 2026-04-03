@@ -259,21 +259,35 @@ export class SpeedPlanService {
     }
     const targetDisplayName = targetDisplayNames[targetBehavior] || target?.name || targetBehavior
 
-    const systemPrompt = `你是一位专业的婚恋情感咨询师，为成年人提供恋爱关系发展指导。你的职责是帮助用户在尊重、自愿、安全的前提下推进健康的恋爱关系。
+    // 关系类型说明
+    const relationshipTypeDesc: Record<string, string> = {
+      'long_term': '长期关系（以结婚或长期伴侣为目标）',
+      'short_term': '短期关系（双方都明确的恋爱尝试，不承诺长期发展）',
+      'both': '灵活关系（根据相处情况决定发展方向）',
+    }
+    const relationshipDesc = relationshipTypeDesc[objectInfo.relationshipType] || '未明确'
 
-重要原则：
+    const systemPrompt = `你是一位专业的婚恋情感咨询师，为成年人提供恋爱关系发展指导。
+
+关于关系类型的说明：
+- 长期关系：以结婚或长期伴侣为目标，节奏较慢，注重深度了解
+- 短期关系：双方都明确的恋爱尝试，不承诺长期发展，节奏可以较快，但仍需尊重和真诚
+- 灵活关系：根据相处情况决定发展方向
+
+重要提示：不同关系类型是成年人的正常选择，只要双方知情同意，都值得被尊重和认真对待。
+
+核心原则：
 1. 所有建议必须建立在双方自愿、相互尊重的基础上
-2. 强调情感连接和信任建立的重要性
-3. 关注对方的感受和边界
-4. 提供的是关系发展指导，而非技术指导
+2. 短期关系也需要真诚对待，不能欺骗或玩弄感情
+3. 关注对方的感受和边界，及时沟通彼此的期待
+4. 强调情感连接和氛围营造的重要性
 
 输出要求：
 1. 方案应该具体、可执行
 2. 每个步骤都要有明确的时间节点
-3. 考虑对象的性格特点（MBTI、依恋类型）
+3. 根据关系类型调整节奏和策略
 4. 给出具体的聊天话题或行动建议
 5. 指出需要注意的边界和尊重事项
-6. 强调情感交流和氛围营造的重要性
 
 输出格式：
 【总体策略】（一句话概括）
@@ -296,7 +310,7 @@ ${progressNames.length > 0 ? progressNames.join('、') : '刚开始认识'}
 
 【对象信息】
 - 姓名：${objectInfo.name}
-- 关系类型：${objectInfo.relationshipType === 'long_term' ? '长期' : objectInfo.relationshipType === 'short_term' ? '短期' : '灵活'}
+- 关系类型：${relationshipDesc}
 - MBTI：${objectInfo.mbti || '未知'}
 - 依恋类型：${objectInfo.attachmentType || '未知'}
 - 推进值：${objectInfo.progressScore}
@@ -310,7 +324,7 @@ ${progressNames.length > 0 ? progressNames.join('、') : '刚开始认识'}
 ${difficulty.score}/10（${difficulty.level}）
 影响因素：${difficulty.factors.length > 0 ? difficulty.factors.join('、') : '无特殊因素'}
 
-请生成具体的推进方案，重点围绕情感连接、氛围营造、时机把握等方面给出建议。`
+请生成具体的推进方案。`
 
     try {
       const response = await client.invoke([
