@@ -10,7 +10,7 @@ export class DatingController {
   @Post('profile/optimize')
   @HttpCode(HttpStatus.OK)
   async optimizeProfile(
-    @Body() body: { nickname?: string; bio?: string; interests?: string },
+    @Body() body: { nickname?: string; bio?: string; interests?: string; platform?: string },
     @Req() req: Request,
   ): Promise<{ code: number; msg: string; data: ProfileAnalysis }> {
     console.log('[DatingController] optimizeProfile called with:', body)
@@ -95,6 +95,7 @@ export class DatingController {
       nickname?: string
       bio?: string
       interests?: string
+      platform?: string
       analysis: ProfileAnalysis
       messages: Array<{ role: 'user' | 'assistant'; content: string }>
       currentMessage: string

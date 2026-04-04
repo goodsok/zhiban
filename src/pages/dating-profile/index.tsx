@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Sparkles, CircleCheck, CircleAlert, MessageCircle, Send, Loader } from 'lucide-react-taro'
+import { Sparkles, CircleCheck, CircleAlert, MessageCircle, Send, Loader, ChevronDown } from 'lucide-react-taro'
 import { Network } from '@/network'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -26,10 +26,22 @@ interface ChatMessage {
   content: string
 }
 
+// 平台选项
+const platformOptions = [
+  { value: 'tantan', label: '探探', icon: '💕', desc: '国内主流，左滑右滑' },
+  { value: 'soul', label: 'Soul', icon: '🌙', desc: '灵魂社交，兴趣匹配' },
+  { value: 'tinder', label: 'Tinder', icon: '🔥', desc: '国际化，简洁高效' },
+  { value: 'momo', label: '陌陌', icon: '📍', desc: '附近的人，直接大方' },
+  { value: 'bumble', label: 'Bumble', icon: '🐝', desc: '女性主动，高质量' },
+  { value: 'hinge', label: 'Hinge', icon: '💫', desc: '严肃交友，长期关系' },
+]
+
 const DatingProfilePage: FC = () => {
   const [nickname, setNickname] = useState('')
   const [bio, setBio] = useState('')
   const [interests, setInterests] = useState('')
+  const [platform, setPlatform] = useState('tantan')
+  const [showPlatformPicker, setShowPlatformPicker] = useState(false)
   const [loading, setLoading] = useState(false)
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null)
   
@@ -42,6 +54,8 @@ const DatingProfilePage: FC = () => {
   useLoad(() => {
     console.log('Dating profile optimization page loaded.')
   })
+
+  const currentPlatform = platformOptions.find(p => p.value === platform) || platformOptions[0]
 
   const handleAnalyze = async () => {
     if (!nickname.trim() && !bio.trim() && !interests.trim()) {
@@ -57,6 +71,7 @@ const DatingProfilePage: FC = () => {
           nickname: nickname.trim(),
           bio: bio.trim(),
           interests: interests.trim(),
+          platform,
         },
       })
       console.log('Profile optimization response:', res.data)
@@ -90,7 +105,7 @@ const DatingProfilePage: FC = () => {
       setChatMessages([
         {
           role: 'assistant',
-          content: '你好！我已经分析了你的资料，有什么问题想问我吗？比如想了解为什么某个建议更好，或者有其他想法想讨论～'
+          content: `你好！我已经分析了你在${currentPlatform.label}上的资料，有什么问题想问我吗？比如想了解为什么某个建议更好，或者有其他想法想讨论～`
         }
       ])
     }
@@ -112,6 +127,7 @@ const DatingProfilePage: FC = () => {
           nickname: nickname.trim(),
           bio: bio.trim(),
           interests: interests.trim(),
+          platform,
           analysis,
           messages: chatMessages,
           currentMessage: userMessage,
@@ -148,6 +164,54 @@ const DatingProfilePage: FC = () => {
 
       {/* 输入表单 */}
       <View className="p-4">
+        {/* 平台选择 */}
+        <Card className="mb-4">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">选择平台</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <View 
+              className="bg-gray-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
+              onClick={() => setShowPlatformPicker(!showPlatformPicker)}
+            >
+              <View className="flex flex-row items-center">
+                <Text className="text-lg mr-2">{currentPlatform.icon}</Text>
+                <Text className="text-sm text-gray-700">{currentPlatform.label}</Text>
+                <Text className="text-xs text-gray-400 ml-2">{currentPlatform.desc}</Text>
+              </View>
+              <ChevronDown size={18} color="#9ca3af" />
+            </View>
+            
+            {showPlatformPicker && (
+              <View className="mt-2 bg-white rounded-xl border border-gray-100 overflow-hidden">
+                {platformOptions.map((option) => (
+                  <View
+                    key={option.value}
+                    className={`px-4 py-3 flex flex-row items-center justify-between ${
+                      platform === option.value ? 'bg-blue-50' : ''
+                    }`}
+                    onClick={() => {
+                      setPlatform(option.value)
+                      setShowPlatformPicker(false)
+                    }}
+                  >
+                    <View className="flex flex-row items-center">
+                      <Text className="text-lg mr-2">{option.icon}</Text>
+                      <View>
+                        <Text className="text-sm text-gray-700">{option.label}</Text>
+                        <Text className="text-xs text-gray-400">{option.desc}</Text>
+                      </View>
+                    </View>
+                    {platform === option.value && (
+                      <Text className="text-blue-500">✓</Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="mb-4">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">基本信息</CardTitle>
@@ -224,6 +288,14 @@ const DatingProfilePage: FC = () => {
         {/* 分析结果 */}
         {analysis && (
           <View className="space-y-4">
+            {/* 平台标签 */}
+            <View className="flex flex-row items-center justify-center">
+              <View className="bg-blue-100 rounded-full px-3 py-1 flex flex-row items-center">
+                <Text className="text-sm mr-1">{currentPlatform.icon}</Text>
+                <Text className="text-xs text-blue-600">{currentPlatform.label} 专属建议</Text>
+              </View>
+            </View>
+
             {/* 总体评分 */}
             <Card className="bg-gradient-to-br from-blue-500 to-blue-600">
               <CardContent className="py-6">
@@ -325,6 +397,9 @@ const DatingProfilePage: FC = () => {
                   <View className="flex flex-row items-center">
                     <MessageCircle size={18} color="#3b82f6" />
                     <Text className="block text-base font-semibold text-gray-900 ml-2">AI 顾问对话</Text>
+                    <View className="ml-auto bg-blue-100 rounded-full px-2 py-1">
+                      <Text className="text-xs text-blue-600">{currentPlatform.label}</Text>
+                    </View>
                   </View>
                 </CardHeader>
                 <CardContent>

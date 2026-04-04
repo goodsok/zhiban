@@ -88,8 +88,71 @@ export class DatingService {
     return response.content
   }
 
-  async optimizeProfile(data: { nickname?: string; bio?: string; interests?: string }, req: Request): Promise<ProfileAnalysis> {
-    const prompt = `你是一位专业的交友软件资料优化顾问。请分析以下交友资料，给出专业的优化建议。
+  async optimizeProfile(data: { nickname?: string; bio?: string; interests?: string; platform?: string }, req: Request): Promise<ProfileAnalysis> {
+    // 平台特性说明
+    const platformGuides: Record<string, string> = {
+      tinder: `Tinder 平台特性：
+- 国际化平台，用户群体广泛
+- 简介限制较短（约500字符），每字都要有信息量
+- 极度重视首张照片，简介是辅助
+- 用户决策快，简介要能在3秒内抓住眼球
+- 风格：简洁、有趣、不油腻
+- 昵称建议：简洁好记，不要太多符号`,
+      
+      tantan: `探探平台特性：
+- 国内主流交友平台
+- 简介限制300字以内
+- 用户决策速度快，简介要突出记忆点
+- 照片和简介同样重要
+- 风格：真实、接地气、有生活气息
+- 昵称建议：亲切自然，可以带点小趣味`,
+      
+      soul: `Soul 平台特性：
+- 主打"灵魂社交"，兴趣匹配为核心
+- 简介可以较长，支持展示更多内容
+- 用户更注重兴趣共鸣和价值观匹配
+- 有"瞬间"功能，简介可以引导查看
+- 风格：走心、有深度、展示真实个性
+- 昵称建议：有特色、能反映性格或兴趣`,
+      
+      momo: `陌陌平台特性：
+- "附近的人"为核心功能
+- 简介建议直接、清晰
+- 用户群体多样，目的性较强
+- 重视实时在线状态
+- 风格：直接、大方、展示生活状态
+- 昵称建议：简单好记，不要太复杂`,
+      
+      bumble: `Bumble 平台特性：
+- 女性主动发起对话
+- 用户质量相对较高
+- 简介可以展示更多个人特质
+- 重视真诚和尊重
+- 风格：自信、真诚、有品质感
+- 昵称建议：真实姓名或简洁的英文名`,
+      
+      hinge: `Hinge 平台特性：
+- 主打严肃交友、长期关系
+- 有"Prompts"问题引导，简介要配合回答
+- 用户更注重价值观和生活方式匹配
+- 不追求"左滑右滑"的快节奏
+- 风格：真诚、有深度、展示真实生活
+- 昵称建议：真实姓名为主，展现诚意`,
+    }
+    
+    const platformGuide = platformGuides[data.platform || 'tantan'] || platformGuides.tantan
+    const platformName = {
+      tinder: 'Tinder',
+      tantan: '探探',
+      soul: 'Soul',
+      momo: '陌陌',
+      bumble: 'Bumble',
+      hinge: 'Hinge',
+    }[data.platform || 'tantan'] || '探探'
+
+    const prompt = `你是一位专业的交友软件资料优化顾问，专门针对 ${platformName} 平台。请分析以下交友资料，给出专业的优化建议。
+
+${platformGuide}
 
 用户资料：
 - 昵称：${data.nickname || '未填写'}
@@ -97,10 +160,10 @@ export class DatingService {
 - 兴趣标签：${data.interests || '未填写'}
 
 请从以下维度进行分析：
-1. 整体吸引力评分（0-100分）
-2. 当前优势（列出2-3条）
-3. 需要改进的地方（列出2-3条）
-4. 具体的优化建议（针对昵称、简介、兴趣标签给出改进版本和理由）
+1. 整体吸引力评分（0-100分，考虑平台特性）
+2. 当前优势（列出2-3条，结合平台特点）
+3. 需要改进的地方（列出2-3条，针对平台优化）
+4. 具体的优化建议（针对昵称、简介、兴趣标签给出改进版本和理由，要符合 ${platformName} 的平台调性）
 5. 总结性建议
 
 请以JSON格式返回，格式如下：
@@ -113,7 +176,7 @@ export class DatingService {
       "field": "昵称/个人简介/兴趣标签",
       "original": "原文",
       "suggested": "建议修改为",
-      "reason": "修改理由"
+      "reason": "修改理由（结合平台特性说明）"
     }
   ],
   "summary": "总结性建议"
@@ -149,6 +212,7 @@ export class DatingService {
       nickname?: string
       bio?: string
       interests?: string
+      platform?: string
       analysis: ProfileAnalysis
       messages: Array<{ role: 'user' | 'assistant'; content: string }>
       currentMessage: string
@@ -159,7 +223,29 @@ export class DatingService {
     const config = new Config()
     const client = new LLMClient(config, customHeaders)
 
+    const platformGuides: Record<string, string> = {
+      tinder: 'Tinder - 国际化、简洁、重视照片、简介短、用户决策快',
+      tantan: '探探 - 国内主流、简介短、照片和简介同等重要、接地气',
+      soul: 'Soul - 灵魂社交、兴趣匹配、简介可较长、走心有深度',
+      momo: '陌陌 - 附近的人、直接清晰、重视实时状态',
+      bumble: 'Bumble - 女性主动、用户质量高、真诚有品质感',
+      hinge: 'Hinge - 严肃交友、长期关系、真诚有深度',
+    }
+    
+    const platformGuide = platformGuides[data.platform || 'tantan'] || platformGuides.tantan
+    const platformName = {
+      tinder: 'Tinder',
+      tantan: '探探',
+      soul: 'Soul',
+      momo: '陌陌',
+      bumble: 'Bumble',
+      hinge: 'Hinge',
+    }[data.platform || 'tantan'] || '探探'
+
     const systemPrompt = `你是一位专业的交友软件资料优化顾问，正在与用户进行一对一聊天。
+你专注于 ${platformName} 平台的资料优化。
+
+平台特性：${platformGuide}
 
 用户原始资料：
 - 昵称：${data.nickname || '未填写'}
@@ -173,10 +259,11 @@ export class DatingService {
 - 总结：${data.analysis.summary}
 
 你的角色：
-1. 帮助用户深入理解为什么某些修改更好
+1. 帮助用户深入理解为什么某些修改更好（结合 ${platformName} 平台特性）
 2. 根据用户的具体情况，给出更个性化的建议
 3. 回答用户关于资料优化的任何问题
 4. 如果用户提供了新的信息，可以重新调整建议
+5. 所有建议都要符合 ${platformName} 平台的用户习惯和调性
 
 沟通风格：
 - 专业但亲切，像朋友一样交流
