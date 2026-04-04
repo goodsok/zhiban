@@ -87,4 +87,26 @@ export class DatingController {
       data: result,
     }
   }
+
+  @Post('profile/chat')
+  @HttpCode(HttpStatus.OK)
+  async chatProfile(
+    @Body() body: {
+      nickname?: string
+      bio?: string
+      interests?: string
+      analysis: ProfileAnalysis
+      messages: Array<{ role: 'user' | 'assistant'; content: string }>
+      currentMessage: string
+    },
+    @Req() req: Request,
+  ): Promise<{ code: number; msg: string; data: { reply: string } }> {
+    console.log('[DatingController] chatProfile called with message:', body.currentMessage?.substring(0, 50))
+    const reply = await this.datingService.chatProfile(body, req)
+    return {
+      code: 200,
+      msg: 'success',
+      data: { reply },
+    }
+  }
 }

@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { View, Text } from '@tarojs/components'
+import { View, Text, ScrollView } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Sparkles, CircleCheck, CircleAlert } from 'lucide-react-taro'
+import { Sparkles, CircleCheck, CircleAlert, MessageCircle, Send, Loader } from 'lucide-react-taro'
 import { Network } from '@/network'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,12 +21,23 @@ interface ProfileAnalysis {
   summary: string
 }
 
+interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 const DatingProfilePage: FC = () => {
   const [nickname, setNickname] = useState('')
   const [bio, setBio] = useState('')
   const [interests, setInterests] = useState('')
   const [loading, setLoading] = useState(false)
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null)
+  
+  // 聊天相关状态
+  const [showChat, setShowChat] = useState(false)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
 
   useLoad(() => {
     console.log('Dating profile optimization page loaded.')
@@ -52,6 +63,9 @@ const DatingProfilePage: FC = () => {
 
       if (res.data?.code === 200 && res.data?.data) {
         setAnalysis(res.data.data)
+        // 重置聊天状态
+        setShowChat(false)
+        setChatMessages([])
       }
     } catch (error) {
       console.error('Profile optimization error:', error)
@@ -65,6 +79,59 @@ const DatingProfilePage: FC = () => {
     setBio('')
     setInterests('')
     setAnalysis(null)
+    setShowChat(false)
+    setChatMessages([])
+  }
+
+  const handleStartChat = () => {
+    setShowChat(true)
+    // 添加欢迎消息
+    if (chatMessages.length === 0) {
+      setChatMessages([
+        {
+          role: 'assistant',
+          content: '你好！我已经分析了你的资料，有什么问题想问我吗？比如想了解为什么某个建议更好，或者有其他想法想讨论～'
+        }
+      ])
+    }
+  }
+
+  const handleSendMessage = async () => {
+    if (!chatInput.trim() || chatLoading || !analysis) return
+
+    const userMessage = chatInput.trim()
+    setChatInput('')
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+    setChatLoading(true)
+
+    try {
+      const res = await Network.request({
+        url: '/api/dating/profile/chat',
+        method: 'POST',
+        data: {
+          nickname: nickname.trim(),
+          bio: bio.trim(),
+          interests: interests.trim(),
+          analysis,
+          messages: chatMessages,
+          currentMessage: userMessage,
+        },
+      })
+
+      console.log('Chat response:', res.data)
+
+      if (res.data?.code === 200 && res.data?.data?.reply) {
+        setChatMessages(prev => [...prev, { role: 'assistant', content: res.data.data.reply }])
+      }
+    } catch (error) {
+      console.error('Chat error:', error)
+      setChatMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: '抱歉，我暂时无法回答这个问题，请稍后再试。' 
+      }])
+    } finally {
+      setChatLoading(false)
+    }
   }
 
   return (
@@ -237,6 +304,91 @@ const DatingProfilePage: FC = () => {
                 <Text className="block text-sm text-blue-700 leading-relaxed">{analysis.summary}</Text>
               </CardContent>
             </Card>
+
+            {/* AI聊天按钮 */}
+            {!showChat && (
+              <Button
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl py-3"
+                onClick={handleStartChat}
+              >
+                <View className="flex flex-row items-center justify-center">
+                  <MessageCircle size={18} color="#fff" />
+                  <Text className="text-white ml-2 font-medium">继续和 AI 深入讨论</Text>
+                </View>
+              </Button>
+            )}
+
+            {/* AI聊天界面 */}
+            {showChat && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <View className="flex flex-row items-center">
+                    <MessageCircle size={18} color="#3b82f6" />
+                    <Text className="block text-base font-semibold text-gray-900 ml-2">AI 顾问对话</Text>
+                  </View>
+                </CardHeader>
+                <CardContent>
+                  {/* 聊天消息列表 */}
+                  <ScrollView scrollY className="max-h-80 mb-3">
+                    {chatMessages.map((msg, index) => (
+                      <View
+                        key={index}
+                        className={`mb-3 ${msg.role === 'user' ? 'flex flex-row justify-end' : ''}`}
+                      >
+                        <View
+                          className={`rounded-xl px-4 py-2 max-w-[85%] ${
+                            msg.role === 'user'
+                              ? 'bg-blue-500'
+                              : 'bg-gray-100'
+                          }`}
+                        >
+                          <Text
+                            className={`text-sm leading-relaxed ${
+                              msg.role === 'user' ? 'text-white' : 'text-gray-700'
+                            }`}
+                          >
+                            {msg.content}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                    {chatLoading && (
+                      <View className="flex flex-row items-center mb-3">
+                        <View className="bg-gray-100 rounded-xl px-4 py-2">
+                          <View className="flex flex-row items-center">
+                            <Loader size={14} color="#6b7280" className="animate-spin" />
+                            <Text className="text-sm text-gray-500 ml-2">思考中...</Text>
+                          </View>
+                        </View>
+                      </View>
+                    )}
+                  </ScrollView>
+
+                  {/* 输入框 */}
+                  <View className="flex flex-row gap-2 items-end">
+                    <View className="flex-1 bg-gray-50 rounded-xl px-4 py-2">
+                      <Textarea
+                        style={{ width: '100%', minHeight: '36px', maxHeight: '80px', backgroundColor: 'transparent' }}
+                        placeholder="输入你的问题..."
+                        maxlength={500}
+                        value={chatInput}
+                        onInput={(e) => setChatInput(e.detail.value)}
+                      />
+                    </View>
+                    <View
+                      className={`rounded-xl p-2 ${
+                        chatInput.trim() && !chatLoading
+                          ? 'bg-blue-500'
+                          : 'bg-gray-200'
+                      }`}
+                      onClick={handleSendMessage}
+                    >
+                      <Send size={20} color={chatInput.trim() && !chatLoading ? '#fff' : '#9ca3af'} />
+                    </View>
+                  </View>
+                </CardContent>
+              </Card>
+            )}
           </View>
         )}
       </View>

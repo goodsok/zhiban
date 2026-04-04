@@ -141,6 +141,64 @@ export class DatingService {
     }
   }
 
+  /**
+   * 资料优化聊天
+   */
+  async chatProfile(
+    data: {
+      nickname?: string
+      bio?: string
+      interests?: string
+      analysis: ProfileAnalysis
+      messages: Array<{ role: 'user' | 'assistant'; content: string }>
+      currentMessage: string
+    },
+    req: Request
+  ): Promise<string> {
+    const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
+    const config = new Config()
+    const client = new LLMClient(config, customHeaders)
+
+    const systemPrompt = `你是一位专业的交友软件资料优化顾问，正在与用户进行一对一聊天。
+
+用户原始资料：
+- 昵称：${data.nickname || '未填写'}
+- 个人简介：${data.bio || '未填写'}
+- 兴趣标签：${data.interests || '未填写'}
+
+你之前给出的分析结果：
+- 总评分：${data.analysis.overallScore}分
+- 优势：${data.analysis.strengths.join('、')}
+- 改进点：${data.analysis.improvements.join('、')}
+- 总结：${data.analysis.summary}
+
+你的角色：
+1. 帮助用户深入理解为什么某些修改更好
+2. 根据用户的具体情况，给出更个性化的建议
+3. 回答用户关于资料优化的任何问题
+4. 如果用户提供了新的信息，可以重新调整建议
+
+沟通风格：
+- 专业但亲切，像朋友一样交流
+- 给出具体可执行的建议
+- 用例子说明问题
+- 鼓励用户展现真实的自己`
+
+    const conversationMessages = [
+      { role: 'system' as const, content: systemPrompt },
+      ...data.messages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+      { role: 'user' as const, content: data.currentMessage },
+    ]
+
+    try {
+      const response = await client.invoke(conversationMessages, { temperature: 0.7 })
+      return response.content
+    } catch (error) {
+      console.error('[DatingService] Chat error:', error)
+      return '抱歉，我暂时无法回答这个问题。请稍后再试。'
+    }
+  }
+
   async uploadPhoto(file: Express.Multer.File): Promise<string> {
     const ext = file.mimetype.split('/')[1] || 'jpg'
     const key = await this.storage.uploadFile({
