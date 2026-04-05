@@ -381,9 +381,9 @@ const DatingProfilePage: FC = () => {
             {/* 个人简介 */}
             <View>
               <Text className="block text-sm font-medium text-gray-700 mb-2">个人简介</Text>
-              <View className="bg-gray-50 rounded-xl px-4 py-3">
+              <View className="bg-gray-50 rounded-xl p-4">
                 <Textarea
-                  style={{ width: '100%', minHeight: '200px', backgroundColor: 'transparent' }}
+                  style={{ width: '100%', height: '256px', backgroundColor: 'transparent' }}
                   placeholder="粘贴你的个人简介..."
                   maxlength={500}
                   value={bio}
@@ -396,9 +396,9 @@ const DatingProfilePage: FC = () => {
             {/* 兴趣标签 */}
             <View>
               <Text className="block text-sm font-medium text-gray-700 mb-2">兴趣标签</Text>
-              <View className="bg-gray-50 rounded-xl px-4 py-3">
+              <View className="bg-gray-50 rounded-xl p-4">
                 <Textarea
-                  style={{ width: '100%', minHeight: '80px', backgroundColor: 'transparent' }}
+                  style={{ width: '100%', height: '96px', backgroundColor: 'transparent' }}
                   placeholder="输入你的兴趣标签，用逗号分隔..."
                   maxlength={200}
                   value={interests}
