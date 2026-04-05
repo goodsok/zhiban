@@ -154,8 +154,24 @@ export class DatingService {
 - 不追求"左滑右滑"的快节奏
 - 风格：真诚、有深度、展示真实生活
 - 昵称建议：真实姓名为主，展现诚意`,
+
+      qingten: `青藤平台特性：
+- 主打高学历优质青年社交
+- 需要学历认证，用户质量较高
+- 简介建议展示职业发展和生活品质
+- 用户注重共同话题和价值观契合
+- 风格：有内涵、展现专业度和生活品味
+- 简介建议：突出学历背景、职业成就、兴趣爱好`,
+
+      marryu: `MarryU 平台特性：
+- 主打严肃婚恋，以结婚为目的
+- 用户群体相对成熟，有明确的婚恋需求
+- 简介需要展现稳定性和责任感
+- 重视经济基础、家庭观念、未来规划
+- 风格：稳重、真诚、展现担当
+- 简介建议：突出个人条件、家庭背景、婚恋观`,
     }
-    
+
     const platformGuide = platformGuides[data.platform || 'tantan'] || platformGuides.tantan
     const platformName = {
       tinder: 'Tinder',
@@ -164,6 +180,8 @@ export class DatingService {
       momo: '陌陌',
       bumble: 'Bumble',
       hinge: 'Hinge',
+      qingten: '青藤',
+      marryu: 'MarryU',
     }[data.platform || 'tantan'] || '探探'
 
     const prompt = `你是一位专业的交友软件资料优化顾问，专门针对 ${platformName} 平台。请分析以下交友资料，给出专业的优化建议。
@@ -245,8 +263,10 @@ ${platformGuide}
       momo: '陌陌 - 附近的人、直接清晰、重视实时状态',
       bumble: 'Bumble - 女性主动、用户质量高、真诚有品质感',
       hinge: 'Hinge - 严肃交友、长期关系、真诚有深度',
+      qingten: '青藤 - 高学历优质青年、学历认证、有内涵、生活品味',
+      marryu: 'MarryU - 严肃婚恋、以结婚为目的、稳重真诚、展现担当',
     }
-    
+
     const platformGuide = platformGuides[data.platform || 'tantan'] || platformGuides.tantan
     const platformName = {
       tinder: 'Tinder',
@@ -255,6 +275,8 @@ ${platformGuide}
       momo: '陌陌',
       bumble: 'Bumble',
       hinge: 'Hinge',
+      qingten: '青藤',
+      marryu: 'MarryU',
     }[data.platform || 'tantan'] || '探探'
 
     const systemPrompt = `你是一位专业的交友软件资料优化顾问，正在与用户进行一对一聊天。

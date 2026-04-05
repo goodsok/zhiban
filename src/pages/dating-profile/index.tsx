@@ -44,11 +44,33 @@ const platformOptions = [
   { value: 'momo', label: '陌陌', icon: '📍', desc: '附近的人，直接大方' },
   { value: 'bumble', label: 'Bumble', icon: '🐝', desc: '女性主动，高质量' },
   { value: 'hinge', label: 'Hinge', icon: '💫', desc: '严肃交友，长期关系' },
+  { value: 'qingten', label: '青藤', icon: '🌱', desc: '高学历，优质青年' },
+  { value: 'marryu', label: 'MarryU', icon: '💍', desc: '严肃婚恋，以结婚为目的' },
+]
+
+// 兴趣标签选项
+const interestOptions = [
+  { value: 'music', label: '音乐', emoji: '🎵' },
+  { value: 'movie', label: '电影', emoji: '🎬' },
+  { value: 'travel', label: '旅行', emoji: '✈️' },
+  { value: 'photography', label: '摄影', emoji: '📷' },
+  { value: 'reading', label: '阅读', emoji: '📚' },
+  { value: 'sports', label: '运动', emoji: '⚽' },
+  { value: 'fitness', label: '健身', emoji: '💪' },
+  { value: 'food', label: '美食', emoji: '🍜' },
+  { value: 'cooking', label: '烹饪', emoji: '👨‍🍳' },
+  { value: 'gaming', label: '游戏', emoji: '🎮' },
+  { value: 'art', label: '艺术', emoji: '🎨' },
+  { value: 'pet', label: '宠物', emoji: '🐕' },
+  { value: 'outdoor', label: '户外', emoji: '🏕️' },
+  { value: 'tech', label: '科技', emoji: '💻' },
+  { value: 'fashion', label: '时尚', emoji: '👗' },
+  { value: 'coffee', label: '咖啡', emoji: '☕' },
 ]
 
 const DatingProfilePage: FC = () => {
   const [bio, setBio] = useState('')
-  const [interests, setInterests] = useState('')
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [platform, setPlatform] = useState('tantan')
   const [showPlatformPicker, setShowPlatformPicker] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -97,8 +119,26 @@ const DatingProfilePage: FC = () => {
 
   const currentPlatform = platformOptions.find(p => p.value === platform) || platformOptions[0]
 
+  // 切换兴趣标签选择
+  const toggleInterest = (value: string) => {
+    setSelectedInterests(prev => 
+      prev.includes(value) 
+        ? prev.filter(i => i !== value)
+        : [...prev, value]
+    )
+  }
+
+  // 获取选中的兴趣标签文本
+  const getInterestsText = () => {
+    return selectedInterests
+      .map(v => interestOptions.find(opt => opt.value === v)?.label)
+      .filter(Boolean)
+      .join('、')
+  }
+
   const handleAnalyze = async () => {
-    if (!bio.trim() && !interests.trim()) {
+    const interestsText = getInterestsText()
+    if (!bio.trim() && !interestsText) {
       return
     }
 
@@ -109,7 +149,7 @@ const DatingProfilePage: FC = () => {
         method: 'POST',
         data: {
           bio: bio.trim(),
-          interests: interests.trim(),
+          interests: interestsText,
           platform,
         },
       })
@@ -130,7 +170,7 @@ const DatingProfilePage: FC = () => {
             data: {
               platform,
               bio: bio.trim(),
-              interests: interests.trim(),
+              interests: interestsText,
               analysisResult: result,
             },
           })
@@ -148,7 +188,7 @@ const DatingProfilePage: FC = () => {
 
   const handleReset = () => {
     setBio('')
-    setInterests('')
+    setSelectedInterests([])
     setAnalysis(null)
     setShowChat(false)
     setChatMessages([])
@@ -181,7 +221,7 @@ const DatingProfilePage: FC = () => {
         method: 'POST',
         data: {
           bio: bio.trim(),
-          interests: interests.trim(),
+          interests: getInterestsText(),
           platform,
           analysis,
           messages: chatMessages,
@@ -208,7 +248,16 @@ const DatingProfilePage: FC = () => {
   const handleLoadHistory = (history: ProfileHistory) => {
     setPlatform(history.platform)
     setBio(history.bio || '')
-    setInterests(history.interests || '')
+    // 将字符串 interests 转换为数组
+    if (history.interests) {
+      const interestLabels = history.interests.split(/[,、，]/).map(s => s.trim())
+      const values = interestLabels
+        .map(label => interestOptions.find(opt => opt.label === label)?.value)
+        .filter(Boolean) as string[]
+      setSelectedInterests(values)
+    } else {
+      setSelectedInterests([])
+    }
     setAnalysis(history.analysisResult)
     setShowHistory(false)
     setShowChat(false)
@@ -396,15 +445,32 @@ const DatingProfilePage: FC = () => {
             {/* 兴趣标签 */}
             <View>
               <Text className="block text-sm font-medium text-gray-700 mb-2">兴趣标签</Text>
-              <View className="bg-gray-50 rounded-xl p-4">
-                <Textarea
-                  style={{ width: '100%', height: '96px', backgroundColor: 'transparent' }}
-                  placeholder="输入你的兴趣标签，用逗号分隔..."
-                  maxlength={200}
-                  value={interests}
-                  onInput={(e) => setInterests(e.detail.value)}
-                />
+              <View className="flex flex-row flex-wrap gap-2">
+                {interestOptions.map((option) => {
+                  const isSelected = selectedInterests.includes(option.value)
+                  return (
+                    <View
+                      key={option.value}
+                      className={`rounded-full px-3 py-2 flex flex-row items-center ${
+                        isSelected 
+                          ? 'bg-blue-500' 
+                          : 'bg-gray-100'
+                      }`}
+                      onClick={() => toggleInterest(option.value)}
+                    >
+                      <Text className="text-sm mr-1">{option.emoji}</Text>
+                      <Text className={`text-sm ${isSelected ? 'text-white' : 'text-gray-700'}`}>
+                        {option.label}
+                      </Text>
+                    </View>
+                  )
+                })}
               </View>
+              {selectedInterests.length > 0 && (
+                <Text className="block text-xs text-gray-400 mt-2">
+                  已选择 {selectedInterests.length} 个标签
+                </Text>
+              )}
             </View>
           </CardContent>
         </Card>
@@ -415,7 +481,7 @@ const DatingProfilePage: FC = () => {
             <Button
               variant="default"
               className="bg-blue-500 text-white rounded-xl"
-              disabled={loading || (!bio.trim() && !interests.trim())}
+              disabled={loading || (!bio.trim() && selectedInterests.length === 0)}
               onClick={handleAnalyze}
             >
               <Text className="text-white">{loading ? '分析中...' : '开始分析'}</Text>
