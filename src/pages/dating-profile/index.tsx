@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Sparkles, CircleCheck, CircleAlert, MessageCircle, Send, Loader, ChevronDown } from 'lucide-react-taro'
+import { Sparkles, CircleCheck, CircleAlert, MessageCircle, Send, Loader, ChevronDown, History, Trash2, Clock } from 'lucide-react-taro'
 import { Network } from '@/network'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,6 +24,16 @@ interface ProfileAnalysis {
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+}
+
+interface ProfileHistory {
+  id: number
+  platform: string
+  nickname: string
+  bio: string
+  interests: string
+  analysisResult: ProfileAnalysis
+  createdAt: string
 }
 
 // 平台选项
@@ -51,9 +61,40 @@ const DatingProfilePage: FC = () => {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
 
+  // 历史记录相关状态
+  const [showHistory, setShowHistory] = useState(false)
+  const [historyList, setHistoryList] = useState<ProfileHistory[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+
   useLoad(() => {
     console.log('Dating profile optimization page loaded.')
   })
+
+  // 加载历史记录
+  useEffect(() => {
+    if (showHistory) {
+      loadHistory()
+    }
+  }, [showHistory])
+
+  const loadHistory = async () => {
+    setHistoryLoading(true)
+    try {
+      const res = await Network.request({
+        url: '/api/dating/profile/history',
+        method: 'GET',
+      })
+      console.log('History response:', res.data)
+
+      if (res.data?.code === 200 && res.data?.data?.list) {
+        setHistoryList(res.data.data.list)
+      }
+    } catch (error) {
+      console.error('Load history error:', error)
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
 
   const currentPlatform = platformOptions.find(p => p.value === platform) || platformOptions[0]
 
@@ -77,10 +118,29 @@ const DatingProfilePage: FC = () => {
       console.log('Profile optimization response:', res.data)
 
       if (res.data?.code === 200 && res.data?.data) {
-        setAnalysis(res.data.data)
+        const result = res.data.data
+        setAnalysis(result)
         // 重置聊天状态
         setShowChat(false)
         setChatMessages([])
+
+        // 保存历史记录
+        try {
+          await Network.request({
+            url: '/api/dating/profile/history',
+            method: 'POST',
+            data: {
+              platform,
+              nickname: nickname.trim(),
+              bio: bio.trim(),
+              interests: interests.trim(),
+              analysisResult: result,
+            },
+          })
+          console.log('History saved')
+        } catch (saveError) {
+          console.error('Save history error:', saveError)
+        }
       }
     } catch (error) {
       console.error('Profile optimization error:', error)
@@ -150,17 +210,122 @@ const DatingProfilePage: FC = () => {
     }
   }
 
+  const handleLoadHistory = (history: ProfileHistory) => {
+    setPlatform(history.platform)
+    setNickname(history.nickname || '')
+    setBio(history.bio || '')
+    setInterests(history.interests || '')
+    setAnalysis(history.analysisResult)
+    setShowHistory(false)
+    setShowChat(false)
+    setChatMessages([])
+  }
+
+  const handleDeleteHistory = async (id: number, e: any) => {
+    e.stopPropagation()
+    try {
+      const res = await Network.request({
+        url: `/api/dating/profile/history/${id}`,
+        method: 'DELETE',
+      })
+
+      if (res.data?.code === 200) {
+        setHistoryList(prev => prev.filter(h => h.id !== id))
+      }
+    } catch (error) {
+      console.error('Delete history error:', error)
+    }
+  }
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const month = date.getMonth() + 1
+    const day = date.getDate()
+    const hour = date.getHours().toString().padStart(2, '0')
+    const minute = date.getMinutes().toString().padStart(2, '0')
+    return `${month}月${day}日 ${hour}:${minute}`
+  }
+
   return (
     <View className="min-h-screen bg-gray-50 pb-20">
       {/* 顶部说明 */}
       <View className="bg-blue-50 px-4 py-3">
-        <View className="flex flex-row items-center">
-          <Sparkles size={18} color="#3b82f6" />
-          <Text className="block text-sm text-blue-700 ml-2">
-            输入你当前的交友软件资料，AI 将给出专业优化建议
-          </Text>
+        <View className="flex flex-row items-center justify-between">
+          <View className="flex flex-row items-center flex-1">
+            <Sparkles size={18} color="#3b82f6" />
+            <Text className="block text-sm text-blue-700 ml-2">
+              输入你当前的交友软件资料，AI 将给出专业优化建议
+            </Text>
+          </View>
+          <View 
+            className="flex flex-row items-center px-3 py-1 bg-white rounded-full"
+            onClick={() => setShowHistory(!showHistory)}
+          >
+            <History size={16} color="#3b82f6" />
+            <Text className="text-xs text-blue-600 ml-1">历史</Text>
+          </View>
         </View>
       </View>
+
+      {/* 历史记录列表 */}
+      {showHistory && (
+        <View className="bg-white border-b border-gray-100">
+          <View className="px-4 py-3 border-b border-gray-100">
+            <Text className="text-sm font-medium text-gray-900">历史记录</Text>
+          </View>
+          
+          {historyLoading ? (
+            <View className="px-4 py-8 flex flex-col items-center">
+              <Loader size={20} color="#9ca3af" className="animate-spin" />
+              <Text className="text-sm text-gray-400 mt-2">加载中...</Text>
+            </View>
+          ) : historyList.length === 0 ? (
+            <View className="px-4 py-8 flex flex-col items-center">
+              <Clock size={24} color="#d1d5db" />
+              <Text className="text-sm text-gray-400 mt-2">暂无历史记录</Text>
+            </View>
+          ) : (
+            <ScrollView scrollY className="max-h-80">
+              {historyList.map((history) => {
+                const platformInfo = platformOptions.find(p => p.value === history.platform)
+                return (
+                  <View
+                    key={history.id}
+                    className="px-4 py-3 border-b border-gray-50 flex flex-row items-center justify-between active:bg-gray-50"
+                    onClick={() => handleLoadHistory(history)}
+                  >
+                    <View className="flex-1 mr-3">
+                      <View className="flex flex-row items-center mb-1">
+                        <Text className="text-sm mr-1">{platformInfo?.icon}</Text>
+                        <Text className="text-sm font-medium text-gray-900">
+                          {history.nickname || '未命名'}
+                        </Text>
+                        <Text className="text-xs text-gray-400 ml-2">
+                          {formatDate(history.createdAt)}
+                        </Text>
+                      </View>
+                      <View className="flex flex-row items-center">
+                        <View className="bg-blue-100 rounded-full px-2 py-1 mr-2">
+                          <Text className="text-xs text-blue-600">{history.analysisResult.overallScore}分</Text>
+                        </View>
+                        <Text className="text-xs text-gray-400 line-clamp-1 flex-1">
+                          {history.bio ? history.bio.substring(0, 30) + '...' : '无简介'}
+                        </Text>
+                      </View>
+                    </View>
+                    <View
+                      className="p-2 rounded-lg active:bg-gray-100"
+                      onClick={(e) => handleDeleteHistory(history.id, e)}
+                    >
+                      <Trash2 size={16} color="#9ca3af" />
+                    </View>
+                  </View>
+                )
+              })}
+            </ScrollView>
+          )}
+        </View>
+      )}
 
       {/* 输入表单 */}
       <View className="p-4">

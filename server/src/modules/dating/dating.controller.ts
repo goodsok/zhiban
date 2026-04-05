@@ -1,7 +1,7 @@
-import { Controller, Post, Body, UseInterceptors, UploadedFile, HttpCode, HttpStatus, Req } from '@nestjs/common'
+import { Controller, Post, Get, Delete, Body, Param, Query, UseInterceptors, UploadedFile, HttpCode, HttpStatus, Req } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { Request } from 'express'
-import { DatingService, ProfileAnalysis, PhotoScore, OpenerResponse, OptimizedPhoto } from './dating.service'
+import { DatingService, ProfileAnalysis, PhotoScore, OpenerResponse, OptimizedPhoto, ProfileHistory } from './dating.service'
 
 @Controller('dating')
 export class DatingController {
@@ -108,6 +108,67 @@ export class DatingController {
       code: 200,
       msg: 'success',
       data: { reply },
+    }
+  }
+
+  @Post('profile/history')
+  @HttpCode(HttpStatus.OK)
+  async saveProfileHistory(
+    @Body() body: {
+      platform: string
+      nickname?: string
+      bio?: string
+      interests?: string
+      analysisResult: ProfileAnalysis
+    },
+  ): Promise<{ code: number; msg: string; data: { id: number } }> {
+    console.log('[DatingController] saveProfileHistory called')
+    const id = await this.datingService.saveProfileHistory(body)
+    return {
+      code: 200,
+      msg: 'success',
+      data: { id },
+    }
+  }
+
+  @Get('profile/history')
+  async getProfileHistoryList(
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ): Promise<{ code: number; msg: string; data: { list: ProfileHistory[]; total: number } }> {
+    console.log('[DatingController] getProfileHistoryList called')
+    const limitNum = parseInt(limit || '20', 10)
+    const offsetNum = parseInt(offset || '0', 10)
+    const list = await this.datingService.getProfileHistoryList(limitNum, offsetNum)
+    return {
+      code: 200,
+      msg: 'success',
+      data: { list, total: list.length },
+    }
+  }
+
+  @Get('profile/history/:id')
+  async getProfileHistoryById(
+    @Param('id') id: string,
+  ): Promise<{ code: number; msg: string; data: ProfileHistory | null }> {
+    console.log('[DatingController] getProfileHistoryById called with id:', id)
+    const history = await this.datingService.getProfileHistoryById(parseInt(id, 10))
+    return {
+      code: 200,
+      msg: 'success',
+      data: history,
+    }
+  }
+
+  @Delete('profile/history/:id')
+  async deleteProfileHistory(
+    @Param('id') id: string,
+  ): Promise<{ code: number; msg: string }> {
+    console.log('[DatingController] deleteProfileHistory called with id:', id)
+    const success = await this.datingService.deleteProfileHistory(parseInt(id, 10))
+    return {
+      code: success ? 200 : 404,
+      msg: success ? 'success' : 'Not found',
     }
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Request } from 'express'
 import { LLMClient, Config, HeaderUtils, S3Storage, ImageGenerationClient } from 'coze-coding-dev-sdk'
+import { Pool } from 'pg'
 
 export interface ProfileAnalysis {
   overallScore: number
@@ -13,6 +14,16 @@ export interface ProfileAnalysis {
     reason: string
   }[]
   summary: string
+}
+
+export interface ProfileHistory {
+  id: number
+  platform: string
+  nickname: string
+  bio: string
+  interests: string
+  analysisResult: ProfileAnalysis
+  createdAt: string
 }
 
 export interface PhotoScore {
@@ -45,6 +56,7 @@ export interface OptimizedPhoto {
 @Injectable()
 export class DatingService {
   private storage: S3Storage
+  private pool: Pool
 
   constructor() {
     this.storage = new S3Storage({
@@ -53,6 +65,10 @@ export class DatingService {
       secretKey: '',
       bucketName: process.env.COZE_BUCKET_NAME,
       region: 'cn-beijing',
+    })
+    this.pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
     })
   }
 
@@ -444,5 +460,92 @@ ${targetProfile}
       ],
       tips: ['选择合适的时机发送', '保持真诚的态度'],
     }
+  }
+
+  /**
+   * 保存资料优化历史记录
+   */
+  async saveProfileHistory(data: {
+    platform: string
+    nickname?: string
+    bio?: string
+    interests?: string
+    analysisResult: ProfileAnalysis
+  }): Promise<number> {
+    const query = `
+      INSERT INTO dating_profile_history (platform, nickname, bio, interests, analysis_result)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id
+    `
+    const values = [
+      data.platform,
+      data.nickname || '',
+      data.bio || '',
+      data.interests || '',
+      JSON.stringify(data.analysisResult),
+    ]
+
+    const result = await this.pool.query(query, values)
+    console.log('[DatingService] Saved profile history with id:', result.rows[0].id)
+    return result.rows[0].id
+  }
+
+  /**
+   * 获取资料优化历史记录列表
+   */
+  async getProfileHistoryList(limit: number = 20, offset: number = 0): Promise<ProfileHistory[]> {
+    const query = `
+      SELECT id, platform, nickname, bio, interests, analysis_result, created_at
+      FROM dating_profile_history
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `
+    const result = await this.pool.query(query, [limit, offset])
+
+    return result.rows.map(row => ({
+      id: row.id,
+      platform: row.platform,
+      nickname: row.nickname,
+      bio: row.bio,
+      interests: row.interests,
+      analysisResult: row.analysis_result,
+      createdAt: row.created_at,
+    }))
+  }
+
+  /**
+   * 获取单条资料优化历史记录
+   */
+  async getProfileHistoryById(id: number): Promise<ProfileHistory | null> {
+    const query = `
+      SELECT id, platform, nickname, bio, interests, analysis_result, created_at
+      FROM dating_profile_history
+      WHERE id = $1
+    `
+    const result = await this.pool.query(query, [id])
+
+    if (result.rows.length === 0) {
+      return null
+    }
+
+    const row = result.rows[0]
+    return {
+      id: row.id,
+      platform: row.platform,
+      nickname: row.nickname,
+      bio: row.bio,
+      interests: row.interests,
+      analysisResult: row.analysis_result,
+      createdAt: row.created_at,
+    }
+  }
+
+  /**
+   * 删除资料优化历史记录
+   */
+  async deleteProfileHistory(id: number): Promise<boolean> {
+    const query = 'DELETE FROM dating_profile_history WHERE id = $1'
+    const result = await this.pool.query(query, [id])
+    return result.rowCount > 0
   }
 }
