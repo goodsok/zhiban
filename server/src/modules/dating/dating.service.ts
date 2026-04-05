@@ -171,7 +171,6 @@ export class DatingService {
 ${platformGuide}
 
 用户资料：
-- 昵称：${data.nickname || '未填写'}
 - 个人简介：${data.bio || '未填写'}
 - 兴趣标签：${data.interests || '未填写'}
 
@@ -179,7 +178,7 @@ ${platformGuide}
 1. 整体吸引力评分（0-100分，考虑平台特性）
 2. 当前优势（列出2-3条，结合平台特点）
 3. 需要改进的地方（列出2-3条，针对平台优化）
-4. 具体的优化建议（针对昵称、简介、兴趣标签给出改进版本和理由，要符合 ${platformName} 的平台调性）
+4. 具体的优化建议（针对简介、兴趣标签给出改进版本和理由，要符合 ${platformName} 的平台调性）
 5. 总结性建议
 
 请以JSON格式返回，格式如下：
@@ -264,7 +263,6 @@ ${platformGuide}
 平台特性：${platformGuide}
 
 用户原始资料：
-- 昵称：${data.nickname || '未填写'}
 - 个人简介：${data.bio || '未填写'}
 - 兴趣标签：${data.interests || '未填写'}
 

@@ -47,7 +47,6 @@ const platformOptions = [
 ]
 
 const DatingProfilePage: FC = () => {
-  const [nickname, setNickname] = useState('')
   const [bio, setBio] = useState('')
   const [interests, setInterests] = useState('')
   const [platform, setPlatform] = useState('tantan')
@@ -99,7 +98,7 @@ const DatingProfilePage: FC = () => {
   const currentPlatform = platformOptions.find(p => p.value === platform) || platformOptions[0]
 
   const handleAnalyze = async () => {
-    if (!nickname.trim() && !bio.trim() && !interests.trim()) {
+    if (!bio.trim() && !interests.trim()) {
       return
     }
 
@@ -109,7 +108,6 @@ const DatingProfilePage: FC = () => {
         url: '/api/dating/profile/optimize',
         method: 'POST',
         data: {
-          nickname: nickname.trim(),
           bio: bio.trim(),
           interests: interests.trim(),
           platform,
@@ -131,7 +129,6 @@ const DatingProfilePage: FC = () => {
             method: 'POST',
             data: {
               platform,
-              nickname: nickname.trim(),
               bio: bio.trim(),
               interests: interests.trim(),
               analysisResult: result,
@@ -150,7 +147,6 @@ const DatingProfilePage: FC = () => {
   }
 
   const handleReset = () => {
-    setNickname('')
     setBio('')
     setInterests('')
     setAnalysis(null)
@@ -184,7 +180,6 @@ const DatingProfilePage: FC = () => {
         url: '/api/dating/profile/chat',
         method: 'POST',
         data: {
-          nickname: nickname.trim(),
           bio: bio.trim(),
           interests: interests.trim(),
           platform,
@@ -212,7 +207,6 @@ const DatingProfilePage: FC = () => {
 
   const handleLoadHistory = (history: ProfileHistory) => {
     setPlatform(history.platform)
-    setNickname(history.nickname || '')
     setBio(history.bio || '')
     setInterests(history.interests || '')
     setAnalysis(history.analysisResult)
@@ -298,7 +292,7 @@ const DatingProfilePage: FC = () => {
                       <View className="flex flex-row items-center mb-1">
                         <Text className="text-sm mr-1">{platformInfo?.icon}</Text>
                         <Text className="text-sm font-medium text-gray-900">
-                          {history.nickname || '未命名'}
+                          {history.bio ? history.bio.substring(0, 20) + '...' : '无简介'}
                         </Text>
                         <Text className="text-xs text-gray-400 ml-2">
                           {formatDate(history.createdAt)}
@@ -308,9 +302,11 @@ const DatingProfilePage: FC = () => {
                         <View className="bg-blue-100 rounded-full px-2 py-1 mr-2">
                           <Text className="text-xs text-blue-600">{history.analysisResult.overallScore}分</Text>
                         </View>
-                        <Text className="text-xs text-gray-400 line-clamp-1 flex-1">
-                          {history.bio ? history.bio.substring(0, 30) + '...' : '无简介'}
-                        </Text>
+                        {history.interests && (
+                          <Text className="text-xs text-gray-400 line-clamp-1 flex-1">
+                            {history.interests}
+                          </Text>
+                        )}
                       </View>
                     </View>
                     <View
@@ -382,26 +378,12 @@ const DatingProfilePage: FC = () => {
             <CardTitle className="text-base">基本信息</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* 昵称 */}
-            <View>
-              <Text className="block text-sm font-medium text-gray-700 mb-2">昵称</Text>
-              <View className="bg-gray-50 rounded-xl px-4 py-3">
-                <Textarea
-                  style={{ width: '100%', minHeight: '40px', backgroundColor: 'transparent' }}
-                  placeholder="输入你的昵称..."
-                  maxlength={20}
-                  value={nickname}
-                  onInput={(e) => setNickname(e.detail.value)}
-                />
-              </View>
-            </View>
-
             {/* 个人简介 */}
             <View>
               <Text className="block text-sm font-medium text-gray-700 mb-2">个人简介</Text>
-              <View className="bg-gray-50 rounded-xl p-4">
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
                 <Textarea
-                  style={{ width: '100%', minHeight: '100px', backgroundColor: 'transparent' }}
+                  style={{ width: '100%', minHeight: '200px', backgroundColor: 'transparent' }}
                   placeholder="粘贴你的个人简介..."
                   maxlength={500}
                   value={bio}
@@ -414,9 +396,9 @@ const DatingProfilePage: FC = () => {
             {/* 兴趣标签 */}
             <View>
               <Text className="block text-sm font-medium text-gray-700 mb-2">兴趣标签</Text>
-              <View className="bg-gray-50 rounded-xl p-4">
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
                 <Textarea
-                  style={{ width: '100%', minHeight: '60px', backgroundColor: 'transparent' }}
+                  style={{ width: '100%', minHeight: '80px', backgroundColor: 'transparent' }}
                   placeholder="输入你的兴趣标签，用逗号分隔..."
                   maxlength={200}
                   value={interests}
@@ -433,7 +415,7 @@ const DatingProfilePage: FC = () => {
             <Button
               variant="default"
               className="bg-blue-500 text-white rounded-xl"
-              disabled={loading || (!nickname.trim() && !bio.trim() && !interests.trim())}
+              disabled={loading || (!bio.trim() && !interests.trim())}
               onClick={handleAnalyze}
             >
               <Text className="text-white">{loading ? '分析中...' : '开始分析'}</Text>
@@ -509,13 +491,13 @@ const DatingProfilePage: FC = () => {
             </Card>
 
             {/* 具体优化建议 */}
-            {analysis.suggestions.length > 0 && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <Text className="block text-base font-semibold text-gray-900">优化方案</Text>
-                </CardHeader>
-                <CardContent>
-                  {analysis.suggestions.map((suggestion, index) => (
+            <Card>
+              <CardHeader className="pb-3">
+                <Text className="block text-base font-semibold text-gray-900">优化方案</Text>
+              </CardHeader>
+              <CardContent>
+                {analysis.suggestions.length > 0 ? (
+                  analysis.suggestions.map((suggestion, index) => (
                     <View key={index} className="mb-4 pb-4 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0">
                       <Text className="block text-sm font-medium text-gray-900 mb-2">
                         {suggestion.field}
@@ -530,10 +512,15 @@ const DatingProfilePage: FC = () => {
                       </View>
                       <Text className="block text-xs text-gray-500 italic">{suggestion.reason}</Text>
                     </View>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
+                  ))
+                ) : (
+                  <View className="py-4 flex flex-col items-center">
+                    <Text className="text-sm text-gray-400">暂无具体优化建议</Text>
+                    <Text className="text-xs text-gray-300 mt-1">资料整体表现不错，继续保持～</Text>
+                  </View>
+                )}
+              </CardContent>
+            </Card>
 
             {/* 总结 */}
             <Card className="bg-blue-50">
