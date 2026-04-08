@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { View, Text, Image } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Eye, Image as ImageIcon, Star, Map, Check, X, Clock, Trophy, RotateCcw } from 'lucide-react-taro'
+import { Eye, FileText, Search, Target, Clock, Trophy, RotateCcw, Check, X } from 'lucide-react-taro'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -14,7 +14,7 @@ interface Option {
 
 interface Question {
   id: string
-  imageUrl: string
+  description: string
   question: string
   options: Option[]
 }
@@ -25,33 +25,132 @@ interface Challenge {
   icon: any
   color: string
   description: string
+  readTime: number
   questions: Question[]
 }
 
-// 使用简单的色块和emoji代替图片，避免需要真实图片
 const challenges: Challenge[] = [
   {
-    id: 'count',
-    name: '数数挑战',
-    icon: ImageIcon,
+    id: 'person',
+    name: '人物观察',
+    icon: Eye,
     color: 'from-rose-400 to-pink-500',
-    description: '快速数出图片中的元素数量',
+    description: '观察人物的细节特征',
+    readTime: 10,
     questions: [
       {
-        id: 'c1',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZlZjNlNyIvPjx0ZXh0IHg9IjEwIiB5PSI1MCIgZm9udC1zaXplPSI0MCI+8J+UpDwvdGV4dD48dGV4dCB4PSI4MCIgeT0iMTAwIiBmb250LXNpemU9IjQwIj7wn5SkPC90ZXh0Pjx0ZXh0IHg9IjE1MCIgeT0iNjAiIGZvbnQtc2l6ZT0iNDAiPvCflKQ8L3RleHQ+PHRleHQgeD0iMjMwIiB5PSIxMzAiIGZvbnQtc2l6ZT0iNDAiPvCflKQ8L3RleHQ+PHRleHQgeD0iOTAiIHk9IjE4MCIgZm9udC1zaXplPSI0MCI+8J+UpDwvdGV4dD48L3N2Zz4=',
-        question: '图中一共有几个🌸？',
+        id: 'p1',
+        description: '小明今天穿了一件深蓝色的卫衣，卫衣上有一个白色的星形图案。他戴着一副黑色的圆框眼镜，头发是棕色的，稍微有点乱。他的左耳朵上戴着一个银色的耳环。他背着一个灰色的双肩包，包的侧面挂着一个紫色的小熊玩偶。',
+        question: '小明的卫衣是什么颜色？',
         options: [
-          { id: 'a', text: '3个', isCorrect: false },
-          { id: 'b', text: '4个', isCorrect: false },
-          { id: 'c', text: '5个', isCorrect: true },
-          { id: 'd', text: '6个', isCorrect: false },
+          { id: 'a', text: '深蓝色', isCorrect: true },
+          { id: 'b', text: '黑色', isCorrect: false },
+          { id: 'c', text: '灰色', isCorrect: false },
+          { id: 'd', text: '棕色', isCorrect: false },
         ],
       },
       {
-        id: 'c2',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2UwZjJmZSIvPjx0ZXh0IHg9IjMwIiB5PSI0MCIgZm9udC1zaXplPSIzMCI+8J+UpjwvdGV4dD48dGV4dCB4PSIxMDAiIHk9IjgwIiBmb250LXNpemU9IjMwIj7wn5SmPC90ZXh0Pjx0ZXh0IHg9IjIwMCIgeT0iNTAiIGZvbnQtc2l6ZT0iMzAiPvCflKQ8L3RleHQ+PHRleHQgeD0iNTAiIHk9IjEzMCIgZm9udC1zaXplPSIzMCI+8J+UpjwvdGV4dD48dGV4dCB4PSIxNTAiIHk9IjE1MCIgZm9udC1zaXplPSIzMCI+8J+UpDwvdGV4dD48dGV4dCB4PSIyNTAiIHk9IjEwMCIgZm9udC1zaXplPSIzMCI+8J+UpjwvdGV4dD48L3N2Zz4=',
-        question: '图中一共有几个🍎？',
+        id: 'p2',
+        description: '李华今天穿了一件白色的T恤，T恤正面印着"LOVE"四个字母。她扎着马尾辫，头发是黑色的。她戴着一副粉色的墨镜，脖子上戴着一条银色的项链。她手里拿着一杯奶茶，奶茶杯上画着一只可爱的小猫。',
+        question: '李华的T恤上印着什么？',
+        options: [
+          { id: 'a', text: 'HEART', isCorrect: false },
+          { id: 'b', text: 'LOVE', isCorrect: true },
+          { id: 'c', text: 'SMILE', isCorrect: false },
+          { id: 'd', text: 'HAPPY', isCorrect: false },
+        ],
+      },
+      {
+        id: 'p3',
+        description: '王刚穿着一套深灰色的西装，西装的扣子是金色的。他戴着一副银色的手表，手表的表带是黑色的。他的头发很短，是黑色的。他手里提着一个黑色的公文包，公文包上有一个银色的金属锁扣。',
+        question: '王刚西装的扣子是什么颜色？',
+        options: [
+          { id: 'a', text: '银色', isCorrect: false },
+          { id: 'b', text: '金色', isCorrect: true },
+          { id: 'c', text: '黑色', isCorrect: false },
+          { id: 'd', text: '灰色', isCorrect: false },
+        ],
+      },
+      {
+        id: 'p4',
+        description: '小红穿着一条浅蓝色的连衣裙，连衣裙上印着白色的小花朵图案。她的长发是棕色的，自然披在肩上。她戴着一条珍珠项链，项链上有一个红色的吊坠。她穿着一双白色的高跟鞋，高跟鞋的鞋跟是7厘米。',
+        question: '小红的项链吊坠是什么颜色？',
+        options: [
+          { id: 'a', text: '白色', isCorrect: false },
+          { id: 'b', text: '蓝色', isCorrect: false },
+          { id: 'c', text: '红色', isCorrect: true },
+          { id: 'd', text: '粉色', isCorrect: false },
+        ],
+      },
+      {
+        id: 'p5',
+        description: '张伟穿着一件黑色的运动服，运动服上有一个白色的耐克标志。他戴着一顶红色的棒球帽，帽子是反戴的。他穿了一双白色的运动鞋，鞋子的侧面有银色的装饰线条。他手里拿着一个篮球，篮球是橙色的。',
+        question: '张伟的帽子是什么颜色的？',
+        options: [
+          { id: 'a', text: '黑色', isCorrect: false },
+          { id: 'b', text: '白色', isCorrect: false },
+          { id: 'c', text: '红色', isCorrect: true },
+          { id: 'd', text: '蓝色', isCorrect: false },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'scene',
+    name: '场景观察',
+    icon: Search,
+    color: 'from-amber-400 to-orange-500',
+    description: '观察场景中的细节',
+    readTime: 10,
+    questions: [
+      {
+        id: 's1',
+        description: '房间里有一张长方形的白色书桌，桌子上放着一台黑色的电脑，电脑旁边有一盏黄色的台灯。书桌的左边有一把蓝色的椅子，椅子上有两个白色的靠垫。房间的墙上挂着一幅绿色的风景画，画的旁边有一个圆形的镜子。',
+        question: '书桌上放着一盏什么颜色的台灯？',
+        options: [
+          { id: 'a', text: '红色', isCorrect: false },
+          { id: 'b', text: '黄色', isCorrect: true },
+          { id: 'c', text: '蓝色', isCorrect: false },
+          { id: 'd', text: '绿色', isCorrect: false },
+        ],
+      },
+      {
+        id: 's2',
+        description: '厨房里有一个白色的冰箱，冰箱上贴着三张照片和两个磁铁。冰箱旁边是一个不锈钢的洗碗机，洗碗机的上方有一排白色的橱柜。厨房的窗户是长方形的，挂着白色的窗帘。厨房的地板上铺着灰色的瓷砖。',
+        question: '冰箱上贴着几张照片？',
+        options: [
+          { id: 'a', text: '2张', isCorrect: false },
+          { id: 'b', text: '3张', isCorrect: true },
+          { id: 'c', text: '4张', isCorrect: false },
+          { id: 'd', text: '5张', isCorrect: false },
+        ],
+      },
+      {
+        id: 's3',
+        description: '公园里有一个圆形的喷泉，喷泉的水柱高约3米。喷泉的周围有四张长椅，长椅是褐色的。喷泉的左边有一棵大槐树，树下放着一个绿色的垃圾桶。喷泉的右边是一条小路，小路两旁种着粉色的玫瑰花。',
+        question: '长椅是什么颜色的？',
+        options: [
+          { id: 'a', text: '灰色', isCorrect: false },
+          { id: 'b', text: '褐色', isCorrect: true },
+          { id: 'c', text: '绿色', isCorrect: false },
+          { id: 'd', text: '黑色', isCorrect: false },
+        ],
+      },
+      {
+        id: 's4',
+        description: '办公室里有一张深色的办公桌，桌子上放着一台电脑、一个咖啡杯和一个文件夹。办公桌的后面是一把黑色的办公椅，椅子的扶手是木质的。办公室的墙上挂着一块白板，白板上写着"周一会议"四个字。房间的角落里放着一个绿色的盆栽。',
+        question: '白板上写着什么？',
+        options: [
+          { id: 'a', text: '周五会议', isCorrect: false },
+          { id: 'b', text: '周一会议', isCorrect: true },
+          { id: 'c', text: '周三会议', isCorrect: false },
+          { id: 'd', text: '周二会议', isCorrect: false },
+        ],
+      },
+      {
+        id: 's5',
+        description: '客厅里有一张灰色的布艺沙发，沙发上有三个抱枕，抱枕是白色的。沙发的前面是一个长方形的茶几，茶几上放着一个花瓶和三本杂志。客厅的墙上挂着一台电视机，电视机下面是一个黑色的电视柜。电视柜上放着一个音响和一个相框。',
+        question: '沙发上有几个抱枕？',
         options: [
           { id: 'a', text: '2个', isCorrect: false },
           { id: 'b', text: '3个', isCorrect: true },
@@ -59,141 +158,134 @@ const challenges: Challenge[] = [
           { id: 'd', text: '5个', isCorrect: false },
         ],
       },
-      {
-        id: 'c3',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2RmZTVkNiIvPjx0ZXh0IHg9IjQwIiB5PSI0MCIgZm9udC1zaXplPSIyNSI+8J+YpTwvdGV4dD48dGV4dCB4PSIxMjAiIHk9IjcwIiBmb250LXNpemU9IjI1Ij7wn5ilPC90ZXh0Pjx0ZXh0IHg9IjIwMCIgeT0iNDAiIGZvbnQtc2l6ZT0iMjUiPvCfmKU8L3RleHQ+PHRleHQgeD0iODAiIHk9IjEyMCIgZm9udC1zaXplPSIyNSI+8J+YpTwvdGV4dD48dGV4dCB4PSIxODAiIHk9IjE1MCIgZm9udC1zaXplPSIyNSI+8J+YpTwvdGV4dD48dGV4dCB4PSIyNjAiIHk9IjgwIiBmb250LXNpemU9IjI1Ij7wn5ilPC90ZXh0Pjwvc3ZnPg==',
-        question: '图中一共有几个⭐？',
-        options: [
-          { id: 'a', text: '4个', isCorrect: false },
-          { id: 'b', text: '5个', isCorrect: false },
-          { id: 'c', text: '6个', isCorrect: true },
-          { id: 'd', text: '7个', isCorrect: false },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'color',
-    name: '颜色识别',
-    icon: Star,
-    color: 'from-amber-400 to-orange-500',
-    description: '快速识别图片中的主色调',
-    questions: [
-      {
-        id: 'cl1',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2IzZTNmMiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNDAiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSI1MCIgcj0iMzAiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjE1MCIgcj0iMjUiIGZpbGw9IiNmZmYiLz48L3N2Zz4=',
-        question: '图片的主色调是什么？',
-        options: [
-          { id: 'a', text: '蓝色', isCorrect: true },
-          { id: 'b', text: '绿色', isCorrect: false },
-          { id: 'c', text: '红色', isCorrect: false },
-          { id: 'd', text: '黄色', isCorrect: false },
-        ],
-      },
-      {
-        id: 'cl2',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2U5YTVmNSIvPjxyZWN0IHg9IjUwIiB5PSI1MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZmZmIi8+PHJlY3QgeD0iMTcwIiB5PSI3MCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZmZmIi8+PC9zdmc+',
-        question: '图片的主色调是什么？',
-        options: [
-          { id: 'a', text: '粉色', isCorrect: true },
-          { id: 'b', text: '紫色', isCorrect: false },
-          { id: 'c', text: '橙色', isCorrect: false },
-          { id: 'd', text: '红色', isCorrect: false },
-        ],
-      },
-      {
-        id: 'cl3',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzRlZDM4NSIvPjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiBmb250LXNpemU9IjgwIj7wn5SbPC90ZXh0Pjwvc3ZnPg==',
-        question: '图片的主色调是什么？',
-        options: [
-          { id: 'a', text: '蓝色', isCorrect: false },
-          { id: 'b', text: '绿色', isCorrect: true },
-          { id: 'c', text: '青色', isCorrect: false },
-          { id: 'd', text: '黑色', isCorrect: false },
-        ],
-      },
     ],
   },
   {
     id: 'detail',
-    name: '细节观察',
-    icon: Eye,
+    name: '细节捕捉',
+    icon: FileText,
     color: 'from-emerald-400 to-green-500',
-    description: '找出图片中的特定元素',
+    description: '快速捕捉关键信息',
+    readTime: 8,
     questions: [
       {
         id: 'd1',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YwZjlmZiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCI+8J+LqjwvdGV4dD48dGV4dCB4PSIxNTAiIHk9IjEwMCIgZm9udC1zaXplPSI0MCI+8J+LqjwvdGV4dD48dGV4dCB4PSIyMzAiIHk9IjQ1IiBmb250LXNpemU9IjQwIj7wn4uyPC90ZXh0Pjwvc3ZnPg==',
-        question: '图中除了☁️还有什么？',
+        description: '这是一篇关于天气预报的报道：今天北京的天气晴朗，最高气温28度，最低气温15度。明天会下小雨，气温会下降到25度。后天天气转晴，气温回升到30度。注意防晒，出门记得带雨伞。',
+        question: '明天北京会下什么雨？',
         options: [
-          { id: 'a', text: '太阳', isCorrect: false },
-          { id: 'b', text: '月亮', isCorrect: false },
-          { id: 'c', text: '没有其他', isCorrect: true },
-          { id: 'd', text: '星星', isCorrect: false },
+          { id: 'a', text: '大雨', isCorrect: false },
+          { id: 'b', text: '小雨', isCorrect: true },
+          { id: 'c', text: '暴雨', isCorrect: false },
+          { id: 'd', text: '不下雨', isCorrect: false },
         ],
       },
       {
         id: 'd2',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2RmZjNmZSIvPjx0ZXh0IHg9IjgwIiB5PSI2MCIgZm9udC1zaXplPSIzNSI+8J+RiTwvdGV4dD48dGV4dCB4PSIxODAiIHk9IjE1MCIgZm9udC1zaXplPSIzNSI+8J+RijwvdGV4dD48dGV4dCB4PSIyNDAiIHk9IjgwIiBmb250LXNpemU9IjM1Ij7wn5GJPC90ZXh0Pjx0ZXh0IHg9IjQwIiB5PSIxMzAiIGZvbnQtc2l6ZT0iMzUiPvCfkYY8L3RleHQ+PHRleHQgeD0iMjU1IiB5PSIxNjAiIGZvbnQtc2l6ZT0iMzUiPvCfkYg8L3RleHQ+PC9zdmc+',
-        question: '图中哪个🌲数量最多？',
+        description: '这是一则招聘启事：某科技公司正在招聘前端工程师，要求有3年以上工作经验，熟悉React和Vue框架。薪资待遇为15K-25K，工作地点在北京市朝阳区。简历投递邮箱为hr@company.com，截止日期为本月30日。',
+        question: '薪资待遇是多少？',
         options: [
-          { id: 'a', text: '左侧', isCorrect: true },
-          { id: 'b', text: '右侧', isCorrect: false },
-          { id: 'c', text: '一样多', isCorrect: false },
-          { id: 'd', text: '都不多', isCorrect: false },
+          { id: 'a', text: '10K-20K', isCorrect: false },
+          { id: 'b', text: '15K-25K', isCorrect: true },
+          { id: 'c', text: '20K-30K', isCorrect: false },
+          { id: 'd', text: '25K-35K', isCorrect: false },
         ],
       },
       {
         id: 'd3',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2UwZTdlMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMTAwIiByPSIzMCIgZmlsbD0iI2ZmNjY2NiIvPjxjaXJjbGUgY3g9IjI1MCIgY3k9IjUwIiByPSIyNSIgZmlsbD0iIzY2ZmY2NiIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iMzUiIGZpbGw9IiNmZjY2NjYiLz48L3N2Zz4=',
-        question: '图中红色的圆有几个？',
+        description: '这是一则餐厅广告：本餐厅位于市中心繁华地段，营业时间从上午10点到晚上10点。我们提供多种美食，包括川菜、粤菜和西餐。现在推出优惠活动，消费满100元减20元，会员还可享受8折优惠。',
+        question: '餐厅的营业时间是什么时候？',
         options: [
-          { id: 'a', text: '1个', isCorrect: false },
-          { id: 'b', text: '2个', isCorrect: true },
-          { id: 'c', text: '3个', isCorrect: false },
-          { id: 'd', text: '4个', isCorrect: false },
+          { id: 'a', text: '8点到20点', isCorrect: false },
+          { id: 'b', text: '10点到22点', isCorrect: true },
+          { id: 'c', text: '9点到21点', isCorrect: false },
+          { id: 'd', text: '11点到23点', isCorrect: false },
+        ],
+      },
+      {
+        id: 'd4',
+        description: '这是一则电影预告：一部新电影即将上映，讲述了一个关于友情和冒险的故事。电影将于下周五在全国各大影院上映，片长120分钟。导演是著名导演张艺谋，主演是演员邓超和孙俪。票价从30元到80元不等。',
+        question: '电影的片长是多少分钟？',
+        options: [
+          { id: 'a', text: '100分钟', isCorrect: false },
+          { id: 'b', text: '110分钟', isCorrect: false },
+          { id: 'c', text: '120分钟', isCorrect: true },
+          { id: 'd', text: '130分钟', isCorrect: false },
+        ],
+      },
+      {
+        id: 'd5',
+        description: '这是一则课程介绍：本课程为期12周，每周2次课，每次课2小时。课程内容包括前端基础、进阶技术和项目实战。学费为3800元，提供分期付款选项。学员完成课程后可以获得结业证书，优秀学员还可获得实习机会。',
+        question: '课程为期多少周？',
+        options: [
+          { id: 'a', text: '8周', isCorrect: false },
+          { id: 'b', text: '10周', isCorrect: false },
+          { id: 'c', text: '12周', isCorrect: true },
+          { id: 'd', text: '14周', isCorrect: false },
         ],
       },
     ],
   },
   {
-    id: 'position',
-    name: '位置记忆',
-    icon: Map,
+    id: 'memory',
+    name: '记忆测试',
+    icon: Target,
     color: 'from-blue-400 to-indigo-500',
-    description: '记住图片中元素的位置',
+    description: '快速记忆并回答',
+    readTime: 12,
     questions: [
       {
-        id: 'p1',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZhZmFmYSIvPjx0ZXh0IHg9IjMwIiB5PSI0MCIgZm9udC1zaXplPSIyNSI+8J+RiTwvdGV4dD48dGV4dCB4PSIyNTAiIHk9IjQwIiBmb250LXNpemU9IjI1Ij7wn5GKPC90ZXh0Pjx0ZXh0IHg9IjMwIiB5PSIxNjAiIGZvbnQtc2l6ZT0iMjUiPvCfkYg8L3RleHQ+PHRleHQgeD0iMjUwIiB5PSIxNjAiIGZvbnQtc2l6ZT0iMjUiPvCfkYY8L3RleHQ+PC9zdmc+',
-        question: '哪个角落没有🌲？',
+        id: 'm1',
+        description: '请记住这个购物清单：苹果3个、香蕉2根、牛奶1盒、面包1袋、鸡蛋1盒、蔬菜2斤、水果1斤。清单上总共有7种商品。',
+        question: '清单上有多少种商品？',
         options: [
-          { id: 'a', text: '左上角', isCorrect: false },
-          { id: 'b', text: '右上角', isCorrect: false },
-          { id: 'c', text: '左下角', isCorrect: false },
-          { id: 'd', text: '每个角落都有', isCorrect: true },
+          { id: 'a', text: '5种', isCorrect: false },
+          { id: 'b', text: '6种', isCorrect: false },
+          { id: 'c', text: '7种', isCorrect: true },
+          { id: 'd', text: '8种', isCorrect: false },
         ],
       },
       {
-        id: 'p2',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZmY5OSIvPjx0ZXh0IHg9IjEwMCIgeT0iNTAiIGZvbnQtc2l6ZT0iMzAiPvCflKQ8L3RleHQ+PHRleHQgeD0iMjAwIiB5PSIxMzAiIGZvbnQtc2l6ZT0iMzAiPvCflKQ8L3RleHQ+PHRleHQgeD0iNjAiIHk9IjE0MCIgZm9udC1zaXplPSIzMCI+8J+UpDwvdGV4dD48dGV4dCB4PSIyNDAiIHk9IjYwIiBmb250LXNpemU9IjMwIj7wn5SkPC90ZXh0Pjwvc3ZnPg==',
-        question: '🌸分布最多的区域是？',
+        id: 'm2',
+        description: '请记住这些日期：小明的生日是5月15日，小红的生日是8月20日，小华的生日是11月5日，小李的生日是3月18日，小王的生日是12月25日。',
+        question: '小红的生日是哪一天？',
         options: [
-          { id: 'a', text: '上半部分', isCorrect: false },
-          { id: 'b', text: '下半部分', isCorrect: true },
-          { id: 'c', text: '均匀分布', isCorrect: false },
-          { id: 'd', text: '集中中间', isCorrect: false },
+          { id: 'a', text: '5月15日', isCorrect: false },
+          { id: 'b', text: '8月20日', isCorrect: true },
+          { id: 'c', text: '11月5日', isCorrect: false },
+          { id: 'd', text: '3月18日', isCorrect: false },
         ],
       },
       {
-        id: 'p3',
-        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2IyZDJkMiIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LXNpemU9IjQwIj7wn5SmPC90ZXh0Pjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSIyNSI+8J+YpTwvdGV4dD48dGV4dCB4PSIyNTAiIHk9IjUwIiBmb250LXNpemU9IjI1Ij7wn5ilPC90ZXh0Pjwvc3ZnPg==',
-        question: '🍎分布在图片的什么位置？',
+        id: 'm3',
+        description: '请记住这个密码规则：密码长度为8-12位，必须包含大小写字母、数字和特殊字符。不能使用连续的数字，不能重复使用字符。密码每3个月更换一次。',
+        question: '密码长度是多少位？',
         options: [
-          { id: 'a', text: '中心位置', isCorrect: true },
-          { id: 'b', text: '上方', isCorrect: false },
-          { id: 'c', text: '下方', isCorrect: false },
-          { id: 'd', text: '左右两侧', isCorrect: false },
+          { id: 'a', text: '6-10位', isCorrect: false },
+          { id: 'b', text: '8-12位', isCorrect: true },
+          { id: 'c', text: '10-14位', isCorrect: false },
+          { id: 'd', text: '12-16位', isCorrect: false },
+        ],
+      },
+      {
+        id: 'm4',
+        description: '请记住这个停车收费标准：停车费每小时5元，每天最高收费50元。晚上10点到早上6点免费。会员可以享受8折优惠。停车超过24小时按照天收费。',
+        question: '停车费每小时多少钱？',
+        options: [
+          { id: 'a', text: '3元', isCorrect: false },
+          { id: 'b', text: '5元', isCorrect: true },
+          { id: 'c', text: '8元', isCorrect: false },
+          { id: 'd', text: '10元', isCorrect: false },
+        ],
+      },
+      {
+        id: 'm5',
+        description: '请记住这个航班信息：航班号为CA1234，起飞时间是上午10点，预计飞行时间2小时30分钟。登机口为A18，行李额为20公斤。请提前1小时到达机场办理值机。',
+        question: '登机口是多少？',
+        options: [
+          { id: 'a', text: 'A12', isCorrect: false },
+          { id: 'b', text: 'A15', isCorrect: false },
+          { id: 'c', text: 'A18', isCorrect: true },
+          { id: 'd', text: 'A20', isCorrect: false },
         ],
       },
     ],
@@ -201,9 +293,10 @@ const challenges: Challenge[] = [
 ]
 
 const ChallengePage: FC = () => {
-  const [step, setStep] = useState<'select' | 'play' | 'result'>('select')
+  const [step, setStep] = useState<'select' | 'read' | 'play' | 'result'>('select')
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [readTimeLeft, setReadTimeLeft] = useState(10)
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [showResult, setShowResult] = useState(false)
   const [timeLeft, setTimeLeft] = useState(30)
@@ -217,26 +310,44 @@ const ChallengePage: FC = () => {
 
   useEffect(() => {
     let interval: NodeJS.Timeout
+    if (step === 'read' && isTimerActive && readTimeLeft > 0) {
+      interval = setInterval(() => {
+        setReadTimeLeft((prev) => prev - 1)
+      }, 1000)
+    } else if (step === 'read' && readTimeLeft === 0) {
+      handleReadTimeUp()
+    }
+    return () => clearInterval(interval)
+  }, [step, isTimerActive, readTimeLeft])
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout
     if (step === 'play' && isTimerActive && timeLeft > 0 && !showResult) {
       interval = setInterval(() => {
         setTimeLeft((prev) => prev - 1)
       }, 1000)
     } else if (timeLeft === 0 && step === 'play' && !showResult) {
-      handleTimeUp()
+      handleAnswerTimeUp()
     }
     return () => clearInterval(interval)
   }, [step, isTimerActive, timeLeft, showResult])
 
   const handleSelectChallenge = (challenge: Challenge) => {
     setSelectedChallenge(challenge)
-    setStep('play')
+    setStep('read')
     setCurrentQuestionIndex(0)
+    setReadTimeLeft(challenge.readTime)
     setSelectedOption(null)
     setShowResult(false)
     setTimeLeft(30)
     setScore(0)
     setCorrectCount(0)
     setIsTimerActive(true)
+  }
+
+  const handleReadTimeUp = () => {
+    setStep('play')
+    setIsTimerActive(false)
   }
 
   const handleSelectOption = (optionId: string) => {
@@ -257,7 +368,7 @@ const ChallengePage: FC = () => {
     }
   }
 
-  const handleTimeUp = () => {
+  const handleAnswerTimeUp = () => {
     setShowResult(true)
     setIsTimerActive(false)
   }
@@ -269,7 +380,9 @@ const ChallengePage: FC = () => {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
       setSelectedOption(null)
       setShowResult(false)
+      setReadTimeLeft(selectedChallenge.readTime)
       setTimeLeft(30)
+      setStep('read')
       setIsTimerActive(true)
     } else {
       setStep('result')
@@ -280,6 +393,7 @@ const ChallengePage: FC = () => {
     setStep('select')
     setSelectedChallenge(null)
     setCurrentQuestionIndex(0)
+    setReadTimeLeft(10)
     setSelectedOption(null)
     setShowResult(false)
     setTimeLeft(30)
@@ -306,7 +420,7 @@ const ChallengePage: FC = () => {
       <View className="bg-gradient-to-r from-indigo-500 to-blue-500 px-4 py-6">
         <Text className="block text-2xl font-bold text-white mb-2">观察力挑战</Text>
         <Text className="block text-sm text-gray-200">
-          快速观察图片，找出答案
+          快速阅读，捕捉细节
         </Text>
       </View>
 
@@ -352,6 +466,61 @@ const ChallengePage: FC = () => {
           </>
         )}
 
+        {step === 'read' && selectedChallenge && (
+          <>
+            {/* 顶部信息栏 */}
+            <View className="bg-white rounded-xl px-4 py-3 mb-4 flex flex-row items-center justify-between">
+              <View className="flex flex-row items-center">
+                {(() => {
+                  const Icon = selectedChallenge.icon
+                  return <Icon size={16} color="#6366f1" />
+                })()}
+                <Text className="text-sm font-medium text-gray-700 ml-2">
+                  {selectedChallenge.name}
+                </Text>
+              </View>
+              <View className="flex flex-row items-center">
+                <Clock size={16} color={readTimeLeft <= 3 ? '#ef4444' : '#6b7280'} />
+                <Text className={`text-sm font-medium ml-2 ${readTimeLeft <= 3 ? 'text-red-500' : 'text-gray-700'}`}>
+                  {readTimeLeft}s
+                </Text>
+              </View>
+            </View>
+
+            {/* 进度 */}
+            <View className="bg-gray-200 rounded-full h-2 mb-4">
+              <View
+                className={`bg-gradient-to-r ${selectedChallenge.color} h-2 rounded-full transition-all`}
+                style={{ width: `${((currentQuestionIndex + 1) / selectedChallenge.questions.length) * 100}%` }}
+              />
+            </View>
+
+            {/* 提示 */}
+            <Card className="mb-4 bg-blue-50 border-blue-200">
+              <CardContent className="py-3">
+                <View className="flex flex-row items-center justify-center">
+                  <Eye size={16} color="#3b82f6" />
+                  <Text className="text-sm font-medium text-blue-700 ml-2">
+                    请仔细阅读以下内容，{selectedChallenge.readTime}秒后隐藏
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
+
+            {/* 描述文本 */}
+            <Card className="mb-4">
+              <CardContent className="py-5">
+                <View className="flex flex-row items-start">
+                  <FileText size={16} color="#6366f1" className="mr-2 mt-1 flex-shrink-0" />
+                  <Text className="text-sm text-gray-800 leading-relaxed">
+                    {selectedChallenge.questions[currentQuestionIndex].description}
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
+          </>
+        )}
+
         {step === 'play' && selectedChallenge && (
           <>
             {/* 顶部信息栏 */}
@@ -380,17 +549,6 @@ const ChallengePage: FC = () => {
                 style={{ width: `${((currentQuestionIndex + 1) / selectedChallenge.questions.length) * 100}%` }}
               />
             </View>
-
-            {/* 图片展示 */}
-            <Card className="mb-4 overflow-hidden">
-              <View className="relative w-full h-48 bg-gray-100">
-                <Image
-                  src={selectedChallenge.questions[currentQuestionIndex].imageUrl}
-                  className="w-full h-full"
-                  mode="aspectFill"
-                />
-              </View>
-            </Card>
 
             {/* 问题 */}
             <Card className="mb-4">
@@ -443,7 +601,6 @@ const ChallengePage: FC = () => {
                       >
                         {showResult && option.isCorrect && <Check size={14} color="white" />}
                         {showResult && option.id === selectedOption && !option.isCorrect && <X size={14} color="white" />}
-                        {!showResult && selectedOption === option.id && <Check size={14} color="white" />}
                       </View>
                       <Text
                         className={`text-sm flex-1 ${
@@ -577,7 +734,7 @@ const ChallengePage: FC = () => {
         <View className="flex flex-row items-center">
           <Eye size={16} color="#6366f1" />
           <Text className="block text-xs text-gray-500 ml-2">
-            提示：快速观察图片，找出正确答案
+            提示：仔细阅读内容，快速回答问题
           </Text>
         </View>
       </View>
