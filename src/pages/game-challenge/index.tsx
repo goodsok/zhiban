@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react'
-import { View, Text } from '@tarojs/components'
+import { View, Text, Image } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
-import { TrendingUp, Eye, Smile, Coffee, Users, Clock, Trophy, RotateCcw, CircleAlert, Check, X } from 'lucide-react-taro'
+import { Eye, Image as ImageIcon, Star, Map, Check, X, Clock, Trophy, RotateCcw } from 'lucide-react-taro'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+
+interface Option {
+  id: string
+  text: string
+  isCorrect: boolean
+}
 
 interface Question {
   id: string
-  text: string
-  answer: string
-  tips: string[] // 提示信息
+  imageUrl: string
+  question: string
+  options: Option[]
 }
 
 interface Challenge {
@@ -23,160 +28,173 @@ interface Challenge {
   questions: Question[]
 }
 
+// 使用简单的色块和emoji代替图片，避免需要真实图片
 const challenges: Challenge[] = [
   {
-    id: 'appearance',
-    name: '外貌细节',
-    icon: Eye,
+    id: 'count',
+    name: '数数挑战',
+    icon: ImageIcon,
     color: 'from-rose-400 to-pink-500',
-    description: '测试你对TA外貌的了解',
+    description: '快速数出图片中的元素数量',
     questions: [
       {
-        id: 'a1',
-        text: 'TA的眼睛颜色是什么？',
-        answer: '深棕色',
-        tips: ['注意看TA眼睛的颜色', '棕色、黑色还是蓝色？'],
+        id: 'c1',
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZlZjNlNyIvPjx0ZXh0IHg9IjEwIiB5PSI1MCIgZm9udC1zaXplPSI0MCI+8J+UpDwvdGV4dD48dGV4dCB4PSI4MCIgeT0iMTAwIiBmb250LXNpemU9IjQwIj7wn5SkPC90ZXh0Pjx0ZXh0IHg9IjE1MCIgeT0iNjAiIGZvbnQtc2l6ZT0iNDAiPvCflKQ8L3RleHQ+PHRleHQgeD0iMjMwIiB5PSIxMzAiIGZvbnQtc2l6ZT0iNDAiPvCflKQ8L3RleHQ+PHRleHQgeD0iOTAiIHk9IjE4MCIgZm9udC1zaXplPSI0MCI+8J+UpDwvdGV4dD48L3N2Zz4=',
+        question: '图中一共有几个🌸？',
+        options: [
+          { id: 'a', text: '3个', isCorrect: false },
+          { id: 'b', text: '4个', isCorrect: false },
+          { id: 'c', text: '5个', isCorrect: true },
+          { id: 'd', text: '6个', isCorrect: false },
+        ],
       },
       {
-        id: 'a2',
-        text: 'TA最喜欢的穿搭风格是？',
-        answer: '简约休闲',
-        tips: ['观察TA平时的着装', '正式、休闲还是运动？'],
+        id: 'c2',
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2UwZjJmZSIvPjx0ZXh0IHg9IjMwIiB5PSI0MCIgZm9udC1zaXplPSIzMCI+8J+UpjwvdGV4dD48dGV4dCB4PSIxMDAiIHk9IjgwIiBmb250LXNpemU9IjMwIj7wn5SmPC90ZXh0Pjx0ZXh0IHg9IjIwMCIgeT0iNTAiIGZvbnQtc2l6ZT0iMzAiPvCflKQ8L3RleHQ+PHRleHQgeD0iNTAiIHk9IjEzMCIgZm9udC1zaXplPSIzMCI+8J+UpjwvdGV4dD48dGV4dCB4PSIxNTAiIHk9IjE1MCIgZm9udC1zaXplPSIzMCI+8J+UpDwvdGV4dD48dGV4dCB4PSIyNTAiIHk9IjEwMCIgZm9udC1zaXplPSIzMCI+8J+UpjwvdGV4dD48L3N2Zz4=',
+        question: '图中一共有几个🍎？',
+        options: [
+          { id: 'a', text: '2个', isCorrect: false },
+          { id: 'b', text: '3个', isCorrect: true },
+          { id: 'c', text: '4个', isCorrect: false },
+          { id: 'd', text: '5个', isCorrect: false },
+        ],
       },
       {
-        id: 'a3',
-        text: 'TA通常留什么发型？',
-        answer: '短发',
-        tips: ['注意TA的发型', '长发、短发、卷发？'],
-      },
-      {
-        id: 'a4',
-        text: 'TA最常戴什么颜色的衣服？',
-        answer: '黑色',
-        tips: ['回忆TA平时的衣服颜色', '黑色、白色、蓝色？'],
-      },
-      {
-        id: 'a5',
-        text: 'TA有戴眼镜或隐形眼镜吗？',
-        answer: '戴眼镜',
-        tips: ['仔细看TA的眼睛', '有眼镜或隐形眼镜吗？'],
+        id: 'c3',
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2RmZTVkNiIvPjx0ZXh0IHg9IjQwIiB5PSI0MCIgZm9udC1zaXplPSIyNSI+8J+YpTwvdGV4dD48dGV4dCB4PSIxMjAiIHk9IjcwIiBmb250LXNpemU9IjI1Ij7wn5ilPC90ZXh0Pjx0ZXh0IHg9IjIwMCIgeT0iNDAiIGZvbnQtc2l6ZT0iMjUiPvCfmKU8L3RleHQ+PHRleHQgeD0iODAiIHk9IjEyMCIgZm9udC1zaXplPSIyNSI+8J+YpTwvdGV4dD48dGV4dCB4PSIxODAiIHk9IjE1MCIgZm9udC1zaXplPSIyNSI+8J+YpTwvdGV4dD48dGV4dCB4PSIyNjAiIHk9IjgwIiBmb250LXNpemU9IjI1Ij7wn5ilPC90ZXh0Pjwvc3ZnPg==',
+        question: '图中一共有几个⭐？',
+        options: [
+          { id: 'a', text: '4个', isCorrect: false },
+          { id: 'b', text: '5个', isCorrect: false },
+          { id: 'c', text: '6个', isCorrect: true },
+          { id: 'd', text: '7个', isCorrect: false },
+        ],
       },
     ],
   },
   {
-    id: 'habit',
-    name: '习惯动作',
-    icon: Smile,
+    id: 'color',
+    name: '颜色识别',
+    icon: Star,
     color: 'from-amber-400 to-orange-500',
-    description: '观察TA的生活习惯',
+    description: '快速识别图片中的主色调',
     questions: [
       {
-        id: 'h1',
-        text: 'TA说话时有什么习惯动作？',
-        answer: '手舞足蹈',
-        tips: ['注意TA说话时的动作', '手势、表情？'],
+        id: 'cl1',
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2IzZTNmMiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNDAiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSI1MCIgcj0iMzAiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjE1MCIgcj0iMjUiIGZpbGw9IiNmZmYiLz48L3N2Zz4=',
+        question: '图片的主色调是什么？',
+        options: [
+          { id: 'a', text: '蓝色', isCorrect: true },
+          { id: 'b', text: '绿色', isCorrect: false },
+          { id: 'c', text: '红色', isCorrect: false },
+          { id: 'd', text: '黄色', isCorrect: false },
+        ],
       },
       {
-        id: 'h2',
-        text: 'TA紧张时会做什么？',
-        answer: '摸头发',
-        tips: ['观察TA紧张时的表现', '摸头发、抖腿、深呼吸？'],
+        id: 'cl2',
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2U5YTVmNSIvPjxyZWN0IHg9IjUwIiB5PSI1MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZmZmIi8+PHJlY3QgeD0iMTcwIiB5PSI3MCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZmZmIi8+PC9zdmc+',
+        question: '图片的主色调是什么？',
+        options: [
+          { id: 'a', text: '粉色', isCorrect: true },
+          { id: 'b', text: '紫色', isCorrect: false },
+          { id: 'c', text: '橙色', isCorrect: false },
+          { id: 'd', text: '红色', isCorrect: false },
+        ],
       },
       {
-        id: 'h3',
-        text: 'TA吃饭时有什么习惯？',
-        answer: '细嚼慢咽',
-        tips: ['注意TA吃饭的方式', '快还是慢？'],
-      },
-      {
-        id: 'h4',
-        text: 'TA走路时有什么特点？',
-        answer: '步幅较大',
-        tips: ['观察TA走路的姿态', '快还是慢？步幅大小？'],
-      },
-      {
-        id: 'h5',
-        text: 'TA思考时会做什么？',
-        answer: '皱眉头',
-        tips: ['注意TA思考时的表情', '皱眉头、托下巴？'],
+        id: 'cl3',
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzRlZDM4NSIvPjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiBmb250LXNpemU9IjgwIj7wn5SbPC90ZXh0Pjwvc3ZnPg==',
+        question: '图片的主色调是什么？',
+        options: [
+          { id: 'a', text: '蓝色', isCorrect: false },
+          { id: 'b', text: '绿色', isCorrect: true },
+          { id: 'c', text: '青色', isCorrect: false },
+          { id: 'd', text: '黑色', isCorrect: false },
+        ],
       },
     ],
   },
   {
-    id: 'preference',
-    name: '喜好偏好',
-    icon: Coffee,
+    id: 'detail',
+    name: '细节观察',
+    icon: Eye,
     color: 'from-emerald-400 to-green-500',
-    description: '了解TA的喜好细节',
+    description: '找出图片中的特定元素',
+    questions: [
+      {
+        id: 'd1',
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YwZjlmZiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCI+8J+LqjwvdGV4dD48dGV4dCB4PSIxNTAiIHk9IjEwMCIgZm9udC1zaXplPSI0MCI+8J+LqjwvdGV4dD48dGV4dCB4PSIyMzAiIHk9IjQ1IiBmb250LXNpemU9IjQwIj7wn4uyPC90ZXh0Pjwvc3ZnPg==',
+        question: '图中除了☁️还有什么？',
+        options: [
+          { id: 'a', text: '太阳', isCorrect: false },
+          { id: 'b', text: '月亮', isCorrect: false },
+          { id: 'c', text: '没有其他', isCorrect: true },
+          { id: 'd', text: '星星', isCorrect: false },
+        ],
+      },
+      {
+        id: 'd2',
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2RmZjNmZSIvPjx0ZXh0IHg9IjgwIiB5PSI2MCIgZm9udC1zaXplPSIzNSI+8J+RiTwvdGV4dD48dGV4dCB4PSIxODAiIHk9IjE1MCIgZm9udC1zaXplPSIzNSI+8J+RijwvdGV4dD48dGV4dCB4PSIyNDAiIHk9IjgwIiBmb250LXNpemU9IjM1Ij7wn5GJPC90ZXh0Pjx0ZXh0IHg9IjQwIiB5PSIxMzAiIGZvbnQtc2l6ZT0iMzUiPvCfkYY8L3RleHQ+PHRleHQgeD0iMjU1IiB5PSIxNjAiIGZvbnQtc2l6ZT0iMzUiPvCfkYg8L3RleHQ+PC9zdmc+',
+        question: '图中哪个🌲数量最多？',
+        options: [
+          { id: 'a', text: '左侧', isCorrect: true },
+          { id: 'b', text: '右侧', isCorrect: false },
+          { id: 'c', text: '一样多', isCorrect: false },
+          { id: 'd', text: '都不多', isCorrect: false },
+        ],
+      },
+      {
+        id: 'd3',
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2UwZTdlMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMTAwIiByPSIzMCIgZmlsbD0iI2ZmNjY2NiIvPjxjaXJjbGUgY3g9IjI1MCIgY3k9IjUwIiByPSIyNSIgZmlsbD0iIzY2ZmY2NiIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iMzUiIGZpbGw9IiNmZjY2NjYiLz48L3N2Zz4=',
+        question: '图中红色的圆有几个？',
+        options: [
+          { id: 'a', text: '1个', isCorrect: false },
+          { id: 'b', text: '2个', isCorrect: true },
+          { id: 'c', text: '3个', isCorrect: false },
+          { id: 'd', text: '4个', isCorrect: false },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'position',
+    name: '位置记忆',
+    icon: Map,
+    color: 'from-blue-400 to-indigo-500',
+    description: '记住图片中元素的位置',
     questions: [
       {
         id: 'p1',
-        text: 'TA最常喝什么饮料？',
-        answer: '奶茶',
-        tips: ['回忆TA常点的饮品', '奶茶、咖啡、果汁？'],
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZhZmFmYSIvPjx0ZXh0IHg9IjMwIiB5PSI0MCIgZm9udC1zaXplPSIyNSI+8J+RiTwvdGV4dD48dGV4dCB4PSIyNTAiIHk9IjQwIiBmb250LXNpemU9IjI1Ij7wn5GKPC90ZXh0Pjx0ZXh0IHg9IjMwIiB5PSIxNjAiIGZvbnQtc2l6ZT0iMjUiPvCfkYg8L3RleHQ+PHRleHQgeD0iMjUwIiB5PSIxNjAiIGZvbnQtc2l6ZT0iMjUiPvCfkYY8L3RleHQ+PC9zdmc+',
+        question: '哪个角落没有🌲？',
+        options: [
+          { id: 'a', text: '左上角', isCorrect: false },
+          { id: 'b', text: '右上角', isCorrect: false },
+          { id: 'c', text: '左下角', isCorrect: false },
+          { id: 'd', text: '每个角落都有', isCorrect: true },
+        ],
       },
       {
         id: 'p2',
-        text: 'TA最不喜欢吃的食物是？',
-        answer: '香菜',
-        tips: ['注意TA避开的菜', '香菜、辣椒、苦瓜？'],
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZmY5OSIvPjx0ZXh0IHg9IjEwMCIgeT0iNTAiIGZvbnQtc2l6ZT0iMzAiPvCflKQ8L3RleHQ+PHRleHQgeD0iMjAwIiB5PSIxMzAiIGZvbnQtc2l6ZT0iMzAiPvCflKQ8L3RleHQ+PHRleHQgeD0iNjAiIHk9IjE0MCIgZm9udC1zaXplPSIzMCI+8J+UpDwvdGV4dD48dGV4dCB4PSIyNDAiIHk9IjYwIiBmb250LXNpemU9IjMwIj7wn5SkPC90ZXh0Pjwvc3ZnPg==',
+        question: '🌸分布最多的区域是？',
+        options: [
+          { id: 'a', text: '上半部分', isCorrect: false },
+          { id: 'b', text: '下半部分', isCorrect: true },
+          { id: 'c', text: '均匀分布', isCorrect: false },
+          { id: 'd', text: '集中中间', isCorrect: false },
+        ],
       },
       {
         id: 'p3',
-        text: 'TA最喜欢的品牌是？',
-        answer: '无品牌偏好',
-        tips: ['观察TA常用的物品', '有特定品牌偏好吗？'],
-      },
-      {
-        id: 'p4',
-        text: 'TA最喜欢的天气是？',
-        answer: '晴天',
-        tips: ['注意TA对天气的反应', '晴天、阴天、雨天？'],
-      },
-      {
-        id: 'p5',
-        text: 'TA最喜欢的数字是？',
-        answer: '7',
-        tips: ['注意TA常用的数字', '电话号码、密码习惯？'],
-      },
-    ],
-  },
-  {
-    id: 'social',
-    name: '社交行为',
-    icon: Users,
-    color: 'from-blue-400 to-indigo-500',
-    description: '观察TA的社交特点',
-    questions: [
-      {
-        id: 's1',
-        text: 'TA在聚会上通常的表现是？',
-        answer: '话不多但很照顾大家',
-        tips: ['注意TA在社交场合的状态', '活跃、安静、观察者？'],
-      },
-      {
-        id: 's2',
-        text: 'TA和朋友相处的方式是？',
-        answer: '互损型',
-        tips: ['观察TA和朋友聊天', '照顾型、互损型、倾听型？'],
-      },
-      {
-        id: 's3',
-        text: 'TA初次见面时的表现是？',
-        answer: '害羞但礼貌',
-        tips: ['回忆第一次见面的印象', '主动、害羞、高冷？'],
-      },
-      {
-        id: 's4',
-        text: 'TA和陌生人聊天时？',
-        answer: '先观察再开口',
-        tips: ['注意TA和陌生人的互动', '主动、被动、回避？'],
-      },
-      {
-        id: 's5',
-        text: 'TA在团队中的角色通常是？',
-        answer: '协调者',
-        tips: ['观察TA在团队中的作用', '领导者、跟随者、协调者？'],
+        imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2IyZDJkMiIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LXNpemU9IjQwIj7wn5SmPC90ZXh0Pjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSIyNSI+8J+YpTwvdGV4dD48dGV4dCB4PSIyNTAiIHk9IjUwIiBmb250LXNpemU9IjI1Ij7wn5ilPC90ZXh0Pjwvc3ZnPg==',
+        question: '🍎分布在图片的什么位置？',
+        options: [
+          { id: 'a', text: '中心位置', isCorrect: true },
+          { id: 'b', text: '上方', isCorrect: false },
+          { id: 'c', text: '下方', isCorrect: false },
+          { id: 'd', text: '左右两侧', isCorrect: false },
+        ],
       },
     ],
   },
@@ -186,11 +204,9 @@ const ChallengePage: FC = () => {
   const [step, setStep] = useState<'select' | 'play' | 'result'>('select')
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [userAnswer, setUserAnswer] = useState('')
+  const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [showResult, setShowResult] = useState(false)
-  const [isCorrect, setIsCorrect] = useState(false)
-  const [hintIndex, setHintIndex] = useState(-1)
-  const [timeLeft, setTimeLeft] = useState(60)
+  const [timeLeft, setTimeLeft] = useState(30)
   const [score, setScore] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
   const [isTimerActive, setIsTimerActive] = useState(false)
@@ -215,41 +231,33 @@ const ChallengePage: FC = () => {
     setSelectedChallenge(challenge)
     setStep('play')
     setCurrentQuestionIndex(0)
-    setUserAnswer('')
+    setSelectedOption(null)
     setShowResult(false)
-    setHintIndex(-1)
-    setTimeLeft(60)
+    setTimeLeft(30)
     setScore(0)
     setCorrectCount(0)
     setIsTimerActive(true)
   }
 
-  const handleShowHint = () => {
+  const handleSelectOption = (optionId: string) => {
     if (!selectedChallenge) return
-    const question = selectedChallenge.questions[currentQuestionIndex]
-    if (hintIndex < question.tips.length - 1) {
-      setHintIndex(hintIndex + 1)
-    }
-  }
-
-  const handleSubmitAnswer = () => {
-    if (!selectedChallenge || !userAnswer.trim()) return
 
     const question = selectedChallenge.questions[currentQuestionIndex]
-    const correct = userAnswer.trim().toLowerCase() === question.answer.toLowerCase()
+    const option = question.options.find(opt => opt.id === optionId)
 
-    setIsCorrect(correct)
-    setShowResult(true)
-    setIsTimerActive(false)
+    if (option) {
+      setSelectedOption(optionId)
+      setShowResult(true)
+      setIsTimerActive(false)
 
-    if (correct) {
-      setScore((prev) => prev + (timeLeft > 0 ? 100 + timeLeft : 100))
-      setCorrectCount((prev) => prev + 1)
+      if (option.isCorrect) {
+        setScore((prev) => prev + (timeLeft > 0 ? 100 + timeLeft : 100))
+        setCorrectCount((prev) => prev + 1)
+      }
     }
   }
 
   const handleTimeUp = () => {
-    setIsCorrect(false)
     setShowResult(true)
     setIsTimerActive(false)
   }
@@ -259,14 +267,11 @@ const ChallengePage: FC = () => {
 
     if (currentQuestionIndex < selectedChallenge.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
-      setUserAnswer('')
+      setSelectedOption(null)
       setShowResult(false)
-      setIsCorrect(false)
-      setHintIndex(-1)
-      setTimeLeft(60)
+      setTimeLeft(30)
       setIsTimerActive(true)
     } else {
-      // 完成所有题目
       setStep('result')
     }
   }
@@ -275,11 +280,9 @@ const ChallengePage: FC = () => {
     setStep('select')
     setSelectedChallenge(null)
     setCurrentQuestionIndex(0)
-    setUserAnswer('')
+    setSelectedOption(null)
     setShowResult(false)
-    setIsCorrect(false)
-    setHintIndex(-1)
-    setTimeLeft(60)
+    setTimeLeft(30)
     setScore(0)
     setCorrectCount(0)
     setIsTimerActive(false)
@@ -303,7 +306,7 @@ const ChallengePage: FC = () => {
       <View className="bg-gradient-to-r from-indigo-500 to-blue-500 px-4 py-6">
         <Text className="block text-2xl font-bold text-white mb-2">观察力挑战</Text>
         <Text className="block text-sm text-gray-200">
-          测试你对TA的关注程度
+          快速观察图片，找出答案
         </Text>
       </View>
 
@@ -339,7 +342,7 @@ const ChallengePage: FC = () => {
                         <Text className="text-xs text-gray-200 mr-2">
                           {challenge.questions.length} 题
                         </Text>
-                        <TrendingUp size={16} color="white" />
+                        <Eye size={16} color="white" />
                       </View>
                     </View>
                   </View>
@@ -363,8 +366,8 @@ const ChallengePage: FC = () => {
                 </Text>
               </View>
               <View className="flex flex-row items-center">
-                <Clock size={16} color={timeLeft <= 15 ? '#ef4444' : '#6b7280'} />
-                <Text className={`text-sm font-medium ml-2 ${timeLeft <= 15 ? 'text-red-500' : 'text-gray-700'}`}>
+                <Clock size={16} color={timeLeft <= 10 ? '#ef4444' : '#6b7280'} />
+                <Text className={`text-sm font-medium ml-2 ${timeLeft <= 10 ? 'text-red-500' : 'text-gray-700'}`}>
                   {timeLeft}s
                 </Text>
               </View>
@@ -378,139 +381,91 @@ const ChallengePage: FC = () => {
               />
             </View>
 
-            {/* 问题卡片 */}
+            {/* 图片展示 */}
+            <Card className="mb-4 overflow-hidden">
+              <View className="relative w-full h-48 bg-gray-100">
+                <Image
+                  src={selectedChallenge.questions[currentQuestionIndex].imageUrl}
+                  className="w-full h-full"
+                  mode="aspectFill"
+                />
+              </View>
+            </Card>
+
+            {/* 问题 */}
             <Card className="mb-4">
-              <CardContent className="py-5">
-                <View className="flex flex-row items-start">
-                  <View className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center mr-3 flex-shrink-0">
-                    <Text className="text-sm font-bold text-indigo-600">
-                      {currentQuestionIndex + 1}
-                    </Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-base font-medium text-gray-900 leading-relaxed">
-                      {selectedChallenge.questions[currentQuestionIndex].text}
-                    </Text>
-                  </View>
+              <CardContent className="py-4">
+                <View className="flex flex-row items-center">
+                  <Eye size={16} color="#6366f1" className="mr-2 flex-shrink-0" />
+                  <Text className="text-base font-medium text-gray-900">
+                    {selectedChallenge.questions[currentQuestionIndex].question}
+                  </Text>
                 </View>
               </CardContent>
             </Card>
 
-            {/* 答案输入区 */}
-            <View className="bg-white rounded-xl px-4 py-3 mb-3">
-              <Text className="text-xs text-gray-500 mb-2">你的答案</Text>
-              <View className="bg-gray-50 rounded-lg px-3 py-2">
-                <Input
-                  className="bg-transparent w-full"
-                  placeholder="请输入答案..."
-                  value={userAnswer}
-                  onInput={(e) => setUserAnswer(e.detail.value)}
-                />
-              </View>
-              <View className="flex flex-row gap-2 mt-2">
-                {selectedChallenge.questions[currentQuestionIndex].tips.map((_tip, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    className={`flex-1 ${index <= hintIndex ? 'bg-indigo-50 border-indigo-300' : ''}`}
-                    onClick={handleShowHint}
-                  >
-                    <Text className="text-xs">提示 {index + 1}</Text>
-                  </Button>
-                ))}
-              </View>
-              {hintIndex >= 0 && (
-                <View className="bg-amber-50 rounded-lg px-3 py-2 mt-3">
-                  <View className="flex flex-row items-start">
-                    <CircleAlert size={14} color="#f59e0b" className="mr-2 mt-1 flex-shrink-0" />
-                    <Text className="text-xs text-amber-700">
-                      {selectedChallenge.questions[currentQuestionIndex].tips[hintIndex]}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
-
-            {/* 快捷答案选项（方便快速选择） */}
-            <View className="mb-4">
-              <Text className="text-xs text-gray-500 mb-2">快速选择</Text>
-              <View className="grid grid-cols-2 gap-2">
-                {[
-                  selectedChallenge.questions[currentQuestionIndex].answer,
-                  ...selectedChallenge.questions[currentQuestionIndex].tips,
-                ]
-                  .filter((v, i, a) => a.indexOf(v) === i)
-                  .slice(0, 4)
-                  .map((option, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      className={`${
-                        userAnswer === option ? 'bg-indigo-50 border-indigo-500' : ''
-                      }`}
-                      onClick={() => setUserAnswer(option)}
-                    >
-                      <Text className="text-xs">{option}</Text>
-                    </Button>
-                  ))}
-              </View>
-            </View>
-
-            {/* 提交按钮 */}
-            <Button
-              className={`w-full py-3 rounded-xl ${
-                userAnswer.trim()
-                  ? 'bg-gradient-to-r from-indigo-500 to-blue-500'
-                  : 'bg-gray-300'
-              }`}
-              disabled={!userAnswer.trim()}
-              onClick={handleSubmitAnswer}
-            >
-              <Text className="text-white font-medium">提交答案</Text>
-            </Button>
-
-            {/* 结果显示 */}
-            {showResult && (
-              <Card
-                className={`mt-4 ${
-                  isCorrect ? 'bg-green-50 border-green-200' : 'bg-rose-50 border-rose-200'
-                }`}
-              >
-                <CardContent className="py-4">
-                  <View className="flex flex-col items-center">
-                    <View
-                      className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
-                        isCorrect ? 'bg-green-500' : 'bg-rose-500'
-                      }`}
-                    >
-                      {isCorrect ? <Check size={24} color="white" /> : <X size={24} color="white" />}
-                    </View>
-                    <Text
-                      className={`block text-base font-semibold mb-1 ${
-                        isCorrect ? 'text-green-600' : 'text-rose-600'
-                      }`}
-                    >
-                      {isCorrect ? '回答正确！' : '回答错误'}
-                    </Text>
-                    {!isCorrect && (
-                      <View className="mt-2">
-                        <Text className="text-xs text-gray-500 mb-1">正确答案</Text>
-                        <Text className="text-sm font-medium text-gray-900">
-                          {selectedChallenge.questions[currentQuestionIndex].answer}
-                        </Text>
+            {/* 选项 */}
+            <View className="space-y-3 mb-4">
+              {selectedChallenge.questions[currentQuestionIndex].options.map((option) => (
+                <Card
+                  key={option.id}
+                  className={`border-2 cursor-pointer ${
+                    showResult
+                      ? option.id === selectedOption
+                        ? option.isCorrect
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-rose-500 bg-rose-50'
+                        : option.isCorrect
+                          ? 'border-green-300 bg-green-50'
+                          : 'border-gray-200'
+                      : selectedOption === option.id
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-gray-200 active:bg-gray-50'
+                  }`}
+                  onClick={() => !showResult && handleSelectOption(option.id)}
+                >
+                  <CardContent className="py-4">
+                    <View className="flex flex-row items-center">
+                      <View
+                        className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 ${
+                          showResult
+                            ? option.id === selectedOption
+                              ? option.isCorrect
+                                ? 'bg-green-500'
+                                : 'bg-rose-500'
+                              : option.isCorrect
+                                ? 'bg-green-500'
+                                : 'bg-gray-300'
+                            : selectedOption === option.id
+                              ? 'bg-indigo-500'
+                              : 'bg-gray-300'
+                        }`}
+                      >
+                        {showResult && option.isCorrect && <Check size={14} color="white" />}
+                        {showResult && option.id === selectedOption && !option.isCorrect && <X size={14} color="white" />}
+                        {!showResult && selectedOption === option.id && <Check size={14} color="white" />}
                       </View>
-                    )}
-                  </View>
-                </CardContent>
-              </Card>
-            )}
+                      <Text
+                        className={`text-sm flex-1 ${
+                          showResult && option.isCorrect
+                            ? 'text-green-700 font-medium'
+                            : showResult && option.id === selectedOption
+                              ? 'text-rose-700 font-medium'
+                              : 'text-gray-700'
+                        }`}
+                      >
+                        {option.text}
+                      </Text>
+                    </View>
+                  </CardContent>
+                </Card>
+              ))}
+            </View>
 
             {/* 下一题按钮 */}
             {showResult && (
               <Button
-                className="w-full mt-4 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500"
+                className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500"
                 onClick={handleNextQuestion}
               >
                 <Text className="text-white font-medium">
@@ -575,7 +530,7 @@ const ChallengePage: FC = () => {
                 <CardContent className="py-4">
                   <Text className="block text-xs text-gray-500 mb-1">平均用时</Text>
                   <Text className="block text-2xl font-bold text-indigo-600">
-                    {Math.round((60 * selectedChallenge.questions.length - timeLeft) / selectedChallenge.questions.length)}s
+                    {Math.round((30 * selectedChallenge.questions.length - timeLeft) / selectedChallenge.questions.length)}s
                   </Text>
                 </CardContent>
               </Card>
@@ -592,10 +547,10 @@ const ChallengePage: FC = () => {
                       {getObservationScore() >= 80
                         ? '你的观察力非常敏锐！继续保持这种关注度。'
                         : getObservationScore() >= 60
-                          ? '你的观察力不错，可以多关注对方细节。'
+                          ? '你的观察力不错，可以多关注细节。'
                           : getObservationScore() >= 40
-                            ? '观察力有待提升，多花时间观察对方。'
-                            : '需要更多地关注对方，细节很重要。'}
+                            ? '观察力有待提升，多花时间观察。'
+                            : '需要更多地关注细节，细心观察很重要。'}
                     </Text>
                   </View>
                 </View>
@@ -620,9 +575,9 @@ const ChallengePage: FC = () => {
       {/* 底部提示 */}
       <View className="bg-white border-t border-gray-100 px-4 py-3 mt-4">
         <View className="flex flex-row items-center">
-          <TrendingUp size={16} color="#6366f1" />
+          <Eye size={16} color="#6366f1" />
           <Text className="block text-xs text-gray-500 ml-2">
-            提示：可以使用提示功能，但会减少得分
+            提示：快速观察图片，找出正确答案
           </Text>
         </View>
       </View>
