@@ -31,6 +31,13 @@ export default defineAppConfig({
     'pages/dating-profile/index',
     'pages/dating-photo/index',
     'pages/dating-opener/index',
+    'pages/interactive-games/index',
+    'pages/game-truth-dare/index',
+    'pages/game-understand/index',
+    'pages/game-tacit/index',
+    'pages/game-scenario/index',
+    'pages/game-quick/index',
+    'pages/game-challenge/index',
   ],
   window: {
     backgroundTextStyle: 'light',

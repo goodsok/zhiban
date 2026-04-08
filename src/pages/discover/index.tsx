@@ -1,7 +1,7 @@
 import { View, Text } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Moon, MessageCircle, Theater, Zap, BookOpen, Smartphone, Heart } from 'lucide-react-taro'
+import { Moon, MessageCircle, Theater, Zap, BookOpen, Smartphone, Heart, Gamepad2 } from 'lucide-react-taro'
 
 interface KnowledgeCategory {
   id: string
@@ -76,6 +76,15 @@ const categories: KnowledgeCategory[] = [
     pagePath: '/pages/dating-app/index',
     bgColor: 'bg-white border border-gray-200',
     iconBg: 'bg-rose-50',
+  },
+  {
+    id: 'games',
+    title: '互动游戏',
+    subtitle: '约会破冰，快速拉近距离',
+    icon: Gamepad2,
+    pagePath: '/pages/interactive-games/index',
+    bgColor: 'bg-white border border-gray-200',
+    iconBg: 'bg-purple-50',
   },
 ]
 

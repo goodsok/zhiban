@@ -1,0 +1,270 @@
+import { useState } from 'react'
+import { View, Text, ScrollView } from '@tarojs/components'
+import { useLoad } from '@tarojs/taro'
+import type { FC } from 'react'
+import { Sparkles, Heart, ArrowRight, ChevronRight, RefreshCw } from 'lucide-react-taro'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+
+interface QuestionCategory {
+  id: string
+  name: string
+  icon: string
+  color: string
+  questions: string[]
+}
+
+const categories: QuestionCategory[] = [
+  {
+    id: 'basic',
+    name: '基本信息',
+    icon: '👋',
+    color: 'from-blue-400 to-cyan-500',
+    questions: [
+      '你最喜欢的食物是什么？',
+      '你最喜欢的电影类型是什么？',
+      '你最喜欢的季节是哪个？',
+      '你喜欢猫还是狗？',
+      '你最喜欢的旅行方式是什么？',
+      '你最喜欢的运动是什么？',
+      '你最喜欢的音乐类型是什么？',
+      '你喜欢的周末是什么样的？',
+      '你最喜欢的书是什么？',
+      '你最喜欢的一句名言是什么？',
+    ],
+  },
+  {
+    id: 'personality',
+    name: '性格特点',
+    icon: '💭',
+    color: 'from-purple-400 to-violet-500',
+    questions: [
+      '你觉得最让你开心的事情是什么？',
+      '你压力大的时候会做什么？',
+      '你是一个喜欢计划还是随性的人？',
+      '你最看重朋友身上的什么品质？',
+      '你觉得自己的优点是什么？',
+      '你觉得什么事情能让你放松？',
+      '你更喜欢独处还是和朋友在一起？',
+      '你觉得什么样的环境让你最舒服？',
+      '你对待朋友的方式是什么？',
+      '你觉得最舒服的社交方式是什么？',
+    ],
+  },
+  {
+    id: 'values',
+    name: '价值观',
+    icon: '⚖️',
+    color: 'from-amber-400 to-orange-500',
+    questions: [
+      '你觉得什么样的人生是有意义的？',
+      '你最想追求的是什么？',
+      '你觉得家庭和事业哪个更重要？',
+      '你觉得成功的定义是什么？',
+      '你觉得爱情应该是什么样的？',
+      '你觉得什么最重要？',
+      '你对未来有什么期待？',
+      '你觉得什么值得坚持？',
+      '你的人生目标是什么？',
+      '你觉得什么是幸福？',
+    ],
+  },
+  {
+    id: 'life',
+    name: '生活趣事',
+    icon: '😄',
+    color: 'from-green-400 to-emerald-500',
+    questions: [
+      '你最近做过的最有趣的事情是什么？',
+      '你最难忘的一次经历是什么？',
+      '你小时候最喜欢做的事情是什么？',
+      '你觉得最搞笑的事情是什么？',
+      '你最近的一次收获是什么？',
+      '你最喜欢的一个回忆是什么？',
+      '你觉得最开心的一天是什么样的？',
+      '你觉得最放松的事情是什么？',
+      '你觉得最温暖的瞬间是什么？',
+      '你觉得最期待的旅行目的地是哪里？',
+    ],
+  },
+  {
+    id: 'relationship',
+    name: '感情观',
+    icon: '❤️',
+    color: 'from-rose-400 to-pink-500',
+    questions: [
+      '你觉得什么样的伴侣最适合你？',
+      '你理想中的约会是什么样的？',
+      '你觉得两个人之间最重要的是什么？',
+      '你最欣赏异性的什么特质？',
+      '你觉得什么最能打动你？',
+      '你对另一半有什么期待？',
+      '你觉得什么样的关系最舒服？',
+      '你觉得爱情中最重要的是什么？',
+      '你觉得如何保持感情的新鲜感？',
+      '你觉得什么是最好的相处方式？',
+    ],
+  },
+]
+
+const UnderstandPage: FC = () => {
+  const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null)
+  const [currentQuestion, setCurrentQuestion] = useState<string>('')
+  const [questionIndex, setQuestionIndex] = useState(0)
+
+  useLoad(() => {
+    console.log('Understand game loaded.')
+  })
+
+  const handleSelectCategory = (category: QuestionCategory) => {
+    setSelectedCategory(category)
+    setCurrentQuestion(category.questions[0])
+    setQuestionIndex(0)
+  }
+
+  const handleNextQuestion = () => {
+    if (!selectedCategory) return
+    
+    const nextIndex = questionIndex + 1
+    if (nextIndex < selectedCategory.questions.length) {
+      setQuestionIndex(nextIndex)
+      setCurrentQuestion(selectedCategory.questions[nextIndex])
+    } else {
+      setCurrentQuestion('')
+    }
+  }
+
+  const handleBack = () => {
+    setSelectedCategory(null)
+    setCurrentQuestion('')
+    setQuestionIndex(0)
+  }
+
+  return (
+    <View className="min-h-screen bg-gray-50 pb-20">
+      {/* 顶部 */}
+      <View className="bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-6">
+        <Text className="block text-2xl font-bold text-white mb-2">深入了解问答</Text>
+        <Text className="block text-sm text-gray-200">
+          精心设计的问题，快速了解对方
+        </Text>
+      </View>
+
+      {/* 游戏区域 */}
+      <View className="p-4">
+        {!selectedCategory ? (
+          <>
+            {/* 类别选择 */}
+            <Text className="block text-sm font-medium text-gray-500 mb-3">选择一个话题</Text>
+            <ScrollView scrollY className="max-h-[calc(100vh-280px)]">
+              <View className="space-y-3">
+                {categories.map((category) => (
+                  <View
+                    key={category.id}
+                    className="bg-white rounded-2xl overflow-hidden"
+                    onClick={() => handleSelectCategory(category)}
+                  >
+                    <View className={`bg-gradient-to-r ${category.color} px-4 py-4`}>
+                      <View className="flex flex-row items-center justify-between">
+                        <View className="flex flex-row items-center flex-1">
+                          <Text className="text-2xl mr-3">{category.icon}</Text>
+                          <View className="flex-1">
+                            <Text className="block text-base font-semibold text-white">
+                              {category.name}
+                            </Text>
+                            <Text className="block text-xs text-gray-200">
+                              {category.questions.length} 个问题
+                            </Text>
+                          </View>
+                        </View>
+                        <ChevronRight size={20} color="white" />
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          </>
+        ) : currentQuestion ? (
+          <>
+            {/* 进度 */}
+            <View className="bg-white rounded-xl px-4 py-3 mb-4 flex flex-row items-center justify-between">
+              <Text className="text-sm text-gray-500">{selectedCategory.name}</Text>
+              <Text className="text-sm text-orange-600 font-medium">
+                {questionIndex + 1} / {selectedCategory.questions.length}
+              </Text>
+            </View>
+
+            {/* 问题卡片 */}
+            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-orange-100 mb-4">
+              <CardContent className="py-8">
+                <View className="flex flex-col items-center">
+                  <Text className="text-3xl mb-4">{selectedCategory.icon}</Text>
+                  <Text className="block text-lg text-gray-900 text-center leading-relaxed px-4">
+                    {currentQuestion}
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
+
+            {/* 操作按钮 */}
+            <View className="space-y-3">
+              <Button
+                className="bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl py-3"
+                onClick={handleNextQuestion}
+              >
+                <View className="flex flex-row items-center justify-center">
+                  <ArrowRight size={18} color="#fff" />
+                  <Text className="text-white ml-2 font-medium">下一个问题</Text>
+                </View>
+              </Button>
+              
+              <Button
+                variant="secondary"
+                className="rounded-xl py-3"
+                onClick={handleBack}
+              >
+                <View className="flex flex-row items-center justify-center">
+                  <RefreshCw size={18} color="#6b7280" />
+                  <Text className="ml-2">更换话题</Text>
+                </View>
+              </Button>
+            </View>
+          </>
+        ) : (
+          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-100">
+            <CardContent className="py-8">
+              <View className="flex flex-col items-center">
+                <View className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+                  <Heart size={32} color="#22c55e" />
+                </View>
+                <Text className="block text-lg font-semibold text-gray-900 mb-2">已完成所有问题</Text>
+                <Text className="block text-sm text-gray-500 text-center mb-6 leading-relaxed">
+                  恭喜！你已经完成了这个话题的所有问题。选择其他话题继续了解对方吧！
+                </Text>
+                <Button
+                  variant="secondary"
+                  className="rounded-xl px-8 py-3"
+                  onClick={handleBack}
+                >
+                  <Text>返回选择</Text>
+                </Button>
+              </View>
+            </CardContent>
+          </Card>
+        )}
+      </View>
+
+      <View className="bg-white border-t border-gray-100 px-4 py-3 mt-4">
+        <View className="flex flex-row items-center">
+          <Sparkles size={16} color="#f97316" />
+          <Text className="block text-xs text-gray-500 ml-2">
+            提示：真诚分享会让对方更了解你，也可以主动向对方提问
+          </Text>
+        </View>
+      </View>
+    </View>
+  )
+}
+
+export default UnderstandPage
