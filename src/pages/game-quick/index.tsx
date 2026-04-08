@@ -19,124 +19,108 @@ interface Category {
   icon: any
   color: string
   description: string
+  difficulty: string
   questions: Question[]
 }
 
 const categories: Category[] = [
   {
-    id: 'interest',
-    name: '兴趣爱好',
-    icon: Heart,
-    color: 'from-pink-400 to-rose-500',
-    description: '了解对方的兴趣和爱好',
-    questions: [
-      {
-        id: 'i1',
-        text: '对方最喜欢的电影类型是？',
-        options: ['动作片', '爱情片', '喜剧片', '科幻片', '恐怖片'],
-        answers: [1, 3],
-      },
-      {
-        id: 'i2',
-        text: '对方最喜欢的音乐风格是？',
-        options: ['流行', '摇滚', '古典', '爵士', '民谣'],
-        answers: [0, 4],
-      },
-      {
-        id: 'i3',
-        text: '对方周末最喜欢的活动是？',
-        options: ['宅在家', '户外运动', '逛街购物', '看电影', '朋友聚会'],
-        answers: [1, 4],
-      },
-      {
-        id: 'i4',
-        text: '对方最喜欢的运动是？',
-        options: ['跑步', '游泳', '篮球', '瑜伽', '不喜欢运动'],
-        answers: [0, 3],
-      },
-      {
-        id: 'i5',
-        text: '对方最喜欢的旅行方式是？',
-        options: ['自驾游', '跟团游', '自由行', '海岛度假', '探险旅行'],
-        answers: [2, 3],
-      },
-    ],
-  },
-  {
-    id: 'life',
-    name: '生活态度',
-    icon: Coffee,
-    color: 'from-amber-400 to-orange-500',
-    description: '了解对方的生活习惯',
-    questions: [
-      {
-        id: 'l1',
-        text: '对方通常几点起床？',
-        options: ['6点前', '6-7点', '7-8点', '8-9点', '9点后'],
-        answers: [2, 3],
-      },
-      {
-        id: 'l2',
-        text: '对方最喜欢的早餐是？',
-        options: ['中式', '西式', '随便', '不吃', '奶茶咖啡'],
-        answers: [0, 4],
-      },
-      {
-        id: 'l3',
-        text: '对方最喜欢的季节是？',
-        options: ['春天', '夏天', '秋天', '冬天', '都喜欢'],
-        answers: [1, 2],
-      },
-      {
-        id: 'l4',
-        text: '对方最喜欢的颜色是？',
-        options: ['红色', '蓝色', '绿色', '紫色', '其他'],
-        answers: [1, 3],
-      },
-      {
-        id: 'l5',
-        text: '对方最喜欢的动物是？',
-        options: ['猫', '狗', '兔子', '其他', '不喜欢动物'],
-        answers: [0, 1],
-      },
-    ],
-  },
-  {
     id: 'emotion',
     name: '情感观念',
-    icon: Star,
-    color: 'from-purple-400 to-violet-500',
-    description: '了解对方的爱情观',
+    icon: Heart,
+    color: 'from-pink-400 to-rose-500',
+    description: '深入了解TA的爱情观',
+    difficulty: '⭐⭐⭐⭐',
     questions: [
       {
         id: 'e1',
-        text: '对方理想约会方式是？',
-        options: ['浪漫餐厅', '户外郊游', '看电影', '逛街', '在家做饭'],
-        answers: [0, 4],
+        text: 'TA和前任分手的主要原因是什么？',
+        options: ['性格不合', '出轨', '现实问题', '感情淡了', '其他'],
+        answers: [0, 3, 4],
       },
       {
         id: 'e2',
-        text: '对方最看重伴侣的什么品质？',
-        options: ['外貌', '性格', '经济', '才华', '都重要'],
+        text: 'TA认为在一段关系中，最重要的是什么？',
+        options: ['激情', '信任', '金钱', '外貌', '共同价值观'],
         answers: [1, 4],
       },
       {
         id: 'e3',
-        text: '对方认为爱情最重要的是？',
-        options: ['激情', '陪伴', '信任', '共同成长', '都是'],
-        answers: [2, 3, 4],
+        text: 'TA最不能接受伴侣的行为是？',
+        options: ['出轨', '撒谎', '控制欲强', '冷暴力', '都不接受'],
+        answers: [0, 1, 3],
       },
       {
         id: 'e4',
-        text: '对方表达爱意的方式通常是？',
-        options: ['说甜言蜜语', '行动表现', '送礼物', '身体接触', '都是'],
-        answers: [1, 4],
+        text: 'TA认为多久可以同居？',
+        options: ['认识1个月内', '3-6个月', '6个月-1年', '结婚后', '不确定'],
+        answers: [1, 2],
       },
       {
         id: 'e5',
-        text: '对方最不能接受伴侣的行为是？',
-        options: ['撒谎', '不专一', '不尊重', '不沟通', '都不接受'],
-        answers: [0, 1],
+        text: 'TA对婚前性行为的态度是？',
+        options: ['绝对不行', '可以考虑', '正常情况', '看感情发展', '无所谓'],
+        answers: [2, 3],
+      },
+      {
+        id: 'e6',
+        text: 'TA认为多久可以见父母？',
+        options: ['稳定后', '准备结婚', '半年左右', '看情况', '没必要'],
+        answers: [1, 2],
+      },
+      {
+        id: 'e7',
+        text: 'TA最讨厌什么样的恋人？',
+        options: ['粘人型', '冷淡型', '控制欲强', '情绪化', '都讨厌'],
+        answers: [2, 3, 4],
+      },
+      {
+        id: 'e8',
+        text: 'TA理想中结婚的年龄是？',
+        options: ['25岁以下', '25-28岁', '28-30岁', '30-35岁', '不着急'],
+        answers: [2, 3, 4],
+      },
+      {
+        id: 'e9',
+        text: 'TA最看重伴侣的哪个品质？',
+        options: ['颜值', '经济', '人品', '家庭背景', '都看重'],
+        answers: [2, 4],
+      },
+      {
+        id: 'e10',
+        text: 'TA认为爱情应该保持多久的新鲜感？',
+        options: ['3个月', '半年', '1年', '永远', '看经营'],
+        answers: [3, 4],
+      },
+      {
+        id: 'e11',
+        text: 'TA最容易被什么样的异性吸引？',
+        options: ['好看的', '有才华的', '有钱的', '幽默的', '自信的'],
+        answers: [1, 4],
+      },
+      {
+        id: 'e12',
+        text: 'TA认为吵架后应该怎么做？',
+        options: ['立即道歉', '冷静后再沟通', '等对方道歉', '冷战到和解', '看谁先低头'],
+        answers: [1],
+      },
+      {
+        id: 'e13',
+        text: 'TA最难忘的一段感情维持了多久？',
+        options: ['不到3个月', '3-6个月', '6个月-1年', '1-2年', '2年以上'],
+        answers: [2, 3, 4],
+      },
+      {
+        id: 'e14',
+        text: 'TA认为恋人之间应该保留多少个人空间？',
+        options: ['完全透明', '大部分透明', '适当保留', '保持独立', '看情况'],
+        answers: [2, 3],
+      },
+      {
+        id: 'e15',
+        text: 'TA最在意对方过去的什么经历？',
+        options: ['前任数量', '同居史', '出轨史', '债务', '都不在意'],
+        answers: [2, 4],
       },
     ],
   },
@@ -144,38 +128,251 @@ const categories: Category[] = [
     id: 'values',
     name: '价值观',
     icon: Target,
-    color: 'from-cyan-400 to-blue-500',
-    description: '了解对方的价值取向',
+    color: 'from-indigo-400 to-blue-500',
+    description: '了解TA的人生观',
+    difficulty: '⭐⭐⭐⭐⭐',
     questions: [
       {
         id: 'v1',
-        text: '对方最看重的生活目标是什么？',
-        options: ['事业成功', '家庭幸福', '自由自在', '财富自由', '自我实现'],
-        answers: [1, 4],
+        text: 'TA认为人生最重要的是什么？',
+        options: ['事业成功', '家庭幸福', '财富自由', '自我实现', '健康'],
+        answers: [1, 3, 4],
       },
       {
         id: 'v2',
-        text: '对方认为成功最重要的是？',
-        options: ['钱', '地位', '影响力', '幸福感', '自我价值'],
-        answers: [3, 4],
+        text: 'TA最想从伴侣那里得到什么？',
+        options: ['物质支持', '情感支持', '社会地位', '安全感', '都想要'],
+        answers: [1, 4],
       },
       {
         id: 'v3',
-        text: '对方最想改善的生活方面是？',
-        options: ['经济', '健康', '感情', '工作', '心态'],
-        answers: [1, 4],
+        text: 'TA认为成功的定义是什么？',
+        options: ['有钱', '有权', '有影响力', '内心满足', '家庭幸福'],
+        answers: [3, 4],
       },
       {
         id: 'v4',
-        text: '对方对消费的态度是？',
-        options: ['节俭', '合理', '随性', '享受', '看情况'],
-        answers: [1, 4],
+        text: 'TA愿意为感情放弃事业吗？',
+        options: ['愿意', '不愿意', '看情况', '不会放弃但会平衡', '不确定'],
+        answers: [1, 3],
       },
       {
         id: 'v5',
-        text: '对方最想从伴侣那里得到什么？',
-        options: ['物质支持', '情感支持', '共同成长', '安全感', '都重要'],
+        text: 'TA对父母催婚的态度是？',
+        options: ['听从', '反抗', '敷衍', '有选择地听', '不催最好'],
+        answers: [2, 4],
+      },
+      {
+        id: 'v6',
+        text: 'TA认为子女教育中，最重要的是什么？',
+        options: ['成绩', '品德', '才艺', '独立思考', '全面培养'],
+        answers: [1, 3, 4],
+      },
+      {
+        id: 'v7',
+        text: 'TA最看重朋友的什么品质？',
+        options: ['忠诚', '有用', '有趣', '有共同话题', '真诚'],
+        answers: [0, 4],
+      },
+      {
+        id: 'v8',
+        text: 'TA认为婚前应该了解对方什么？',
+        options: ['经济状况', '家庭背景', '性格', '过往感情', '都要了解'],
+        answers: [2, 4],
+      },
+      {
+        id: 'v9',
+        text: 'TA对金钱的态度是？',
+        options: ['花钱要花在刀刃上', '人生苦短，及时行乐', '能省则省', '该花就花，该省就省', '享受生活最重要'],
+        answers: [0, 3],
+      },
+      {
+        id: 'v10',
+        text: 'TA认为什么是最不可原谅的？',
+        options: ['背叛', '欺骗', '伤害家人', '背叛朋友', '都不可原谅'],
+        answers: [0, 1, 4],
+      },
+      {
+        id: 'v11',
+        text: 'TA对生活的态度是？',
+        options: ['积极进取', '随遇而安', '及时行乐', '得过且过', '看心情'],
+        answers: [0, 1],
+      },
+      {
+        id: 'v12',
+        text: 'TA认为什么样的生活才是好生活？',
+        options: ['有钱有势', '自由自在', '家庭美满', '事业有成', '内心满足'],
         answers: [1, 2, 4],
+      },
+      {
+        id: 'v13',
+        text: 'TA对婚姻的态度是？',
+        options: ['必须结婚', '看缘分', '不想结婚', '单身也挺好', '不一定'],
+        answers: [1, 4],
+      },
+      {
+        id: 'v14',
+        text: 'TA最讨厌什么样的人？',
+        options: ['虚伪', '自私', '八卦', '势利', '都讨厌'],
+        answers: [0, 1, 4],
+      },
+      {
+        id: 'v15',
+        text: 'TA认为友谊和爱情哪个更重要？',
+        options: ['友谊', '爱情', '都重要', '看情况', '无法比较'],
+        answers: [2, 4],
+      },
+    ],
+  },
+  {
+    id: 'personality',
+    name: '性格特点',
+    icon: Star,
+    color: 'from-purple-400 to-violet-500',
+    description: '深入了解TA的性格',
+    difficulty: '⭐⭐⭐⭐',
+    questions: [
+      {
+        id: 'p1',
+        text: 'TA最怕别人知道的缺点是？',
+        options: ['控制欲强', '容易嫉妒', '脾气暴躁', '不自信', '其他'],
+        answers: [1, 3],
+      },
+      {
+        id: 'p2',
+        text: 'TA在压力下会怎么做？',
+        options: ['发泄', '沉默', '找人倾诉', '逃避', '积极解决'],
+        answers: [1, 4],
+      },
+      {
+        id: 'p3',
+        text: 'TA最容易被什么激怒？',
+        options: ['被误解', '被忽视', '被背叛', '被控制', '都容易'],
+        answers: [0, 2],
+      },
+      {
+        id: 'p4',
+        text: 'TA表达情绪的方式通常是？',
+        options: ['直接说出', '行动表达', '沉默', '找人倾诉', '藏在心里'],
+        answers: [0, 4],
+      },
+      {
+        id: 'p5',
+        text: 'TA最讨厌什么样的社交场合？',
+        options: ['陌生聚会', '商务应酬', '婚礼', '同学聚会', '都喜欢'],
+        answers: [0, 1],
+      },
+      {
+        id: 'p6',
+        text: 'TA在陌生人面前通常是什么状态？',
+        options: ['主动', '安静', '观察', '礼貌', '紧张'],
+        answers: [1, 2, 3],
+      },
+      {
+        id: 'p7',
+        text: 'TA最容易被什么样的人吸引？',
+        options: ['和自己像的', '和自己相反的', '有趣的', '温柔的', '优秀的'],
+        answers: [1, 2, 4],
+      },
+      {
+        id: 'p8',
+        text: 'TA做决定时主要靠什么？',
+        options: ['理性分析', '直觉', '他人建议', '情感', '看情况'],
+        answers: [0, 4],
+      },
+      {
+        id: 'p9',
+        text: 'TA最无法忍受的环境是？',
+        options: ['嘈杂', '安静', '拥挤', '孤独', '都不介意'],
+        answers: [0, 2],
+      },
+      {
+        id: 'p10',
+        text: 'TA最容易被什么样的情绪影响？',
+        options: ['焦虑', '抑郁', '愤怒', '感动', '都容易'],
+        answers: [3, 4],
+      },
+      {
+        id: 'p11',
+        text: 'TA认为自己的优点是什么？',
+        options: ['善良', '聪明', '幽默', '有责任心', '都有'],
+        answers: [0, 3, 4],
+      },
+      {
+        id: 'p12',
+        text: 'TA最在意别人怎么看自己？',
+        options: ['不在意', '在意某些人', '很在意', '假装不在意', '看情况'],
+        answers: [1, 4],
+      },
+    ],
+  },
+  {
+    id: 'private',
+    name: '私密话题',
+    icon: Coffee,
+    color: 'from-amber-400 to-orange-500',
+    description: '那些不敢问但想知道的',
+    difficulty: '⭐⭐⭐⭐⭐',
+    questions: [
+      {
+        id: 'pr1',
+        text: 'TA有过一夜情的经历吗？',
+        options: ['有', '没有', '不想说', '不算一夜情', '不确定'],
+        answers: [1, 3],
+      },
+      {
+        id: 'pr2',
+        text: 'TA能接受伴侣有过多次性经历吗？',
+        options: ['完全不能', '能接受', '次数不能太多', '只要过去就没事', '看情况'],
+        answers: [1, 2],
+      },
+      {
+        id: 'pr3',
+        text: 'TA认为性生活对感情多重要？',
+        options: ['非常重要', '重要', '一般', '不重要', '因人而异'],
+        answers: [0, 1],
+      },
+      {
+        id: 'pr4',
+        text: 'TA会主动告诉伴侣自己的性经历吗？',
+        options: ['会', '不会', '问就说', '不想问就不说', '看情况'],
+        answers: [1, 2, 3],
+      },
+      {
+        id: 'pr5',
+        text: 'TA能接受伴侣和前任做朋友吗？',
+        options: ['完全不能', '能接受', '保持距离可以', '不主动联系', '看情况'],
+        answers: [1, 2],
+      },
+      {
+        id: 'pr6',
+        text: 'TA认为伴侣应该看对方的手机吗？',
+        options: ['应该', '不应该', '互相看', '可以偶尔看', '看信任程度'],
+        answers: [1, 2],
+      },
+      {
+        id: 'pr7',
+        text: 'TA能接受伴侣有异性闺蜜吗？',
+        options: ['不能', '能接受', '要有界限', '不能太亲密', '看人品'],
+        answers: [2, 3, 4],
+      },
+      {
+        id: 'pr8',
+        text: 'TA最想改变自己身体的哪方面？',
+        options: ['体重', '身高', '五官', '身材', '都满意'],
+        answers: [0, 3],
+      },
+      {
+        id: 'pr9',
+        text: 'TA最怕伴侣发现自己的什么？',
+        options: ['过往', '缺点', '秘密', '债务', '没什么怕的'],
+        answers: [0, 1, 3],
+      },
+      {
+        id: 'pr10',
+        text: 'TA认为什么才是真正的成熟？',
+        options: ['年龄', '经历', '独立', '承担责任', '内心强大'],
+        answers: [3, 4],
       },
     ],
   },
@@ -186,7 +383,7 @@ const QuickPage: FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedOptions, setSelectedOptions] = useState<Set<number>>(new Set())
-  const [timeLeft, setTimeLeft] = useState(30)
+  const [timeLeft, setTimeLeft] = useState(3)
   const [score, setScore] = useState(0)
   const [totalCorrect, setTotalCorrect] = useState(0)
   const [isTimerActive, setIsTimerActive] = useState(false)
@@ -212,7 +409,7 @@ const QuickPage: FC = () => {
     setStep('play')
     setCurrentQuestionIndex(0)
     setSelectedOptions(new Set())
-    setTimeLeft(30)
+    setTimeLeft(3)
     setScore(0)
     setTotalCorrect(0)
     setIsTimerActive(true)
@@ -223,7 +420,6 @@ const QuickPage: FC = () => {
 
     const currentQuestion = selectedCategory.questions[currentQuestionIndex]
 
-    // 如果是多选题，允许选择多个；单选题只能选一个
     if (currentQuestion.answers.length > 1) {
       const newSelected = new Set(selectedOptions)
       if (newSelected.has(index)) {
@@ -233,7 +429,6 @@ const QuickPage: FC = () => {
       }
       setSelectedOptions(newSelected)
     } else {
-      // 单选题，直接选择
       setSelectedOptions(new Set([index]))
     }
   }
@@ -244,7 +439,6 @@ const QuickPage: FC = () => {
     const currentQuestion = selectedCategory.questions[currentQuestionIndex]
     const correctAnswers = new Set(currentQuestion.answers)
 
-    // 计算得分：完全正确100分，部分正确按比例
     let isCorrect = true
     for (const answer of correctAnswers) {
       if (!selectedOptions.has(answer)) {
@@ -252,7 +446,6 @@ const QuickPage: FC = () => {
         break
       }
     }
-    // 还要确保没有选择错误的答案
     for (const selected of selectedOptions) {
       if (!correctAnswers.has(selected)) {
         isCorrect = false
@@ -261,28 +454,27 @@ const QuickPage: FC = () => {
     }
 
     if (isCorrect) {
-      setScore((prev) => prev + (timeLeft > 0 ? 100 + timeLeft : 100))
+      setScore((prev) => prev + (timeLeft > 0 ? 100 + timeLeft * 10 : 100))
       setTotalCorrect((prev) => prev + 1)
     }
 
-    // 下一题
     if (currentQuestionIndex < selectedCategory.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
       setSelectedOptions(new Set())
-      setTimeLeft(30)
+      setTimeLeft(3)
+      setIsTimerActive(true)
     } else {
-      // 完成所有题目
       setStep('result')
       setIsTimerActive(false)
     }
   }
 
   const handleTimeUp = () => {
-    // 超时直接进入下一题或结果页
     if (selectedCategory && currentQuestionIndex < selectedCategory.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
       setSelectedOptions(new Set())
-      setTimeLeft(30)
+      setTimeLeft(3)
+      setIsTimerActive(true)
     } else {
       setStep('result')
       setIsTimerActive(false)
@@ -294,7 +486,7 @@ const QuickPage: FC = () => {
     setSelectedCategory(null)
     setCurrentQuestionIndex(0)
     setSelectedOptions(new Set())
-    setTimeLeft(30)
+    setTimeLeft(3)
     setScore(0)
     setTotalCorrect(0)
     setIsTimerActive(false)
@@ -318,7 +510,7 @@ const QuickPage: FC = () => {
       <View className="bg-gradient-to-r from-purple-500 to-violet-500 px-4 py-6">
         <Text className="block text-2xl font-bold text-white mb-2">快速问答</Text>
         <Text className="block text-sm text-gray-200">
-          限时30秒，快速了解对方
+          3秒倒计时，真正了解TA
         </Text>
       </View>
 
@@ -350,17 +542,29 @@ const QuickPage: FC = () => {
                           </Text>
                         </View>
                       </View>
-                      <View className="flex flex-row items-center">
-                        <Text className="text-xs text-gray-200 mr-2">
+                      <View className="flex flex-col items-end">
+                        <Text className="text-xs text-gray-200">
                           {category.questions.length} 题
                         </Text>
-                        <Zap size={16} color="white" />
+                        <Text className="text-xs text-gray-300 mt-1">
+                          {category.difficulty}
+                        </Text>
                       </View>
                     </View>
                   </View>
                 </Card>
               )
             })}
+            <Card className="bg-amber-50 border-amber-200">
+              <CardContent className="py-3">
+                <View className="flex flex-row items-start">
+                  <Zap size={16} color="#f59e0b" className="mr-2 mt-1 flex-shrink-0" />
+                  <Text className="text-xs text-amber-700 leading-relaxed">
+                    ⚠️ 本游戏包含深入、私密的问题，请确保双方都准备好后再开始。建议轮流提问和回答。
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
           </>
         )}
 
@@ -378,8 +582,8 @@ const QuickPage: FC = () => {
                 </Text>
               </View>
               <View className="flex flex-row items-center">
-                <Clock size={16} color={timeLeft <= 10 ? '#ef4444' : '#6b7280'} />
-                <Text className={`text-sm font-medium ml-2 ${timeLeft <= 10 ? 'text-red-500' : 'text-gray-700'}`}>
+                <Clock size={16} color={timeLeft === 3 ? '#6b7280' : timeLeft === 2 ? '#f59e0b' : '#ef4444'} />
+                <Text className={`text-sm font-bold ml-2 ${timeLeft === 3 ? 'text-gray-700' : timeLeft === 2 ? 'text-amber-500' : 'text-red-500'}`}>
                   {timeLeft}s
                 </Text>
               </View>
@@ -394,16 +598,16 @@ const QuickPage: FC = () => {
             </View>
 
             {/* 问题卡片 */}
-            <Card className="mb-4">
+            <Card className="mb-4 border-2 border-purple-200">
               <CardContent className="py-5">
                 <View className="flex flex-row items-start">
-                  <View className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-3 flex-shrink-0">
-                    <Text className="text-sm font-bold text-purple-600">
+                  <View className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center mr-3 flex-shrink-0">
+                    <Text className="text-sm font-bold text-white">
                       {currentQuestionIndex + 1}
                     </Text>
                   </View>
                   <View className="flex-1">
-                    <Text className="text-sm text-gray-500 mb-2">
+                    <Text className="text-xs text-purple-600 mb-2">
                       {selectedCategory.questions[currentQuestionIndex].answers.length > 1
                         ? '（多选题，选择所有正确答案）'
                         : '（单选题）'}
@@ -463,7 +667,7 @@ const QuickPage: FC = () => {
               onClick={handleSubmitAnswer}
             >
               <Text className="text-white font-medium">
-                {currentQuestionIndex === selectedCategory.questions.length - 1 ? '提交答案' : '下一题'}
+                确认答案
               </Text>
             </Button>
           </>
@@ -505,7 +709,7 @@ const QuickPage: FC = () => {
               </Card>
               <Card>
                 <CardContent className="py-4">
-                  <Text className="block text-xs text-gray-500 mb-1">匹配度</Text>
+                  <Text className="block text-xs text-gray-500 mb-1">了解程度</Text>
                   <Text className="block text-2xl font-bold text-purple-600">{getMatchRate()}%</Text>
                 </CardContent>
               </Card>
@@ -517,9 +721,9 @@ const QuickPage: FC = () => {
               </Card>
               <Card>
                 <CardContent className="py-4">
-                  <Text className="block text-xs text-gray-500 mb-1">平均用时</Text>
+                  <Text className="block text-xs text-gray-500 mb-1">平均反应时间</Text>
                   <Text className="block text-2xl font-bold text-purple-600">
-                    {Math.round((30 * selectedCategory.questions.length - timeLeft) / selectedCategory.questions.length)}s
+                    {3 - Math.round(score / 100 - selectedCategory.questions.length)}s
                   </Text>
                 </CardContent>
               </Card>
@@ -534,12 +738,12 @@ const QuickPage: FC = () => {
                     <Text className="text-xs text-gray-500 mb-1">建议</Text>
                     <Text className="text-sm text-gray-700 leading-relaxed">
                       {getMatchRate() >= 80
-                        ? '你们对彼此非常了解！继续保持这种默契。'
+                        ? '你对TA的了解非常深入！继续保持这种沟通和了解。'
                         : getMatchRate() >= 60
-                          ? '你们对彼此有一定了解，可以继续加深。'
+                          ? '你对TA有一定了解，还可以通过更多深入交流加深。'
                           : getMatchRate() >= 40
-                            ? '还有很大的了解空间，多沟通交流。'
-                            : '需要更多地了解对方，多聊天多互动。'}
+                            ? '你们之间还有很多不了解的地方，建议多进行深入对话。'
+                            : '你们之间还有很多未知，建议多花时间了解对方的想法。'}
                     </Text>
                   </View>
                 </View>
@@ -566,7 +770,7 @@ const QuickPage: FC = () => {
         <View className="flex flex-row items-center">
           <Zap size={16} color="#a855f7" />
           <Text className="block text-xs text-gray-500 ml-2">
-            提示：快速回答可以获得额外时间加分
+            提示：只有3秒！快速回答获得额外加分
           </Text>
         </View>
       </View>
