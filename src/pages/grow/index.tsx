@@ -11,6 +11,9 @@ import {
   Clock,
   Trash2,
   Circle,
+  Sparkles,
+  RotateCw,
+  Check
 } from 'lucide-react-taro'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -53,6 +56,75 @@ interface GrowthModule {
   color: string
 }
 
+// 推荐目标池
+const goalPool = [
+  { title: '一起读完10本书', total: 10 },
+  { title: '每周一次约会', total: 52 },
+  { title: '一起健身100天', total: 100 },
+  { title: '学会一道新菜', total: 1 },
+  { title: '一起看日出', total: 1 },
+  { title: '攒够旅行基金', total: 10000 },
+  { title: '一起看完100部电影', total: 100 },
+  { title: '每天说早安晚安', total: 30 },
+  { title: '一起学一门新技能', total: 1 },
+  { title: '一起做志愿者', total: 5 },
+  { title: '一起去游乐园', total: 3 },
+  { title: '一起养一盆花', total: 1 },
+  { title: '一起做早餐30天', total: 30 },
+  { title: '一起跑步50公里', total: 50 },
+  { title: '一起写日记', total: 100 },
+  { title: '一起看演唱会', total: 2 },
+  { title: '一起学跳舞', total: 12 },
+  { title: '一起画画', total: 10 },
+  { title: '一起做手工', total: 5 },
+  { title: '一起去露营', total: 2 },
+  { title: '一起学游泳', total: 10 },
+  { title: '一起骑自行车郊游', total: 4 },
+  { title: '一起拍照100张', total: 100 },
+  { title: '一起做饭50道', total: 50 },
+]
+
+// 推荐约定池
+const promisePool = [
+  '吵架不过夜，当天解决',
+  '每天早晚各说一次我想你',
+  '每月至少一次约会',
+  '每周一起看一部电影',
+  '出门前给对方一个拥抱',
+  '记得所有重要纪念日',
+  '每天分享一件开心的事',
+  '睡前聊十分钟天',
+  '一起做家务',
+  '不拿对方和别人比较',
+  '有矛盾直接说出来',
+  '每周一起做饭一次',
+  '一起规划未来',
+  '给对方留私人空间',
+  '不轻易说分手',
+  '一起存钱实现梦想',
+  '互相鼓励对方爱好',
+  '一起早起晨跑',
+  '睡前互道晚安',
+  '有话好好说，不冷战',
+  '一起看书学习',
+  '定期给惊喜',
+  '尊重对方家人朋友',
+  '一起做年度计划',
+]
+
+const shuffleArray = <T,>(arr: T[]): T[] => {
+  const shuffled = [...arr]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
+const getRandomItems = <T,>(arr: T[], count: number): T[] => {
+  return shuffleArray(arr).slice(0, count)
+}
+
 const GrowPage: FC = () => {
   const [activeTab, setActiveTab] = useState<'anniversary' | 'goal' | 'memory' | 'promise'>('anniversary')
   const [anniversaries, setAnniversaries] = useState<Anniversary[]>([
@@ -75,6 +147,18 @@ const GrowPage: FC = () => {
     { id: '2', content: '吵架不过夜，当天解决', completed: false },
     { id: '3', content: '每月至少一次约会', completed: true },
   ])
+
+  // 推荐目标
+  const [recommendedGoals, setRecommendedGoals] = useState<{ title: string; total: number }[]>(
+    getRandomItems(goalPool, 5)
+  )
+  const [addedGoals, setAddedGoals] = useState<Set<string>>(new Set())
+
+  // 推荐约定
+  const [recommendedPromises, setRecommendedPromises] = useState<string[]>(
+    getRandomItems(promisePool, 5)
+  )
+  const [addedPromises, setAddedPromises] = useState<Set<string>>(new Set())
 
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [addType, setAddType] = useState<'anniversary' | 'goal' | 'memory' | 'promise'>('anniversary')
@@ -182,6 +266,42 @@ const GrowPage: FC = () => {
     } else if (type === 'promise') {
       setPromises(promises.filter(p => p.id !== id))
     }
+  }
+
+  // 重新生成推荐目标
+  const handleRegenerateGoals = () => {
+    setRecommendedGoals(getRandomItems(goalPool, 5))
+    setAddedGoals(new Set())
+  }
+
+  // 直接添加推荐目标
+  const handleAddRecommendedGoal = (goal: { title: string; total: number }) => {
+    const newItem: Goal = {
+      id: Date.now().toString() + Math.random(),
+      title: goal.title,
+      progress: 0,
+      total: goal.total,
+      completed: false
+    }
+    setGoals([...goals, newItem])
+    setAddedGoals(prev => new Set([...prev, goal.title]))
+  }
+
+  // 重新生成推荐约定
+  const handleRegeneratePromises = () => {
+    setRecommendedPromises(getRandomItems(promisePool, 5))
+    setAddedPromises(new Set())
+  }
+
+  // 直接添加推荐约定
+  const handleAddRecommendedPromise = (promise: string) => {
+    const newItem: PromiseItem = {
+      id: Date.now().toString() + Math.random(),
+      content: promise,
+      completed: false
+    }
+    setPromises([...promises, newItem])
+    setAddedPromises(prev => new Set([...prev, promise]))
   }
 
   const modules: GrowthModule[] = [
@@ -342,6 +462,77 @@ const GrowPage: FC = () => {
               </View>
             </View>
 
+            {/* 推荐目标 */}
+            <Card className="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100">
+              <View className="flex flex-row items-center justify-between mb-3">
+                <View className="flex flex-row items-center">
+                  <Sparkles size={16} color="#10b981" />
+                  <Text className="text-xs font-medium text-emerald-600 ml-2">推荐目标</Text>
+                </View>
+                <View
+                  onClick={handleRegenerateGoals}
+                  style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '4px 8px' }}
+                >
+                  <RotateCw size={12} color="#10b981" />
+                  <Text className="text-xs text-emerald-600 ml-1">重新生成</Text>
+                </View>
+              </View>
+              <View>
+                {recommendedGoals.map((goal, index) => (
+                  <View
+                    key={index}
+                    className="mb-2 last:mb-0"
+                  >
+                    <View
+                      onClick={() => handleAddRecommendedGoal(goal)}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 12px',
+                        backgroundColor: addedGoals.has(goal.title) ? '#f0fdf4' : '#ffffff',
+                        borderRadius: '8px',
+                        border: `1px solid ${addedGoals.has(goal.title) ? '#86efac' : '#e5e7eb'}`
+                      }}
+                    >
+                      <View className="flex-1">
+                        <Text
+                          className="text-xs"
+                          style={{ color: addedGoals.has(goal.title) ? '#22c55e' : '#374151' }}
+                        >
+                          {goal.title}
+                        </Text>
+                        <Text className="text-xs text-gray-400 mt-1">
+                          目标: {goal.total > 100 ? `${goal.total}元` : `${goal.total}次`}
+                        </Text>
+                      </View>
+                      {addedGoals.has(goal.title) ? (
+                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                          <Check size={14} color="#22c55e" />
+                          <Text className="text-xs text-green-500 ml-1">已添加</Text>
+                        </View>
+                      ) : (
+                        <View
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '12px',
+                            backgroundColor: '#10b981',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <Plus size={14} color="#ffffff" />
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </Card>
+
             {goals.map((item) => (
               <Card key={item.id} className="mb-3">
                 <CardContent className="py-4">
@@ -468,6 +659,74 @@ const GrowPage: FC = () => {
                 <Text className="text-xs text-emerald-600 ml-1">添加</Text>
               </View>
             </View>
+
+            {/* 推荐约定 */}
+            <Card className="mb-4 p-4 bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-100">
+              <View className="flex flex-row items-center justify-between mb-3">
+                <View className="flex flex-row items-center">
+                  <Sparkles size={16} color="#ec4899" />
+                  <Text className="text-xs font-medium text-pink-600 ml-2">推荐约定</Text>
+                </View>
+                <View
+                  onClick={handleRegeneratePromises}
+                  style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '4px 8px' }}
+                >
+                  <RotateCw size={12} color="#ec4899" />
+                  <Text className="text-xs text-pink-600 ml-1">重新生成</Text>
+                </View>
+              </View>
+              <View>
+                {recommendedPromises.map((promise, index) => (
+                  <View
+                    key={index}
+                    className="mb-2 last:mb-0"
+                  >
+                    <View
+                      onClick={() => handleAddRecommendedPromise(promise)}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 12px',
+                        backgroundColor: addedPromises.has(promise) ? '#fdf2f8' : '#ffffff',
+                        borderRadius: '8px',
+                        border: `1px solid ${addedPromises.has(promise) ? '#f9a8d4' : '#e5e7eb'}`
+                      }}
+                    >
+                      <View className="flex-1">
+                        <Text
+                          className="text-xs"
+                          style={{ color: addedPromises.has(promise) ? '#ec4899' : '#374151' }}
+                        >
+                          {promise}
+                        </Text>
+                      </View>
+                      {addedPromises.has(promise) ? (
+                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                          <Check size={14} color="#ec4899" />
+                          <Text className="text-xs ml-1" style={{ color: '#ec4899' }}>已添加</Text>
+                        </View>
+                      ) : (
+                        <View
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '12px',
+                            backgroundColor: '#ec4899',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <Plus size={14} color="#ffffff" />
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </Card>
 
             <Card className="mb-4 p-4 bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-100">
               <View className="flex flex-row items-center">
