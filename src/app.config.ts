@@ -38,6 +38,7 @@ export default defineAppConfig({
     'pages/game-scenario/index',
     'pages/game-quick/index',
     'pages/game-challenge/index',
+    'pages/grow/index',
   ],
   window: {
     backgroundTextStyle: 'light',

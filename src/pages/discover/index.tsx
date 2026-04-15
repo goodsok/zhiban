@@ -1,7 +1,7 @@
 import { View, Text } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Moon, MessageCircle, Theater, Zap, BookOpen, Smartphone, Heart, Gamepad2 } from 'lucide-react-taro'
+import { Moon, MessageCircle, Theater, Zap, BookOpen, Smartphone, Heart, Gamepad2, TrendingUp } from 'lucide-react-taro'
 
 interface KnowledgeCategory {
   id: string
@@ -85,6 +85,15 @@ const categories: KnowledgeCategory[] = [
     pagePath: '/pages/interactive-games/index',
     bgColor: 'bg-white border border-gray-200',
     iconBg: 'bg-purple-50',
+  },
+  {
+    id: 'grow',
+    title: '共同成长',
+    subtitle: '一起变得更好的每一天',
+    icon: TrendingUp,
+    pagePath: '/pages/grow/index',
+    bgColor: 'bg-white border border-gray-200',
+    iconBg: 'bg-emerald-50',
   },
 ]
 
