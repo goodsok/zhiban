@@ -624,3 +624,32 @@ export const profileDimensionHistory = pgTable("profile_dimension_history", {
 	pgPolicy("profile_dimension_history_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
 	pgPolicy("profile_dimension_history_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
 ]);
+
+// 洞察缓存表 - 持久化AI洞察分析结果
+export const insightCache = pgTable("insight_cache", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	// 洞察结果（JSON）
+	personalitySummary: text("personality_summary").notNull(),
+	relationshipDynamics: text("relationship_dynamics").notNull(),
+	emotionalPatterns: text("emotional_patterns").notNull(),
+	communicationStyle: text("communication_style").notNull(),
+	keyFindings: jsonb("key_findings").notNull(),
+	blindSpots: jsonb("blind_spots").notNull(),
+	growthSuggestions: jsonb("growth_suggestions").notNull(),
+	actionPriority: text("action_priority").notNull(),
+	// 隐蔽信号（新增 - AI发现的不易觉察的深层模式）
+	hiddenSignals: jsonb("hidden_signals"),
+	// 数据快照（生成时基于的数据指纹，用于判断是否需要重新分析）
+	dataFingerprint: text("data_fingerprint"),
+	// 时间戳
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("insight_cache_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	index("insight_cache_created_at_idx").using("btree", table.createdAt.desc().nullsLast().op("timestamptz_ops")),
+	pgPolicy("insight_cache_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("insight_cache_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("insight_cache_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
+	pgPolicy("insight_cache_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);

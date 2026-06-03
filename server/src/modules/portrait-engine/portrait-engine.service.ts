@@ -900,7 +900,7 @@ export class PortraitEngineService {
    * 生成深度洞察分析
    * 聚合该对象的全部数据，使用 LLM 进行深度洞察
    */
-  async generateInsight(matchId: number, request: Request): Promise<InsightAnalysisResult> {
-    return this.insightAnalyzer.analyze(matchId, request)
+  async generateInsight(matchId: number, request: Request, forceRefresh = false): Promise<InsightAnalysisResult> {
+    return this.insightAnalyzer.analyze(matchId, request, forceRefresh)
   }
 }

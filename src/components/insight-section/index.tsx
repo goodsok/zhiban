@@ -1,9 +1,17 @@
 import { View, Text } from '@tarojs/components'
 import type { FC } from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Network } from '@/network'
 import { Button } from '@/components/ui/button'
-import { Brain, Sparkles, Eye, Lightbulb, CircleAlert, TrendingUp, MessageSquare, Heart, Target } from 'lucide-react-taro'
+import { Brain, Sparkles, Eye, Lightbulb, CircleAlert, TrendingUp, MessageSquare, Heart, Target, Shield, Search, Zap } from 'lucide-react-taro'
+
+// 隐蔽信号
+interface HiddenSignal {
+  type: 'contradiction' | 'pattern' | 'risk' | 'opportunity'
+  title: string
+  description: string
+  evidence: string
+}
 
 // AI洞察结果接口
 interface InsightData {
@@ -13,6 +21,7 @@ interface InsightData {
   communicationStyle: string
   keyFindings: string[]
   blindSpots: string[]
+  hiddenSignals: HiddenSignal[]
   growthSuggestions: string[]
   actionPriority: string
 }
@@ -22,20 +31,37 @@ interface InsightSectionProps {
   matchName: string
 }
 
+// 隐蔽信号图标和配色
+const SIGNAL_STYLES: Record<string, { icon: typeof Eye; color: string; bg: string; border: string; label: string }> = {
+  contradiction: { icon: Zap, color: '#EF4444', bg: 'bg-red-50', border: 'border-red-100', label: '矛盾信号' },
+  pattern: { icon: Search, color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-100', label: '隐蔽模式' },
+  risk: { icon: Shield, color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-100', label: '潜在风险' },
+  opportunity: { icon: Sparkles, color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-100', label: '隐藏机会' },
+}
+
 const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
   const [insight, setInsight] = useState<InsightData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const fetchInsight = async () => {
+  // 页面加载时自动获取已保存的洞察
+  useEffect(() => {
+    if (!matchId) return
+    fetchInsight(false)
+  }, [matchId])
+
+  const fetchInsight = async (forceRefresh = false) => {
     if (!matchId) return
 
     try {
       setLoading(true)
       setError('')
-      console.log('[Insight] Fetching AI insight for match:', matchId)
+      const url = forceRefresh
+        ? `/api/portrait/${matchId}/insight?forceRefresh=true`
+        : `/api/portrait/${matchId}/insight`
+      console.log('[Insight] Fetching AI insight for match:', matchId, 'forceRefresh:', forceRefresh)
       const res = await Network.request({
-        url: `/api/portrait/${matchId}/insight`,
+        url,
         method: 'GET'
       })
       console.log('[Insight] Response:', res.data)
@@ -54,7 +80,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
   }
 
   // 加载态
-  if (loading) {
+  if (loading && !insight) {
     return (
       <View className="p-4">
         <View className="bg-white rounded-xl border border-gray-100 p-6">
@@ -65,15 +91,15 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
           <View className="space-y-3">
             <View className="flex items-center gap-2">
               <View className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-              <Text className="block text-sm text-gray-500">汇总{matchName}的所有行为数据...</Text>
+              <Text className="block text-sm text-gray-500">扫描{matchName}的所有行为数据...</Text>
             </View>
             <View className="flex items-center gap-2">
               <View className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" style={{ animationDelay: '0.3s' }} />
-              <Text className="block text-sm text-gray-500">分析关系动态与情感模式...</Text>
+              <Text className="block text-sm text-gray-500">交叉分析寻找隐蔽模式...</Text>
             </View>
             <View className="flex items-center gap-2">
               <View className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" style={{ animationDelay: '0.6s' }} />
-              <Text className="block text-sm text-gray-500">生成深度洞察与行动建议...</Text>
+              <Text className="block text-sm text-gray-500">揭示你可能忽略的深层信号...</Text>
             </View>
           </View>
         </View>
@@ -82,7 +108,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
   }
 
   // 错误态
-  if (error) {
+  if (error && !insight) {
     return (
       <View className="p-4">
         <View className="bg-white rounded-xl border border-gray-100 p-6">
@@ -91,7 +117,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
           </View>
           <Text className="block text-sm text-gray-500 text-center mb-4">{error}</Text>
           <View className="flex justify-center">
-            <Button size="sm" onClick={fetchInsight}>重新分析</Button>
+            <Button size="sm" onClick={() => fetchInsight(false)}>重试</Button>
           </View>
         </View>
       </View>
@@ -110,27 +136,27 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
             <View className="flex-1">
               <Text className="block text-base font-semibold text-gray-900">AI深度洞察</Text>
               <Text className="block text-xs text-gray-500 mt-1">
-                基于所有数据，AI为你生成全方位关系洞察
+                发现你看不见的隐蔽模式与深层信号
               </Text>
             </View>
           </View>
 
           <View className="space-y-2 mb-5">
             <View className="flex items-start gap-2">
-              <Eye size={14} color="#6366F1" className="mt-1 shrink-0" />
-              <Text className="block text-xs text-gray-600">综合分析{matchName}的性格特征、情感模式与沟通风格</Text>
+              <Search size={14} color="#6366F1" className="mt-1 shrink-0" />
+              <Text className="block text-xs text-gray-600">交叉分析多个维度的数据，发现矛盾与张力</Text>
             </View>
             <View className="flex items-start gap-2">
-              <TrendingUp size={14} color="#6366F1" className="mt-1 shrink-0" />
-              <Text className="block text-xs text-gray-600">洞察你们的关系动态和互动趋势</Text>
+              <Eye size={14} color="#6366F1" className="mt-1 shrink-0" />
+              <Text className="block text-xs text-gray-600">揭示{matchName}言行不一的隐蔽信号</Text>
             </View>
             <View className="flex items-start gap-2">
               <Lightbulb size={14} color="#6366F1" className="mt-1 shrink-0" />
-              <Text className="block text-xs text-gray-600">发现你的认知盲点，获取专属行动建议</Text>
+              <Text className="block text-xs text-gray-600">发现你可能忽略的盲点和被掩盖的机会</Text>
             </View>
           </View>
 
-          <Button className="w-full bg-indigo-500 text-white" onClick={fetchInsight}>
+          <Button className="w-full bg-indigo-500 text-white" onClick={() => fetchInsight(true)}>
             <View className="flex items-center justify-center gap-2">
               <Brain size={16} color="#fff" />
               <Text className="text-white">开始AI洞察分析</Text>
@@ -144,13 +170,90 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
   // 有洞察数据 - 展示结果
   return (
     <View className="p-4">
+      {/* 隐蔽信号 — 最有价值，放在最前面 */}
+      {insight.hiddenSignals && insight.hiddenSignals.length > 0 && (
+        <View className="mb-3">
+          <View className="flex items-center gap-2 mb-3">
+            <View className="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center">
+              <Eye size={14} color="#6366F1" />
+            </View>
+            <Text className="block text-sm font-semibold text-gray-900">隐蔽信号</Text>
+            <Text className="block text-xs text-gray-400 ml-1">AI独有发现</Text>
+          </View>
+          <View className="space-y-2">
+            {insight.hiddenSignals.map((signal, i) => {
+              const style = SIGNAL_STYLES[signal.type] || SIGNAL_STYLES.pattern
+              const Icon = style.icon
+              return (
+                <View key={i} className={`bg-white rounded-xl border ${style.border} p-4`}>
+                  <View className="flex items-center gap-2 mb-2">
+                    <View className={`w-6 h-6 rounded-md ${style.bg} flex items-center justify-center`}>
+                      <Icon size={12} color={style.color} />
+                    </View>
+                    <Text className="block text-xs font-medium" style={{ color: style.color }}>{style.label}</Text>
+                    <Text className="block text-sm font-semibold text-gray-900">{signal.title}</Text>
+                  </View>
+                  <Text className="block text-sm text-gray-700 leading-relaxed mb-2">{signal.description}</Text>
+                  <View className="bg-gray-50 rounded-lg px-3 py-2">
+                    <Text className="block text-xs text-gray-400 mb-1">判断依据</Text>
+                    <Text className="block text-xs text-gray-500">{signal.evidence}</Text>
+                  </View>
+                </View>
+              )
+            })}
+          </View>
+        </View>
+      )}
+
+      {/* 盲点提醒 — 第二重要 */}
+      {insight.blindSpots && insight.blindSpots.length > 0 && (
+        <View className="bg-amber-50 rounded-xl border border-amber-100 p-4 mb-3">
+          <View className="flex items-center gap-2 mb-3">
+            <View className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center">
+              <CircleAlert size={14} color="#F59E0B" />
+            </View>
+            <Text className="block text-sm font-semibold text-amber-800">你可能忽略的盲点</Text>
+          </View>
+          <View className="space-y-2">
+            {insight.blindSpots.map((spot, i) => (
+              <View key={i} className="flex items-start gap-2">
+                <View className="w-2 h-2 rounded-full bg-amber-400 mt-2 shrink-0" />
+                <Text className="block text-sm text-amber-900 leading-relaxed">{spot}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* 关键发现 */}
+      {insight.keyFindings && insight.keyFindings.length > 0 && (
+        <View className="bg-white rounded-xl border border-gray-100 p-4 mb-3">
+          <View className="flex items-center gap-2 mb-3">
+            <View className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <Lightbulb size={14} color="#10B981" />
+            </View>
+            <Text className="block text-sm font-semibold text-gray-900">关键发现</Text>
+          </View>
+          <View className="space-y-2">
+            {insight.keyFindings.map((finding, i) => (
+              <View key={i} className="flex items-start gap-2">
+                <View className="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 mt-1">
+                  <Text className="block text-xs text-emerald-600 font-medium">{i + 1}</Text>
+                </View>
+                <Text className="block text-sm text-gray-700 leading-relaxed">{finding}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
       {/* 性格洞察 */}
       <View className="bg-white rounded-xl border border-gray-100 p-4 mb-3">
         <View className="flex items-center gap-2 mb-3">
           <View className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center">
             <Eye size={14} color="#6366F1" />
           </View>
-          <Text className="block text-sm font-semibold text-gray-900">性格洞察</Text>
+          <Text className="block text-sm font-semibold text-gray-900">性格深层洞察</Text>
         </View>
         <Text className="block text-sm text-gray-700 leading-relaxed">{insight.personalitySummary}</Text>
       </View>
@@ -188,50 +291,8 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
         <Text className="block text-sm text-gray-700 leading-relaxed">{insight.communicationStyle}</Text>
       </View>
 
-      {/* 关键发现 */}
-      {insight.keyFindings.length > 0 && (
-        <View className="bg-white rounded-xl border border-gray-100 p-4 mb-3">
-          <View className="flex items-center gap-2 mb-3">
-            <View className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <Lightbulb size={14} color="#10B981" />
-            </View>
-            <Text className="block text-sm font-semibold text-gray-900">关键发现</Text>
-          </View>
-          <View className="space-y-2">
-            {insight.keyFindings.map((finding, i) => (
-              <View key={i} className="flex items-start gap-2">
-                <View className="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 mt-1">
-                  <Text className="block text-xs text-emerald-600 font-medium">{i + 1}</Text>
-                </View>
-                <Text className="block text-sm text-gray-700 leading-relaxed">{finding}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {/* 盲点提醒 */}
-      {insight.blindSpots.length > 0 && (
-        <View className="bg-amber-50 rounded-xl border border-amber-100 p-4 mb-3">
-          <View className="flex items-center gap-2 mb-3">
-            <View className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center">
-              <CircleAlert size={14} color="#F59E0B" />
-            </View>
-            <Text className="block text-sm font-semibold text-amber-800">你可能忽略的盲点</Text>
-          </View>
-          <View className="space-y-2">
-            {insight.blindSpots.map((spot, i) => (
-              <View key={i} className="flex items-start gap-2">
-                <View className="w-2 h-2 rounded-full bg-amber-400 mt-2 shrink-0" />
-                <Text className="block text-sm text-amber-900 leading-relaxed">{spot}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-
       {/* 成长建议 */}
-      {insight.growthSuggestions.length > 0 && (
+      {insight.growthSuggestions && insight.growthSuggestions.length > 0 && (
         <View className="bg-white rounded-xl border border-gray-100 p-4 mb-3">
           <View className="flex items-center gap-2 mb-3">
             <View className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center">
@@ -265,7 +326,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
 
       {/* 重新分析按钮 */}
       <View className="mt-4 mb-8">
-        <Button variant="outline" className="w-full" onClick={fetchInsight}>
+        <Button variant="outline" className="w-full" onClick={() => fetchInsight(true)}>
           <View className="flex items-center justify-center gap-2">
             <Sparkles size={14} color="#6366F1" />
             <Text>重新分析</Text>

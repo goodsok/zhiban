@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Req, Post, Body } from '@nestjs/common'
+import { Controller, Get, Param, Req, Post, Body, Query } from '@nestjs/common'
 import { Request } from 'express'
 import { PortraitService } from './portrait.service'
 
@@ -170,18 +170,24 @@ export class PortraitController {
   }
 
   /**
-   * 生成深度洞察
+   * 获取深度洞察
    * 聚合所有数据，使用 AI 进行深度分析
+   * 如果已有缓存结果，默认直接返回；forceRefresh=true 时重新生成
    */
   @Get(':matchId/insight')
-  async getInsight(@Param('matchId') matchId: string, @Req() req: Request) {
+  async getInsight(
+    @Param('matchId') matchId: string,
+    @Query('forceRefresh') forceRefresh: string,
+    @Req() req: Request
+  ) {
     const id = parseInt(matchId, 10)
     if (isNaN(id)) {
       return { code: 400, data: null, message: '无效的ID' }
     }
 
     try {
-      const insight = await this.portraitService.generateInsight(id, req)
+      const shouldForce = forceRefresh === 'true' || forceRefresh === '1'
+      const insight = await this.portraitService.generateInsight(id, req, shouldForce)
       return { code: 200, data: insight, message: 'success' }
     } catch (error) {
       console.error('Generate insight error:', error)
