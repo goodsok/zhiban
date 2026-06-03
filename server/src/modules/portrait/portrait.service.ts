@@ -106,4 +106,12 @@ export class PortraitService {
 
     return this.portraitEngine.getInteractionStrategy(matchId, userPortrait, req)
   }
+
+  /**
+   * 重新分析画像
+   * 基于已有的聊天记录和手动数据重新计算画像维度
+   */
+  async reanalyzePortrait(matchId: number, req: Request): Promise<FullPortrait> {
+    return this.portraitEngine.reanalyzePortrait(matchId, req)
+  }
 }

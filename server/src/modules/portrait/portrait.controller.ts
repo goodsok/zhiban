@@ -83,6 +83,26 @@ export class PortraitController {
   }
 
   /**
+   * 重新分析画像
+   * 基于已有数据重新计算画像维度
+   */
+  @Post(':matchId/analyze')
+  async analyzePortrait(@Param('matchId') matchId: string, @Req() req: Request) {
+    const id = parseInt(matchId, 10)
+    if (isNaN(id)) {
+      return { code: 400, data: null, message: '无效的ID' }
+    }
+
+    try {
+      const portrait = await this.portraitService.reanalyzePortrait(id, req)
+      return { code: 200, data: portrait, message: '分析完成' }
+    } catch (error) {
+      console.error('Analyze portrait error:', error)
+      return { code: 500, data: null, message: '分析失败' }
+    }
+  }
+
+  /**
    * 上传聊天记录截图
    */
   @Post(':matchId/chat-record')

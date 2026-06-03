@@ -38,6 +38,101 @@ export class PortraitEngineService {
   // ==================== 画像数据管理 ====================
 
   /**
+   * 重新分析画像
+   * 基于已有数据重新计算画像维度和行为模式
+   */
+  async reanalyzePortrait(matchId: number, request: Request): Promise<FullPortrait> {
+    const client = getSupabaseClient()
+
+    // 重新合并所有聊天记录数据
+    await this.mergeChatRecordData(matchId)
+
+    // 重新处理手动数据
+    const { data: manualData } = await client
+      .from('manual_behavior_data')
+      .select('*')
+      .eq('match_id', matchId)
+      .maybeSingle()
+
+    if (manualData) {
+      const behaviorPattern = this.behaviorAnalyzer.mergeBehaviorData({
+        chatRecords: [],
+        manualData: {
+          responseSpeed: manualData.response_speed,
+          activeTimeSlots: manualData.active_time_slots || [],
+          topicPreferences: manualData.topic_preferences || [],
+          communicationStyle: manualData.communication_style,
+          notes: manualData.notes,
+        },
+      })
+
+      // 如果已有聊天记录数据，合并；否则用手动数据覆盖
+      const { data: existingBehavior } = await client
+        .from('behavior_patterns')
+        .select('*')
+        .eq('match_id', matchId)
+        .maybeSingle()
+
+      if (existingBehavior?.data_source === 'chat_record') {
+        // 已有聊天记录分析数据，手动数据作为补充
+        // 更新置信度（手动数据贡献额外置信度）
+        const { data: portrait } = await client
+          .from('profile_portraits')
+          .select('confidence')
+          .eq('match_id', matchId)
+          .maybeSingle()
+
+        const newConfidence = Math.min(100, (portrait?.confidence || 0) + 15)
+        await client
+          .from('profile_portraits')
+          .update({ confidence: newConfidence, updated_at: new Date().toISOString() })
+          .eq('match_id', matchId)
+      } else {
+        // 仅手动数据
+        await client
+          .from('behavior_patterns')
+          .upsert({
+            match_id: matchId,
+            data_source: 'manual',
+            avg_response_time: behaviorPattern.avgResponseTime,
+            active_hours: behaviorPattern.activeHours,
+            emoji_usage_rate: behaviorPattern.emojiUsageRate,
+            topic_categories: behaviorPattern.topicCategories,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'match_id' })
+
+        await client
+          .from('profile_portraits')
+          .update({ confidence: 30, updated_at: new Date().toISOString() })
+          .eq('match_id', matchId)
+      }
+    }
+
+    // 记录分析历史
+    const { data: portrait } = await client
+      .from('profile_portraits')
+      .select('id')
+      .eq('match_id', matchId)
+      .maybeSingle()
+
+    if (portrait) {
+      await client
+        .from('profile_histories')
+        .insert({
+          match_id: matchId,
+          dimension: '综合分析',
+          old_value: 0,
+          new_value: 0,
+          change_reason: 'manual',
+          evidence: '用户触发了重新分析',
+        })
+    }
+
+    // 返回最新画像
+    return this.getOrCreatePortrait(matchId)
+  }
+
+  /**
    * 获取或创建画像
    */
   async getOrCreatePortrait(matchId: number): Promise<FullPortrait> {
