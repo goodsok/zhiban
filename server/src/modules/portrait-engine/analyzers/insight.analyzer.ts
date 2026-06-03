@@ -1,8 +1,8 @@
 /**
  * AI 洞察分析器
  *
- * 聚合该对象的全部数据，调用 LLM 进行深度洞察分析
- * 重点：发现用户不易觉察的隐蔽模式、矛盾信号、潜在风险
+ * 聚合该对象的全部维度数据，调用 LLM 进行深度洞察分析
+ * 重点：发现用户不容易觉察的隐蔽模式、矛盾信号、潜在风险
  * 支持持久化：分析结果存入数据库，刷新不丢失
  */
 
@@ -49,6 +49,49 @@ export interface InsightAnalysisResult {
   actionPriority: string
 }
 
+/** 维度值记录（从 profile_dimension_values 读取） */
+interface DimensionValueRow {
+  dimension_key: string
+  value: any
+  source: string
+  source_detail: any
+  confidence: number | null
+  previous_value: any
+  changed_reason: string | null
+  created_at: string
+  updated_at: string | null
+}
+
+/** 维度定义记录（从 dimension_definitions 读取） */
+interface DimensionDefRow {
+  dimension_key: string
+  display_name: string
+  description: string | null
+  layer: number
+  category: string
+  subcategory: string | null
+  data_type: string
+  enum_options: Array<{ value: string; label: string }> | null
+  importance: string
+  weight: string
+  relationship_applicability: string | null
+}
+
+/** 聚合后的维度数据 */
+interface AggregatedDimension {
+  key: string
+  displayName: string
+  value: any
+  displayValue: string
+  layer: number
+  category: string
+  importance: string
+  dataType: string
+  source: string
+  previousValue: any
+  changedReason: string | null
+}
+
 @Injectable()
 export class InsightAnalyzer {
   /**
@@ -65,13 +108,14 @@ export class InsightAnalyzer {
       }
     }
 
-    // 2. 聚合所有数据
+    // 2. 聚合所有数据（维度优先）
     const aggregatedData = await this.aggregateAllData(matchId)
+    console.log(`[InsightAnalyzer] Aggregated data for match ${matchId}: dimensions=${aggregatedData.dimensions.length}, hasEnoughData=${aggregatedData.hasEnoughData}, energy=${!!aggregatedData.energy}`)
 
     // 3. 检查是否有足够数据
     if (!aggregatedData.hasEnoughData) {
+      console.log(`[InsightAnalyzer] Insufficient data for match ${matchId}`)
       const result = this.getInsufficientDataResult()
-      // 数据不足也缓存，避免重复生成
       await this.saveToCache(matchId, result, 'insufficient')
       return result
     }
@@ -151,25 +195,19 @@ export class InsightAnalyzer {
    */
   private computeDataFingerprint(data: Awaited<ReturnType<typeof this.aggregateAllData>>): string {
     const parts: string[] = []
-    // 画像置信度
-    if (data.portrait) parts.push(`p:${data.portrait.confidence}`)
-    // 互动数量
-    parts.push(`i:${data.interactions?.length || 0}`)
-    // 聊天记录数量
-    parts.push(`c:${data.chatRecords?.length || 0}`)
+    // 维度数量和最后更新时间
+    parts.push(`d:${data.dimensions.length}`)
     // 关系能量
     if (data.energy) parts.push(`e:${data.energy.total_energy}`)
-    // 维度数量
-    parts.push(`d:${data.dimensions?.length || 0}`)
+    // 基本信息
+    if (data.match) parts.push(`m:${data.match.id}`)
     // 任务数量
     parts.push(`t:${data.tasks?.length || 0}`)
-    // 历史数量
-    parts.push(`h:${data.history?.length || 0}`)
     return parts.join('|')
   }
 
   /**
-   * 聚合该对象的所有数据
+   * 聚合该对象的所有数据（以维度数据为核心）
    */
   private async aggregateAllData(matchId: number) {
     const client = getSupabaseClient()
@@ -177,83 +215,167 @@ export class InsightAnalyzer {
     // 并行查询所有数据源
     const [
       matchResult,
-      portraitResult,
-      behaviorResult,
-      manualResult,
-      chatRecordsResult,
-      interactionsResult,
-      energyResult,
       dimensionsResult,
+      definitionsResult,
+      energyResult,
       tasksResult,
-      historyResult,
       energyHistoryResult,
     ] = await Promise.all([
       // 基本信息
       client.from('matches').select('*').eq('id', matchId).maybeSingle(),
-      // 画像维度
-      client.from('profile_portraits').select('*').eq('match_id', matchId).maybeSingle(),
-      // 行为模式
-      client.from('behavior_patterns').select('*').eq('match_id', matchId).maybeSingle(),
-      // 手动行为数据
-      client.from('manual_behavior_data').select('*').eq('match_id', matchId).maybeSingle(),
-      // 聊天记录
-      client.from('chat_records').select('*').eq('match_id', matchId).eq('analysis_status', 'completed').order('created_at', { ascending: false }),
-      // 互动事件（最近30条，加大样本量以便发现深层模式）
-      client.from('interaction_events').select('*').eq('match_id', matchId).order('created_at', { ascending: false }).limit(30),
+      // 维度值
+      client.from('profile_dimension_values').select('*').eq('match_id', matchId),
+      // 维度定义（所有活跃定义）
+      client.from('dimension_definitions').select('*').eq('is_active', true),
       // 关系能量
       client.from('relationship_energy').select('*').eq('match_id', matchId).maybeSingle(),
-      // 维度值
-      client.from('dimension_values').select('*').eq('match_id', matchId),
       // 任务
       client.from('tasks').select('*').eq('match_id', matchId).order('created_at', { ascending: false }).limit(20),
-      // 画像变化历史
-      client.from('profile_histories').select('*').eq('match_id', matchId).order('created_at', { ascending: false }).limit(10),
-      // 关系能量历史（用于发现趋势和异常）
+      // 关系能量历史
       client.from('relationship_energy_history').select('*').eq('match_id', matchId).order('created_at', { ascending: false }).limit(10),
     ])
 
     const match = matchResult.data
-    const portrait = portraitResult.data
-    const behavior = behaviorResult.data
-    const manual = manualResult.data
-    const chatRecords = chatRecordsResult.data || []
-    const interactions = interactionsResult.data || []
+    const dimensionValues = dimensionsResult.data || []
+    const definitions = definitionsResult.data || []
     const energy = energyResult.data
-    const dimensions = dimensionsResult.data || []
     const tasks = tasksResult.data || []
-    const history = historyResult.data || []
     const energyHistory = energyHistoryResult.data || []
 
-    // 判断是否有足够数据
-    const hasPortrait = portrait && portrait.confidence > 0
-    const hasBehavior = behavior && (behavior.total_interactions > 0 || behavior.avg_response_time !== null)
-    const hasManual = !!manual
-    const hasInteractions = interactions.length > 0
-    const hasDimensions = dimensions.length > 0
-    const hasChatRecords = chatRecords.length > 0
+    // 合并维度值和定义
+    const defMap = new Map<string, DimensionDefRow>()
+    for (const def of definitions) {
+      defMap.set(def.dimension_key, def as DimensionDefRow)
+    }
 
-    const hasEnoughData = hasPortrait || hasBehavior || hasManual || hasInteractions || hasDimensions
+    const valueMap = new Map<string, DimensionValueRow>()
+    for (const val of dimensionValues) {
+      valueMap.set(val.dimension_key, val as DimensionValueRow)
+    }
+
+    // 构建聚合维度列表
+    const dimensions: AggregatedDimension[] = []
+    for (const val of dimensionValues) {
+      const def = defMap.get(val.dimension_key)
+      dimensions.push({
+        key: val.dimension_key,
+        displayName: def?.display_name || val.dimension_key,
+        value: val.value,
+        displayValue: this.formatDimensionValue(val.value, def),
+        layer: def?.layer || 0,
+        category: def?.category || 'unknown',
+        importance: def?.importance || 'optional',
+        dataType: def?.data_type || 'string',
+        source: val.source,
+        previousValue: val.previous_value,
+        changedReason: val.changed_reason,
+      })
+    }
+
+    // 按层级分组统计
+    const layerStats = this.computeLayerStats(dimensions, definitions)
+
+    const hasEnoughData = dimensions.length >= 3
 
     return {
       match,
-      portrait,
-      behavior,
-      manual,
-      chatRecords,
-      interactions,
-      energy,
       dimensions,
+      layerStats,
+      energy,
       tasks,
-      history,
       energyHistory,
       hasEnoughData,
-      hasPortrait,
-      hasBehavior,
-      hasManual,
-      hasInteractions,
-      hasDimensions,
-      hasChatRecords,
     }
+  }
+
+  /**
+   * 格式化维度值为人类可读的展示文本
+   */
+  private formatDimensionValue(value: any, def: DimensionDefRow | undefined): string {
+    if (value === null || value === undefined) return ''
+
+    // 如果有枚举选项，尝试映射
+    if (def?.enum_options && Array.isArray(def.enum_options)) {
+      if (Array.isArray(value)) {
+        return value.map(v => {
+          const opt = def.enum_options!.find(o => o.value === v)
+          return opt?.label || v
+        }).join('、')
+      }
+      const opt = def.enum_options.find(o => o.value === value)
+      if (opt) return opt.label
+    }
+
+    if (Array.isArray(value)) {
+      return value.join('、')
+    }
+
+    if (typeof value === 'boolean') {
+      return value ? '是' : '否'
+    }
+
+    // 特殊维度格式化
+    if (def?.dimension_key === 'birthYear' && typeof value === 'number') {
+      const age = new Date().getFullYear() - value
+      return `${value}年（约${age}岁）`
+    }
+    if (def?.dimension_key === 'height' && typeof value === 'number') {
+      return `${value}cm`
+    }
+
+    return String(value)
+  }
+
+  /**
+   * 计算各层级维度填写统计
+   */
+  private computeLayerStats(dimensions: AggregatedDimension[], definitions: DimensionDefRow[]): {
+    layer: number
+    layerName: string
+    filled: number
+    total: number
+    categories: Record<string, { filled: number; total: number }>
+  }[] {
+    const layerNames: Record<number, string> = {
+      1: '静态属性',
+      2: '性格情感',
+      3: '生活方式',
+      4: '深层模式',
+    }
+
+    const filledKeys = new Set(dimensions.map(d => d.key))
+
+    const layerData: Record<number, {
+      filled: number
+      total: number
+      categories: Record<string, { filled: number; total: number }>
+    }> = {}
+
+    for (const def of definitions) {
+      const layer = def.layer
+      if (!layerData[layer]) {
+        layerData[layer] = { filled: 0, total: 0, categories: {} }
+      }
+      layerData[layer].total++
+      const cat = def.category
+      if (!layerData[layer].categories[cat]) {
+        layerData[layer].categories[cat] = { filled: 0, total: 0 }
+      }
+      layerData[layer].categories[cat].total++
+
+      if (filledKeys.has(def.dimension_key)) {
+        layerData[layer].filled++
+        layerData[layer].categories[cat].filled++
+      }
+    }
+
+    return Object.entries(layerData).map(([layer, data]) => ({
+      layer: parseInt(layer),
+      layerName: layerNames[parseInt(layer)] || `第${layer}层`,
+      filled: data.filled,
+      total: data.total,
+      categories: data.categories,
+    })).sort((a, b) => a.layer - b.layer)
   }
 
   /**
@@ -289,28 +411,29 @@ export class InsightAnalyzer {
 
   /**
    * 构建深度洞察分析提示词
-   * 核心：不是解读档案，而是发现用户看不到的隐蔽模式
+   * 核心：完全基于维度数据，发现用户看不到的隐蔽模式
    */
   private buildInsightPrompt(data: Awaited<ReturnType<typeof this.aggregateAllData>>): string {
     const sections: string[] = []
     const name = data.match?.name || '对方'
 
-    sections.push(`你是一位极其敏锐的关系心理分析师，擅长从看似普通的数据中发现人眼难以察觉的隐蔽模式。你的洞察不是对数据的复述，而是对数据背后的深层含义的揭示。
+    sections.push(`你是一位极其敏锐的关系心理分析师，擅长从看似普通的个人信息中发现人眼难以察觉的隐蔽模式。你的洞察不是对数据的复述，而是对数据背后的深层含义的揭示。
 
 【你的核心能力】
-- 发现数据之间的矛盾和张力（比如：说想亲近，行为却退缩）
-- 捕捉微妙的信号组合（比如：某个时段的活跃度突变暗示了什么）
-- 识别用户自身的认知偏差（比如：用户以为对方不在意，但数据表明相反）
-- 从多维度交叉中提炼非常规发现（比如：情感表达和实际行为的落差）
+- 发现数据之间的矛盾和张力（比如：声称想要稳定，但行为模式显示追求刺激）
+- 捕捉维度之间的微妙关联（比如：依恋类型和冲突处理风格的隐性关系）
+- 识别用户自身的认知偏差（比如：用户以为对方不在意，但维度组合表明相反）
+- 从多维度交叉中提炼非常规发现（比如：价值观和情感表达方式的落差）
 
 【分析原则】
-1. 不要复述数据——"对方外向性70分"不是洞察，"对方虽然社交活跃但深层亲密需求被忽视"才是洞察
+1. 不要复述数据——"对方MBTI是ESFJ"不是洞察，"对方的ESFJ性格叠加高共情力和回避型冲突处理，意味着她会在关系中极力维持和谐表面，但内心积压的不满会在某一刻爆发"才是洞察
 2. 要有意外感——用户读完应该觉得"我没想到这一点"而非"我也知道"
-3. 要有证据链——每个结论都要指向具体数据交叉，不是凭空推测
+3. 要有证据链——每个结论都要指向具体维度数据的交叉，不是凭空推测
 4. 要有实用性——指出隐藏风险或被忽略的机会，给出可操作建议
-5. 尤其关注矛盾——言行不一、情绪波动周期、回避特定话题等隐蔽信号
+5. 尤其关注矛盾——不同层维度之间的不一致、价值观与行为的错位、公开偏好与隐私态度的冲突
+6. 利用层级结构——Layer 1（静态属性）和 Layer 4（深层模式）之间的张力最值得深挖
 
-请基于以下关于"${name}"的全部数据，进行深度人物洞察分析。用中文回答。`)
+请基于以下关于"${name}"的全部维度数据，进行深度人物洞察分析。用中文回答。`)
 
     // === 1. 基本信息 ===
     if (data.match) {
@@ -328,170 +451,83 @@ export class InsightAnalyzer {
       }
     }
 
-    // === 2. 画像维度 ===
-    if (data.portrait) {
-      const p = data.portrait
-      const parts: string[] = []
-      if (p.confidence !== undefined) parts.push(`画像置信度: ${p.confidence}%`)
-      // 人格维度
-      parts.push(`开放性: ${p.personality_openness ?? 50}, 尽责性: ${p.personality_conscientiousness ?? 50}, 外向性: ${p.personality_extraversion ?? 50}, 宜人性: ${p.personality_agreeableness ?? 50}, 神经质: ${p.personality_neuroticism ?? 50}`)
-      // 情感维度
-      parts.push(`情绪稳定性: ${p.emotional_stability ?? 50}, 情感表达: ${p.emotional_expression ?? 50}, 共情力: ${p.emotional_empathy ?? 50}, 独立性: ${p.emotional_independence ?? 50}`)
-      // 社交维度
-      parts.push(`社交活跃度: ${p.social_activity ?? 50}, 社交主动性: ${p.social_initiative ?? 50}, 亲密需求: ${p.social_intimacy ?? 50}, 信任倾向: ${p.social_trust ?? 50}`)
-      // 沟通维度
-      parts.push(`直接度: ${p.communication_directness ?? 50}, 幽默感: ${p.communication_humor ?? 50}, 响应速度: ${p.communication_responsiveness ?? 50}, 深度偏好: ${p.communication_depth ?? 50}`)
-      // 互动风格
-      if (p.interaction_style) parts.push(`互动风格: ${p.interaction_style}`)
-      if (p.preferred_topic_types && p.preferred_topic_types.length > 0) parts.push(`偏好话题类型: ${p.preferred_topic_types.join('、')}`)
-      if (p.active_time_slots && p.active_time_slots.length > 0) parts.push(`活跃时段: ${p.active_time_slots.join('、')}`)
-
-      sections.push(`\n【画像维度（0-100）】\n${parts.join('\n')}`)
+    // === 2. 维度数据（按层级和分类组织，核心数据） ===
+    // 按层级和分类分组
+    const layerNames: Record<number, string> = {
+      1: '基础画像',
+      2: '性格与情感',
+      3: '生活方式',
+      4: '深层模式',
     }
 
-    // === 3. 行为模式 ===
-    if (data.behavior && data.hasBehavior) {
-      const b = data.behavior
-      const parts: string[] = []
-      if (b.avg_response_time !== null) parts.push(`平均回复时间: ${b.avg_response_time}分钟`)
-      if (b.emoji_usage_rate) parts.push(`表情使用率: ${b.emoji_usage_rate}%`)
-      if (b.question_rate) parts.push(`提问率: ${b.question_rate}%`)
-      if (b.initiative_rate) parts.push(`主动发起率: ${b.initiative_rate}%`)
-      if (b.message_length_avg) parts.push(`平均消息长度: ${b.message_length_avg}字`)
-      if (b.total_interactions) parts.push(`总互动次数: ${b.total_interactions}`)
-      if (b.topic_categories && Object.keys(b.topic_categories).length > 0) {
-        parts.push(`话题分布: ${Object.entries(b.topic_categories as Record<string, number>).map(([k, v]) => `${k}(${v})`).join('、')}`)
-      }
-      if (b.emotional_keywords && b.emotional_keywords.length > 0) {
-        parts.push(`情绪关键词: ${(b.emotional_keywords as string[]).join('、')}`)
-      }
-      if (b.active_hours && Object.keys(b.active_hours).length > 0) {
-        const topHours = Object.entries(b.active_hours as Record<string, number>)
-          .sort(([, a], [, b]) => b - a)
-          .slice(0, 5)
-          .map(([h, c]) => `${h}点(${c}次)`)
-        parts.push(`最活跃时段: ${topHours.join('、')}`)
-      }
-      parts.push(`数据来源: ${b.data_source === 'chat_record' ? '聊天记录分析' : b.data_source === 'manual' ? '手动填写' : '混合'}`)
-
-      sections.push(`\n【行为模式】\n${parts.join('\n')}`)
+    const categoryNames: Record<string, string> = {
+      identity: '身份',
+      education: '教育职业',
+      family: '家庭背景',
+      appearance: '外在形象',
+      life_stage: '人生阶段',
+      location: '地理位置',
+      core_personality: '核心人格',
+      values: '价值观',
+      personality: '性格特质',
+      emotion: '情感特质',
+      social: '社交特质',
+      communication: '沟通方式',
+      life_attitude: '生活态度',
+      love_style: '恋爱风格',
+      interests: '兴趣爱好',
+      lifestyle: '生活习惯',
+      dating: '约会偏好',
+      communication_pref: '沟通偏好',
+      current: '当前状态',
+      sexual_intimacy: '亲密关系',
+      relationship_form: '关系形态',
+      emotional_investment: '情感投入',
+      time_availability: '时间精力',
+      privacy_public: '隐私公开',
+      short_term_patterns: '短期关系模式',
+      dating_dynamics: '约会动态',
+      current_status: '当前状态',
     }
 
-    // === 4. 手动填写数据 ===
-    if (data.manual) {
-      const m = data.manual
-      const parts: string[] = []
-      if (m.response_speed) {
-        const speedMap: Record<string, string> = { instant: '秒回', fast: '很快', normal: '正常', slow: '较慢', very_slow: '很慢' }
-        parts.push(`回复速度: ${speedMap[m.response_speed] || m.response_speed}`)
-      }
-      if (m.active_time_slots && m.active_time_slots.length > 0) parts.push(`活跃时段: ${(m.active_time_slots as string[]).join('、')}`)
-      if (m.topic_preferences && m.topic_preferences.length > 0) parts.push(`话题偏好: ${(m.topic_preferences as string[]).join('、')}`)
-      if (m.communication_style) {
-        const styleMap: Record<string, string> = { direct: '直接', indirect: '委婉', balanced: '均衡' }
-        parts.push(`沟通风格: ${styleMap[m.communication_style] || m.communication_style}`)
-      }
-      if (m.notes) parts.push(`观察备注: ${m.notes}`)
+    for (const ls of data.layerStats) {
+      const layerDims = data.dimensions.filter(d => d.layer === ls.layer)
+      if (layerDims.length === 0) continue
 
-      if (parts.length > 0) {
-        sections.push(`\n【手动观察数据】\n${parts.join('\n')}`)
-      }
-    }
+      const layerTitle = layerNames[ls.layer] || `第${ls.layer}层`
+      sections.push(`\n【${layerTitle}】（已填${ls.filled}/${ls.total}项）`)
 
-    // === 5. 聊天记录分析 ===
-    if (data.hasChatRecords) {
-      const records = data.chatRecords
-      const parts: string[] = []
-      parts.push(`聊天截图数量: ${records.length}`)
-
-      // 汇总所有聊天记录的关键词和摘要
-      const allKeywords: string[] = []
-      for (const r of records) {
-        if (r.topic_keywords && (r.topic_keywords as string[]).length > 0) {
-          allKeywords.push(...(r.topic_keywords as string[]))
-        }
-      }
-      const uniqueKeywords = [...new Set(allKeywords)].slice(0, 20)
-      if (uniqueKeywords.length > 0) {
-        parts.push(`话题关键词: ${uniqueKeywords.join('、')}`)
+      // 按分类分组
+      const grouped = new Map<string, AggregatedDimension[]>()
+      for (const dim of layerDims) {
+        const cat = dim.category
+        if (!grouped.has(cat)) grouped.set(cat, [])
+        grouped.get(cat)!.push(dim)
       }
 
-      // 最近一条的分析概要
-      const latest = records[0]
-      if (latest) {
-        if (latest.message_count) parts.push(`最近一次消息数: ${latest.message_count}`)
-        if (latest.emoji_usage_rate) parts.push(`最近一次表情率: ${latest.emoji_usage_rate}%`)
-      }
-
-      sections.push(`\n【聊天记录分析】\n${parts.join('\n')}`)
-    }
-
-    // === 6. 互动记录 ===
-    if (data.hasInteractions) {
-      const events = data.interactions
-      const parts: string[] = []
-      parts.push(`互动事件总数: ${events.length}`)
-
-      // 统计互动类型分布
-      const typeCount: Record<string, number> = {}
-      let totalQuality = 0
-      let qualityCount = 0
-      const allActivities: string[] = []
-      const allBreakthroughs: string[] = []
-      const allIssues: string[] = []
-
-      for (const e of events) {
-        typeCount[e.interaction_type] = (typeCount[e.interaction_type] || 0) + 1
-        if (e.quality_score) {
-          totalQuality += e.quality_score
-          qualityCount++
-        }
-        if (e.activities) allActivities.push(...(e.activities as string[]))
-        if (e.breakthrough_moment) allBreakthroughs.push(e.breakthrough_moment)
-        if (e.issues_encountered) allIssues.push(e.issues_encountered)
-      }
-
-      const typeLabels: Record<string, string> = { date: '约会', chat: '聊天', call: '通话', video: '视频', message: '消息', gift: '礼物', physical: '亲密接触', social: '社交', other: '其他' }
-      const typeDesc = Object.entries(typeCount).map(([k, v]) => `${typeLabels[k] || k}(${v}次)`).join('、')
-      parts.push(`互动类型分布: ${typeDesc}`)
-
-      if (qualityCount > 0) parts.push(`平均互动质量: ${Math.round(totalQuality / qualityCount)}/100`)
-
-      const uniqueActivities = [...new Set(allActivities)].slice(0, 10)
-      if (uniqueActivities.length > 0) parts.push(`共同活动: ${uniqueActivities.join('、')}`)
-      if (allBreakthroughs.length > 0) parts.push(`突破性时刻: ${allBreakthroughs.slice(0, 3).join('；')}`)
-      if (allIssues.length > 0) parts.push(`遇到的问题: ${allIssues.slice(0, 3).join('；')}`)
-
-      // 发起方分析
-      const initiatorCount: Record<string, number> = {}
-      for (const e of events) {
-        if (e.initiator) initiatorCount[e.initiator] = (initiatorCount[e.initiator] || 0) + 1
-      }
-      if (Object.keys(initiatorCount).length > 0) {
-        const initLabels: Record<string, string> = { self: '我方', partner: '对方', mutual: '双方' }
-        const initDesc = Object.entries(initiatorCount).map(([k, v]) => `${initLabels[k] || k}(${v}次)`).join('、')
-        parts.push(`互动发起方: ${initDesc}`)
-      }
-
-      // 时间间隔分析（用于发现隐蔽模式）
-      if (events.length >= 3) {
-        const timestamps = events.map(e => new Date(e.created_at).getTime()).filter(t => !isNaN(t))
-        if (timestamps.length >= 3) {
-          const intervals: number[] = []
-          for (let i = 1; i < timestamps.length; i++) {
-            intervals.push(Math.round((timestamps[i - 1] - timestamps[i]) / (1000 * 60 * 60))) // 小时
+      for (const [cat, dims] of grouped) {
+        const catName = categoryNames[cat] || cat
+        const lines = dims.map(d => {
+          let line = `${d.displayName}: ${d.displayValue}`
+          // 如果数据来源是AI分析，标注
+          if (d.source === 'ai_analysis') line += ' [AI分析]'
+          // 如果有变化历史，标注
+          if (d.previousValue !== null && d.previousValue !== undefined) {
+            line += `（曾有变化，原因：${d.changedReason || '未知'}）`
           }
-          const avgInterval = Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length)
-          const maxInterval = Math.max(...intervals)
-          const minInterval = Math.min(...intervals)
-          parts.push(`互动间隔: 平均${avgInterval}小时, 最长${maxInterval}小时, 最短${minInterval}小时`)
-        }
+          return line
+        })
+        sections.push(`  ${catName}：${lines.join('；')}`)
       }
-
-      sections.push(`\n【互动记录（最近${events.length}条）】\n${parts.join('\n')}`)
     }
 
-    // === 7. 关系能量 ===
+    // === 3. 维度间的关键对比（帮助AI发现矛盾） ===
+    const contradictionHints = this.findContradictionHints(data.dimensions)
+    if (contradictionHints.length > 0) {
+      sections.push(`\n【维度交叉提示（值得深挖的矛盾点）】\n${contradictionHints.join('\n')}`)
+    }
+
+    // === 4. 关系能量 ===
     if (data.energy) {
       const e = data.energy
       const parts: string[] = []
@@ -501,13 +537,11 @@ export class InsightAnalyzer {
       parts.push(`趋势: ${trendLabels[e.trend] || e.trend}`)
       if (e.current_stage) parts.push(`关系阶段: ${e.current_stage}`)
       if (e.last_interaction_days >= 0) parts.push(`距上次互动: ${e.last_interaction_days}天`)
-      if (e.breakthrough_count > 0) parts.push(`突破性时刻: ${e.breakthrough_count}次`)
-      if (e.dimension_completeness > 0) parts.push(`信息完整度: ${e.dimension_completeness}%`)
 
       sections.push(`\n【关系能量】\n${parts.join('\n')}`)
     }
 
-    // === 8. 关系能量历史（用于发现趋势和突变） ===
+    // === 5. 关系能量历史 ===
     if (data.energyHistory && data.energyHistory.length >= 2) {
       const parts: string[] = []
       for (const h of data.energyHistory.slice(0, 5)) {
@@ -517,38 +551,7 @@ export class InsightAnalyzer {
       sections.push(`\n【关系能量变化趋势】\n${parts.join('\n')}`)
     }
 
-    // === 9. 维度值详情 ===
-    if (data.hasDimensions) {
-      const dims = data.dimensions
-      const parts: string[] = []
-      for (const d of dims) {
-        const key = d.dimension_key
-        const val = d.value
-        let valueStr = ''
-        if (typeof val === 'string') {
-          valueStr = val
-        } else if (Array.isArray(val)) {
-          valueStr = val.join('、')
-        } else if (typeof val === 'object' && val !== null) {
-          valueStr = JSON.stringify(val)
-        } else {
-          valueStr = String(val)
-        }
-        if (valueStr) {
-          parts.push(`${key}: ${valueStr}`)
-        }
-      }
-
-      if (parts.length > 0) {
-        const grouped: string[] = []
-        for (let i = 0; i < parts.length; i += 5) {
-          grouped.push(parts.slice(i, i + 5).join('；'))
-        }
-        sections.push(`\n【个人详情（维度数据）】\n${grouped.join('\n')}`)
-      }
-    }
-
-    // === 10. 任务完成情况 ===
+    // === 6. 任务完成情况 ===
     if (data.tasks && data.tasks.length > 0) {
       const t = data.tasks
       const completed = t.filter(x => x.completed === 1).length
@@ -566,48 +569,112 @@ export class InsightAnalyzer {
       sections.push(`\n【任务进展】\n${parts.join('\n')}`)
     }
 
-    // === 11. 画像变化历史 ===
-    if (data.history && data.history.length > 0) {
-      const h = data.history.slice(0, 5)
-      const parts = h.map(x => {
-        const reasonLabels: Record<string, string> = { chat_analysis: '聊天分析', behavior_update: '行为更新', manual: '手动更新' }
-        return `${x.dimension}: ${x.old_value}→${x.new_value}（${reasonLabels[x.change_reason] || x.change_reason}）`
-      })
-      sections.push(`\n【画像变化趋势（最近${h.length}条）】\n${parts.join('\n')}`)
-    }
-
-    // === 输出要求（核心：追求深度和意外感） ===
-    sections.push(`\n请基于以上全部数据，生成真正的深度洞察。记住：你不是在复述数据，你是在揭示数据背后人眼看不见的深层模式。
+    // === 输出要求 ===
+    sections.push(`\n请基于以上全部维度数据，生成真正的深度洞察。记住：你不是在复述维度值，你是在揭示维度组合背后人眼看不见的深层模式。
 
 返回严格JSON格式：
 {
-  "personalitySummary": "2-3句深层性格洞察。不是描述表面特征，而是揭示性格背后的驱动力和内在矛盾。例如不要说'对方性格外向'，而要说'对方用社交活跃掩饰深层的不安全感，在人群中表现活泼但独处时容易陷入自我怀疑'",
-  "relationshipDynamics": "2-3句关系动态洞察。揭示权力结构、依附模式、隐性博弈。例如'看似你在主动追求，但对方通过延迟回复和偶尔的热情投喂维持着微妙的主导权——每当你快要放弃时，对方总会释放一点信号重新拉你回来'",
-  "emotionalPatterns": "2-3句情感模式洞察。揭示情感表达与真实感受的落差、情绪周期的隐藏规律。例如'对方的情感表达存在明显的周期性波动，活跃期和回避期交替出现，这种模式往往与对亲密关系的恐惧有关'",
-  "communicationStyle": "2-3句沟通风格洞察。揭示言外之意、回避话题、隐性信号。例如'对方虽然表面上沟通直接，但在涉及承诺和未来规划的话题上会巧妙地转移方向，这是一种隐性的回避策略'",
-  "keyFindings": ["3-5条关键发现，每条必须让人意外或恍然大悟，格式如'对方的表情使用率虽然高(XX%)，但主要集中在轻松话题，在严肃对话中几乎不用表情——这不是不善表达，而是在重要时刻有意识地控制情感暴露'"],
-  "blindSpots": ["2-4条盲点，指出你可能误判或忽略的方面，格式如'你可能以为对方不主动是因为不感兴趣，但数据显示对方在你发起话题时的参与度远高于平均水平——问题可能不是兴趣，而是对方不习惯主动'"],
+  "personalitySummary": "2-3句深层性格洞察。从MBTI、依恋类型、核心价值观、情感表达等维度交叉分析，揭示性格背后的驱动力和内在矛盾。例如不要说'对方MBTI是ESFJ'，而要说'对方的ESFJ特质叠加安全型依恋和高共情力，使她天然成为关系中的情感锚点，但回避型冲突处理意味着她会在矛盾中选择退让和隐忍，长期积压的真实不满会在某一刻突然爆发'",
+  "relationshipDynamics": "2-3句关系动态洞察。结合关系形态偏好、情感投入速度、独占性期望等深层维度，揭示权力结构、依附模式、隐性博弈",
+  "emotionalPatterns": "2-3句情感模式洞察。结合情感表达方式、情绪稳定性、共情能力、压力反应等维度，揭示情感表达与真实感受的落差",
+  "communicationStyle": "2-3句沟通风格洞察。结合线上/线下沟通风格、幽默风格、倾听风格、争论风格等维度，揭示言外之意和隐性信号",
+  "keyFindings": ["3-5条关键发现，每条必须让人意外或恍然大悟，格式如'对方的隐私保护倾向极高且手机隐私边界严格，叠加不愿介绍朋友给对方认识的时机偏晚——这不是慢热，而是对方在关系中有强烈的信息控制需求，习惯在确认完全安全前保留退路'"],
+  "blindSpots": ["2-4条盲点，指出你可能误判或忽略的方面，格式如'你可能以为对方线上活泼线下也开朗，但线上沟通风格为活泼调皮而线下为温柔体贴，说明对方在线上和线下切换了不同的社交人格，线下更谨慎和收敛'"],
   "hiddenSignals": [
     {
       "type": "contradiction或pattern或risk或opportunity",
       "title": "5字以内的信号名称",
       "description": "对这个隐蔽信号的详细解读，包括它意味着什么、为什么用户不容易发现",
-      "evidence": "这个结论来自哪几个数据的交叉分析"
+      "evidence": "这个结论来自哪几个维度的交叉分析"
     }
   ],
-  "growthSuggestions": ["2-4条具体可执行的建议，每条基于某个洞察发现，格式如'对方在周末的互动质量明显高于工作日（数据显示周末平均回复时间快XX%），建议把重要话题安排在周末'"],
+  "growthSuggestions": ["2-4条具体可执行的建议，每条基于某个洞察发现，格式如'对方偏好温柔体贴的线上沟通但争论风格偏回避，建议在讨论重要话题时用文字而非语音，给对方缓冲空间'"],
   "actionPriority": "1句话的最优先行动建议，要基于最关键的发现"
 }
 
 【hiddenSignals的type说明】
-- contradiction: 数据中存在矛盾（如声称x但行为显示y）
-- pattern: 数据交叉揭示的隐蔽模式（如特定条件下的行为规律）
-- risk: 潜在的风险信号（如关系中的不健康模式）
-- opportunity: 被忽略的机会（如某个未被利用的窗口期）
+- contradiction: 不同维度之间存在矛盾（如想要稳定但行为模式显示追求刺激）
+- pattern: 维度组合揭示的隐蔽模式（如特定特质组合暗示的行为规律）
+- risk: 潜在的风险信号（如维度组合暗示的不健康关系模式）
+- opportunity: 被忽略的机会（如某个维度组合暗示的未利用窗口）
 
-至少生成2条hiddenSignals，最多4条。这些是本次分析最有价值的部分——是AI能发现但人很难注意到的。`)
+至少生成2条hiddenSignals，最多4条。这些是本次分析最有价值的部分——是AI能发现但人很难注意到的。
+重点从Layer 1（基础画像）和Layer 4（深层模式）之间的张力中寻找隐蔽信号。`)
 
     return sections.join('\n')
+  }
+
+  /**
+   * 从维度数据中寻找潜在的矛盾点提示（帮助 LLM 更快找到隐蔽模式）
+   */
+  private findContradictionHints(dimensions: AggregatedDimension[]): string[] {
+    const hints: string[] = []
+    const dimMap = new Map(dimensions.map(d => [d.key, d]))
+
+    // 线上 vs 线下沟通风格差异
+    const online = dimMap.get('communicationStyleOnline')
+    const offline = dimMap.get('communicationStyleOffline')
+    if (online && offline && online.value !== offline.value) {
+      hints.push(`- 线上沟通风格(${online.displayValue}) vs 线下沟通风格(${offline.displayValue})：风格不一致，可能存在社交人格切换`)
+    }
+
+    // 依恋类型 vs 情感投入速度
+    const attachment = dimMap.get('attachmentStyle')
+    const investSpeed = dimMap.get('emotionalInvestmentSpeed')
+    if (attachment && investSpeed) {
+      if (attachment.value === 'anxious' && investSpeed.value === 'slow') {
+        hints.push(`- 焦虑型依恋但情感投入慢：渴望亲密但不敢轻易投入，存在内在冲突`)
+      } else if (attachment.value === 'avoidant' && investSpeed.value === 'fast') {
+        hints.push(`- 回避型依恋但情感投入快：看似投入快但随时可能抽离，需要警惕`)
+      }
+    }
+
+    // 亲密需求 vs 隐私保护
+    const intimacy = dimMap.get('intimacyNeeds')
+    const privacy = dimMap.get('privacyProtectionLevel')
+    if (intimacy && privacy) {
+      if (intimacy.value === 'high' && (privacy.value === 'high' || privacy.value === 'very_high')) {
+        hints.push(`- 高亲密需求但高隐私保护：渴望亲密又害怕暴露，这是典型的矛盾依恋信号`)
+      }
+    }
+
+    // 独占性期望 vs 关系形式偏好
+    const exclusivity = dimMap.get('exclusivityExpectation')
+    const relForm = dimMap.get('relationshipFormPreference')
+    if (exclusivity && relForm) {
+      if (exclusivity.value === 'high' && relForm.value === 'open') {
+        hints.push(`- 高独占性期望但偏好开放式关系：理想与现实需求存在张力`)
+      }
+    }
+
+    // 冲突处理风格 vs 争论风格
+    const conflictStyle = dimMap.get('conflictStyle')
+    const argStyle = dimMap.get('argumentStyle')
+    if (conflictStyle && argStyle) {
+      if (conflictStyle.value === 'avoidant' && argStyle.value === 'aggressive') {
+        hints.push(`- 回避冲突但争论时强势：日常回避但在被逼到角落时会突然爆发`)
+      }
+    }
+
+    // 情感表达方式 vs 情感可用性
+    const exprStyle = dimMap.get('emotionalExpressionStyle')
+    const avail = dimMap.get('emotionalAvailabilityLevel')
+    if (exprStyle && avail) {
+      if (exprStyle.value === 'expressive' && (avail.value === 'low' || avail.value === 'selective')) {
+        hints.push(`- 善于情感表达但情感可用性低：看似开放实则挑剔，只在特定条件下真正敞开`)
+      }
+    }
+
+    // 约会节奏偏好 vs 恋爱准备度
+    const pace = dimMap.get('datingPacePreference')
+    const readiness = dimMap.get('readinessForRelationship')
+    if (pace && readiness) {
+      if (pace.value === 'fast' && (readiness.value === 'not_ready' || readiness.value === 'unsure')) {
+        hints.push(`- 约会节奏偏快但恋爱准备度不足：享受暧昧刺激但不想进入稳定关系`)
+      }
+    }
+
+    return hints
   }
 
   /**
@@ -615,96 +682,132 @@ export class InsightAnalyzer {
    */
   private getInsufficientDataResult(): InsightAnalysisResult {
     return {
-      personalitySummary: '数据不足，暂时无法生成性格洞察。请上传聊天记录或填写行为数据。',
-      relationshipDynamics: '需要更多互动数据才能分析关系动态。',
-      emotionalPatterns: '添加对方的行为数据后，可以分析情感模式。',
-      communicationStyle: '上传聊天记录后可以深入了解沟通风格。',
-      keyFindings: ['尚未上传聊天记录或填写行为数据，无法进行深度分析'],
-      blindSpots: ['当前数据空白本身就是盲点——建议尽快添加数据'],
+      personalitySummary: '维度数据不足，暂时无法生成性格洞察。请填写更多维度信息。',
+      relationshipDynamics: '需要更多维度数据才能分析关系动态。',
+      emotionalPatterns: '补充对方的性格、情感维度后，可以分析情感模式。',
+      communicationStyle: '填写沟通风格相关维度后可以深入了解沟通特征。',
+      keyFindings: ['尚未填写足够的维度信息，无法进行深度分析'],
+      blindSpots: ['当前数据空白本身就是盲点——建议尽快补充维度信息'],
       hiddenSignals: [{
         type: 'opportunity',
         title: '数据空白',
-        description: '当前几乎没有关于对方的行为数据，这意味着你可能在凭直觉而非事实来理解这段关系',
-        evidence: '无画像维度数据、无互动记录、无行为模式数据',
+        description: '当前关于对方的维度信息很少，这意味着你可能在凭直觉而非事实来理解这段关系，补充维度数据后AI可以发现很多你注意不到的模式',
+        evidence: '维度数据严重不足',
       }],
       growthSuggestions: [
-        '上传你和Ta的聊天截图，AI会自动分析行为特征',
-        '手动填写对方的行为特点，如回复速度、活跃时段等',
-        '记录约会等互动事件，积累更完整的关系数据',
+        '填写对方的基础画像（Layer 1），如MBTI、依恋类型、核心价值观',
+        '补充对方的性格情感特质（Layer 2），如情感表达方式、冲突处理风格',
+        '记录深层模式维度（Layer 4），如情感投入速度、隐私边界',
       ],
-      actionPriority: '先上传聊天截图或手动填写行为数据，建立基础画像',
+      actionPriority: '先填写对方的基础画像和性格维度，建立分析基础',
     }
   }
 
   /**
-   * LLM 失败时的降级结果
+   * LLM 失败时的降级结果（基于维度数据的规则分析）
    */
   private getFallbackResult(data: Awaited<ReturnType<typeof this.aggregateAllData>>): InsightAnalysisResult {
     const name = data.match?.name || '对方'
     const findings: string[] = []
     const suggestions: string[] = []
     const hiddenSignals: HiddenSignal[] = []
+    const dimMap = new Map(data.dimensions.map(d => [d.key, d]))
 
-    // 基于画像维度给出简单洞察
-    if (data.portrait) {
-      const p = data.portrait
-      if (p.personality_extraversion > 65 && p.social_intimacy < 40) {
-        findings.push(`${name}社交活跃但亲密需求较低，可能在人群中保持表面热络却很少真正深入`)
-        hiddenSignals.push({ type: 'contradiction', title: '外向但疏离', description: '对方虽然社交活跃度高但亲密需求低，这种组合暗示可能在用社交活动回避深层连接', evidence: `外向性${p.personality_extraversion} vs 亲密需求${p.social_intimacy}` })
-      } else if (p.personality_extraversion > 65) {
-        findings.push(`${name}外向性较高，喜欢社交互动`)
-      } else if (p.personality_extraversion < 35) {
-        findings.push(`${name}性格偏内向，更享受安静的相处`)
-      }
-      if (p.emotional_stability < 40 && p.emotional_expression > 60) {
-        findings.push(`${name}情绪较敏感但表达较多，可能有较强的倾诉需求`)
-        hiddenSignals.push({ type: 'pattern', title: '倾诉型情绪', description: '情绪稳定性低但表达高，对方可能在用倾诉来消化情绪，而非寻求解决方案', evidence: `情绪稳定性${p.emotional_stability} vs 情感表达${p.emotional_expression}` })
-      } else if (p.emotional_stability < 40) {
-        findings.push(`${name}情绪较敏感，需要多给予关心和支持`)
-        suggestions.push('对方情绪较敏感，沟通时注意语气和表达方式')
-      }
-      if (p.communication_directness > 65 && p.emotional_empathy > 65) {
-        hiddenSignals.push({ type: 'opportunity', title: '直率+共情', description: '对方既直接又共情，这是罕见的组合——你可以放心说真话，对方既能接受又会理解你的立场', evidence: `直接度${p.communication_directness} vs 共情力${p.emotional_empathy}` })
-      }
-      if (p.communication_responsiveness > 65) {
-        findings.push(`${name}回复速度较快，对互动较积极`)
-      }
-      if (p.social_initiative > 65) {
-        findings.push(`${name}社交主动性较强，经常主动发起交流`)
+    // 基于维度的规则化洞察
+    const mbti = dimMap.get('mbti')
+    const attachment = dimMap.get('attachmentStyle')
+    const exprStyle = dimMap.get('emotionalExpressionStyle')
+    const conflictStyle = dimMap.get('conflictStyle')
+    const onlineComm = dimMap.get('communicationStyleOnline')
+    const offlineComm = dimMap.get('communicationStyleOffline')
+    const loveLang = dimMap.get('loveLanguage')
+    const intimacyNeeds = dimMap.get('intimacyNeeds')
+    const privacyLevel = dimMap.get('privacyProtectionLevel')
+    const investSpeed = dimMap.get('emotionalInvestmentSpeed')
+
+    if (mbti) {
+      findings.push(`${name}的MBTI类型为${mbti.displayValue}，这暗示了特定的认知和决策风格`)
+    }
+
+    if (attachment) {
+      findings.push(`${name}的依恋类型为${attachment.displayValue}`)
+      if (attachment.value === 'anxious') {
+        suggestions.push('对方是焦虑型依恋，需要更多确认和安全感，及时回应很重要')
+      } else if (attachment.value === 'avoidant') {
+        suggestions.push('对方是回避型依恋，需要适当给空间，不要过度追问')
+        hiddenSignals.push({
+          type: 'risk',
+          title: '回避型预警',
+          description: '回避型依恋的人在关系深化时容易突然退缩，表面上说是需要空间，实际上可能是对亲密感的本能恐惧',
+          evidence: `依恋类型: ${attachment.displayValue}`,
+        })
       }
     }
 
-    if (data.energy) {
-      findings.push(`关系能量${data.energy.total_energy}/100，${data.energy.trend === 'rising' ? '处于上升趋势' : data.energy.trend === 'declining' ? '有所下降' : '保持稳定'}`)
+    if (onlineComm && offlineComm && onlineComm.value !== offlineComm.value) {
+      findings.push(`${name}线上沟通${onlineComm.displayValue}，线下${offlineComm.displayValue}，存在社交人格差异`)
+      hiddenSignals.push({
+        type: 'contradiction',
+        title: '双面沟通',
+        description: '线上和线下的沟通风格差异暗示对方在不同场合切换社交面具，线下更真实但线上更自在',
+        evidence: `线上: ${onlineComm.displayValue}, 线下: ${offlineComm.displayValue}`,
+      })
     }
 
-    if (data.interactions && data.interactions.length > 0) {
-      findings.push(`已有${data.interactions.length}次互动记录`)
+    if (intimacyNeeds && privacyLevel) {
+      if (intimacyNeeds.value === 'high' && (privacyLevel.value === 'high' || privacyLevel.value === 'very_high')) {
+        hiddenSignals.push({
+          type: 'contradiction',
+          title: '亲密与防御',
+          description: '渴望亲密但高度保护隐私，这种矛盾组合说明对方在关系中始终保持着撤退的准备',
+          evidence: `亲密需求: ${intimacyNeeds.displayValue}, 隐私保护: ${privacyLevel.displayValue}`,
+        })
+      }
+    }
+
+    if (exprStyle && conflictStyle) {
+      if (exprStyle.value === 'expressive' && conflictStyle.value === 'avoidant') {
+        findings.push(`${name}善于日常情感表达，但回避冲突——开心时热情，矛盾时沉默`)
+        hiddenSignals.push({
+          type: 'pattern',
+          title: '表面和谐',
+          description: '日常表达活跃但冲突回避，意味着对方更愿意维持表面和谐而非解决深层问题，积压的矛盾会在某一刻集中爆发',
+          evidence: `情感表达: ${exprStyle.displayValue}, 冲突处理: ${conflictStyle.displayValue}`,
+        })
+      }
+    }
+
+    if (investSpeed && investSpeed.value === 'fast') {
+      suggestions.push('对方情感投入速度较快，前期热情可能很高，但需观察是否能在深入了解后维持')
+    }
+
+    if (loveLang) {
+      suggestions.push(`对方的爱的语言是${loveLang.displayValue}，用这种方式表达关心最能被感受到`)
     }
 
     if (findings.length === 0) {
-      findings.push('数据有限，建议多记录互动和上传聊天截图')
+      findings.push('维度数据还在积累中，建议补充更多维度信息以获得深度洞察')
     }
 
     if (hiddenSignals.length === 0) {
       hiddenSignals.push({
         type: 'risk',
         title: '数据不足',
-        description: '当前数据有限，可能存在重要的隐蔽模式尚未被发现',
-        evidence: '画像数据不够完整',
+        description: '当前维度数据有限，可能存在重要的隐蔽模式尚未被发现',
+        evidence: '维度填写不够完整',
       })
     }
 
     return {
-      personalitySummary: `${name}的画像数据正在积累中，暂无足够信息生成深度洞察。`,
-      relationshipDynamics: '关系数据还在积累中，请持续记录互动。',
-      emotionalPatterns: '需要更多互动和聊天数据来分析情感模式。',
-      communicationStyle: '上传聊天记录后可以更深入了解沟通风格。',
+      personalitySummary: `${name}的画像维度正在积累中，补充更多维度后可获得深度洞察。`,
+      relationshipDynamics: '维度数据还在积累中，请持续补充对方的信息。',
+      emotionalPatterns: '补充情感和性格相关维度后可以分析情感模式。',
+      communicationStyle: '填写沟通风格维度后可以深入了解沟通特征。',
       keyFindings: findings,
-      blindSpots: ['当前数据有限，可能存在未发现的重要特征'],
+      blindSpots: ['当前维度数据有限，可能存在未发现的重要特征'],
       hiddenSignals,
-      growthSuggestions: suggestions.length > 0 ? suggestions : ['持续记录互动和上传聊天数据，AI会越来越了解Ta'],
-      actionPriority: '继续积累数据，获得更准确的洞察',
+      growthSuggestions: suggestions.length > 0 ? suggestions : ['持续补充对方的维度信息，AI会越来越了解Ta'],
+      actionPriority: '继续补充维度信息，获得更准确的洞察',
     }
   }
 }

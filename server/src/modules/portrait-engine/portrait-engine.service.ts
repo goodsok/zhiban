@@ -31,6 +31,7 @@ const DIMENSION_TO_PORTRAIT_MAP: Record<string, {
   field: string
   valueMap?: Record<string, number>
   numericScale?: { min: number; max: number; targetMin: number; targetMax: number }
+  inverted?: boolean
 }> = {
   // 人格维度
   opennessLevel: { category: 'personality', field: 'openness', numericScale: { min: 0, max: 100, targetMin: 0, targetMax: 100 } },
@@ -121,10 +122,10 @@ export class PortraitEngineService {
 
     // 映射计算画像维度
     const dimensions: Partial<PortraitDimensions> = {
-      personality: { openness: undefined, conscientiousness: undefined, extraversion: undefined, agreeableness: undefined, neuroticism: undefined },
-      emotional: { stability: undefined, expression: undefined, empathy: undefined, independence: undefined },
-      social: { activity: undefined, initiative: undefined, intimacy: undefined, trust: undefined },
-      communication: { directness: undefined, responsiveness: undefined, humor: undefined, depth: undefined },
+      personality: { openness: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 },
+      emotional: { stability: 0, expression: 0, empathy: 0, independence: 0 },
+      social: { activity: 0, initiative: 0, intimacy: 0, trust: 0 },
+      communication: { directness: 0, responsiveness: 0, humor: 0, depth: 0 },
     }
 
     const filledDimensionKeys: string[] = []
@@ -149,7 +150,7 @@ export class PortraitEngineService {
       }
 
       if (dimensions[category] && field in dimensions[category]!) {
-        (dimensions[category] as Record<string, number | undefined>)[field] = mappedValue
+        (dimensions[category] as unknown as Record<string, number | undefined>)[field] = mappedValue
         filledDimensionKeys.push(dimKey)
       }
     }
@@ -311,7 +312,7 @@ export class PortraitEngineService {
       if (!group) continue
       for (const [key, newVal] of Object.entries(group)) {
         if (newVal === undefined) continue
-        const oldVal = (old as Record<string, number>)[key]
+        const oldVal = (old as unknown as Record<string, number>)[key]
         if (oldVal !== newVal) {
           changes.push({ dimension: `${prefix}.${key}`, oldValue: oldVal, newValue: newVal })
         }
@@ -436,16 +437,27 @@ export class PortraitEngineService {
     request: Request
   ): Promise<TrendPredictionResult> {
     const portrait = await this.getOrCreatePortrait(matchId)
+    const client = getSupabaseClient()
+
+    // 获取关系上下文
+    const { data: relationshipData } = await client
+      .from('profile_dimension_values')
+      .select('dimension_key, value')
+      .in('dimension_key', ['interactionStatus', 'relationshipStage'])
+      .eq('match_id', matchId)
+
+    const interactionStatus = relationshipData?.find(d => d.dimension_key === 'interactionStatus')?.value as string || 'unknown'
+    const relationshipStage = relationshipData?.find(d => d.dimension_key === 'relationshipStage')?.value as string || 'unknown'
+
     const input: TrendPredictionInput = {
-      targetPortrait: {
-        dimensions: portrait.dimensions,
-        interactionStyle: portrait.interactionStyle,
-        preferredTopicTypes: portrait.preferredTopicTypes,
-        activeTimeSlots: portrait.activeTimeSlots,
-      },
+      targetDimensions: portrait.dimensions,
+      targetBehavior: portrait.behaviorPattern,
       userPortrait: userPortrait || null,
+      relationshipContext: { interactionStatus, relationshipStage },
+      dataSourceInfo: { hasChatRecords: false, dataSource: 'dimension' },
+      request,
     }
-    return this.trendPredictor.predict(input, request)
+    return this.trendPredictor.predict(input)
   }
 
   /**
@@ -457,16 +469,34 @@ export class PortraitEngineService {
     request: Request
   ): Promise<StrategyRecommendationResult> {
     const portrait = await this.getOrCreatePortrait(matchId)
+    const client = getSupabaseClient()
+
+    // 获取关系上下文
+    const { data: relationshipData } = await client
+      .from('profile_dimension_values')
+      .select('dimension_key, value')
+      .in('dimension_key', ['interactionStatus', 'relationshipStage'])
+      .eq('match_id', matchId)
+
+    const interactionStatus = relationshipData?.find(d => d.dimension_key === 'interactionStatus')?.value as string || 'unknown'
+    const relationshipStage = relationshipData?.find(d => d.dimension_key === 'relationshipStage')?.value as string || 'unknown'
+
+    const { data: match } = await client
+      .from('matches')
+      .select('name')
+      .eq('id', matchId)
+      .single()
+
     const input: StrategyRecommendationInput = {
-      targetPortrait: {
-        dimensions: portrait.dimensions,
-        interactionStyle: portrait.interactionStyle,
-        preferredTopicTypes: portrait.preferredTopicTypes,
-        activeTimeSlots: portrait.activeTimeSlots,
-      },
+      targetDimensions: portrait.dimensions,
+      targetBehavior: portrait.behaviorPattern,
       userPortrait: userPortrait || null,
+      relationshipContext: { interactionStatus, relationshipStage },
+      matchInfo: { name: match?.name || '未知' },
+      dataSourceInfo: { hasChatRecords: false, dataSource: 'dimension' },
+      request,
     }
-    return this.strategyRecommender.recommend(input, request)
+    return this.strategyRecommender.predict(input)
   }
 
   /**
@@ -625,8 +655,8 @@ export class PortraitEngineService {
       topicCategories,
       emotionalKeywords: [],
       totalInteractions: 0,
-      communicationStyleOnline: communicationStyleOnline || undefined,
-      communicationStyleOffline: communicationStyleOffline || undefined,
+      communicationStyleOnline: (communicationStyleOnline as BehaviorPattern['communicationStyleOnline']) || undefined,
+      communicationStyleOffline: (communicationStyleOffline as BehaviorPattern['communicationStyleOffline']) || undefined,
     }
   }
 
@@ -641,6 +671,48 @@ export class PortraitEngineService {
     return 480 // 很慢
   }
 
+  // ==================== 互动策略推荐 ====================
+
+  /**
+   * 获取互动策略推荐
+   */
+  async getInteractionStrategy(
+    matchId: number,
+    userPortrait: UserPortraitSummary | null,
+    request: Request,
+  ): Promise<StrategyRecommendationResult> {
+    // 复用 getOrCreatePortrait 获取完整画像
+    const fullPortrait = await this.getOrCreatePortrait(matchId)
+    const client = getSupabaseClient()
+
+    // 获取匹配信息
+    const { data: match } = await client
+      .from('matches')
+      .select('name')
+      .eq('id', matchId)
+      .single()
+
+    // 获取关系上下文
+    const { data: relationshipData } = await client
+      .from('profile_dimension_values')
+      .select('dimension_key, value')
+      .in('dimension_key', ['interactionStatus', 'relationshipStage'])
+      .eq('match_id', matchId)
+
+    const interactionStatus = relationshipData?.find(d => d.dimension_key === 'interactionStatus')?.value as string || 'unknown'
+    const relationshipStage = relationshipData?.find(d => d.dimension_key === 'relationshipStage')?.value as string || 'unknown'
+
+    return this.strategyRecommender.predict({
+      targetDimensions: fullPortrait.dimensions,
+      targetBehavior: fullPortrait.behaviorPattern,
+      userPortrait,
+      relationshipContext: { interactionStatus, relationshipStage },
+      matchInfo: { name: match?.name || '未知' },
+      dataSourceInfo: { hasChatRecords: false, dataSource: 'dimension' },
+      request,
+    })
+  }
+
   // ==================== AI 深度洞察 ====================
 
   /**
@@ -648,18 +720,9 @@ export class PortraitEngineService {
    */
   async generateInsight(
     matchId: number,
-    request: Request
+    request: Request,
+    forceRefresh = false
   ): Promise<InsightAnalysisResult> {
-    const portrait = await this.getOrCreatePortrait(matchId)
-
-    return this.insightAnalyzer.analyze({
-      targetPortrait: {
-        dimensions: portrait.dimensions,
-        interactionStyle: portrait.interactionStyle,
-        preferredTopicTypes: portrait.preferredTopicTypes,
-        activeTimeSlots: portrait.activeTimeSlots,
-      },
-      behaviorPattern: portrait.behaviorPattern,
-    }, request)
+    return this.insightAnalyzer.analyze(matchId, request, forceRefresh)
   }
 }
