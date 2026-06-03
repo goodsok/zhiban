@@ -38,6 +38,238 @@ export class PortraitEngineService {
   // ==================== 画像数据管理 ====================
 
   /**
+   * 从行为模式计算画像维度并写回 profile_portraits
+   * 这是整个分析管道的关键步骤：behavior_patterns → PortraitCalculator → profile_portraits
+   */
+  private async updateDimensionsFromBehavior(matchId: number): Promise<void> {
+    const client = getSupabaseClient()
+
+    // 获取行为模式数据
+    const { data: behavior } = await client
+      .from('behavior_patterns')
+      .select('*')
+      .eq('match_id', matchId)
+      .maybeSingle()
+
+    if (!behavior) return
+
+    const behaviorPattern = this.dbToBehaviorPattern(behavior)
+
+    // 如果没有任何有效行为数据（没有回复时间、没有活跃时段），跳过
+    const hasValidData = behaviorPattern.avgResponseTime !== null ||
+      (behaviorPattern.activeHours && Object.keys(behaviorPattern.activeHours).length > 0) ||
+      (behaviorPattern.topicCategories && Object.keys(behaviorPattern.topicCategories).length > 0)
+    if (!hasValidData) return
+
+    // 获取手动数据（用于合并计算）
+    const { data: manualData } = await client
+      .from('manual_behavior_data')
+      .select('*')
+      .eq('match_id', matchId)
+      .maybeSingle()
+
+    // 计算画像维度
+    let dimensions: Partial<PortraitDimensions>
+    if (behaviorPattern.dataSource === 'chat_record' && manualData) {
+      // 同时有聊天记录和手动数据，合并计算
+      dimensions = this.calculator.mergeFromSources(
+        behaviorPattern,
+        {
+          responseSpeed: manualData.response_speed,
+          activeTimeSlots: manualData.active_time_slots || [],
+          topicPreferences: manualData.topic_preferences || [],
+          communicationStyle: manualData.communication_style,
+          notes: manualData.notes,
+        }
+      )
+    } else if (behaviorPattern.dataSource === 'chat_record') {
+      // 仅有聊天记录
+      dimensions = this.calculator.calculateFromBehavior(behaviorPattern)
+    } else if (manualData) {
+      // 仅有手动数据
+      dimensions = this.calculator.mergeFromSources(
+        { ...this.getDefaultBehavior(), dataSource: behaviorPattern.dataSource } as BehaviorPattern,
+        {
+          responseSpeed: manualData.response_speed,
+          activeTimeSlots: manualData.active_time_slots || [],
+          topicPreferences: manualData.topic_preferences || [],
+          communicationStyle: manualData.communication_style,
+          notes: manualData.notes,
+        }
+      )
+    } else {
+      dimensions = this.calculator.calculateFromBehavior(behaviorPattern)
+    }
+
+    // 计算置信度
+    const { count: chatRecordCount } = await client
+      .from('chat_records')
+      .select('*', { count: 'exact', head: true })
+      .eq('match_id', matchId)
+      .eq('analysis_status', 'completed')
+
+    const confidence = this.calculator.calculateConfidence(
+      {
+        hasChatRecords: (chatRecordCount || 0) > 0,
+        hasManualData: !!manualData,
+        chatRecordCount: chatRecordCount || 0,
+      },
+      behaviorPattern
+    )
+
+    // 计算互动风格
+    const interactionStyle = this.calculateInteractionStyle(behavior)
+
+    // 写回 profile_portraits
+    const updateData: Record<string, unknown> = {
+      confidence,
+      interaction_style: interactionStyle,
+      updated_at: new Date().toISOString(),
+    }
+
+    if (dimensions.personality) {
+      if (dimensions.personality.openness !== undefined) updateData.personality_openness = dimensions.personality.openness
+      if (dimensions.personality.conscientiousness !== undefined) updateData.personality_conscientiousness = dimensions.personality.conscientiousness
+      if (dimensions.personality.extraversion !== undefined) updateData.personality_extraversion = dimensions.personality.extraversion
+      if (dimensions.personality.agreeableness !== undefined) updateData.personality_agreeableness = dimensions.personality.agreeableness
+      if (dimensions.personality.neuroticism !== undefined) updateData.personality_neuroticism = dimensions.personality.neuroticism
+    }
+    if (dimensions.emotional) {
+      if (dimensions.emotional.stability !== undefined) updateData.emotional_stability = dimensions.emotional.stability
+      if (dimensions.emotional.expression !== undefined) updateData.emotional_expression = dimensions.emotional.expression
+      if (dimensions.emotional.empathy !== undefined) updateData.emotional_empathy = dimensions.emotional.empathy
+      if (dimensions.emotional.independence !== undefined) updateData.emotional_independence = dimensions.emotional.independence
+    }
+    if (dimensions.social) {
+      if (dimensions.social.activity !== undefined) updateData.social_activity = dimensions.social.activity
+      if (dimensions.social.initiative !== undefined) updateData.social_initiative = dimensions.social.initiative
+      if (dimensions.social.intimacy !== undefined) updateData.social_intimacy = dimensions.social.intimacy
+      if (dimensions.social.trust !== undefined) updateData.social_trust = dimensions.social.trust
+    }
+    if (dimensions.communication) {
+      if (dimensions.communication.directness !== undefined) updateData.communication_directness = dimensions.communication.directness
+      if (dimensions.communication.responsiveness !== undefined) updateData.communication_responsiveness = dimensions.communication.responsiveness
+      if (dimensions.communication.humor !== undefined) updateData.communication_humor = dimensions.communication.humor
+      if (dimensions.communication.depth !== undefined) updateData.communication_depth = dimensions.communication.depth
+    }
+
+    // 提取活跃时段
+    if (behaviorPattern.activeHours && Object.keys(behaviorPattern.activeHours).length > 0) {
+      updateData.active_time_slots = this.extractActiveSlots(behaviorPattern.activeHours)
+    }
+
+    // 提取话题偏好
+    if (behaviorPattern.topicCategories && Object.keys(behaviorPattern.topicCategories).length > 0) {
+      updateData.preferred_topic_types = Object.keys(behaviorPattern.topicCategories)
+    }
+
+    // 获取旧画像用于记录变化
+    const { data: oldPortrait } = await client
+      .from('profile_portraits')
+      .select('*')
+      .eq('match_id', matchId)
+      .maybeSingle()
+
+    await client
+      .from('profile_portraits')
+      .update(updateData)
+      .eq('match_id', matchId)
+
+    // 记录维度变化到历史
+    if (oldPortrait) {
+      const oldDimensions = this.extractDimensions(oldPortrait)
+      this.recordDimensionChanges(matchId, oldDimensions, dimensions, behaviorPattern.dataSource === 'chat_record' ? 'chat_analysis' : 'manual')
+    }
+  }
+
+  /**
+   * 记录维度变化历史
+   */
+  private async recordDimensionChanges(
+    matchId: number,
+    oldDimensions: PortraitDimensions,
+    newDimensions: Partial<PortraitDimensions>,
+    reason: 'chat_analysis' | 'behavior_update' | 'manual'
+  ): Promise<void> {
+    const client = getSupabaseClient()
+    const changes: Array<{ dimension: string; oldValue: number; newValue: number }> = []
+
+    // 比较人格维度变化
+    if (newDimensions.personality) {
+      const dims = [
+        { key: 'openness', old: oldDimensions.personality.openness, new: newDimensions.personality.openness },
+        { key: 'extraversion', old: oldDimensions.personality.extraversion, new: newDimensions.personality.extraversion },
+        { key: 'agreeableness', old: oldDimensions.personality.agreeableness, new: newDimensions.personality.agreeableness },
+        { key: 'conscientiousness', old: oldDimensions.personality.conscientiousness, new: newDimensions.personality.conscientiousness },
+        { key: 'neuroticism', old: oldDimensions.personality.neuroticism, new: newDimensions.personality.neuroticism },
+      ]
+      for (const d of dims) {
+        if (d.new !== undefined && d.old !== d.new) {
+          changes.push({ dimension: `性格.${d.key}`, oldValue: d.old, newValue: d.new })
+        }
+      }
+    }
+
+    // 比较情感维度变化
+    if (newDimensions.emotional) {
+      const dims = [
+        { key: 'stability', old: oldDimensions.emotional.stability, new: newDimensions.emotional.stability },
+        { key: 'expression', old: oldDimensions.emotional.expression, new: newDimensions.emotional.expression },
+        { key: 'empathy', old: oldDimensions.emotional.empathy, new: newDimensions.emotional.empathy },
+        { key: 'independence', old: oldDimensions.emotional.independence, new: newDimensions.emotional.independence },
+      ]
+      for (const d of dims) {
+        if (d.new !== undefined && d.old !== d.new) {
+          changes.push({ dimension: `情感.${d.key}`, oldValue: d.old, newValue: d.new })
+        }
+      }
+    }
+
+    // 比较社交维度变化
+    if (newDimensions.social) {
+      const dims = [
+        { key: 'activity', old: oldDimensions.social.activity, new: newDimensions.social.activity },
+        { key: 'initiative', old: oldDimensions.social.initiative, new: newDimensions.social.initiative },
+        { key: 'intimacy', old: oldDimensions.social.intimacy, new: newDimensions.social.intimacy },
+        { key: 'trust', old: oldDimensions.social.trust, new: newDimensions.social.trust },
+      ]
+      for (const d of dims) {
+        if (d.new !== undefined && d.old !== d.new) {
+          changes.push({ dimension: `社交.${d.key}`, oldValue: d.old, newValue: d.new })
+        }
+      }
+    }
+
+    // 比较沟通维度变化
+    if (newDimensions.communication) {
+      const dims = [
+        { key: 'directness', old: oldDimensions.communication.directness, new: newDimensions.communication.directness },
+        { key: 'responsiveness', old: oldDimensions.communication.responsiveness, new: newDimensions.communication.responsiveness },
+        { key: 'humor', old: oldDimensions.communication.humor, new: newDimensions.communication.humor },
+        { key: 'depth', old: oldDimensions.communication.depth, new: newDimensions.communication.depth },
+      ]
+      for (const d of dims) {
+        if (d.new !== undefined && d.old !== d.new) {
+          changes.push({ dimension: `沟通.${d.key}`, oldValue: d.old, newValue: d.new })
+        }
+      }
+    }
+
+    // 批量写入历史
+    if (changes.length > 0) {
+      const records = changes.map(c => ({
+        match_id: matchId,
+        dimension: c.dimension,
+        old_value: c.oldValue,
+        new_value: c.newValue,
+        change_reason: reason,
+        evidence: `数据来源: ${reason === 'chat_analysis' ? '聊天记录分析' : reason === 'manual' ? '手动填写' : '行为更新'}`,
+      }))
+      await client.from('profile_histories').insert(records)
+    }
+  }
+
+  /**
    * 重新分析画像
    * 基于已有数据重新计算画像维度和行为模式
    */
@@ -47,7 +279,7 @@ export class PortraitEngineService {
     // 重新合并所有聊天记录数据
     await this.mergeChatRecordData(matchId)
 
-    // 重新处理手动数据
+    // 重新处理手动数据 → 更新 behavior_patterns
     const { data: manualData } = await client
       .from('manual_behavior_data')
       .select('*')
@@ -66,67 +298,33 @@ export class PortraitEngineService {
         },
       })
 
-      // 如果已有聊天记录数据，合并；否则用手动数据覆盖
+      // 如果没有聊天记录数据，用手动数据覆盖 behavior_patterns
       const { data: existingBehavior } = await client
         .from('behavior_patterns')
         .select('*')
         .eq('match_id', matchId)
         .maybeSingle()
 
-      if (existingBehavior?.data_source === 'chat_record') {
-        // 已有聊天记录分析数据，手动数据作为补充
-        // 更新置信度（手动数据贡献额外置信度）
-        const { data: portrait } = await client
-          .from('profile_portraits')
-          .select('confidence')
-          .eq('match_id', matchId)
-          .maybeSingle()
+      // 检查 behavior_patterns 中是否有聊天记录分析数据
+      // 通过 total_interactions 判断是否有聊天记录数据
+      const hasChatRecordData = existingBehavior && (existingBehavior.total_interactions > 0 || existingBehavior.avg_response_time !== null)
 
-        const newConfidence = Math.min(100, (portrait?.confidence || 0) + 15)
-        await client
-          .from('profile_portraits')
-          .update({ confidence: newConfidence, updated_at: new Date().toISOString() })
-          .eq('match_id', matchId)
-      } else {
-        // 仅手动数据
+      if (!hasChatRecordData) {
         await client
           .from('behavior_patterns')
           .upsert({
             match_id: matchId,
-            data_source: 'manual',
             avg_response_time: behaviorPattern.avgResponseTime,
             active_hours: behaviorPattern.activeHours,
             emoji_usage_rate: behaviorPattern.emojiUsageRate,
             topic_categories: behaviorPattern.topicCategories,
             updated_at: new Date().toISOString(),
           }, { onConflict: 'match_id' })
-
-        await client
-          .from('profile_portraits')
-          .update({ confidence: 30, updated_at: new Date().toISOString() })
-          .eq('match_id', matchId)
       }
     }
 
-    // 记录分析历史
-    const { data: portrait } = await client
-      .from('profile_portraits')
-      .select('id')
-      .eq('match_id', matchId)
-      .maybeSingle()
-
-    if (portrait) {
-      await client
-        .from('profile_histories')
-        .insert({
-          match_id: matchId,
-          dimension: '综合分析',
-          old_value: 0,
-          new_value: 0,
-          change_reason: 'manual',
-          evidence: '用户触发了重新分析',
-        })
-    }
+    // ★ 核心：从 behavior_patterns 计算维度 → 写回 profile_portraits
+    await this.updateDimensionsFromBehavior(matchId)
 
     // 返回最新画像
     return this.getOrCreatePortrait(matchId)
@@ -207,7 +405,6 @@ export class PortraitEngineService {
       .from('behavior_patterns')
       .insert({
         match_id: matchId,
-        data_source: 'none',
         active_hours: {},
         active_days: {},
         topic_categories: {},
@@ -257,6 +454,9 @@ export class PortraitEngineService {
 
       // 合并行为数据
       await this.mergeChatRecordData(matchId)
+
+      // ★ 从行为数据计算画像维度并写回
+      await this.updateDimensionsFromBehavior(matchId)
     }
 
     return {
@@ -298,7 +498,6 @@ export class PortraitEngineService {
       .from('behavior_patterns')
       .upsert({
         match_id: matchId,
-        data_source: 'chat_record',
         avg_response_time: behaviorPattern.avgResponseTime,
         active_hours: behaviorPattern.activeHours,
         active_days: behaviorPattern.activeDays,
@@ -330,7 +529,7 @@ export class PortraitEngineService {
     const client = getSupabaseClient()
 
     // 保存手动数据
-    await client
+    const { error: upsertError } = await client
       .from('manual_behavior_data')
       .upsert({
         match_id: matchId,
@@ -341,6 +540,11 @@ export class PortraitEngineService {
         notes: data.notes,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'match_id' })
+
+    if (upsertError) {
+      console.error('Save manual data upsert error:', upsertError)
+      return { success: false, message: '保存失败：' + upsertError.message }
+    }
 
     // 检查是否有聊天记录
     const { data: chatRecords } = await client
@@ -357,11 +561,10 @@ export class PortraitEngineService {
         manualData: data,
       })
 
-      await client
+      const { error: bpError } = await client
         .from('behavior_patterns')
         .upsert({
           match_id: matchId,
-          data_source: 'manual',
           avg_response_time: behaviorPattern.avgResponseTime,
           active_hours: behaviorPattern.activeHours,
           emoji_usage_rate: behaviorPattern.emojiUsageRate,
@@ -369,12 +572,13 @@ export class PortraitEngineService {
           updated_at: new Date().toISOString(),
         }, { onConflict: 'match_id' })
 
-      // 更新置信度（手动数据给30%置信度）
-      await client
-        .from('profile_portraits')
-        .update({ confidence: 30, updated_at: new Date().toISOString() })
-        .eq('match_id', matchId)
+      if (bpError) {
+        console.error('Save manual data: behavior_patterns upsert error:', bpError)
+      }
     }
+
+    // ★ 从行为数据计算画像维度并写回
+    await this.updateDimensionsFromBehavior(matchId)
 
     return { success: true, message: '保存成功' }
   }
@@ -560,7 +764,8 @@ export class PortraitEngineService {
     manualData: Record<string, unknown> | null,
     chatRecordCount: number
   ): FullPortrait {
-    const dataSource = (behavior?.data_source as string) || 'none'
+    // 推断数据来源：通过聊天记录数量和手动数据判断
+    const dataSource = chatRecordCount > 0 ? 'chat_record' : (manualData ? 'manual' : 'none')
 
     return {
       dimensions: this.extractDimensions(portrait),
@@ -625,8 +830,17 @@ export class PortraitEngineService {
    * 数据库格式转换为行为模式
    */
   private dbToBehaviorPattern(behavior: Record<string, unknown>): BehaviorPattern {
+    // behavior_patterns 表没有 data_source 列，根据数据特征推断来源
+    const hasResponseTime = behavior.avg_response_time !== null && behavior.avg_response_time !== undefined
+    const hasActiveHours = behavior.active_hours && Object.keys(behavior.active_hours as Record<string, number>).length > 0
+    let dataSource: 'chat_record' | 'manual' | 'none' = 'none'
+    if (hasResponseTime || hasActiveHours) {
+      // 如果有聊天记录关联，则推断为 chat_record；否则推断为 manual
+      dataSource = (behavior.total_interactions as number) > 0 ? 'chat_record' : 'manual'
+    }
+
     return {
-      dataSource: (behavior.data_source as 'chat_record' | 'manual' | 'none') || 'none',
+      dataSource,
       avgResponseTime: (behavior.avg_response_time as number) || null,
       responseTimeVariance: (behavior.response_time_variance as number) || null,
       activeHours: (behavior.active_hours as Record<string, number>) || {},
