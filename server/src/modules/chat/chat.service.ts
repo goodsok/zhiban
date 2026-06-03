@@ -748,6 +748,52 @@ ${chatSummary}
       .select('dimension_key, value')
       .eq('match_id', context.matchId)
 
+    // 从数据库直接获取周期信息（优先级高于前端传递的context）
+    const { data: matchData } = await client
+      .from('matches')
+      .select('cycle_start_date, cycle_length')
+      .eq('id', context.matchId)
+      .single()
+
+    // 构建周期信息
+    let cycleStr = '未设置周期信息'
+    if (matchData?.cycle_start_date && matchData?.cycle_length) {
+      const startDate = new Date(matchData.cycle_start_date)
+      const now = new Date()
+      const diffTime = now.getTime() - startDate.getTime()
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+      const dayInCycle = (diffDays % matchData.cycle_length) + 1
+      const length = matchData.cycle_length
+
+      // 周期阶段计算
+      let phaseName = ''
+      let description = ''
+      if (dayInCycle <= 5) {
+        phaseName = '月经期'
+        description = '身体需要休息，多关心体贴'
+      } else if (dayInCycle <= Math.round(length * 0.45)) {
+        phaseName = '卵泡期'
+        description = '精力恢复，状态回升'
+      } else if (dayInCycle <= Math.round(length * 0.5)) {
+        phaseName = '排卵期'
+        description = '精力充沛，社交欲望增强'
+      } else if (dayInCycle <= Math.round(length * 0.7)) {
+        phaseName = '黄体早期'
+        description = '情绪稳定，适合深入交流'
+      } else if (dayInCycle <= Math.round(length * 0.85)) {
+        phaseName = '黄体中期'
+        description = '可能开始出现经前症状'
+      } else {
+        phaseName = '黄体晚期/PMS'
+        description = '情绪敏感，需要更多耐心和关怀'
+      }
+
+      cycleStr = `当前阶段：${phaseName}（周期第${dayInCycle}天，周期${length}天）\n状态：${description}`
+    } else if (context.cycleInfo) {
+      // 降级：如果数据库没有，使用前端传递的cycleInfo
+      cycleStr = `当前阶段：${context.cycleInfo.phaseName}（Day ${context.cycleInfo.day}）\n状态：${context.cycleInfo.description}`
+    }
+
     // 构建档案信息摘要
     const info: string[] = []
     const dimMap = new Map((dimensions || []).map(d => [d.dimension_key, d.value]))
@@ -762,11 +808,6 @@ ${chatSummary}
     if (dimMap.get('occupation')) info.push(`职业：${dimMap.get('occupation')}`)
     if (dimMap.get('currentCity')) info.push(`所在地：${dimMap.get('currentCity')}`)
     if (dimMap.get('mbti')) info.push(`MBTI：${dimMap.get('mbti')}`)
-
-    // 周期信息
-    const cycleStr = context.cycleInfo
-      ? `当前阶段：${context.cycleInfo.phaseName}（Day ${context.cycleInfo.day}）\n状态：${context.cycleInfo.description}`
-      : '未设置周期信息'
 
     return `${basePrompt}
 
