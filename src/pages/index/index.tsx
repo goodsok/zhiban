@@ -56,9 +56,10 @@ const Index: FC = () => {
     try {
       setLoading(true)
       const res = await Network.request({ url: '/api/match/list' })
+      console.log('Match list response:', JSON.stringify(res?.data)?.substring(0, 200))
       // Network.request 返回 Taro.request 的结果，数据在 res.data 中
       // 后端返回 { code: 200, msg: '...', data: { list: [...] } }
-      const responseData = res.data
+      const responseData = res?.data
       if (responseData?.code === 200 && responseData?.data?.list) {
         setMatches(responseData.data.list)
         // 获取每个对象的周期信息
@@ -74,18 +75,20 @@ const Index: FC = () => {
             }
           }
         })
-      } else if (retryCount < 2) {
-        // 响应数据异常时自动重试（最多2次）
-        console.warn('Matches response invalid, retrying...', retryCount + 1)
-        await new Promise(r => setTimeout(r, 500))
+      } else if (retryCount < 3) {
+        // 响应数据异常时自动重试（最多3次，递增延迟）
+        const delay = (retryCount + 1) * 1000
+        console.warn('Matches response invalid, retrying in', delay, 'ms...', retryCount + 1)
+        await new Promise(r => setTimeout(r, delay))
         return fetchMatches(retryCount + 1)
       } else {
         console.error('Matches response invalid after retries:', JSON.stringify(responseData)?.substring(0, 200))
       }
     } catch (error) {
-      if (retryCount < 2) {
-        console.warn('Fetch matches error, retrying...', retryCount + 1, error)
-        await new Promise(r => setTimeout(r, 500))
+      if (retryCount < 3) {
+        const delay = (retryCount + 1) * 1000
+        console.warn('Fetch matches error, retrying in', delay, 'ms...', retryCount + 1, error)
+        await new Promise(r => setTimeout(r, delay))
         return fetchMatches(retryCount + 1)
       }
       console.error('Fetch matches error after retries:', error)
