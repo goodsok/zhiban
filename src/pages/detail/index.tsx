@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useRouter, navigateTo, eventCenter } from '@tarojs/taro'
+import { useLoad, useDidShow, useRouter, navigateTo, eventCenter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState, useCallback, useEffect } from 'react'
 import { Network } from '@/network'
@@ -183,6 +183,18 @@ const DetailPage: FC = () => {
     fetchDetail()
   })
 
+  // 从周期页面返回时刷新周期数据
+  useDidShow(() => {
+    const id = router.params.id
+    if (id && detail?.cycleStartDate) {
+      Network.request({ url: `/api/match/${id}/cycle` }).then(cycleRes => {
+        if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
+          setCycleInfo(cycleRes.data.data)
+        }
+      }).catch(() => {})
+    }
+  })
+
   const fetchDetail = async () => {
     const id = router.params.id
     if (!id) return
@@ -206,8 +218,8 @@ const DetailPage: FC = () => {
         setNameValue(data.data.name || '')
         setNotesValue(data.data.notes || '')
         
-        // 周期信息使用缓存，只有强制刷新时才重新获取
-        if (data.data.cycleStartDate && !fromCache) {
+        // 周期信息：只要有开始日期就获取（不论是否来自缓存）
+        if (data.data.cycleStartDate) {
           const cycleRes = await Network.request({ url: `/api/match/${id}/cycle` })
           if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
             setCycleInfo(cycleRes.data.data)
