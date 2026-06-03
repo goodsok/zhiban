@@ -12,6 +12,8 @@ import { BehaviorPatternAnalyzer } from './analyzers/behavior-pattern.analyzer'
 import { TrendPredictor } from './predictors/trend-predictor'
 import { StrategyRecommender } from './predictors/strategy-recommender'
 
+import { InsightAnalyzer } from './analyzers/insight.analyzer'
+
 @Module({
   providers: [
     // 核心服务
@@ -20,6 +22,7 @@ import { StrategyRecommender } from './predictors/strategy-recommender'
     PortraitCalculator,
     ChatRecordAnalyzer,
     BehaviorPatternAnalyzer,
+    InsightAnalyzer,
     // 预测器
     TrendPredictor,
     StrategyRecommender,

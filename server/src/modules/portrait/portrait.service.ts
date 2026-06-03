@@ -18,6 +18,7 @@ import {
   StrategyRecommendationResult,
   UserPortraitSummary,
 } from '@/modules/portrait-engine/types/portrait.types'
+import { InsightAnalysisResult } from '@/modules/portrait-engine/analyzers/insight.analyzer'
 
 // 导出类型供外部使用
 export type {
@@ -113,5 +114,13 @@ export class PortraitService {
    */
   async reanalyzePortrait(matchId: number, req: Request): Promise<FullPortrait> {
     return this.portraitEngine.reanalyzePortrait(matchId, req)
+  }
+
+  /**
+   * 生成深度洞察分析
+   * 聚合该对象的全部数据，使用 LLM 进行深度洞察
+   */
+  async generateInsight(matchId: number, req: Request): Promise<InsightAnalysisResult> {
+    return this.portraitEngine.generateInsight(matchId, req)
   }
 }

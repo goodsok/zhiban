@@ -5,15 +5,14 @@ import { useState } from 'react'
 import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
 import { Button } from '@/components/ui/button'
-import { Loader, RefreshCw, Brain, Target, History, Database, Image, PenTool, CircleAlert } from 'lucide-react-taro'
+import { Loader, RefreshCw, Brain, History, Database, Image, PenTool, CircleAlert } from 'lucide-react-taro'
 import RadarChart from '@/components/portrait-radar'
 import DimensionCard from '@/components/portrait-dimension-card'
 import BehaviorPatternCard from '@/components/behavior-pattern-card'
 import PortraitHistory from '@/components/portrait-history'
-import StrategyCard from '@/components/strategy-card'
-import RelationshipPrediction from '@/components/relationship-prediction'
 import ChatRecordUploader from '@/components/chat-record-uploader'
 import ManualBehaviorForm from '@/components/manual-behavior-form'
+import InsightSection from '@/components/insight-section'
 
 // 数据来源状态组件
 interface DataSourceStatusSectionProps {
@@ -215,29 +214,11 @@ interface FullPortrait {
   dataSourceStatus: DataSourceStatus
 }
 
-// 关系预测
-interface Prediction {
-  trend: 'improving' | 'stable' | 'declining'
-  confidence: number
-  insights: string[]
-  recommendations: string[]
-}
-
-// 互动策略
-interface Strategy {
-  category: string
-  action: string
-  reason: string
-  timing: string
-}
-
 const PortraitPage: FC = () => {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
   const [portrait, setPortrait] = useState<FullPortrait | null>(null)
-  const [prediction, setPrediction] = useState<Prediction | null>(null)
-  const [strategies, setStrategies] = useState<Strategy[]>([])
   const [activeTab, setActiveTab] = useState<'overview' | 'behavior' | 'insight' | 'history'>('overview')
   const [matchName, setMatchName] = useState('')
   const [dataInputMode, setDataInputMode] = useState<'none' | 'upload' | 'manual'>('none')
@@ -267,26 +248,6 @@ const PortraitPage: FC = () => {
       
       if (portraitRes.data?.code === 200 && portraitRes.data?.data) {
         setPortrait(portraitRes.data.data)
-      }
-
-      // 获取预测
-      const predictionRes = await Network.request({
-        url: `/api/portrait/${matchId}/prediction`,
-        method: 'GET'
-      })
-      
-      if (predictionRes.data?.code === 200 && predictionRes.data?.data) {
-        setPrediction(predictionRes.data.data)
-      }
-
-      // 获取策略
-      const strategyRes = await Network.request({
-        url: `/api/portrait/${matchId}/strategies`,
-        method: 'GET'
-      })
-      
-      if (strategyRes.data?.code === 200 && strategyRes.data?.data?.strategies) {
-        setStrategies(strategyRes.data.data.strategies)
       }
 
       // 获取对象名字
@@ -617,21 +578,7 @@ const PortraitPage: FC = () => {
 
       {/* 洞察 Tab */}
       {activeTab === 'insight' && (
-        <View className="p-4">
-          {/* 关系预测 */}
-          {prediction && (
-            <View className="mb-4">
-              <RelationshipPrediction prediction={prediction} />
-            </View>
-          )}
-
-          {/* 互动策略 */}
-          <View className="flex items-center gap-2 mb-3">
-            <Target size={14} color="#6B7280" />
-            <Text className="block text-sm font-semibold text-gray-900">互动策略</Text>
-          </View>
-          <StrategyCard strategies={strategies} />
-        </View>
+        <InsightSection matchId={router.params.matchId ?? ''} matchName={matchName || 'Ta'} />
       )}
 
       {/* 历史 Tab */}

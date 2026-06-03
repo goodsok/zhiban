@@ -24,6 +24,7 @@ import { ChatRecordAnalyzer } from './analyzers/chat-record.analyzer'
 import { BehaviorPatternAnalyzer } from './analyzers/behavior-pattern.analyzer'
 import { TrendPredictor, TrendPredictionInput } from './predictors/trend-predictor'
 import { StrategyRecommender, StrategyRecommendationInput } from './predictors/strategy-recommender'
+import { InsightAnalyzer, InsightAnalysisResult } from './analyzers/insight.analyzer'
 
 @Injectable()
 export class PortraitEngineService {
@@ -33,6 +34,7 @@ export class PortraitEngineService {
     private readonly behaviorAnalyzer: BehaviorPatternAnalyzer,
     private readonly trendPredictor: TrendPredictor,
     private readonly strategyRecommender: StrategyRecommender,
+    private readonly insightAnalyzer: InsightAnalyzer,
   ) {}
 
   // ==================== 画像数据管理 ====================
@@ -890,5 +892,15 @@ export class PortraitEngineService {
     if (initiativeRate >= 60) return 'active'
     if (initiativeRate <= 30) return 'passive'
     return 'balanced'
+  }
+
+  // ==================== AI 深度洞察 ====================
+
+  /**
+   * 生成深度洞察分析
+   * 聚合该对象的全部数据，使用 LLM 进行深度洞察
+   */
+  async generateInsight(matchId: number, request: Request): Promise<InsightAnalysisResult> {
+    return this.insightAnalyzer.analyze(matchId, request)
   }
 }

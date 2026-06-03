@@ -168,4 +168,24 @@ export class PortraitController {
       return { code: 500, data: null, message: '保存失败' }
     }
   }
+
+  /**
+   * 生成深度洞察
+   * 聚合所有数据，使用 AI 进行深度分析
+   */
+  @Get(':matchId/insight')
+  async getInsight(@Param('matchId') matchId: string, @Req() req: Request) {
+    const id = parseInt(matchId, 10)
+    if (isNaN(id)) {
+      return { code: 400, data: null, message: '无效的ID' }
+    }
+
+    try {
+      const insight = await this.portraitService.generateInsight(id, req)
+      return { code: 200, data: insight, message: 'success' }
+    } catch (error) {
+      console.error('Generate insight error:', error)
+      return { code: 500, data: null, message: '洞察生成失败' }
+    }
+  }
 }
