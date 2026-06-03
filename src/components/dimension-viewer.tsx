@@ -63,6 +63,8 @@ const DIMENSION_HELP: Record<string, string> = {
   // Layer 3 - 生活偏好
   friendshipStyle: '交友和维持友谊的方式',
   communicationStyle: '日常沟通的习惯和偏好',
+  communicationStyleOnline: '对方在微信、电话等线上场景的沟通方式，很多人线上和线下表现截然不同',
+  communicationStyleOffline: '对方面对面时的沟通方式，与线上风格可能完全不同',
   humorStyle: '幽默表达的方式',
   listeningStyle: '倾听他人时的习惯',
   argumentStyle: '争论和表达不同意见的方式',

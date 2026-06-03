@@ -141,6 +141,34 @@ const softwareToDimensionMap: Record<string, {
       return styleMap[String(value)] || 'balanced'
     }
   },
+  communicationStyleOnline: {
+    dimensionKey: 'communicationStyleOnline',
+    transform: (value) => {
+      const styleMap: Record<string, string> = {
+        '直接坦率': 'direct', 'direct': 'direct',
+        '委婉含蓄': 'indirect', 'indirect': 'indirect',
+        '活泼调皮': 'playful', 'playful': 'playful',
+        '温柔体贴': 'gentle', 'gentle': 'gentle',
+        '理性冷静': 'rational', 'rational': 'rational',
+        '因人而异': 'varied', 'varied': 'varied'
+      }
+      return styleMap[String(value)] || 'varied'
+    }
+  },
+  communicationStyleOffline: {
+    dimensionKey: 'communicationStyleOffline',
+    transform: (value) => {
+      const styleMap: Record<string, string> = {
+        '直接坦率': 'direct', 'direct': 'direct',
+        '委婉含蓄': 'indirect', 'indirect': 'indirect',
+        '活泼调皮': 'playful', 'playful': 'playful',
+        '温柔体贴': 'gentle', 'gentle': 'gentle',
+        '理性冷静': 'rational', 'rational': 'rational',
+        '因人而异': 'varied', 'varied': 'varied'
+      }
+      return styleMap[String(value)] || 'varied'
+    }
+  },
   dealBreakers: {
     dimensionKey: 'marriageNonNegotiables',
     transform: (value) => {
@@ -236,6 +264,26 @@ const dimensionToSoftwareMap: Record<string, {
     transform: (value) => {
       const styleLabels: Record<string, string> = {
         'direct': '直接坦率', 'indirect': '委婉含蓄', 'balanced': '因人而异'
+      }
+      return styleLabels[String(value)] || String(value)
+    }
+  },
+  communicationStyleOnline: {
+    field: 'communicationStyleOnline',
+    transform: (value) => {
+      const styleLabels: Record<string, string> = {
+        'direct': '直接坦率', 'indirect': '委婉含蓄', 'playful': '活泼调皮',
+        'gentle': '温柔体贴', 'rational': '理性冷静', 'varied': '因人而异'
+      }
+      return styleLabels[String(value)] || String(value)
+    }
+  },
+  communicationStyleOffline: {
+    field: 'communicationStyleOffline',
+    transform: (value) => {
+      const styleLabels: Record<string, string> = {
+        'direct': '直接坦率', 'indirect': '委婉含蓄', 'playful': '活泼调皮',
+        'gentle': '温柔体贴', 'rational': '理性冷静', 'varied': '因人而异'
       }
       return styleLabels[String(value)] || String(value)
     }
