@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Req, Post, Body, Query } from '@nestjs/common'
+import { Controller, Get, Param, Req, Post, Query } from '@nestjs/common'
 import { Request } from 'express'
 import { PortraitService } from './portrait.service'
 
@@ -84,7 +84,7 @@ export class PortraitController {
 
   /**
    * 重新分析画像
-   * 基于已有数据重新计算画像维度
+   * 基于档案维度数据重新计算画像维度
    */
   @Post(':matchId/analyze')
   async analyzePortrait(@Param('matchId') matchId: string, @Req() req: Request) {
@@ -99,75 +99,6 @@ export class PortraitController {
     } catch (error) {
       console.error('Analyze portrait error:', error)
       return { code: 500, data: null, message: '分析失败' }
-    }
-  }
-
-  /**
-   * 上传聊天记录截图
-   */
-  @Post(':matchId/chat-record')
-  async uploadChatRecord(
-    @Param('matchId') matchId: string,
-    @Body() body: { base64Data: string },
-    @Req() req: Request
-  ) {
-    const id = parseInt(matchId, 10)
-    if (isNaN(id)) {
-      return { code: 400, data: null, message: '无效的ID' }
-    }
-
-    if (!body.base64Data) {
-      return { code: 400, data: null, message: '请提供图片数据' }
-    }
-
-    try {
-      const result = await this.portraitService.uploadAndAnalyzeChatRecord(id, body.base64Data, req)
-      
-      if (result.success) {
-        return { code: 200, data: result.analysis, message: result.message }
-      } else {
-        return { code: 400, data: null, message: result.message }
-      }
-    } catch (error) {
-      console.error('Upload chat record error:', error)
-      return { code: 500, data: null, message: '上传失败' }
-    }
-  }
-
-  /**
-   * 保存手动填写的行为数据
-   */
-  @Post(':matchId/manual-data')
-  async saveManualData(
-    @Param('matchId') matchId: string,
-    @Body() body: {
-      responseSpeed?: 'instant' | 'fast' | 'normal' | 'slow' | 'very_slow'
-      activeTimeSlots?: string[]
-      topicPreferences?: string[]
-      communicationStyle?: 'direct' | 'indirect' | 'balanced'
-      communicationStyleOnline?: 'direct' | 'indirect' | 'balanced' | 'playful' | 'warm' | 'rational'
-      communicationStyleOffline?: 'direct' | 'indirect' | 'balanced' | 'playful' | 'warm' | 'rational'
-      emotionalExpression?: 'rich' | 'moderate' | 'reserved'
-      socialInitiative?: 'very_active' | 'active' | 'moderate' | 'passive'
-      notes?: string
-    }
-  ) {
-    const id = parseInt(matchId, 10)
-    if (isNaN(id)) {
-      return { code: 400, data: null, message: '无效的ID' }
-    }
-
-    try {
-      const result = await this.portraitService.saveManualBehaviorData(id, body)
-      
-      if (result.success) {
-        return { code: 200, data: null, message: result.message }
-      } else {
-        return { code: 400, data: null, message: result.message }
-      }
-    } catch (error) {
-      console.error('Save manual data error:', error)
-      return { code: 500, data: null, message: '保存失败' }
     }
   }
 

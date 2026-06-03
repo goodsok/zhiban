@@ -1,141 +1,16 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useDidShow, useRouter } from '@tarojs/taro'
+import Taro, { useLoad, useDidShow, useRouter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
 import { Button } from '@/components/ui/button'
-import { Loader, RefreshCw, Brain, History, Database, Image, PenTool, CircleAlert } from 'lucide-react-taro'
+import { Loader, RefreshCw, Brain, History, ArrowRight } from 'lucide-react-taro'
 import RadarChart from '@/components/portrait-radar'
 import DimensionCard from '@/components/portrait-dimension-card'
 import BehaviorPatternCard from '@/components/behavior-pattern-card'
 import PortraitHistory from '@/components/portrait-history'
-import ChatRecordUploader from '@/components/chat-record-uploader'
-import ManualBehaviorForm from '@/components/manual-behavior-form'
 import InsightSection from '@/components/insight-section'
-
-// 数据来源状态组件
-interface DataSourceStatusSectionProps {
-  status: DataSourceStatus
-  confidence: number
-  onUploadClick: () => void
-  onManualClick: () => void
-}
-
-const DataSourceStatusSection: FC<DataSourceStatusSectionProps> = ({
-  status,
-  confidence,
-  onUploadClick,
-  onManualClick
-}) => {
-  const hasData = status.hasChatRecords || status.hasManualData
-  
-  if (!hasData) {
-    // 无数据 - 显示引导
-    return (
-      <View className="bg-white rounded-xl border border-gray-100 p-4">
-        <View className="flex items-start gap-3 mb-4">
-          <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-            <Database size={18} color="#6B7280" />
-          </View>
-          <View className="flex-1">
-            <Text className="block text-sm font-semibold text-gray-900">添加行为数据</Text>
-            <Text className="block text-xs text-gray-500 mt-1">
-              上传聊天截图或手动填写，AI会分析Ta的行为特征
-            </Text>
-          </View>
-        </View>
-
-        <View className="flex gap-3">
-          <View 
-            className="flex-1 bg-gray-50 rounded-lg p-3 border border-gray-100"
-            onClick={onUploadClick}
-          >
-            <View className="flex items-center gap-2 mb-1">
-              <Image size={16} color="#6B7280" />
-              <Text className="block text-sm font-medium text-gray-800">上传截图</Text>
-            </View>
-            <Text className="block text-xs text-gray-500">上传你和Ta的聊天记录</Text>
-          </View>
-          <View 
-            className="flex-1 bg-gray-50 rounded-lg p-3 border border-gray-100"
-            onClick={onManualClick}
-          >
-            <View className="flex items-center gap-2 mb-1">
-              <PenTool size={16} color="#6B7280" />
-              <Text className="block text-sm font-medium text-gray-800">手动填写</Text>
-            </View>
-            <Text className="block text-xs text-gray-500">填写你观察到的行为</Text>
-          </View>
-        </View>
-      </View>
-    )
-  }
-
-  // 有数据 - 显示状态
-  return (
-    <View className="bg-white rounded-xl border border-gray-100 p-4">
-      <View className="flex items-center justify-between mb-3">
-        <View className="flex items-center gap-2">
-          <Database size={14} color="#10B981" />
-          <Text className="block text-sm font-semibold text-gray-900">数据来源</Text>
-        </View>
-        <View className="flex gap-2">
-          {status.hasChatRecords && (
-            <View className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded">
-              <Image size={12} color="#6B7280" />
-              <Text className="block text-xs text-gray-600">{status.chatRecordCount}张截图</Text>
-            </View>
-          )}
-          {status.hasManualData && (
-            <View className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded">
-              <PenTool size={12} color="#6B7280" />
-              <Text className="block text-xs text-gray-600">手动填写</Text>
-            </View>
-          )}
-        </View>
-      </View>
-
-      <View className="flex items-center justify-between">
-        <View className="flex items-center gap-2">
-          <View className="w-2 h-2 rounded-full bg-green-500" />
-          <Text className="block text-xs text-gray-500">
-            置信度 {confidence}%
-          </Text>
-        </View>
-        <View className="flex gap-2">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="text-xs"
-            onClick={onUploadClick}
-          >
-            <Image size={12} color="#6B7280" />
-            <Text className="ml-1 text-gray-500">添加截图</Text>
-          </Button>
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="text-xs"
-            onClick={onManualClick}
-          >
-            <PenTool size={12} color="#6B7280" />
-            <Text className="ml-1 text-gray-500">更新数据</Text>
-          </Button>
-        </View>
-      </View>
-
-      {confidence < 50 && (
-        <View className="mt-3 flex items-start gap-2 p-2 bg-amber-50 rounded">
-          <CircleAlert size={14} color="#F59E0B" />
-          <Text className="block text-xs text-amber-700">
-            数据较少，画像可能不够准确，建议添加更多数据
-          </Text>
-        </View>
-      )}
-    </View>
-  )
-}
 
 // 画像维度
 interface PortraitDimensions {
@@ -179,16 +54,9 @@ interface BehaviorPattern {
   topicCategories: Record<string, number>
   emotionalKeywords: string[]
   totalInteractions: number
-  dataSource: 'chat_record' | 'manual' | 'none'
+  dataSource: 'chat_record' | 'manual' | 'dimension' | 'none'
   communicationStyleOnline?: string
   communicationStyleOffline?: string
-}
-
-// 数据源状态
-interface DataSourceStatus {
-  hasChatRecords: boolean
-  hasManualData: boolean
-  chatRecordCount: number
 }
 
 // 历史记录
@@ -213,7 +81,8 @@ interface FullPortrait {
   confidence: number
   history: HistoryItem[]
   lastUpdated: string
-  dataSourceStatus: DataSourceStatus
+  dimensionFilledCount: number
+  dimensionTotalCount: number
 }
 
 const PortraitPage: FC = () => {
@@ -223,7 +92,6 @@ const PortraitPage: FC = () => {
   const [portrait, setPortrait] = useState<FullPortrait | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'behavior' | 'insight' | 'history'>('overview')
   const [matchName, setMatchName] = useState('')
-  const [dataInputMode, setDataInputMode] = useState<'none' | 'upload' | 'manual'>('none')
 
   useLoad(() => {
     console.log('Portrait page loaded.', router.params.matchId)
@@ -247,6 +115,8 @@ const PortraitPage: FC = () => {
         url: `/api/portrait/${matchId}`,
         method: 'GET'
       })
+      
+      console.log('Portrait API response:', portraitRes.data)
       
       if (portraitRes.data?.code === 200 && portraitRes.data?.data) {
         setPortrait(portraitRes.data.data)
@@ -287,6 +157,13 @@ const PortraitPage: FC = () => {
     } finally {
       setAnalyzing(false)
     }
+  }
+
+  // 跳转到档案维度页面
+  const goToDimensionPage = () => {
+    const matchId = router.params.matchId
+    if (!matchId) return
+    Taro.navigateTo({ url: `/pages/detail/index?id=${matchId}` })
   }
 
   // 准备雷达图数据
@@ -350,6 +227,15 @@ const PortraitPage: FC = () => {
     return ''
   }
 
+  // 数据完成度
+  const getCompletionInfo = () => {
+    if (!portrait) return { filled: 0, total: 0, percent: 0 }
+    const filled = portrait.dimensionFilledCount || 0
+    const total = portrait.dimensionTotalCount || 0
+    const percent = total > 0 ? Math.round((filled / total) * 100) : 0
+    return { filled, total, percent }
+  }
+
   if (loading) {
     return (
       <View className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -358,12 +244,62 @@ const PortraitPage: FC = () => {
     )
   }
 
+  const completion = getCompletionInfo()
+
   return (
     <View className="min-h-screen bg-gray-50 pb-20">
       <CustomHeader title={`${matchName ? matchName + '的' : ''}画像`} />
 
-      {/* 置信度提示 */}
+      {/* 数据来源提示：引导去档案维度填写 */}
       <View className="px-4 pt-4">
+        <View className="bg-white rounded-xl border border-gray-100 p-4">
+          <View className="flex items-start gap-3 mb-3">
+            <View className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+              <Brain size={18} color="#3B82F6" />
+            </View>
+            <View className="flex-1">
+              <Text className="block text-sm font-semibold text-gray-900">画像数据来源</Text>
+              <Text className="block text-xs text-gray-500 mt-1">
+                画像基于档案维度数据自动生成，填写越完整画像越准确
+              </Text>
+            </View>
+          </View>
+
+          {/* 完成度进度条 */}
+          <View className="mb-3">
+            <View className="flex items-center justify-between mb-1">
+              <Text className="block text-xs text-gray-500">档案完成度</Text>
+              <Text className="block text-xs text-gray-700 font-medium">{completion.percent}%（{completion.filled}/{completion.total}项）</Text>
+            </View>
+            <View className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              <View 
+                className="h-full rounded-full bg-blue-500 transition-all"
+                style={{ width: `${completion.percent}%` }}
+              />
+            </View>
+          </View>
+
+          <Button
+            size="sm"
+            className="w-full bg-blue-500 text-white"
+            onClick={goToDimensionPage}
+          >
+            <Text className="text-white">去填写档案维度</Text>
+            <ArrowRight size={14} color="#ffffff" className="ml-1" />
+          </Button>
+
+          {completion.percent < 50 && (
+            <View className="mt-2 flex items-start gap-1.5 p-2 bg-amber-50 rounded">
+              <Text className="block text-xs text-amber-700">
+                档案数据较少，画像可能不够准确，建议补充更多维度
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* 置信度 & 重新分析 */}
+      <View className="px-4 pt-3">
         <View className="flex items-center justify-between bg-white rounded-xl border border-gray-100 p-3">
           <View className="flex items-center gap-2">
             <Brain size={16} color="#6B7280" />
@@ -419,54 +355,6 @@ const PortraitPage: FC = () => {
       {/* 概览 Tab */}
       {activeTab === 'overview' && portrait && (
         <View className="p-4">
-          {/* 数据来源状态 */}
-          <View className="mb-4">
-            <DataSourceStatusSection 
-              status={portrait.dataSourceStatus}
-              confidence={portrait.confidence}
-              onUploadClick={() => setDataInputMode('upload')}
-              onManualClick={() => setDataInputMode('manual')}
-            />
-          </View>
-
-          {/* 数据输入弹窗 */}
-          {dataInputMode !== 'none' && (
-            <View className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-              <View className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto">
-                <View className="p-4 border-b border-gray-100 flex items-center justify-between">
-                  <Text className="block text-lg font-semibold text-gray-900">
-                    {dataInputMode === 'upload' ? '上传聊天记录' : '填写行为数据'}
-                  </Text>
-                  <Text 
-                    className="block text-sm text-gray-500"
-                    onClick={() => setDataInputMode('none')}
-                  >
-                    关闭
-                  </Text>
-                </View>
-                <View className="p-4">
-                  {dataInputMode === 'upload' ? (
-                    <ChatRecordUploader 
-                      matchId={parseInt(router.params.matchId || '0', 10)}
-                      onSuccess={() => {
-                        setDataInputMode('none')
-                        fetchData()
-                      }}
-                    />
-                  ) : (
-                    <ManualBehaviorForm
-                      matchId={parseInt(router.params.matchId || '0', 10)}
-                      onSuccess={() => {
-                        setDataInputMode('none')
-                        fetchData()
-                      }}
-                    />
-                  )}
-                </View>
-              </View>
-            </View>
-          )}
-
           {/* 雷达图 */}
           <View className="bg-white rounded-xl border border-gray-100 p-4 mb-4 flex items-center justify-center">
             <RadarChart dimensions={getRadarDimensions()} size={240} />

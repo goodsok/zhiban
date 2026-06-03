@@ -2,7 +2,7 @@
  * 人物画像服务（API层）
  * 
  * 负责处理HTTP请求，委托给画像引擎执行具体逻辑
- * 保持向后兼容的接口
+ * 画像数据全部从档案维度系统读取，不再提供手动填写和截图上传
  */
 
 import { Injectable } from '@nestjs/common'
@@ -11,9 +11,7 @@ import { UserProfileService } from '@/modules/user-profile/user-profile.service'
 import { PortraitEngineService } from '@/modules/portrait-engine/portrait-engine.service'
 import {
   FullPortrait,
-  BehaviorPattern,
   PortraitHistoryRecord,
-  ChatRecordAnalysisResult,
   TrendPredictionResult,
   StrategyRecommendationResult,
   UserPortraitSummary,
@@ -23,9 +21,7 @@ import { InsightAnalysisResult } from '@/modules/portrait-engine/analyzers/insig
 // 导出类型供外部使用
 export type {
   FullPortrait,
-  BehaviorPattern,
   PortraitHistoryRecord,
-  ChatRecordAnalysisResult,
   TrendPredictionResult,
   StrategyRecommendationResult,
 }
@@ -42,33 +38,6 @@ export class PortraitService {
    */
   async getOrCreatePortrait(matchId: number): Promise<FullPortrait> {
     return this.portraitEngine.getOrCreatePortrait(matchId)
-  }
-
-  /**
-   * 上传并分析聊天记录截图
-   */
-  async uploadAndAnalyzeChatRecord(
-    matchId: number,
-    base64Data: string,
-    req: Request
-  ): Promise<{ success: boolean; analysis?: ChatRecordAnalysisResult; message: string }> {
-    return this.portraitEngine.uploadAndAnalyzeChatRecord(matchId, base64Data, req)
-  }
-
-  /**
-   * 保存手动填写的行为数据
-   */
-  async saveManualBehaviorData(
-    matchId: number,
-    data: {
-      responseSpeed?: 'instant' | 'fast' | 'normal' | 'slow' | 'very_slow'
-      activeTimeSlots?: string[]
-      topicPreferences?: string[]
-      communicationStyle?: 'direct' | 'indirect' | 'balanced'
-      notes?: string
-    }
-  ): Promise<{ success: boolean; message: string }> {
-    return this.portraitEngine.saveManualBehaviorData(matchId, data)
   }
 
   /**
@@ -110,7 +79,7 @@ export class PortraitService {
 
   /**
    * 重新分析画像
-   * 基于已有的聊天记录和手动数据重新计算画像维度
+   * 基于档案维度数据重新计算画像维度
    */
   async reanalyzePortrait(matchId: number, req: Request): Promise<FullPortrait> {
     return this.portraitEngine.reanalyzePortrait(matchId, req)

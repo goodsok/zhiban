@@ -79,7 +79,7 @@ export interface PortraitDimensions {
 /**
  * 数据来源类型
  */
-export type DataSourceType = 'chat_record' | 'manual' | 'none'
+export type DataSourceType = 'chat_record' | 'manual' | 'dimension' | 'none'
 
 /**
  * 行为模式数据
@@ -197,8 +197,10 @@ export interface FullPortrait {
   confidence: number
   /** 变化历史 */
   history: PortraitHistoryRecord[]
-  /** 数据来源状态 */
-  dataSourceStatus: DataSourceStatus
+  /** 档案维度已填写数量 */
+  dimensionFilledCount: number
+  /** 档案维度总数 */
+  dimensionTotalCount: number
   /** 最后更新时间 */
   lastUpdated: string
 }
