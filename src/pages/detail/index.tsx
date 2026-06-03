@@ -186,10 +186,13 @@ const DetailPage: FC = () => {
   // 从周期页面返回时刷新周期数据
   useDidShow(() => {
     const id = router.params.id
-    if (id && detail?.cycleStartDate) {
+    if (id) {
       Network.request({ url: `/api/match/${id}/cycle` }).then(cycleRes => {
+        console.log('Cycle info response in useDidShow:', cycleRes.data)
         if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
           setCycleInfo(cycleRes.data.data)
+        } else {
+          setCycleInfo(null)
         }
       }).catch(() => {})
     }
@@ -218,12 +221,15 @@ const DetailPage: FC = () => {
         setNameValue(data.data.name || '')
         setNotesValue(data.data.notes || '')
         
-        // 周期信息：只要有开始日期就获取（不论是否来自缓存）
-        if (data.data.cycleStartDate) {
+        // 周期信息：始终尝试获取（不论是否来自缓存、不论是否有cycleStartDate）
+        try {
           const cycleRes = await Network.request({ url: `/api/match/${id}/cycle` })
+          console.log('Cycle info response in fetchDetail:', cycleRes.data)
           if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
             setCycleInfo(cycleRes.data.data)
           }
+        } catch (e) {
+          console.error('Fetch cycle info error:', e)
         }
       }
     } catch (error) {
