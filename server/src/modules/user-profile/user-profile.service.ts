@@ -46,6 +46,8 @@ export interface FullUserProfile {
   // 行为偏好
   behavior?: {
     communicationStyle: 'direct' | 'indirect' | 'balanced' | null
+    communicationStyleOnline: 'direct' | 'indirect' | 'playful' | 'gentle' | 'rational' | 'variable' | null
+    communicationStyleOffline: 'direct' | 'indirect' | 'playful' | 'gentle' | 'rational' | 'variable' | null
     responseSpeed: 'instant' | 'fast' | 'normal' | 'slow' | null
     activeTimeSlots: string[]
     socialEnergy: 'high' | 'medium' | 'low' | null
@@ -270,6 +272,8 @@ export class UserProfileService {
     userId: number,
     data: {
       communicationStyle?: 'direct' | 'indirect' | 'balanced'
+      communicationStyleOnline?: 'direct' | 'indirect' | 'playful' | 'gentle' | 'rational' | 'variable'
+      communicationStyleOffline?: 'direct' | 'indirect' | 'playful' | 'gentle' | 'rational' | 'variable'
       responseSpeed?: 'instant' | 'fast' | 'normal' | 'slow'
       activeTimeSlots?: string[]
       socialEnergy?: 'high' | 'medium' | 'low'
@@ -287,6 +291,8 @@ export class UserProfileService {
     }
 
     if (data.communicationStyle !== undefined) updateData.communication_style = data.communicationStyle
+    if (data.communicationStyleOnline !== undefined) updateData.communication_style_online = data.communicationStyleOnline
+    if (data.communicationStyleOffline !== undefined) updateData.communication_style_offline = data.communicationStyleOffline
     if (data.responseSpeed !== undefined) updateData.response_speed = data.responseSpeed
     if (data.activeTimeSlots !== undefined) updateData.active_time_slots = data.activeTimeSlots
     if (data.socialEnergy !== undefined) updateData.social_energy = data.socialEnergy
@@ -346,6 +352,8 @@ export class UserProfileService {
       // 行为偏好
       behavior: {
         communicationStyle: profile.behavior?.communicationStyle,
+        communicationStyleOnline: profile.behavior?.communicationStyleOnline,
+        communicationStyleOffline: profile.behavior?.communicationStyleOffline,
         responseSpeed: profile.behavior?.responseSpeed,
         activeTimeSlots: profile.behavior?.activeTimeSlots,
         socialEnergy: profile.behavior?.socialEnergy,
@@ -542,6 +550,8 @@ export class UserProfileService {
       confidence: (profile?.confidence as number) || 0,
       behavior: behavior ? {
         communicationStyle: (behavior.communication_style as 'direct' | 'indirect' | 'balanced') || null,
+        communicationStyleOnline: (behavior.communication_style_online as 'direct' | 'indirect' | 'playful' | 'gentle' | 'rational' | 'variable') || null,
+        communicationStyleOffline: (behavior.communication_style_offline as 'direct' | 'indirect' | 'playful' | 'gentle' | 'rational' | 'variable') || null,
         responseSpeed: (behavior.response_speed as 'instant' | 'fast' | 'normal' | 'slow') || null,
         activeTimeSlots: (behavior.active_time_slots as string[]) || [],
         socialEnergy: (behavior.social_energy as 'high' | 'medium' | 'low') || null,

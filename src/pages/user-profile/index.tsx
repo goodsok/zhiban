@@ -42,6 +42,8 @@ interface UserProfile {
   confidence: number
   behavior?: {
     communicationStyle: 'direct' | 'indirect' | 'balanced' | null
+    communicationStyleOnline: 'direct' | 'indirect' | 'playful' | 'gentle' | 'rational' | 'variable' | null
+    communicationStyleOffline: 'direct' | 'indirect' | 'playful' | 'gentle' | 'rational' | 'variable' | null
     responseSpeed: 'instant' | 'fast' | 'normal' | 'slow' | null
     activeTimeSlots: string[]
     socialEnergy: 'high' | 'medium' | 'low' | null
@@ -100,10 +102,22 @@ const loveLanguageOptions = [
   { value: 'touch', label: '接触', icon: '🤗' },
 ]
 
-const communicationStyleOptions = [
-  { value: 'direct', label: '直接', desc: '有什么说什么' },
-  { value: 'balanced', label: '适中', desc: '看情况调整' },
-  { value: 'indirect', label: '委婉', desc: '比较含蓄' },
+const communicationStyleOnlineOptions = [
+  { value: 'direct', label: '直接坦率', desc: '打字直来直去，不绕弯子' },
+  { value: 'playful', label: '活泼调皮', desc: '喜欢发表情包、玩梗、开玩笑' },
+  { value: 'gentle', label: '温柔体贴', desc: '语气柔和，关心对方感受' },
+  { value: 'rational', label: '理性冷静', desc: '逻辑清晰，偏分析讨论' },
+  { value: 'indirect', label: '委婉含蓄', desc: '话中有话，暗示多于明说' },
+  { value: 'variable', label: '因人而异', desc: '不同人面前风格不同' },
+]
+
+const communicationStyleOfflineOptions = [
+  { value: 'direct', label: '直接坦率', desc: '当面直言不讳' },
+  { value: 'playful', label: '活泼调皮', desc: '见面话多、爱互动、气氛担当' },
+  { value: 'gentle', label: '温柔体贴', desc: '善解人意、照顾对方感受' },
+  { value: 'rational', label: '理性冷静', desc: '沉着稳重，说话有条理' },
+  { value: 'indirect', label: '委婉含蓄', desc: '当面反而不太说话，比较慢热' },
+  { value: 'variable', label: '因人而异', desc: '不同人面前风格不同' },
 ]
 
 const responseSpeedOptions = [
@@ -899,22 +913,23 @@ const UserProfilePage: FC = () => {
       {/* 行为偏好 */}
       {activeSection === 'behavior' && (
         <View className="p-4">
-          {/* 沟通风格 */}
+          {/* 线上沟通风格 */}
           <View className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
-              <MessageCircle size={14} color="#6B7280" />
-              <Text className="block text-sm font-semibold text-gray-900">沟通风格</Text>
+            <View className="flex items-center gap-2 mb-1">
+              <MessageCircle size={14} color="#3B82F6" />
+              <Text className="block text-sm font-semibold text-gray-900">线上沟通风格</Text>
             </View>
+            <Text className="block text-xs text-gray-400 mb-3">微信/电话等线上场景</Text>
             <View className="space-y-2">
-              {communicationStyleOptions.map((option) => (
+              {communicationStyleOnlineOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
-                    profile.behavior?.communicationStyle === option.value ? 'border-black bg-gray-50' : 'border-gray-100'
+                    profile.behavior?.communicationStyleOnline === option.value ? 'border-blue-500 bg-blue-50' : 'border-gray-100'
                   }`}
                   onClick={() => setProfile(prev => ({
                     ...prev,
-                    behavior: { ...prev.behavior, communicationStyle: option.value as any } as any,
+                    behavior: { ...prev.behavior, communicationStyleOnline: option.value as any } as any,
                   }))}
                 >
                   <View>
@@ -924,6 +939,40 @@ const UserProfilePage: FC = () => {
                 </View>
               ))}
             </View>
+          </View>
+
+          {/* 线下沟通风格 */}
+          <View className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+            <View className="flex items-center gap-2 mb-1">
+              <MessageCircle size={14} color="#F97316" />
+              <Text className="block text-sm font-semibold text-gray-900">线下沟通风格</Text>
+            </View>
+            <Text className="block text-xs text-gray-400 mb-3">见面时的沟通方式</Text>
+            <View className="space-y-2">
+              {communicationStyleOfflineOptions.map((option) => (
+                <View
+                  key={option.value}
+                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                    profile.behavior?.communicationStyleOffline === option.value ? 'border-orange-500 bg-orange-50' : 'border-gray-100'
+                  }`}
+                  onClick={() => setProfile(prev => ({
+                    ...prev,
+                    behavior: { ...prev.behavior, communicationStyleOffline: option.value as any } as any,
+                  }))}
+                >
+                  <View>
+                    <Text className="block text-sm text-gray-800">{option.label}</Text>
+                    <Text className="block text-xs text-gray-400">{option.desc}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+            {profile.behavior?.communicationStyleOnline && profile.behavior?.communicationStyleOffline &&
+             profile.behavior.communicationStyleOnline !== profile.behavior.communicationStyleOffline && (
+              <View className="mt-3 p-2 rounded-lg bg-amber-50 border border-amber-200">
+                <Text className="block text-xs text-amber-700">线上线下风格不同，很多人都有这种反差</Text>
+              </View>
+            )}
           </View>
 
           {/* 回复速度 */}

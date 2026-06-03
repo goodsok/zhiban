@@ -59,6 +59,8 @@ export class UserProfileController {
   async updateBehavior(
     @Body() body: {
       communicationStyle?: 'direct' | 'indirect' | 'balanced'
+      communicationStyleOnline?: 'direct' | 'indirect' | 'playful' | 'gentle' | 'rational' | 'variable'
+      communicationStyleOffline?: 'direct' | 'indirect' | 'playful' | 'gentle' | 'rational' | 'variable'
       responseSpeed?: 'instant' | 'fast' | 'normal' | 'slow'
       activeTimeSlots?: string[]
       socialEnergy?: 'high' | 'medium' | 'low'
