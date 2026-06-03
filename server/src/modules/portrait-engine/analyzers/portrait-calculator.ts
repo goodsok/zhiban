@@ -151,6 +151,33 @@ export class PortraitCalculator implements IPortraitCalculator {
       }
     }
 
+    // 情感表达（从手动数据推算）
+    if (manualData.emotionalExpression) {
+      dimensions.emotional = {
+        stability: 50,
+        expression: this.calculateEmotionalExpressionFromManual(manualData.emotionalExpression),
+        empathy: 50,
+        independence: 50,
+      }
+    }
+
+    // 社交主动性（从手动数据推算）
+    if (manualData.socialInitiative) {
+      const activityFromInitiative = this.calculateSocialActivityFromManual(manualData.socialInitiative)
+      // 如果已有 social 维度（来自 activeHours），只更新 activity；否则创建新维度
+      if (dimensions.social) {
+        dimensions.social.activity = Math.max(dimensions.social.activity, activityFromInitiative)
+        dimensions.social.initiative = activityFromInitiative
+      } else {
+        dimensions.social = {
+          activity: activityFromInitiative,
+          initiative: activityFromInitiative,
+          intimacy: 50,
+          trust: 50,
+        }
+      }
+    }
+
     return dimensions
   }
 
@@ -217,6 +244,31 @@ export class PortraitCalculator implements IPortraitCalculator {
       indirect: 25,
     }
     return styleMap[style] || 50
+  }
+
+  /**
+   * 根据手动填写的情感表达程度计算情感表达值
+   */
+  private calculateEmotionalExpressionFromManual(expression: string): number {
+    const expressionMap: Record<string, number> = {
+      rich: 80,
+      moderate: 55,
+      reserved: 25,
+    }
+    return expressionMap[expression] || 50
+  }
+
+  /**
+   * 根据手动填写的社交主动性计算社交活跃度
+   */
+  private calculateSocialActivityFromManual(initiative: string): number {
+    const initiativeMap: Record<string, number> = {
+      very_active: 90,
+      active: 70,
+      moderate: 50,
+      passive: 25,
+    }
+    return initiativeMap[initiative] || 50
   }
 
   /**

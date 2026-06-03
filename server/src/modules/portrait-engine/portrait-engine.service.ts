@@ -70,8 +70,8 @@ export class PortraitEngineService {
 
     // 计算画像维度
     let dimensions: Partial<PortraitDimensions>
-    if (behaviorPattern.dataSource === 'chat_record' && manualData) {
-      // 同时有聊天记录和手动数据，合并计算
+    if (manualData) {
+      // 有手动数据，合并计算（无论是否有聊天记录）
       dimensions = this.calculator.mergeFromSources(
         behaviorPattern,
         {
@@ -79,25 +79,13 @@ export class PortraitEngineService {
           activeTimeSlots: manualData.active_time_slots || [],
           topicPreferences: manualData.topic_preferences || [],
           communicationStyle: manualData.communication_style,
-          notes: manualData.notes,
-        }
-      )
-    } else if (behaviorPattern.dataSource === 'chat_record') {
-      // 仅有聊天记录
-      dimensions = this.calculator.calculateFromBehavior(behaviorPattern)
-    } else if (manualData) {
-      // 仅有手动数据
-      dimensions = this.calculator.mergeFromSources(
-        { ...this.getDefaultBehavior(), dataSource: behaviorPattern.dataSource } as BehaviorPattern,
-        {
-          responseSpeed: manualData.response_speed,
-          activeTimeSlots: manualData.active_time_slots || [],
-          topicPreferences: manualData.topic_preferences || [],
-          communicationStyle: manualData.communication_style,
+          emotionalExpression: manualData.emotional_expression,
+          socialInitiative: manualData.social_initiative,
           notes: manualData.notes,
         }
       )
     } else {
+      // 仅聊天记录数据
       dimensions = this.calculator.calculateFromBehavior(behaviorPattern)
     }
 
@@ -153,14 +141,24 @@ export class PortraitEngineService {
       if (dimensions.communication.depth !== undefined) updateData.communication_depth = dimensions.communication.depth
     }
 
-    // 提取活跃时段
-    if (behaviorPattern.activeHours && Object.keys(behaviorPattern.activeHours).length > 0) {
-      updateData.active_time_slots = this.extractActiveSlots(behaviorPattern.activeHours)
+    // 提取活跃时段（优先用行为数据，补充手动数据）
+    const behaviorSlots = (behaviorPattern.activeHours && Object.keys(behaviorPattern.activeHours).length > 0)
+      ? this.extractActiveSlots(behaviorPattern.activeHours)
+      : []
+    const manualSlots = manualData?.active_time_slots || []
+    const mergedSlots = [...new Set([...behaviorSlots, ...manualSlots])]
+    if (mergedSlots.length > 0) {
+      updateData.active_time_slots = mergedSlots
     }
 
-    // 提取话题偏好
-    if (behaviorPattern.topicCategories && Object.keys(behaviorPattern.topicCategories).length > 0) {
-      updateData.preferred_topic_types = Object.keys(behaviorPattern.topicCategories)
+    // 提取话题偏好（合并行为数据和手动数据）
+    const behaviorTopics = (behaviorPattern.topicCategories && Object.keys(behaviorPattern.topicCategories).length > 0)
+      ? Object.keys(behaviorPattern.topicCategories)
+      : []
+    const manualTopics = manualData?.topic_preferences || []
+    const mergedTopics = [...new Set([...behaviorTopics, ...manualTopics])]
+    if (mergedTopics.length > 0) {
+      updateData.preferred_topic_types = mergedTopics
     }
 
     // 获取旧画像用于记录变化
@@ -178,7 +176,7 @@ export class PortraitEngineService {
     // 记录维度变化到历史
     if (oldPortrait) {
       const oldDimensions = this.extractDimensions(oldPortrait)
-      this.recordDimensionChanges(matchId, oldDimensions, dimensions, behaviorPattern.dataSource === 'chat_record' ? 'chat_analysis' : 'manual')
+      this.recordDimensionChanges(matchId, oldDimensions, dimensions, manualData ? 'manual' : 'chat_analysis')
     }
   }
 
@@ -537,6 +535,8 @@ export class PortraitEngineService {
         active_time_slots: data.activeTimeSlots || [],
         topic_preferences: data.topicPreferences || [],
         communication_style: data.communicationStyle,
+        emotional_expression: data.emotionalExpression,
+        social_initiative: data.socialInitiative,
         notes: data.notes,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'match_id' })

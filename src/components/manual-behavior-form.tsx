@@ -12,6 +12,8 @@ interface ManualBehaviorFormProps {
     activeTimeSlots?: string[]
     topicPreferences?: string[]
     communicationStyle?: 'direct' | 'indirect' | 'balanced'
+    emotionalExpression?: 'rich' | 'moderate' | 'reserved'
+    socialInitiative?: 'very_active' | 'active' | 'moderate' | 'passive'
   }
   onSuccess?: () => void
 }
@@ -46,6 +48,19 @@ const styleOptions = [
   { value: 'indirect', label: '委婉', desc: '说话比较含蓄' },
 ]
 
+const emotionalExpressionOptions = [
+  { value: 'rich', label: '情感丰富', desc: '经常表达喜怒哀乐，情绪外露' },
+  { value: 'moderate', label: '适中', desc: '适当表达情感，不过度压抑' },
+  { value: 'reserved', label: '内敛克制', desc: '很少表露情绪，比较理性' },
+]
+
+const socialInitiativeOptions = [
+  { value: 'very_active', label: '非常主动', desc: '经常主动找你聊天' },
+  { value: 'active', label: '比较主动', desc: '偶尔会主动发起话题' },
+  { value: 'moderate', label: '差不多', desc: '你和Ta各主动一半' },
+  { value: 'passive', label: '比较被动', desc: '很少主动找你' },
+]
+
 const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
   matchId,
   initialData,
@@ -55,6 +70,8 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
   const [activeTimeSlots, setActiveTimeSlots] = useState<string[]>(initialData?.activeTimeSlots || [])
   const [topicPreferences, setTopicPreferences] = useState<string[]>(initialData?.topicPreferences || [])
   const [communicationStyle, setCommunicationStyle] = useState<string>(initialData?.communicationStyle || '')
+  const [emotionalExpression, setEmotionalExpression] = useState<string>(initialData?.emotionalExpression || '')
+  const [socialInitiative, setSocialInitiative] = useState<string>(initialData?.socialInitiative || '')
   const [saving, setSaving] = useState(false)
 
   const toggleTimeSlot = (value: string) => {
@@ -84,8 +101,11 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
           activeTimeSlots,
           topicPreferences,
           communicationStyle,
+          emotionalExpression,
+          socialInitiative,
         }
       })
+      console.log('Save manual data response:', res.data)
 
       if (res.data?.code === 200) {
         onSuccess?.()
@@ -96,6 +116,8 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
       setSaving(false)
     }
   }
+
+  const hasAnyInput = responseSpeed || activeTimeSlots.length > 0 || topicPreferences.length > 0 || communicationStyle || emotionalExpression || socialInitiative
 
   return (
     <View className="bg-white rounded-xl border border-gray-100">
@@ -193,12 +215,64 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
         </View>
       </View>
 
+      {/* 情感表达 */}
+      <View className="p-4 border-b border-gray-100">
+        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta的情感表达程度如何？</Text>
+        <View className="space-y-2">
+          {emotionalExpressionOptions.map((option) => (
+            <View
+              key={option.value}
+              className={`flex items-center justify-between p-3 rounded-lg border ${
+                emotionalExpression === option.value
+                  ? 'border-black bg-gray-50'
+                  : 'border-gray-100'
+              }`}
+              onClick={() => setEmotionalExpression(option.value)}
+            >
+              <View>
+                <Text className="block text-sm text-gray-800">{option.label}</Text>
+                <Text className="block text-xs text-gray-400">{option.desc}</Text>
+              </View>
+              {emotionalExpression === option.value && (
+                <Check size={16} color="#000" />
+              )}
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* 社交主动性 */}
+      <View className="p-4 border-b border-gray-100">
+        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta在社交中主动性如何？</Text>
+        <View className="space-y-2">
+          {socialInitiativeOptions.map((option) => (
+            <View
+              key={option.value}
+              className={`flex items-center justify-between p-3 rounded-lg border ${
+                socialInitiative === option.value
+                  ? 'border-black bg-gray-50'
+                  : 'border-gray-100'
+              }`}
+              onClick={() => setSocialInitiative(option.value)}
+            >
+              <View>
+                <Text className="block text-sm text-gray-800">{option.label}</Text>
+                <Text className="block text-xs text-gray-400">{option.desc}</Text>
+              </View>
+              {socialInitiative === option.value && (
+                <Check size={16} color="#000" />
+              )}
+            </View>
+          ))}
+        </View>
+      </View>
+
       {/* 保存按钮 */}
       <View className="p-4">
         <Button 
           className="w-full bg-black" 
           onClick={handleSave}
-          disabled={saving || (!responseSpeed && activeTimeSlots.length === 0 && topicPreferences.length === 0 && !communicationStyle)}
+          disabled={saving || !hasAnyInput}
         >
           {saving ? (
             <Loader size={16} color="#fff" className="animate-spin" />

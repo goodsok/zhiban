@@ -123,6 +123,10 @@ export interface ManualBehaviorData {
   topicPreferences?: string[]
   /** 沟通风格 */
   communicationStyle?: 'direct' | 'indirect' | 'balanced'
+  /** 情感表达程度 */
+  emotionalExpression?: 'rich' | 'moderate' | 'reserved'
+  /** 社交主动性 */
+  socialInitiative?: 'very_active' | 'active' | 'moderate' | 'passive'
   /** 备注 */
   notes?: string
 }
