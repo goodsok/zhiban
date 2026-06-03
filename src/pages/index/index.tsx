@@ -52,25 +52,43 @@ const Index: FC = () => {
     fetchMatches()
   })
 
-  const fetchMatches = async () => {
+  const fetchMatches = async (retryCount = 0) => {
     try {
       setLoading(true)
       const res = await Network.request({ url: '/api/match/list' })
-      console.log('Matches response:', res.data)
-      if (res.data?.code === 200 && res.data?.data?.list) {
-        setMatches(res.data.data.list)
+      // Network.request 返回 Taro.request 的结果，数据在 res.data 中
+      // 后端返回 { code: 200, msg: '...', data: { list: [...] } }
+      const responseData = res.data
+      if (responseData?.code === 200 && responseData?.data?.list) {
+        setMatches(responseData.data.list)
         // 获取每个对象的周期信息
-        res.data.data.list.forEach(async (match: Match) => {
+        responseData.data.list.forEach(async (match: Match) => {
           if (match.cycleStartDate) {
-            const cycleRes = await Network.request({ url: `/api/match/${match.id}/cycle` })
-            if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
-              setCycleInfos(prev => ({ ...prev, [match.id]: cycleRes.data.data }))
+            try {
+              const cycleRes = await Network.request({ url: `/api/match/${match.id}/cycle` })
+              if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
+                setCycleInfos(prev => ({ ...prev, [match.id]: cycleRes.data.data }))
+              }
+            } catch (e) {
+              console.error('Fetch cycle info error:', e)
             }
           }
         })
+      } else if (retryCount < 2) {
+        // 响应数据异常时自动重试（最多2次）
+        console.warn('Matches response invalid, retrying...', retryCount + 1)
+        await new Promise(r => setTimeout(r, 500))
+        return fetchMatches(retryCount + 1)
+      } else {
+        console.error('Matches response invalid after retries:', JSON.stringify(responseData)?.substring(0, 200))
       }
     } catch (error) {
-      console.error('Fetch matches error:', error)
+      if (retryCount < 2) {
+        console.warn('Fetch matches error, retrying...', retryCount + 1, error)
+        await new Promise(r => setTimeout(r, 500))
+        return fetchMatches(retryCount + 1)
+      }
+      console.error('Fetch matches error after retries:', error)
     } finally {
       setLoading(false)
     }

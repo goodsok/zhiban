@@ -198,7 +198,7 @@ const DetailPage: FC = () => {
     }
   })
 
-  const fetchDetail = async () => {
+  const fetchDetail = async (retryCount = 0) => {
     const id = router.params.id
     if (!id) return
 
@@ -206,15 +206,13 @@ const DetailPage: FC = () => {
       setLoading(true)
       
       // 使用缓存获取数据
-      const { data, fromCache } = await getMatchDetailWithCache(
+      const { data } = await getMatchDetailWithCache(
         Number(id),
         () => Network.request({
           url: `/api/match/${id}`,
           method: 'GET'
         }).then(res => res.data)
       )
-      
-      console.log('Fetch detail response:', { data, fromCache })
       
       if (data?.code === 200 && data?.data) {
         setDetail(data.data)
@@ -224,16 +222,25 @@ const DetailPage: FC = () => {
         // 周期信息：始终尝试获取（不论是否来自缓存、不论是否有cycleStartDate）
         try {
           const cycleRes = await Network.request({ url: `/api/match/${id}/cycle` })
-          console.log('Cycle info response in fetchDetail:', cycleRes.data)
           if (cycleRes.data?.code === 200 && cycleRes.data?.data) {
             setCycleInfo(cycleRes.data.data)
           }
         } catch (e) {
           console.error('Fetch cycle info error:', e)
         }
+      } else if (retryCount < 2) {
+        // 数据异常时自动重试
+        console.warn('Detail response invalid, retrying...', retryCount + 1)
+        await new Promise(r => setTimeout(r, 500))
+        return fetchDetail(retryCount + 1)
       }
     } catch (error) {
-      console.error('Fetch detail error:', error)
+      if (retryCount < 2) {
+        console.warn('Fetch detail error, retrying...', retryCount + 1, error)
+        await new Promise(r => setTimeout(r, 500))
+        return fetchDetail(retryCount + 1)
+      }
+      console.error('Fetch detail error after retries:', error)
     } finally {
       setLoading(false)
     }
