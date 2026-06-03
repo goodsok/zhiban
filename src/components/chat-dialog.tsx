@@ -434,10 +434,10 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
           top: `${headerHeight + (context ? 20 : 0)}px`,
           left: 0,
           right: 0,
-          bottom: `${120 + quickQuestionsHeight}px`
+          bottom: 0
         }}
       >
-        <View className="p-4">
+        <View className="p-4" style={{ paddingBottom: `${160 + quickQuestionsHeight}px` }}>
           {historyLoading ? (
             <View className="flex items-center justify-center py-8">
               <Loader size={20} color="#6B7280" className="animate-spin" />
