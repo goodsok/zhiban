@@ -145,6 +145,8 @@ export class PortraitController {
       activeTimeSlots?: string[]
       topicPreferences?: string[]
       communicationStyle?: 'direct' | 'indirect' | 'balanced'
+      communicationStyleOnline?: 'direct' | 'indirect' | 'balanced' | 'playful' | 'warm' | 'rational'
+      communicationStyleOffline?: 'direct' | 'indirect' | 'balanced' | 'playful' | 'warm' | 'rational'
       emotionalExpression?: 'rich' | 'moderate' | 'reserved'
       socialInitiative?: 'very_active' | 'active' | 'moderate' | 'passive'
       notes?: string

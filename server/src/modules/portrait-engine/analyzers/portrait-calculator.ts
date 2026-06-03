@@ -141,13 +141,30 @@ export class PortraitCalculator implements IPortraitCalculator {
       }
     }
 
-    // 沟通风格
-    if (manualData.communicationStyle) {
+    // 沟通风格（优先使用 online/offline，降级到旧字段）
+    const onlineStyle = manualData.communicationStyleOnline || manualData.communicationStyle
+    const offlineStyle = manualData.communicationStyleOffline || manualData.communicationStyle
+
+    if (onlineStyle || offlineStyle) {
+      // 线上风格对直接度影响更大（线上更直接=沟通直接度高）
+      const onlineDirectness = onlineStyle ? this.calculateDirectnessFromStyle(onlineStyle) : 50
+      const offlineDirectness = offlineStyle ? this.calculateDirectnessFromStyle(offlineStyle) : 50
+      // 加权：线上沟通更多反映在响应速度和直接度，线下反映在深度和幽默
+      const blendedDirectness = Math.round(onlineDirectness * 0.6 + offlineDirectness * 0.4)
+
+      // 幽默感从风格推算
+      const onlineHumor = onlineStyle ? this.calculateHumorFromStyle(onlineStyle) : 50
+      const offlineHumor = offlineStyle ? this.calculateHumorFromStyle(offlineStyle) : 50
+      const blendedHumor = Math.round(onlineHumor * 0.4 + offlineHumor * 0.6)
+
+      // 深度偏好从线下风格推算（线下更容易深度交流）
+      const blendedDepth = offlineStyle ? this.calculateDepthFromStyle(offlineStyle) : (onlineStyle ? this.calculateDepthFromStyle(onlineStyle) : 50)
+
       dimensions.communication = {
-        directness: this.calculateDirectnessFromStyle(manualData.communicationStyle),
-        responsiveness: 50,
-        humor: 50,
-        depth: 50,
+        directness: blendedDirectness,
+        humor: blendedHumor,
+        responsiveness: onlineStyle ? this.calculateResponsivenessFromStyle(onlineStyle) : 50,
+        depth: blendedDepth,
       }
     }
 
@@ -239,9 +256,57 @@ export class PortraitCalculator implements IPortraitCalculator {
    */
   private calculateDirectnessFromStyle(style: string): number {
     const styleMap: Record<string, number> = {
-      direct: 80,
+      direct: 85,
       balanced: 50,
       indirect: 25,
+      playful: 55,
+      warm: 45,
+      rational: 70,
+    }
+    return styleMap[style] || 50
+  }
+
+  /**
+   * 根据沟通风格推算幽默感
+   */
+  private calculateHumorFromStyle(style: string): number {
+    const styleMap: Record<string, number> = {
+      direct: 40,
+      balanced: 50,
+      indirect: 35,
+      playful: 85,
+      warm: 55,
+      rational: 25,
+    }
+    return styleMap[style] || 50
+  }
+
+  /**
+   * 根据沟通风格推算响应性
+   */
+  private calculateResponsivenessFromStyle(style: string): number {
+    const styleMap: Record<string, number> = {
+      direct: 80,
+      balanced: 55,
+      indirect: 35,
+      playful: 70,
+      warm: 65,
+      rational: 50,
+    }
+    return styleMap[style] || 50
+  }
+
+  /**
+   * 根据沟通风格推算深度偏好
+   */
+  private calculateDepthFromStyle(style: string): number {
+    const styleMap: Record<string, number> = {
+      direct: 45,
+      balanced: 50,
+      indirect: 55,
+      playful: 30,
+      warm: 60,
+      rational: 80,
     }
     return styleMap[style] || 50
   }

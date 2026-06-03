@@ -129,6 +129,10 @@ export class BehaviorPatternAnalyzer {
     manualData: ManualBehaviorData,
     existingBehavior?: BehaviorPattern | null
   ): BehaviorPattern {
+    // 优先使用 online/offline，降级到旧字段
+    const onlineStyle = manualData.communicationStyleOnline || manualData.communicationStyle
+    const offlineStyle = manualData.communicationStyleOffline || manualData.communicationStyle
+
     return {
       dataSource: 'manual' as DataSourceType,
       avgResponseTime: this.responseSpeedToMinutes(manualData.responseSpeed),
@@ -142,6 +146,8 @@ export class BehaviorPatternAnalyzer {
       topicCategories: this.topicsToCategories(manualData.topicPreferences || []),
       emotionalKeywords: [],
       totalInteractions: existingBehavior?.totalInteractions || 0,
+      communicationStyleOnline: onlineStyle || undefined,
+      communicationStyleOffline: offlineStyle || undefined,
     }
   }
 

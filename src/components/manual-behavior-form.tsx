@@ -11,7 +11,8 @@ interface ManualBehaviorFormProps {
     responseSpeed?: 'instant' | 'fast' | 'normal' | 'slow' | 'very_slow'
     activeTimeSlots?: string[]
     topicPreferences?: string[]
-    communicationStyle?: 'direct' | 'indirect' | 'balanced'
+    communicationStyleOnline?: 'direct' | 'indirect' | 'balanced' | 'playful' | 'warm' | 'rational'
+    communicationStyleOffline?: 'direct' | 'indirect' | 'balanced' | 'playful' | 'warm' | 'rational'
     emotionalExpression?: 'rich' | 'moderate' | 'reserved'
     socialInitiative?: 'very_active' | 'active' | 'moderate' | 'passive'
   }
@@ -42,10 +43,13 @@ const topicOptions = [
   { value: 'relationship', label: '关系', icon: '💕' },
 ]
 
-const styleOptions = [
-  { value: 'direct', label: '直接', desc: '有什么说什么' },
-  { value: 'balanced', label: '适中', desc: '看情况' },
-  { value: 'indirect', label: '委婉', desc: '说话比较含蓄' },
+const communicationStyleOptions = [
+  { value: 'direct', label: '直接坦率', desc: '有什么说什么，不绕弯子' },
+  { value: 'indirect', label: '委婉含蓄', desc: '说话留有余地，很少直说' },
+  { value: 'playful', label: '活泼调皮', desc: '喜欢开玩笑，聊天很有趣' },
+  { value: 'warm', label: '温柔体贴', desc: '说话很暖心，会照顾别人感受' },
+  { value: 'rational', label: '理性冷静', desc: '偏逻辑分析，不太聊情感' },
+  { value: 'balanced', label: '因人而异', desc: '看对象和场合，风格多变' },
 ]
 
 const emotionalExpressionOptions = [
@@ -69,7 +73,8 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
   const [responseSpeed, setResponseSpeed] = useState<string>(initialData?.responseSpeed || '')
   const [activeTimeSlots, setActiveTimeSlots] = useState<string[]>(initialData?.activeTimeSlots || [])
   const [topicPreferences, setTopicPreferences] = useState<string[]>(initialData?.topicPreferences || [])
-  const [communicationStyle, setCommunicationStyle] = useState<string>(initialData?.communicationStyle || '')
+  const [communicationStyleOnline, setCommunicationStyleOnline] = useState<string>(initialData?.communicationStyleOnline || '')
+  const [communicationStyleOffline, setCommunicationStyleOffline] = useState<string>(initialData?.communicationStyleOffline || '')
   const [emotionalExpression, setEmotionalExpression] = useState<string>(initialData?.emotionalExpression || '')
   const [socialInitiative, setSocialInitiative] = useState<string>(initialData?.socialInitiative || '')
   const [saving, setSaving] = useState(false)
@@ -100,7 +105,8 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
           responseSpeed,
           activeTimeSlots,
           topicPreferences,
-          communicationStyle,
+          communicationStyleOnline,
+          communicationStyleOffline,
           emotionalExpression,
           socialInitiative,
         }
@@ -117,7 +123,7 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
     }
   }
 
-  const hasAnyInput = responseSpeed || activeTimeSlots.length > 0 || topicPreferences.length > 0 || communicationStyle || emotionalExpression || socialInitiative
+  const hasAnyInput = responseSpeed || activeTimeSlots.length > 0 || topicPreferences.length > 0 || communicationStyleOnline || communicationStyleOffline || emotionalExpression || socialInitiative
 
   return (
     <View className="bg-white rounded-xl border border-gray-100">
@@ -189,31 +195,78 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
         </View>
       </View>
 
-      {/* 沟通风格 */}
+      {/* 线上沟通风格 */}
       <View className="p-4 border-b border-gray-100">
-        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta的沟通风格是怎样的？</Text>
+        <View className="flex items-center gap-2 mb-1">
+          <Text className="block text-sm font-semibold text-gray-900">线上沟通风格</Text>
+          <View className="px-2 py-1 bg-blue-50 rounded">
+            <Text className="block text-xs text-blue-600">微信/电话</Text>
+          </View>
+        </View>
+        <Text className="block text-xs text-gray-400 mb-3">Ta在线上（打字聊天/语音）时说话风格是怎样的？</Text>
         <View className="space-y-2">
-          {styleOptions.map((option) => (
+          {communicationStyleOptions.map((option) => (
             <View
               key={option.value}
               className={`flex items-center justify-between p-3 rounded-lg border ${
-                communicationStyle === option.value
-                  ? 'border-black bg-gray-50'
+                communicationStyleOnline === option.value
+                  ? 'border-blue-500 bg-blue-50'
                   : 'border-gray-100'
               }`}
-              onClick={() => setCommunicationStyle(option.value)}
+              onClick={() => setCommunicationStyleOnline(option.value)}
             >
               <View>
                 <Text className="block text-sm text-gray-800">{option.label}</Text>
                 <Text className="block text-xs text-gray-400">{option.desc}</Text>
               </View>
-              {communicationStyle === option.value && (
-                <Check size={16} color="#000" />
+              {communicationStyleOnline === option.value && (
+                <Check size={16} color="#3b82f6" />
               )}
             </View>
           ))}
         </View>
       </View>
+
+      {/* 线下沟通风格 */}
+      <View className="p-4 border-b border-gray-100">
+        <View className="flex items-center gap-2 mb-1">
+          <Text className="block text-sm font-semibold text-gray-900">线下沟通风格</Text>
+          <View className="px-2 py-1 bg-orange-50 rounded">
+            <Text className="block text-xs text-orange-600">见面时</Text>
+          </View>
+        </View>
+        <Text className="block text-xs text-gray-400 mb-3">Ta在线下（面对面）时说话风格是怎样的？</Text>
+        <View className="space-y-2">
+          {communicationStyleOptions.map((option) => (
+            <View
+              key={option.value}
+              className={`flex items-center justify-between p-3 rounded-lg border ${
+                communicationStyleOffline === option.value
+                  ? 'border-orange-500 bg-orange-50'
+                  : 'border-gray-100'
+              }`}
+              onClick={() => setCommunicationStyleOffline(option.value)}
+            >
+              <View>
+                <Text className="block text-sm text-gray-800">{option.label}</Text>
+                <Text className="block text-xs text-gray-400">{option.desc}</Text>
+              </View>
+              {communicationStyleOffline === option.value && (
+                <Check size={16} color="#f97316" />
+              )}
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* 线上线下差异提示 */}
+      {communicationStyleOnline && communicationStyleOffline && communicationStyleOnline !== communicationStyleOffline && (
+        <View className="px-4 py-3 bg-amber-50 border-b border-amber-100">
+          <Text className="block text-xs text-amber-700">
+            你选择了不同的线上/线下风格，系统会更精准地分析Ta在不同场景下的表现
+          </Text>
+        </View>
+      )}
 
       {/* 情感表达 */}
       <View className="p-4 border-b border-gray-100">

@@ -81,6 +81,8 @@ export class PortraitEngineService {
           activeTimeSlots: manualData.active_time_slots || [],
           topicPreferences: manualData.topic_preferences || [],
           communicationStyle: manualData.communication_style,
+          communicationStyleOnline: manualData.communication_style_online,
+          communicationStyleOffline: manualData.communication_style_offline,
           emotionalExpression: manualData.emotional_expression,
           socialInitiative: manualData.social_initiative,
           notes: manualData.notes,
@@ -536,7 +538,9 @@ export class PortraitEngineService {
         response_speed: data.responseSpeed,
         active_time_slots: data.activeTimeSlots || [],
         topic_preferences: data.topicPreferences || [],
-        communication_style: data.communicationStyle,
+        communication_style: data.communicationStyle || data.communicationStyleOnline || data.communicationStyleOffline || null,
+          communication_style_online: data.communicationStyleOnline || null,
+          communication_style_offline: data.communicationStyleOffline || null,
         emotional_expression: data.emotionalExpression,
         social_initiative: data.socialInitiative,
         notes: data.notes,
@@ -771,7 +775,10 @@ export class PortraitEngineService {
 
     return {
       dimensions: this.extractDimensions(portrait),
-      behaviorPattern: behavior ? this.dbToBehaviorPattern(behavior) : this.getDefaultBehavior(),
+      behaviorPattern: this.enrichBehaviorWithManualStyles(
+        behavior ? this.dbToBehaviorPattern(behavior) : this.getDefaultBehavior(),
+        manualData
+      ),
       interactionStyle: this.calculateInteractionStyle(behavior) as InteractionStyle,
       preferredTopicTypes: (portrait?.preferred_topic_types as string[]) || [],
       activeTimeSlots: this.extractActiveSlots(behavior?.active_hours as Record<string, number> || {}),
@@ -854,6 +861,8 @@ export class PortraitEngineService {
       topicCategories: (behavior.topic_categories as Record<string, number>) || {},
       emotionalKeywords: (behavior.emotional_keywords as string[]) || [],
       totalInteractions: (behavior.total_interactions as number) || 0,
+      communicationStyleOnline: (behavior.communication_style_online as BehaviorPattern['communicationStyleOnline']) || undefined,
+      communicationStyleOffline: (behavior.communication_style_offline as BehaviorPattern['communicationStyleOffline']) || undefined,
     }
   }
 
@@ -874,6 +883,25 @@ export class PortraitEngineService {
       topicCategories: {},
       emotionalKeywords: [],
       totalInteractions: 0,
+    }
+  }
+
+  /**
+   * 将手动填写的线上/线下沟通风格补充到行为模式中
+   */
+  private enrichBehaviorWithManualStyles(
+    pattern: BehaviorPattern,
+    manualData: Record<string, unknown> | null
+  ): BehaviorPattern {
+    if (!manualData) return pattern
+
+    const onlineStyle = (manualData.communication_style_online as BehaviorPattern['communicationStyleOnline']) || undefined
+    const offlineStyle = (manualData.communication_style_offline as BehaviorPattern['communicationStyleOffline']) || undefined
+
+    return {
+      ...pattern,
+      communicationStyleOnline: onlineStyle || pattern.communicationStyleOnline,
+      communicationStyleOffline: offlineStyle || pattern.communicationStyleOffline,
     }
   }
 

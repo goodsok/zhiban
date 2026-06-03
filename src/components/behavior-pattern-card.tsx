@@ -6,7 +6,9 @@ import {
   MessageCircle, 
   Smile, 
   Send,
-  TrendingUp
+  TrendingUp,
+  Wifi,
+  MapPin
 } from 'lucide-react-taro'
 
 interface BehaviorPattern {
@@ -21,10 +23,21 @@ interface BehaviorPattern {
   topicCategories: Record<string, number>
   emotionalKeywords: string[]
   totalInteractions: number
+  communicationStyleOnline?: string
+  communicationStyleOffline?: string
 }
 
 interface BehaviorPatternCardProps {
   pattern: BehaviorPattern
+}
+
+const styleLabels: Record<string, string> = {
+  direct: '直接坦率',
+  indirect: '委婉含蓄',
+  playful: '活泼调皮',
+  warm: '温柔体贴',
+  rational: '理性冷静',
+  balanced: '因人而异',
 }
 
 const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
@@ -70,6 +83,10 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
     return { label: '平衡型', color: 'text-gray-600' }
   }
 
+  // 线上线下是否有差异
+  const hasStyleDifference = pattern.communicationStyleOnline && pattern.communicationStyleOffline && pattern.communicationStyleOnline !== pattern.communicationStyleOffline
+  const hasAnyStyle = pattern.communicationStyleOnline || pattern.communicationStyleOffline
+
   const style = getInteractionStyle()
 
   return (
@@ -105,6 +122,40 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
           </Text>
         </View>
       </View>
+
+      {/* 线上/线下沟通风格 */}
+      {hasAnyStyle && (
+        <View className="mb-4 bg-gray-50 rounded-lg p-3">
+          <Text className="block text-xs text-gray-500 mb-2">沟通风格</Text>
+          <View className="flex items-start gap-3">
+            {/* 线上 */}
+            <View className="flex-1 bg-white rounded-lg p-3 border border-blue-100">
+              <View className="flex items-center gap-1 mb-1">
+                <Wifi size={12} color="#3b82f6" />
+                <Text className="block text-xs text-blue-600 font-medium">线上</Text>
+              </View>
+              <Text className="block text-sm font-semibold text-gray-800">
+                {pattern.communicationStyleOnline ? styleLabels[pattern.communicationStyleOnline] || pattern.communicationStyleOnline : '未填写'}
+              </Text>
+            </View>
+            {/* 线下 */}
+            <View className="flex-1 bg-white rounded-lg p-3 border border-orange-100">
+              <View className="flex items-center gap-1 mb-1">
+                <MapPin size={12} color="#f97316" />
+                <Text className="block text-xs text-orange-600 font-medium">线下</Text>
+              </View>
+              <Text className="block text-sm font-semibold text-gray-800">
+                {pattern.communicationStyleOffline ? styleLabels[pattern.communicationStyleOffline] || pattern.communicationStyleOffline : '未填写'}
+              </Text>
+            </View>
+          </View>
+          {hasStyleDifference && (
+            <View className="mt-2 px-2 py-2 bg-amber-50 rounded">
+              <Text className="block text-xs text-amber-700">线上线下面貌不同，需要注意场景切换</Text>
+            </View>
+          )}
+        </View>
+      )}
 
       {/* 行为指标 */}
       <View className="flex flex-wrap gap-2 mb-4">

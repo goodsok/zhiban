@@ -180,6 +180,8 @@ interface BehaviorPattern {
   emotionalKeywords: string[]
   totalInteractions: number
   dataSource: 'chat_record' | 'manual' | 'none'
+  communicationStyleOnline?: string
+  communicationStyleOffline?: string
 }
 
 // 数据源状态

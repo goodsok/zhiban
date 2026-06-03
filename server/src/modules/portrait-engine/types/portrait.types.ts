@@ -109,6 +109,10 @@ export interface BehaviorPattern {
   emotionalKeywords: string[]
   /** 总互动次数 */
   totalInteractions: number
+  /** 线上沟通风格 */
+  communicationStyleOnline?: 'direct' | 'indirect' | 'balanced' | 'playful' | 'warm' | 'rational'
+  /** 线下沟通风格 */
+  communicationStyleOffline?: 'direct' | 'indirect' | 'balanced' | 'playful' | 'warm' | 'rational'
 }
 
 /**
@@ -121,8 +125,12 @@ export interface ManualBehaviorData {
   activeTimeSlots?: string[]
   /** 话题偏好 */
   topicPreferences?: string[]
-  /** 沟通风格 */
+  /** 沟通风格（已废弃，保留向后兼容） */
   communicationStyle?: 'direct' | 'indirect' | 'balanced'
+  /** 线上沟通风格（微信/电话等） */
+  communicationStyleOnline?: 'direct' | 'indirect' | 'balanced' | 'playful' | 'warm' | 'rational'
+  /** 线下沟通风格（见面时） */
+  communicationStyleOffline?: 'direct' | 'indirect' | 'balanced' | 'playful' | 'warm' | 'rational'
   /** 情感表达程度 */
   emotionalExpression?: 'rich' | 'moderate' | 'reserved'
   /** 社交主动性 */
