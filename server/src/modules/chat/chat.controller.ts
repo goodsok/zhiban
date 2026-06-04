@@ -64,10 +64,15 @@ export class ChatController {
   async getQuickQuestions(
     @Body() body: {
       context?: ChatContext
+      currentMessages?: ChatMessage[]
     },
     @Req() req: Request
   ) {
-    const questions = await this.chatService.generateQuickQuestions(body.context || null, req)
+    const questions = await this.chatService.generateQuickQuestions(
+      body.context || null,
+      req,
+      body.currentMessages || []
+    )
     return {
       code: 200,
       data: { questions },

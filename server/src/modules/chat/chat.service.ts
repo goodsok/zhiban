@@ -317,16 +317,19 @@ export class ChatService {
   /**
    * 生成智能快捷问题
    * 根据用户与对象的互动状态、聊天内容推测困惑，给出推进关系的建议
+   * @param context 对象上下文
+   * @param req 请求对象
+   * @param currentMessages 当前会话的消息（用于实时推荐）
    */
-  async generateQuickQuestions(context: ChatContext | null, req: Request): Promise<string[]> {
+  async generateQuickQuestions(context: ChatContext | null, req: Request, currentMessages: ChatMessage[] = []): Promise<string[]> {
     if (!context) {
-      return ['如何开始使用？', '怎么创建对象档案？', '这个应用能帮我什么？']
+      return ['如何开始使用？', '怎么创建对象档案？', '这个应用能帮我什么？', '怎么添加对象信息？', '如何获取AI建议？', '怎么记录互动？']
     }
 
     try {
       const client = getSupabaseClient()
 
-      // 1. 获取最近的聊天历史
+      // 1. 获取数据库中的聊天历史
       const { data: chatHistory } = await client
         .from('chat_histories')
         .select('role, content, created_at')
@@ -334,33 +337,46 @@ export class ChatService {
         .order('created_at', { ascending: false })
         .limit(10)
 
-      const recentChats = (chatHistory || []) as Array<{ role: string; content: string; created_at: string }>
-      
-      // 2. 使用传入的 context 作为主要信息来源（前端状态是最新的）
+      const recentDbChats = (chatHistory || []) as Array<{ role: string; content: string; created_at: string }>
+
+      // 2. 使用传入的 context 作为主要信息来源
       const cycleInfo = context.cycleInfo
 
-      // 3. 如果有聊天历史，用 LLM 分析用户关注点并生成个性化问题
-      if (recentChats.length >= 2) {
+      // 3. 构建聊天摘要：优先使用当前会话消息，再补充数据库历史
+      const currentSessionSummary = currentMessages
+        .slice(-8)
+        .map(m => `${m.role === 'user' ? '用户' : 'AI'}：${m.content.slice(0, 80)}`)
+        .join('\n')
+
+      const dbHistorySummary = recentDbChats
+        .slice(0, 6)
+        .reverse()
+        .map(c => `${c.role === 'user' ? '用户' : 'AI'}：${c.content.slice(0, 80)}`)
+        .join('\n')
+
+      // 优先使用当前会话消息，如果没有再用数据库历史
+      const chatSummary = currentSessionSummary || dbHistorySummary
+      const hasActiveChat = currentSessionSummary.length > 0 || recentDbChats.length >= 2
+
+      // 4. 如果有聊天内容，用 LLM 分析用户关注点并生成个性化问题
+      if (hasActiveChat) {
         try {
           const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
           const config = new Config()
           const llmClient = new LLMClient(config, customHeaders)
 
-          const chatSummary = recentChats
-            .slice(0, 6)
-            .reverse()
-            .map(c => `${c.role === 'user' ? '用户' : 'AI'}：${c.content.slice(0, 80)}`)
-            .join('\n')
-
-          const prompt = `分析用户聊天记录，推测用户困惑，生成3个后续问题。
+          const prompt = `分析用户聊天记录，推测用户困惑，生成6个后续问题。
 
 困惑：不知道怎么推进关系、需要更多了解对方
 
 聊天记录：
 ${chatSummary}
 
-要求：针对聊天中提到的具体问题，生成用户可能想继续问的问题。
-每问一行，15字内，不要编号：`
+要求：
+1. 针对聊天中提到的具体问题，生成用户可能想继续问的问题
+2. 问题要多样化：有的追问细节，有的拓展方向，有的给建议
+3. 每问一行，15字内，不要编号
+4. 生成6个问题`
 
           const response = await llmClient.invoke([
             { role: 'user', content: prompt }
@@ -370,9 +386,19 @@ ${chatSummary}
             .split('\n')
             .map(q => q.replace(/^[-•\d.、)]+\s*/, '').trim())
             .filter(q => q.length > 0 && q.length <= 20)
-            .slice(0, 3)
+            .slice(0, 6)
 
-          if (questions.length === 3) {
+          if (questions.length >= 3) {
+            // 补充预设问题到6个
+            const contextQuestions = this.getContextualQuickQuestions(cycleInfo)
+            while (questions.length < 6 && contextQuestions.length > 0) {
+              const candidate = contextQuestions.find(q => !questions.includes(q))
+              if (candidate) {
+                questions.push(candidate)
+              } else {
+                break
+              }
+            }
             return questions
           }
         } catch (llmError) {
@@ -380,11 +406,11 @@ ${chatSummary}
         }
       }
 
-      // 4. 使用预设的问题
-      return this.getContextualQuickQuestions(cycleInfo)
+      // 5. 使用预设的问题（返回6个，供前端轮换）
+      return this.getContextualQuickQuestions(cycleInfo, true)
     } catch (error) {
       console.error('Generate quick questions error:', error)
-      return this.getContextualQuickQuestions(context.cycleInfo)
+      return this.getContextualQuickQuestions(context.cycleInfo, true)
     }
   }
 
@@ -393,39 +419,41 @@ ${chatSummary}
    * 注意：这些问题是用户会问AI助手的问题，不是问对象的问题
    */
   private getContextualQuickQuestions(
-    cycleInfo?: { day: number; phase: string; phaseName: string; description: string }
+    cycleInfo?: { day: number; phase: string; phaseName: string; description: string },
+    extended: boolean = false
   ): string[] {
     // 默认问题
     const defaultQuestions = [
       '怎么推进我们的关系？',
       '怎么找话题聊天？',
-      '怎么约她出来见面？'
+      '怎么约她出来见面？',
+    ]
+
+    const extendedDefaultQuestions = [
+      ...defaultQuestions,
+      '帮我分析一下TA的性格',
+      '约会适合去哪里？',
+      '怎么让她更开心？',
     ]
 
     // 如果有周期信息，根据周期阶段调整问题
     if (cycleInfo) {
       if (cycleInfo.phase === 'menstrual') {
-        return [
-          '怎么推进我们的关系？',
-          '怎么关心她的身体？',
-          '她经期怎么照顾她？'
-        ]
+        return extended
+          ? ['怎么推进我们的关系？', '怎么关心她的身体？', '她经期怎么照顾她？', '经期送什么礼物好？', '怎么让她感到被关心？', '有什么暖心的做法？']
+          : ['怎么推进我们的关系？', '怎么关心她的身体？', '她经期怎么照顾她？']
       } else if (cycleInfo.phase === 'ovulation') {
-        return [
-          '怎么推进我们的关系？',
-          '怎么约她出来？',
-          '现在约她合适吗？'
-        ]
+        return extended
+          ? ['怎么推进我们的关系？', '怎么约她出来？', '现在约她合适吗？', '适合什么样的约会？', '怎么制造浪漫氛围？', '怎么表达我的心意？']
+          : ['怎么推进我们的关系？', '怎么约她出来？', '现在约她合适吗？']
       } else if (cycleInfo.phase === 'luteal_late') {
-        return [
-          '怎么推进我们的关系？',
-          '她情绪不好怎么安慰？',
-          '怎么让她开心起来？'
-        ]
+        return extended
+          ? ['怎么推进我们的关系？', '她情绪不好怎么安慰？', '怎么让她开心起来？', 'PMS期要避免什么？', '怎么给她安全感？', '什么时候该给她空间？']
+          : ['怎么推进我们的关系？', '她情绪不好怎么安慰？', '怎么让她开心起来？']
       }
     }
 
-    return defaultQuestions
+    return extended ? extendedDefaultQuestions : defaultQuestions
   }
 
 

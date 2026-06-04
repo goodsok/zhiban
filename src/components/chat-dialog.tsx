@@ -1,8 +1,8 @@
 import Taro from '@tarojs/taro'
 import { View, Text, ScrollView, Image, Input } from '@tarojs/components'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Network } from '@/network'
-import { Loader, Send, Sparkles, ImagePlus, X, ArrowLeft } from 'lucide-react-taro'
+import { Loader, Send, Sparkles, ImagePlus, X, ArrowLeft, RefreshCw } from 'lucide-react-taro'
 
 // 消息类型
 interface ChatMessage {
@@ -35,6 +35,11 @@ const CHAT_HISTORY_KEY_PREFIX = 'chat_history_'
 // 获取本地存储的 key
 const getLocalHistoryKey = (matchId: number) => `${CHAT_HISTORY_KEY_PREFIX}${matchId}`
 
+// 每次展示的快捷问题数量
+const VISIBLE_COUNT = 3
+// 轮换间隔（毫秒）
+const ROTATE_INTERVAL = 8000
+
 const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputValue, setInputValue] = useState('')
@@ -42,19 +47,64 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
   const [historyLoading, setHistoryLoading] = useState(false)
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [statusBarHeight, setStatusBarHeight] = useState(0)
-  const [quickQuestions, setQuickQuestions] = useState<string[]>([])
+  
+  // 推荐问题池和轮换
+  const [questionPool, setQuestionPool] = useState<string[]>([])
   const [questionsLoading, setQuestionsLoading] = useState(false)
+  const [visibleOffset, setVisibleOffset] = useState(0)
+  const rotateTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   
   // 计算快捷问题区域高度（动态）
-  const quickQuestionsHeight = quickQuestions.length > 0 
-    ? 44 + Math.ceil(quickQuestions.length / 2) * 32 + (questionsLoading ? 36 : 0)
+  const quickQuestionsHeight = questionPool.length > 0 
+    ? 44 + Math.ceil(VISIBLE_COUNT / 2) * 32 + (questionsLoading ? 36 : 0)
     : 0
+
+  // 当前展示的问题子集
+  const visibleQuestions = questionPool.length > 0
+    ? questionPool.slice(visibleOffset, visibleOffset + VISIBLE_COUNT)
+        .concat(
+          // 如果剩余不足 VISIBLE_COUNT，从头部补充
+          visibleOffset + VISIBLE_COUNT > questionPool.length
+            ? questionPool.slice(0, (visibleOffset + VISIBLE_COUNT) - questionPool.length)
+            : []
+        )
+        .slice(0, VISIBLE_COUNT)
+    : []
 
   // 获取状态栏高度
   useEffect(() => {
     const systemInfo = Taro.getSystemInfoSync()
     setStatusBarHeight(systemInfo.statusBarHeight || 0)
   }, [])
+
+  // 轮换定时器管理
+  const startRotateTimer = useCallback(() => {
+    stopRotateTimer()
+    if (questionPool.length > VISIBLE_COUNT) {
+      rotateTimerRef.current = setInterval(() => {
+        setVisibleOffset(prev => (prev + VISIBLE_COUNT) % questionPool.length)
+      }, ROTATE_INTERVAL)
+    }
+  }, [questionPool.length])
+
+  const stopRotateTimer = useCallback(() => {
+    if (rotateTimerRef.current) {
+      clearInterval(rotateTimerRef.current)
+      rotateTimerRef.current = null
+    }
+  }, [])
+
+  // 问题池变化时启动轮换
+  useEffect(() => {
+    setVisibleOffset(0)
+    startRotateTimer()
+    return stopRotateTimer
+  }, [questionPool, startRotateTimer, stopRotateTimer])
+
+  // 组件卸载时清理定时器
+  useEffect(() => {
+    return () => stopRotateTimer()
+  }, [stopRotateTimer])
 
   // 保存消息到本地存储
   const saveMessagesToLocal = (matchId: number, msgs: ChatMessage[]) => {
@@ -82,45 +132,63 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
   useEffect(() => {
     if (open && context?.matchId) {
       loadHistory()
-      loadQuickQuestions()
+      loadQuickQuestions([])
     } else if (open) {
       setMessages([{ 
         role: 'assistant', 
         content: '你好！我是小助手，请先选择一个对象，我才能给你针对性的建议哦~' 
       }])
-      setQuickQuestions(['如何开始使用？', '怎么创建对象档案？', '这个应用能帮我什么？'])
+      setQuestionPool(['如何开始使用？', '怎么创建对象档案？', '这个应用能帮我什么？', '怎么添加对象信息？', '如何获取AI建议？', '怎么记录互动？'])
     }
   }, [open, context?.matchId])
 
-  // 加载快捷问题
-  const loadQuickQuestions = async () => {
+  // 加载快捷问题（传入当前会话消息用于实时推荐）
+  const loadQuickQuestions = async (currentMessages: ChatMessage[]) => {
     if (!context) {
-      setQuickQuestions(['如何开始使用？', '怎么创建对象档案？', '这个应用能帮我什么？'])
+      setQuestionPool(['如何开始使用？', '怎么创建对象档案？', '这个应用能帮我什么？', '怎么添加对象信息？', '如何获取AI建议？', '怎么记录互动？'])
       return
     }
 
     setQuestionsLoading(true)
     try {
+      // 传递当前会话消息给后端，用于实时推荐
+      const recentMessages = currentMessages.length > 0
+        ? currentMessages.slice(-8).map(m => ({ role: m.role, content: m.content }))
+        : undefined
+
       const res = await Network.request({
         url: '/api/chat/quick-questions',
         method: 'POST',
-        data: { context }
+        data: { 
+          context,
+          currentMessages: recentMessages
+        }
       })
       
       console.log('Load quick questions response:', res.data)
       
       if (res.data?.code === 200 && res.data?.data?.questions?.length > 0) {
-        setQuickQuestions(res.data.data.questions)
+        setQuestionPool(res.data.data.questions)
       } else {
-        // 使用默认问题
-        setQuickQuestions(['给我一些聊天话题建议', '如何推进关系？', '帮我分析一下TA的性格'])
+        setQuestionPool(['给我一些聊天话题建议', '如何推进关系？', '帮我分析一下TA的性格', '约会适合去哪里？', '怎么让TA更开心？', '怎么约TA出来？'])
       }
     } catch (error) {
       console.error('Load quick questions error:', error)
-      // 网络错误时使用默认问题
-      setQuickQuestions(['给我一些聊天话题建议', '如何推进关系？', '帮我分析一下TA的性格'])
+      setQuestionPool(['给我一些聊天话题建议', '如何推进关系？', '帮我分析一下TA的性格', '约会适合去哪里？', '怎么让TA更开心？', '怎么约TA出来？'])
     } finally {
       setQuestionsLoading(false)
+    }
+  }
+
+  // 手动刷新推荐问题
+  const handleRefreshQuestions = () => {
+    if (questionsLoading) return
+    // 手动刷新时轮换到下一组
+    if (questionPool.length > VISIBLE_COUNT) {
+      setVisibleOffset(prev => (prev + VISIBLE_COUNT) % questionPool.length)
+    } else {
+      // 问题不够时重新请求
+      loadQuickQuestions(messages)
     }
   }
 
@@ -162,7 +230,6 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       }
     } catch (error) {
       console.error('Load history error:', error)
-      // 网络错误时，如果本地无数据，显示欢迎语
       if (!localMessages || localMessages.length === 0) {
         setMessages([{ 
           role: 'assistant', 
@@ -270,7 +337,6 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       if (res.data?.code === 200 && res.data?.data?.content) {
         const finalMessages = [...newMessages, { role: 'assistant' as const, content: res.data.data.content }]
         setMessages(finalMessages)
-        // 保存到本地存储
         if (context?.matchId) {
           saveMessagesToLocal(context.matchId, finalMessages)
         }
@@ -280,7 +346,6 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
           content: '抱歉，我暂时无法回应，请稍后再试。' 
         }]
         setMessages(finalMessages)
-        // 保存到本地存储
         if (context?.matchId) {
           saveMessagesToLocal(context.matchId, finalMessages)
         }
@@ -292,15 +357,16 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         content: '网络出了点问题，请稍后再试。' 
       }]
       setMessages(finalMessages)
-      // 保存到本地存储
       if (context?.matchId) {
         saveMessagesToLocal(context.matchId, finalMessages)
       }
     } finally {
       setLoading(false)
-      // 无论成功失败，都刷新快捷问题
+      // 根据最新聊天内容实时刷新推荐问题
       if (context?.matchId) {
-        loadQuickQuestions()
+        // 用当前消息（包含刚发的和AI回复的）来更新推荐
+        const latestMessages = messages.length > 0 ? messages : []
+        loadQuickQuestions(latestMessages)
       }
     }
   }
@@ -338,7 +404,6 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       if (res.data?.code === 200 && res.data?.data?.content) {
         const finalMessages = [...newMessages, { role: 'assistant' as const, content: res.data.data.content }]
         setMessages(finalMessages)
-        // 保存到本地存储
         if (context?.matchId) {
           saveMessagesToLocal(context.matchId, finalMessages)
         }
@@ -364,9 +429,10 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       }
     } finally {
       setLoading(false)
-      // 无论成功失败，都刷新快捷问题
+      // 根据最新聊天内容实时刷新推荐问题
       if (context?.matchId) {
-        loadQuickQuestions()
+        const latestMessages = messages.length > 0 ? messages : []
+        loadQuickQuestions(latestMessages)
       }
     }
   }
@@ -496,7 +562,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         style={{ bottom: 0 }}
       >
         {/* 快捷问题 - 始终显示 */}
-        {!historyLoading && quickQuestions.length > 0 && (
+        {!historyLoading && questionPool.length > 0 && (
           <View className="px-4 pt-3 pb-2">
             {questionsLoading ? (
               <View className="flex items-center justify-center py-2">
@@ -504,16 +570,27 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
                 <Text className="text-xs text-gray-400 ml-2">加载推荐问题...</Text>
               </View>
             ) : (
-              <View className="flex flex-wrap gap-2">
-                {quickQuestions.map((q, i) => (
+              <View className="flex items-center gap-2">
+                <View className="flex flex-wrap gap-2 flex-1">
+                  {visibleQuestions.map((q, i) => (
+                    <View
+                      key={`${q}-${i}`}
+                      className="bg-gray-100 rounded-full px-3 py-2 active:bg-gray-200"
+                      onClick={() => handleQuickQuestion(q)}
+                    >
+                      <Text className="text-xs text-gray-600">{q}</Text>
+                    </View>
+                  ))}
+                </View>
+                {/* 换一批按钮 */}
+                {questionPool.length > VISIBLE_COUNT && (
                   <View
-                    key={i}
-                    className="bg-gray-100 rounded-full px-3 py-2 active:bg-gray-200"
-                    onClick={() => handleQuickQuestion(q)}
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 flex-shrink-0 active:bg-gray-200"
+                    onClick={handleRefreshQuestions}
                   >
-                    <Text className="text-xs text-gray-600">{q}</Text>
+                    <RefreshCw size={14} color="#6B7280" />
                   </View>
-                ))}
+                )}
               </View>
             )}
           </View>
