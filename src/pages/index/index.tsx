@@ -108,11 +108,11 @@ const Index: FC = () => {
   }
 
   const toggleHide = async (match: Match) => {
-    const newStatus = match.status === 'hidden' ? 'active' : 'hidden'
+    const newStatus = match.status === 'hidden' ? 'new' : 'hidden'
     try {
       const res = await Network.request({
-        url: `/api/match/${match.id}/update`,
-        method: 'POST',
+        url: `/api/match/${match.id}`,
+        method: 'PUT',
         data: { status: newStatus },
       })
       console.log('Toggle hide response:', res?.data)
