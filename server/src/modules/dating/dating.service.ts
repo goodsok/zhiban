@@ -23,6 +23,7 @@ export interface ProfileHistory {
   bio: string
   interests: string
   analysisResult: ProfileAnalysis
+  isFallback?: boolean
   createdAt: string
 }
 
@@ -37,6 +38,15 @@ export interface PhotoScore {
   summary: string
 }
 
+export interface PhotoHistory {
+  id: number
+  platform: string
+  photoUrls: string[]
+  analysisResult: PhotoScore
+  isFallback?: boolean
+  createdAt: string
+}
+
 export interface OpenerResponse {
   targetAnalysis: string
   suggestions: {
@@ -47,10 +57,26 @@ export interface OpenerResponse {
   tips: string[]
 }
 
+export interface OpenerHistory {
+  id: number
+  platform: string
+  targetProfile: string
+  selfProfile: string
+  result: OpenerResponse
+  isFallback?: boolean
+  createdAt: string
+}
+
 export interface OptimizedPhoto {
   originalUrl: string
   optimizedUrl: string
   improvements: string[]
+}
+
+export interface FeatureStatus {
+  profileCount: number
+  photoCount: number
+  openerCount: number
 }
 
 @Injectable()
@@ -72,6 +98,101 @@ export class DatingService {
     })
   }
 
+  // ========== 平台特性配置 ==========
+  private platformGuidesDetailed: Record<string, string> = {
+    tinder: `Tinder 平台特性：
+- 国际化平台，用户群体广泛
+- 简介限制较短（约500字符），每字都要有信息量
+- 极度重视首张照片，简介是辅助
+- 用户决策快，简介要能在3秒内抓住眼球
+- 风格：简洁、有趣、不油腻
+- 昵称建议：简洁好记，不要太多符号`,
+
+    tantan: `探探平台特性：
+- 国内主流交友平台
+- 简介限制300字以内
+- 用户决策速度快，简介要突出记忆点
+- 照片和简介同样重要
+- 风格：真实、接地气、有生活气息
+- 昵称建议：亲切自然，可以带点小趣味`,
+
+    soul: `Soul 平台特性：
+- 主打"灵魂社交"，兴趣匹配为核心
+- 简介可以较长，支持展示更多内容
+- 用户更注重兴趣共鸣和价值观匹配
+- 有"瞬间"功能，简介可以引导查看
+- 风格：走心、有深度、展示真实个性
+- 昵称建议：有特色、能反映性格或兴趣`,
+
+    momo: `陌陌平台特性：
+- "附近的人"为核心功能
+- 简介建议直接、清晰
+- 用户群体多样，目的性较强
+- 重视实时在线状态
+- 风格：直接、大方、展示生活状态
+- 昵称建议：简单好记，不要太复杂`,
+
+    bumble: `Bumble 平台特性：
+- 女性主动发起对话
+- 用户质量相对较高
+- 简介可以展示更多个人特质
+- 重视真诚和尊重
+- 风格：自信、真诚、有品质感
+- 昵称建议：真实姓名或简洁的英文名`,
+
+    hinge: `Hinge 平台特性：
+- 主打严肃交友、长期关系
+- 有"Prompts"问题引导，简介要配合回答
+- 用户更注重价值观和生活方式匹配
+- 不追求"左滑右滑"的快节奏
+- 风格：真诚、有深度、展示真实生活
+- 昵称建议：真实姓名为主，展现诚意`,
+
+    qingten: `青藤平台特性：
+- 主打高学历优质青年社交
+- 需要学历认证，用户质量较高
+- 简介建议展示职业发展和生活品质
+- 用户注重共同话题和价值观契合
+- 风格：有内涵、展现专业度和生活品味
+- 简介建议：突出学历背景、职业成就、兴趣爱好`,
+
+    marryu: `MarryU 平台特性：
+- 主打严肃婚恋，以结婚为目的
+- 用户群体相对成熟，有明确的婚恋需求
+- 简介需要展现稳定性和责任感
+- 重视经济基础、家庭观念、未来规划
+- 风格：稳重、真诚、展现担当
+- 简介建议：突出个人条件、家庭背景、婚恋观`,
+  }
+
+  private platformGuidesBrief: Record<string, string> = {
+    tinder: 'Tinder - 国际化、简洁、重视照片、简介短、用户决策快',
+    tantan: '探探 - 国内主流、简介短、照片和简介同等重要、接地气',
+    soul: 'Soul - 灵魂社交、兴趣匹配、简介可较长、走心有深度',
+    momo: '陌陌 - 附近的人、直接清晰、重视实时状态',
+    bumble: 'Bumble - 女性主动、用户质量高、真诚有品质感',
+    hinge: 'Hinge - 严肃交友、长期关系、真诚有深度',
+    qingten: '青藤 - 高学历优质青年、学历认证、有内涵、生活品味',
+    marryu: 'MarryU - 严肃婚恋、以结婚为目的、稳重真诚、展现担当',
+  }
+
+  private platformNames: Record<string, string> = {
+    tinder: 'Tinder',
+    tantan: '探探',
+    soul: 'Soul',
+    momo: '陌陌',
+    bumble: 'Bumble',
+    hinge: 'Hinge',
+    qingten: '青藤',
+    marryu: 'MarryU',
+  }
+
+  private getPlatformName(platform?: string): string {
+    return this.platformNames[platform || 'tantan'] || '探探'
+  }
+
+  // ========== LLM 调用 ==========
+
   private async callLLM(prompt: string, req: Request): Promise<string> {
     const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
     const config = new Config()
@@ -86,17 +207,13 @@ export class DatingService {
     const config = new Config()
     const client = new LLMClient(config, customHeaders)
 
-    // 构建多模态消息内容
     const userContent: Array<{ type: string; text?: string; image_url?: { url: string; detail: string } }> = []
-
-    // 添加文字
     userContent.push({ type: 'text', text: prompt })
 
-    // 添加图片
     for (const imageUrl of imageUrls) {
       userContent.push({
         type: 'image_url',
-        image_url: { url: imageUrl, detail: 'high' }
+        image_url: { url: imageUrl, detail: 'high' },
       })
     }
 
@@ -104,91 +221,48 @@ export class DatingService {
     return response.content
   }
 
-  async optimizeProfile(data: { nickname?: string; bio?: string; interests?: string; platform?: string }, req: Request): Promise<ProfileAnalysis> {
-    // 平台特性说明
-    const platformGuides: Record<string, string> = {
-      tinder: `Tinder 平台特性：
-- 国际化平台，用户群体广泛
-- 简介限制较短（约500字符），每字都要有信息量
-- 极度重视首张照片，简介是辅助
-- 用户决策快，简介要能在3秒内抓住眼球
-- 风格：简洁、有趣、不油腻
-- 昵称建议：简洁好记，不要太多符号`,
-      
-      tantan: `探探平台特性：
-- 国内主流交友平台
-- 简介限制300字以内
-- 用户决策速度快，简介要突出记忆点
-- 照片和简介同样重要
-- 风格：真实、接地气、有生活气息
-- 昵称建议：亲切自然，可以带点小趣味`,
-      
-      soul: `Soul 平台特性：
-- 主打"灵魂社交"，兴趣匹配为核心
-- 简介可以较长，支持展示更多内容
-- 用户更注重兴趣共鸣和价值观匹配
-- 有"瞬间"功能，简介可以引导查看
-- 风格：走心、有深度、展示真实个性
-- 昵称建议：有特色、能反映性格或兴趣`,
-      
-      momo: `陌陌平台特性：
-- "附近的人"为核心功能
-- 简介建议直接、清晰
-- 用户群体多样，目的性较强
-- 重视实时在线状态
-- 风格：直接、大方、展示生活状态
-- 昵称建议：简单好记，不要太复杂`,
-      
-      bumble: `Bumble 平台特性：
-- 女性主动发起对话
-- 用户质量相对较高
-- 简介可以展示更多个人特质
-- 重视真诚和尊重
-- 风格：自信、真诚、有品质感
-- 昵称建议：真实姓名或简洁的英文名`,
-      
-      hinge: `Hinge 平台特性：
-- 主打严肃交友、长期关系
-- 有"Prompts"问题引导，简介要配合回答
-- 用户更注重价值观和生活方式匹配
-- 不追求"左滑右滑"的快节奏
-- 风格：真诚、有深度、展示真实生活
-- 昵称建议：真实姓名为主，展现诚意`,
-
-      qingten: `青藤平台特性：
-- 主打高学历优质青年社交
-- 需要学历认证，用户质量较高
-- 简介建议展示职业发展和生活品质
-- 用户注重共同话题和价值观契合
-- 风格：有内涵、展现专业度和生活品味
-- 简介建议：突出学历背景、职业成就、兴趣爱好`,
-
-      marryu: `MarryU 平台特性：
-- 主打严肃婚恋，以结婚为目的
-- 用户群体相对成熟，有明确的婚恋需求
-- 简介需要展现稳定性和责任感
-- 重视经济基础、家庭观念、未来规划
-- 风格：稳重、真诚、展现担当
-- 简介建议：突出个人条件、家庭背景、婚恋观`,
+  private parseJSONResponse<T>(response: string, fallback: T): { data: T; isFallback: boolean } {
+    try {
+      const jsonMatch = response.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        return { data: JSON.parse(jsonMatch[0]), isFallback: false }
+      }
+    } catch (error) {
+      console.error('[DatingService] Failed to parse JSON response:', error)
     }
+    return { data: fallback, isFallback: true }
+  }
 
-    const platformGuide = platformGuides[data.platform || 'tantan'] || platformGuides.tantan
-    const platformName = {
-      tinder: 'Tinder',
-      tantan: '探探',
-      soul: 'Soul',
-      momo: '陌陌',
-      bumble: 'Bumble',
-      hinge: 'Hinge',
-      qingten: '青藤',
-      marryu: 'MarryU',
-    }[data.platform || 'tantan'] || '探探'
+  // ========== 功能状态 ==========
+
+  async getFeatureStatus(): Promise<FeatureStatus> {
+    const [profileRes, photoRes, openerRes] = await Promise.all([
+      this.pool.query('SELECT COUNT(*) as count FROM dating_profile_history'),
+      this.pool.query('SELECT COUNT(*) as count FROM dating_photo_history'),
+      this.pool.query('SELECT COUNT(*) as count FROM dating_opener_history'),
+    ])
+    return {
+      profileCount: parseInt(profileRes.rows[0]?.count || '0', 10),
+      photoCount: parseInt(photoRes.rows[0]?.count || '0', 10),
+      openerCount: parseInt(openerRes.rows[0]?.count || '0', 10),
+    }
+  }
+
+  // ========== 资料优化 ==========
+
+  async optimizeProfile(
+    data: { nickname?: string; bio?: string; interests?: string; platform?: string },
+    req: Request,
+  ): Promise<ProfileAnalysis & { isFallback?: boolean }> {
+    const platformGuide = this.platformGuidesDetailed[data.platform || 'tantan'] || this.platformGuidesDetailed.tantan
+    const platformName = this.getPlatformName(data.platform)
 
     const prompt = `你是一位专业的交友软件资料优化顾问，专门针对 ${platformName} 平台。请分析以下交友资料，给出专业的优化建议。
 
 ${platformGuide}
 
 用户资料：
+- 昵称：${data.nickname || '未填写'}
 - 个人简介：${data.bio || '未填写'}
 - 兴趣标签：${data.interests || '未填写'}
 
@@ -196,7 +270,7 @@ ${platformGuide}
 1. 整体吸引力评分（0-100分，考虑平台特性）
 2. 当前优势（列出2-3条，结合平台特点）
 3. 需要改进的地方（列出2-3条，针对平台优化）
-4. 具体的优化建议（针对简介、兴趣标签给出改进版本和理由，要符合 ${platformName} 的平台调性）
+4. 具体的优化建议（针对昵称、简介、兴趣标签给出改进版本和理由，要符合 ${platformName} 的平台调性）
 5. 总结性建议
 
 请以JSON格式返回，格式如下：
@@ -218,28 +292,29 @@ ${platformGuide}
     try {
       const response = await this.callLLM(prompt, req)
       console.log('[DatingService] Profile optimization response:', response)
-
-      const jsonMatch = response.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0])
-      }
+      const { data: result, isFallback } = this.parseJSONResponse<ProfileAnalysis>(response, {
+        overallScore: 60,
+        strengths: ['资料基本完整'],
+        improvements: ['可以添加更多个人特色'],
+        suggestions: [],
+        summary: '建议完善个人资料，展现真实的自己。',
+      })
+      return { ...result, isFallback }
     } catch (error) {
-      console.error('[DatingService] Failed to parse profile analysis:', error)
-    }
-
-    // 返回默认结构
-    return {
-      overallScore: 60,
-      strengths: ['资料基本完整'],
-      improvements: ['可以添加更多个人特色'],
-      suggestions: [],
-      summary: '建议完善个人资料，展现真实的自己。',
+      console.error('[DatingService] Profile optimization error:', error)
+      return {
+        overallScore: 60,
+        strengths: ['资料基本完整'],
+        improvements: ['可以添加更多个人特色'],
+        suggestions: [],
+        summary: '建议完善个人资料，展现真实的自己。',
+        isFallback: true,
+      }
     }
   }
 
-  /**
-   * 资料优化聊天
-   */
+  // ========== 资料优化聊天 ==========
+
   async chatProfile(
     data: {
       nickname?: string
@@ -250,34 +325,14 @@ ${platformGuide}
       messages: Array<{ role: 'user' | 'assistant'; content: string }>
       currentMessage: string
     },
-    req: Request
+    req: Request,
   ): Promise<string> {
     const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
     const config = new Config()
     const client = new LLMClient(config, customHeaders)
 
-    const platformGuides: Record<string, string> = {
-      tinder: 'Tinder - 国际化、简洁、重视照片、简介短、用户决策快',
-      tantan: '探探 - 国内主流、简介短、照片和简介同等重要、接地气',
-      soul: 'Soul - 灵魂社交、兴趣匹配、简介可较长、走心有深度',
-      momo: '陌陌 - 附近的人、直接清晰、重视实时状态',
-      bumble: 'Bumble - 女性主动、用户质量高、真诚有品质感',
-      hinge: 'Hinge - 严肃交友、长期关系、真诚有深度',
-      qingten: '青藤 - 高学历优质青年、学历认证、有内涵、生活品味',
-      marryu: 'MarryU - 严肃婚恋、以结婚为目的、稳重真诚、展现担当',
-    }
-
-    const platformGuide = platformGuides[data.platform || 'tantan'] || platformGuides.tantan
-    const platformName = {
-      tinder: 'Tinder',
-      tantan: '探探',
-      soul: 'Soul',
-      momo: '陌陌',
-      bumble: 'Bumble',
-      hinge: 'Hinge',
-      qingten: '青藤',
-      marryu: 'MarryU',
-    }[data.platform || 'tantan'] || '探探'
+    const platformGuide = this.platformGuidesBrief[data.platform || 'tantan'] || this.platformGuidesBrief.tantan
+    const platformName = this.getPlatformName(data.platform)
 
     const systemPrompt = `你是一位专业的交友软件资料优化顾问，正在与用户进行一对一聊天。
 你专注于 ${platformName} 平台的资料优化。
@@ -285,6 +340,7 @@ ${platformGuide}
 平台特性：${platformGuide}
 
 用户原始资料：
+- 昵称：${data.nickname || '未填写'}
 - 个人简介：${data.bio || '未填写'}
 - 兴趣标签：${data.interests || '未填写'}
 
@@ -309,7 +365,7 @@ ${platformGuide}
 
     const conversationMessages = [
       { role: 'system' as const, content: systemPrompt },
-      ...data.messages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+      ...data.messages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
       { role: 'user' as const, content: data.currentMessage },
     ]
 
@@ -322,6 +378,8 @@ ${platformGuide}
     }
   }
 
+  // ========== 照片上传 ==========
+
   async uploadPhoto(file: Express.Multer.File): Promise<string> {
     const ext = file.mimetype.split('/')[1] || 'jpg'
     const key = await this.storage.uploadFile({
@@ -329,13 +387,22 @@ ${platformGuide}
       fileName: `dating-photos/${Date.now()}.${ext}`,
       contentType: file.mimetype,
     })
-    const url = await this.storage.generatePresignedUrl({ key, expireTime: 600 })
+    // 7天有效期，避免用户长时间停留在结果页面导致图片裂开
+    const url = await this.storage.generatePresignedUrl({ key, expireTime: 604800 })
     console.log('[DatingService] Photo uploaded:', url)
     return url
   }
 
-  async evaluatePhotos(photoUrls: string[], req: Request): Promise<PhotoScore> {
+  // ========== 照片评分 ==========
+
+  async evaluatePhotos(photoUrls: string[], req: Request, platform?: string): Promise<PhotoScore & { isFallback?: boolean }> {
+    const platformName = this.getPlatformName(platform)
+    const platformContext = platform
+      ? `\n\n特别说明：用户使用的是 ${platformName} 平台，请在评分时考虑该平台的照片要求特性：${this.platformGuidesBrief[platform] || ''}`
+      : ''
+
     const prompt = `你是一位专业的交友软件照片评估专家。请仔细分析这些照片，从以下维度给出评分和建议：
+${platformContext}
 
 评估维度：
 1. 整体形象（0-100分）- 整体给人的第一印象
@@ -361,48 +428,48 @@ ${platformGuide}
 }`
 
     try {
-      // 使用多模态能力分析图片
       const response = await this.callLLMWithImages(prompt, photoUrls, req)
       console.log('[DatingService] Photo evaluation response:', response)
-
-      const jsonMatch = response.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0])
-      }
+      const { data: result, isFallback } = this.parseJSONResponse<PhotoScore>(response, {
+        overallScore: 70,
+        dimensions: [
+          { name: '整体形象', score: 70, comment: '照片整体感觉不错' },
+          { name: '照片质量', score: 70, comment: '清晰度适中' },
+          { name: '表情神态', score: 70, comment: '表情自然' },
+        ],
+        suggestions: ['建议选择更清晰的照片', '可以尝试更多样的场景'],
+        summary: '照片整体效果不错，继续优化可以提升吸引力。',
+      })
+      return { ...result, isFallback }
     } catch (error) {
-      console.error('[DatingService] Failed to parse photo evaluation:', error)
-    }
-
-    // 返回默认结构
-    return {
-      overallScore: 70,
-      dimensions: [
-        { name: '整体形象', score: 70, comment: '照片整体感觉不错' },
-        { name: '照片质量', score: 70, comment: '清晰度适中' },
-        { name: '表情神态', score: 70, comment: '表情自然' },
-      ],
-      suggestions: ['建议选择更清晰的照片', '可以尝试更多样的场景'],
-      summary: '照片整体效果不错，继续优化可以提升吸引力。',
+      console.error('[DatingService] Failed to evaluate photos:', error)
+      return {
+        overallScore: 70,
+        dimensions: [
+          { name: '整体形象', score: 70, comment: '照片整体感觉不错' },
+          { name: '照片质量', score: 70, comment: '清晰度适中' },
+          { name: '表情神态', score: 70, comment: '表情自然' },
+        ],
+        suggestions: ['建议选择更清晰的照片', '可以尝试更多样的场景'],
+        summary: '照片整体效果不错，继续优化可以提升吸引力。',
+        isFallback: true,
+      }
     }
   }
 
-  async generateOptimizedPhoto(
-    originalPhotoUrl: string,
-    suggestions: string[],
-    req: Request
-  ): Promise<OptimizedPhoto> {
+  // ========== 生成优化照片 ==========
+
+  async generateOptimizedPhoto(originalPhotoUrl: string, suggestions: string[], req: Request): Promise<OptimizedPhoto> {
     const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
     const config = new Config()
     const client = new ImageGenerationClient(config, customHeaders)
 
-    // 构建优化提示词
     const suggestionsText = suggestions.slice(0, 3).join('、')
     const prompt = `Based on the original photo, create an optimized version for a dating app profile photo. Apply these improvements: ${suggestionsText}. Make the person look more attractive, confident, and approachable while maintaining their natural appearance. Improve lighting, background, and overall photo quality. Keep it realistic and natural.`
 
     console.log('[DatingService] Generating optimized photo with prompt:', prompt)
 
     try {
-      // 使用 image-to-image 生成优化照片
       const response = await client.generate({
         prompt,
         image: originalPhotoUrl,
@@ -429,8 +496,20 @@ ${platformGuide}
     }
   }
 
-  async generateOpener(targetProfile: string, req: Request): Promise<OpenerResponse> {
+  // ========== 开场白生成 ==========
+
+  async generateOpener(targetProfile: string, req: Request, platform?: string, selfProfile?: string): Promise<OpenerResponse & { isFallback?: boolean }> {
+    const platformName = this.getPlatformName(platform)
+    const platformContext = platform
+      ? `\n\n平台信息：用户使用的是 ${platformName} 平台。${this.platformGuidesBrief[platform] || ''}\n开场白需要符合该平台的聊天文化和用户习惯。`
+      : ''
+
+    const selfContext = selfProfile
+      ? `\n\n用户自己的资料/风格偏好：${selfProfile}\n请根据用户自身的风格生成贴合其个性的开场白。`
+      : ''
+
     const prompt = `你是一位交友软件聊天专家，擅长根据对方资料生成吸引人的开场白。
+${platformContext}${selfContext}
 
 目标对象资料：
 ${targetProfile}
@@ -459,61 +538,61 @@ ${targetProfile}
     try {
       const response = await this.callLLM(prompt, req)
       console.log('[DatingService] Opener generation response:', response)
-
-      const jsonMatch = response.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0])
-      }
+      const { data: result, isFallback } = this.parseJSONResponse<OpenerResponse>(response, {
+        targetAnalysis: '对方看起来是一个有趣的人。',
+        suggestions: [
+          {
+            style: '真诚直接',
+            content: '你好，看到你的资料觉得很有意思，想认识一下你。',
+            reason: '简单直接，表达真诚',
+          },
+        ],
+        tips: ['选择合适的时机发送', '保持真诚的态度'],
+      })
+      return { ...result, isFallback }
     } catch (error) {
-      console.error('[DatingService] Failed to parse opener suggestions:', error)
-    }
-
-    // 返回默认结构
-    return {
-      targetAnalysis: '对方看起来是一个有趣的人。',
-      suggestions: [
-        {
-          style: '真诚直接',
-          content: '你好，看到你的资料觉得很有意思，想认识一下你。',
-          reason: '简单直接，表达真诚',
-        },
-      ],
-      tips: ['选择合适的时机发送', '保持真诚的态度'],
+      console.error('[DatingService] Failed to generate opener:', error)
+      return {
+        targetAnalysis: '对方看起来是一个有趣的人。',
+        suggestions: [
+          {
+            style: '真诚直接',
+            content: '你好，看到你的资料觉得很有意思，想认识一下你。',
+            reason: '简单直接，表达真诚',
+          },
+        ],
+        tips: ['选择合适的时机发送', '保持真诚的态度'],
+        isFallback: true,
+      }
     }
   }
 
-  /**
-   * 保存资料优化历史记录
-   */
+  // ========== 资料优化历史 ==========
+
   async saveProfileHistory(data: {
     platform: string
     nickname?: string
     bio?: string
     interests?: string
     analysisResult: ProfileAnalysis
+    isFallback?: boolean
   }): Promise<number> {
     const query = `
       INSERT INTO dating_profile_history (platform, nickname, bio, interests, analysis_result)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING id
     `
-    const values = [
-      data.platform,
-      data.nickname || '',
-      data.bio || '',
-      data.interests || '',
-      JSON.stringify(data.analysisResult),
-    ]
+    const values = [data.platform, data.nickname || '', data.bio || '', data.interests || '', JSON.stringify(data.analysisResult)]
 
     const result = await this.pool.query(query, values)
     console.log('[DatingService] Saved profile history with id:', result.rows[0].id)
     return result.rows[0].id
   }
 
-  /**
-   * 获取资料优化历史记录列表
-   */
-  async getProfileHistoryList(limit: number = 20, offset: number = 0): Promise<ProfileHistory[]> {
+  async getProfileHistoryList(limit: number = 20, offset: number = 0): Promise<{ list: ProfileHistory[]; total: number }> {
+    const countResult = await this.pool.query('SELECT COUNT(*) as count FROM dating_profile_history')
+    const total = parseInt(countResult.rows[0]?.count || '0', 10)
+
     const query = `
       SELECT id, platform, nickname, bio, interests, analysis_result, created_at
       FROM dating_profile_history
@@ -522,7 +601,7 @@ ${targetProfile}
     `
     const result = await this.pool.query(query, [limit, offset])
 
-    return result.rows.map(row => ({
+    const list = result.rows.map((row) => ({
       id: row.id,
       platform: row.platform,
       nickname: row.nickname,
@@ -531,11 +610,10 @@ ${targetProfile}
       analysisResult: row.analysis_result,
       createdAt: row.created_at,
     }))
+
+    return { list, total }
   }
 
-  /**
-   * 获取单条资料优化历史记录
-   */
   async getProfileHistoryById(id: number): Promise<ProfileHistory | null> {
     const query = `
       SELECT id, platform, nickname, bio, interests, analysis_result, created_at
@@ -544,9 +622,7 @@ ${targetProfile}
     `
     const result = await this.pool.query(query, [id])
 
-    if (result.rows.length === 0) {
-      return null
-    }
+    if (result.rows.length === 0) return null
 
     const row = result.rows[0]
     return {
@@ -560,11 +636,95 @@ ${targetProfile}
     }
   }
 
-  /**
-   * 删除资料优化历史记录
-   */
   async deleteProfileHistory(id: number): Promise<boolean> {
     const query = 'DELETE FROM dating_profile_history WHERE id = $1'
+    const result = await this.pool.query(query, [id])
+    return result.rowCount > 0
+  }
+
+  // ========== 照片评分历史 ==========
+
+  async savePhotoHistory(data: { platform: string; photoUrls: string[]; analysisResult: PhotoScore; isFallback?: boolean }): Promise<number> {
+    const query = `
+      INSERT INTO dating_photo_history (platform, photo_urls, analysis_result)
+      VALUES ($1, $2, $3)
+      RETURNING id
+    `
+    const values = [data.platform, JSON.stringify(data.photoUrls), JSON.stringify(data.analysisResult)]
+    const result = await this.pool.query(query, values)
+    console.log('[DatingService] Saved photo history with id:', result.rows[0].id)
+    return result.rows[0].id
+  }
+
+  async getPhotoHistoryList(limit: number = 20, offset: number = 0): Promise<{ list: PhotoHistory[]; total: number }> {
+    const countResult = await this.pool.query('SELECT COUNT(*) as count FROM dating_photo_history')
+    const total = parseInt(countResult.rows[0]?.count || '0', 10)
+
+    const query = `
+      SELECT id, platform, photo_urls, analysis_result, created_at
+      FROM dating_photo_history
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `
+    const result = await this.pool.query(query, [limit, offset])
+
+    const list = result.rows.map((row) => ({
+      id: row.id,
+      platform: row.platform,
+      photoUrls: typeof row.photo_urls === 'string' ? JSON.parse(row.photo_urls) : row.photo_urls,
+      analysisResult: typeof row.analysis_result === 'string' ? JSON.parse(row.analysis_result) : row.analysis_result,
+      createdAt: row.created_at,
+    }))
+
+    return { list, total }
+  }
+
+  async deletePhotoHistory(id: number): Promise<boolean> {
+    const query = 'DELETE FROM dating_photo_history WHERE id = $1'
+    const result = await this.pool.query(query, [id])
+    return result.rowCount > 0
+  }
+
+  // ========== 开场白历史 ==========
+
+  async saveOpenerHistory(data: { platform: string; targetProfile: string; selfProfile?: string; result: OpenerResponse; isFallback?: boolean }): Promise<number> {
+    const query = `
+      INSERT INTO dating_opener_history (platform, target_profile, self_profile, result)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id
+    `
+    const values = [data.platform, data.targetProfile, data.selfProfile || '', JSON.stringify(data.result)]
+    const result = await this.pool.query(query, values)
+    console.log('[DatingService] Saved opener history with id:', result.rows[0].id)
+    return result.rows[0].id
+  }
+
+  async getOpenerHistoryList(limit: number = 20, offset: number = 0): Promise<{ list: OpenerHistory[]; total: number }> {
+    const countResult = await this.pool.query('SELECT COUNT(*) as count FROM dating_opener_history')
+    const total = parseInt(countResult.rows[0]?.count || '0', 10)
+
+    const query = `
+      SELECT id, platform, target_profile, self_profile, result, created_at
+      FROM dating_opener_history
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `
+    const result = await this.pool.query(query, [limit, offset])
+
+    const list = result.rows.map((row) => ({
+      id: row.id,
+      platform: row.platform,
+      targetProfile: row.target_profile,
+      selfProfile: row.self_profile,
+      result: typeof row.result === 'string' ? JSON.parse(row.result) : row.result,
+      createdAt: row.created_at,
+    }))
+
+    return { list, total }
+  }
+
+  async deleteOpenerHistory(id: number): Promise<boolean> {
+    const query = 'DELETE FROM dating_opener_history WHERE id = $1'
     const result = await this.pool.query(query, [id])
     return result.rowCount > 0
   }

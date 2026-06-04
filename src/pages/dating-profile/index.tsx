@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -7,6 +7,7 @@ import { Network } from '@/network'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface ProfileAnalysis {
   overallScore: number
@@ -19,6 +20,7 @@ interface ProfileAnalysis {
     reason: string
   }[]
   summary: string
+  isFallback?: boolean
 }
 
 interface ChatMessage {
@@ -36,7 +38,6 @@ interface ProfileHistory {
   createdAt: string
 }
 
-// 平台选项
 const platformOptions = [
   { value: 'tantan', label: '探探', icon: '💕', desc: '国内主流，左滑右滑' },
   { value: 'soul', label: 'Soul', icon: '🌙', desc: '灵魂社交，兴趣匹配' },
@@ -48,7 +49,6 @@ const platformOptions = [
   { value: 'marryu', label: 'MarryU', icon: '💍', desc: '严肃婚恋，以结婚为目的' },
 ]
 
-// 兴趣标签选项
 const interestOptions = [
   { value: 'music', label: '音乐', emoji: '🎵' },
   { value: 'movie', label: '电影', emoji: '🎬' },
@@ -68,14 +68,18 @@ const interestOptions = [
   { value: 'coffee', label: '咖啡', emoji: '☕' },
 ]
 
+const PAGE_SIZE = 10
+
 const DatingProfilePage: FC = () => {
+  const [nickname, setNickname] = useState('')
   const [bio, setBio] = useState('')
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [platform, setPlatform] = useState('tantan')
   const [showPlatformPicker, setShowPlatformPicker] = useState(false)
   const [loading, setLoading] = useState(false)
   const [analysis, setAnalysis] = useState<ProfileAnalysis | null>(null)
-  
+  const [errorMsg, setErrorMsg] = useState('')
+
   // 聊天相关状态
   const [showChat, setShowChat] = useState(false)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
@@ -86,68 +90,89 @@ const DatingProfilePage: FC = () => {
   const [showHistory, setShowHistory] = useState(false)
   const [historyList, setHistoryList] = useState<ProfileHistory[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [historyTotal, setHistoryTotal] = useState(0)
+  const [historyOffset, setHistoryOffset] = useState(0)
+
+  // 聊天自动滚动
+  const chatScrollId = useRef('')
 
   useLoad(() => {
     console.log('Dating profile optimization page loaded.')
   })
 
-  // 加载历史记录
   useEffect(() => {
     if (showHistory) {
-      loadHistory()
+      setHistoryOffset(0)
+      loadHistory(0)
     }
   }, [showHistory])
 
-  const loadHistory = async () => {
+  // 聊天新消息时自动滚动
+  useEffect(() => {
+    if (chatMessages.length > 0) {
+      chatScrollId.current = `chat-msg-${chatMessages.length - 1}`
+    }
+  }, [chatMessages.length])
+
+  const loadHistory = async (offset: number = 0) => {
     setHistoryLoading(true)
     try {
       const res = await Network.request({
-        url: '/api/dating/profile/history',
+        url: `/api/dating/profile/history?limit=${PAGE_SIZE}&offset=${offset}`,
         method: 'GET',
       })
       console.log('History response:', res.data)
 
-      if (res.data?.code === 200 && res.data?.data?.list) {
-        setHistoryList(res.data.data.list)
+      if (res.data?.code === 200 && res.data?.data) {
+        const newList = res.data.data.list || []
+        setHistoryList(offset === 0 ? newList : [...historyList, ...newList])
+        setHistoryTotal(res.data.data.total || 0)
+        setHistoryOffset(offset)
       }
     } catch (error) {
       console.error('Load history error:', error)
+      setErrorMsg('加载历史记录失败，请稍后重试')
     } finally {
       setHistoryLoading(false)
     }
   }
 
-  const currentPlatform = platformOptions.find(p => p.value === platform) || platformOptions[0]
-
-  // 切换兴趣标签选择
-  const toggleInterest = (value: string) => {
-    setSelectedInterests(prev => 
-      prev.includes(value) 
-        ? prev.filter(i => i !== value)
-        : [...prev, value]
-    )
+  const loadMoreHistory = () => {
+    if (historyList.length < historyTotal) {
+      loadHistory(historyOffset + PAGE_SIZE)
+    }
   }
 
-  // 获取选中的兴趣标签文本
+  const currentPlatform = platformOptions.find((p) => p.value === platform) || platformOptions[0]
+
+  const toggleInterest = (value: string) => {
+    setSelectedInterests((prev) => (prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value]))
+  }
+
   const getInterestsText = () => {
     return selectedInterests
-      .map(v => interestOptions.find(opt => opt.value === v)?.label)
+      .map((v) => interestOptions.find((opt) => opt.value === v)?.label)
       .filter(Boolean)
       .join('、')
   }
 
+  const canAnalyze = !loading && (bio.trim() || selectedInterests.length > 0 || nickname.trim())
+
   const handleAnalyze = async () => {
     const interestsText = getInterestsText()
-    if (!bio.trim() && !interestsText) {
+    if (!bio.trim() && !interestsText && !nickname.trim()) {
+      setErrorMsg('请至少填写昵称、简介或选择兴趣标签')
       return
     }
 
     setLoading(true)
+    setErrorMsg('')
     try {
       const res = await Network.request({
         url: '/api/dating/profile/optimize',
         method: 'POST',
         data: {
+          nickname: nickname.trim(),
           bio: bio.trim(),
           interests: interestsText,
           platform,
@@ -158,9 +183,12 @@ const DatingProfilePage: FC = () => {
       if (res.data?.code === 200 && res.data?.data) {
         const result = res.data.data
         setAnalysis(result)
-        // 重置聊天状态
         setShowChat(false)
         setChatMessages([])
+
+        if (result.isFallback) {
+          setErrorMsg('AI 分析遇到问题，以下为参考建议，建议稍后重试获取更精准的分析')
+        }
 
         // 保存历史记录
         try {
@@ -169,6 +197,7 @@ const DatingProfilePage: FC = () => {
             method: 'POST',
             data: {
               platform,
+              nickname: nickname.trim(),
               bio: bio.trim(),
               interests: interestsText,
               analysisResult: result,
@@ -178,31 +207,35 @@ const DatingProfilePage: FC = () => {
         } catch (saveError) {
           console.error('Save history error:', saveError)
         }
+      } else {
+        setErrorMsg('分析失败，请稍后重试')
       }
     } catch (error) {
       console.error('Profile optimization error:', error)
+      setErrorMsg('网络错误，请检查网络后重试')
     } finally {
       setLoading(false)
     }
   }
 
   const handleReset = () => {
+    setNickname('')
     setBio('')
     setSelectedInterests([])
     setAnalysis(null)
     setShowChat(false)
     setChatMessages([])
+    setErrorMsg('')
   }
 
   const handleStartChat = () => {
     setShowChat(true)
-    // 添加欢迎消息
     if (chatMessages.length === 0) {
       setChatMessages([
         {
           role: 'assistant',
-          content: `你好！我已经分析了你在${currentPlatform.label}上的资料，有什么问题想问我吗？比如想了解为什么某个建议更好，或者有其他想法想讨论～`
-        }
+          content: `你好！我已经分析了你在${currentPlatform.label}上的资料，有什么问题想问我吗？比如想了解为什么某个建议更好，或者有其他想法想讨论～`,
+        },
       ])
     }
   }
@@ -212,7 +245,7 @@ const DatingProfilePage: FC = () => {
 
     const userMessage = chatInput.trim()
     setChatInput('')
-    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+    setChatMessages((prev) => [...prev, { role: 'user', content: userMessage }])
     setChatLoading(true)
 
     try {
@@ -220,6 +253,7 @@ const DatingProfilePage: FC = () => {
         url: '/api/dating/profile/chat',
         method: 'POST',
         data: {
+          nickname: nickname.trim(),
           bio: bio.trim(),
           interests: getInterestsText(),
           platform,
@@ -232,14 +266,13 @@ const DatingProfilePage: FC = () => {
       console.log('Chat response:', res.data)
 
       if (res.data?.code === 200 && res.data?.data?.reply) {
-        setChatMessages(prev => [...prev, { role: 'assistant', content: res.data.data.reply }])
+        setChatMessages((prev) => [...prev, { role: 'assistant', content: res.data.data.reply }])
+      } else {
+        setChatMessages((prev) => [...prev, { role: 'assistant', content: '抱歉，分析遇到了问题，请稍后再试。' }])
       }
     } catch (error) {
       console.error('Chat error:', error)
-      setChatMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: '抱歉，我暂时无法回答这个问题，请稍后再试。' 
-      }])
+      setChatMessages((prev) => [...prev, { role: 'assistant', content: '网络错误，请检查网络后重试。' }])
     } finally {
       setChatLoading(false)
     }
@@ -247,13 +280,11 @@ const DatingProfilePage: FC = () => {
 
   const handleLoadHistory = (history: ProfileHistory) => {
     setPlatform(history.platform)
+    setNickname(history.nickname || '')
     setBio(history.bio || '')
-    // 将字符串 interests 转换为数组
     if (history.interests) {
-      const interestLabels = history.interests.split(/[,、，]/).map(s => s.trim())
-      const values = interestLabels
-        .map(label => interestOptions.find(opt => opt.label === label)?.value)
-        .filter(Boolean) as string[]
+      const interestLabels = history.interests.split(/[,、，]/).map((s) => s.trim())
+      const values = interestLabels.map((label) => interestOptions.find((opt) => opt.label === label)?.value).filter(Boolean) as string[]
       setSelectedInterests(values)
     } else {
       setSelectedInterests([])
@@ -262,6 +293,7 @@ const DatingProfilePage: FC = () => {
     setShowHistory(false)
     setShowChat(false)
     setChatMessages([])
+    setErrorMsg('')
   }
 
   const handleDeleteHistory = async (id: number, e: any) => {
@@ -273,7 +305,8 @@ const DatingProfilePage: FC = () => {
       })
 
       if (res.data?.code === 200) {
-        setHistoryList(prev => prev.filter(h => h.id !== id))
+        setHistoryList((prev) => prev.filter((h) => h.id !== id))
+        setHistoryTotal((prev) => prev - 1)
       }
     } catch (error) {
       console.error('Delete history error:', error)
@@ -296,11 +329,9 @@ const DatingProfilePage: FC = () => {
         <View className="flex flex-row items-center justify-between">
           <View className="flex flex-row items-center flex-1">
             <Sparkles size={18} color="#3b82f6" />
-            <Text className="block text-sm text-blue-700 ml-2">
-              输入你当前的交友软件资料，AI 将给出专业优化建议
-            </Text>
+            <Text className="block text-sm text-blue-700 ml-2">输入你当前的交友软件资料，AI 将给出专业优化建议</Text>
           </View>
-          <View 
+          <View
             className="flex flex-row items-center px-3 py-1 bg-white rounded-full"
             onClick={() => setShowHistory(!showHistory)}
           >
@@ -310,14 +341,25 @@ const DatingProfilePage: FC = () => {
         </View>
       </View>
 
+      {/* 错误提示 */}
+      {errorMsg && (
+        <View className="mx-4 mt-3 bg-red-50 rounded-xl px-4 py-3 flex flex-row items-center">
+          <CircleAlert size={16} color="#ef4444" />
+          <Text className="text-sm text-red-600 ml-2 flex-1">{errorMsg}</Text>
+          <View onClick={() => setErrorMsg('')}>
+            <Text className="text-xs text-red-400">关闭</Text>
+          </View>
+        </View>
+      )}
+
       {/* 历史记录列表 */}
       {showHistory && (
         <View className="bg-white border-b border-gray-100">
           <View className="px-4 py-3 border-b border-gray-100">
             <Text className="text-sm font-medium text-gray-900">历史记录</Text>
           </View>
-          
-          {historyLoading ? (
+
+          {historyLoading && historyList.length === 0 ? (
             <View className="px-4 py-8 flex flex-col items-center">
               <Loader size={20} color="#9ca3af" className="animate-spin" />
               <Text className="text-sm text-gray-400 mt-2">加载中...</Text>
@@ -330,7 +372,7 @@ const DatingProfilePage: FC = () => {
           ) : (
             <ScrollView scrollY className="max-h-80">
               {historyList.map((history) => {
-                const platformInfo = platformOptions.find(p => p.value === history.platform)
+                const platformInfo = platformOptions.find((p) => p.value === history.platform)
                 return (
                   <View
                     key={history.id}
@@ -343,30 +385,28 @@ const DatingProfilePage: FC = () => {
                         <Text className="text-sm font-medium text-gray-900">
                           {history.bio ? history.bio.substring(0, 20) + '...' : '无简介'}
                         </Text>
-                        <Text className="text-xs text-gray-400 ml-2">
-                          {formatDate(history.createdAt)}
-                        </Text>
+                        <Text className="text-xs text-gray-400 ml-2">{formatDate(history.createdAt)}</Text>
                       </View>
                       <View className="flex flex-row items-center">
                         <View className="bg-blue-100 rounded-full px-2 py-1 mr-2">
                           <Text className="text-xs text-blue-600">{history.analysisResult.overallScore}分</Text>
                         </View>
                         {history.interests && (
-                          <Text className="text-xs text-gray-400 line-clamp-1 flex-1">
-                            {history.interests}
-                          </Text>
+                          <Text className="text-xs text-gray-400 line-clamp-1 flex-1">{history.interests}</Text>
                         )}
                       </View>
                     </View>
-                    <View
-                      className="p-2 rounded-lg active:bg-gray-100"
-                      onClick={(e) => handleDeleteHistory(history.id, e)}
-                    >
+                    <View className="p-2 rounded-lg active:bg-gray-100" onClick={(e) => handleDeleteHistory(history.id, e)}>
                       <Trash2 size={16} color="#9ca3af" />
                     </View>
                   </View>
                 )
               })}
+              {historyList.length < historyTotal && (
+                <View className="px-4 py-3 flex flex-col items-center" onClick={loadMoreHistory}>
+                  <Text className="text-xs text-blue-500">{historyLoading ? '加载中...' : '加载更多'}</Text>
+                </View>
+              )}
             </ScrollView>
           )}
         </View>
@@ -380,7 +420,7 @@ const DatingProfilePage: FC = () => {
             <CardTitle className="text-base">选择平台</CardTitle>
           </CardHeader>
           <CardContent>
-            <View 
+            <View
               className="bg-gray-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
               onClick={() => setShowPlatformPicker(!showPlatformPicker)}
             >
@@ -391,15 +431,13 @@ const DatingProfilePage: FC = () => {
               </View>
               <ChevronDown size={18} color="#9ca3af" />
             </View>
-            
+
             {showPlatformPicker && (
               <View className="mt-2 bg-white rounded-xl border border-gray-100 overflow-hidden">
                 {platformOptions.map((option) => (
                   <View
                     key={option.value}
-                    className={`px-4 py-3 flex flex-row items-center justify-between ${
-                      platform === option.value ? 'bg-blue-50' : ''
-                    }`}
+                    className={`px-4 py-3 flex flex-row items-center justify-between ${platform === option.value ? 'bg-blue-50' : ''}`}
                     onClick={() => {
                       setPlatform(option.value)
                       setShowPlatformPicker(false)
@@ -412,9 +450,7 @@ const DatingProfilePage: FC = () => {
                         <Text className="text-xs text-gray-400">{option.desc}</Text>
                       </View>
                     </View>
-                    {platform === option.value && (
-                      <Text className="text-blue-500">✓</Text>
-                    )}
+                    {platform === option.value && <Text className="text-blue-500">✓</Text>}
                   </View>
                 ))}
               </View>
@@ -426,9 +462,24 @@ const DatingProfilePage: FC = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-base">基本信息</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
+            {/* 昵称输入 */}
+            <View className="mb-4">
+              <Text className="block text-sm font-medium text-gray-700 mb-2">昵称</Text>
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
+                <Input
+                  style={{ width: '100%', backgroundColor: 'transparent' }}
+                  placeholder="输入你在交友软件上的昵称..."
+                  maxlength={30}
+                  value={nickname}
+                  onInput={(e) => setNickname(e.detail.value)}
+                />
+              </View>
+              <Text className="block text-xs text-gray-400 mt-1">{nickname.length}/30</Text>
+            </View>
+
             {/* 个人简介 */}
-            <View>
+            <View className="mb-4">
               <Text className="block text-sm font-medium text-gray-700 mb-2">个人简介</Text>
               <View className="bg-gray-50 rounded-xl p-4">
                 <Textarea
@@ -451,25 +502,17 @@ const DatingProfilePage: FC = () => {
                   return (
                     <View
                       key={option.value}
-                      className={`rounded-full px-3 py-2 flex flex-row items-center ${
-                        isSelected 
-                          ? 'bg-blue-500' 
-                          : 'bg-gray-100'
-                      }`}
+                      className={`rounded-full px-3 py-2 flex flex-row items-center ${isSelected ? 'bg-blue-500' : 'bg-gray-100'}`}
                       onClick={() => toggleInterest(option.value)}
                     >
                       <Text className="text-sm mr-1">{option.emoji}</Text>
-                      <Text className={`text-sm ${isSelected ? 'text-white' : 'text-gray-700'}`}>
-                        {option.label}
-                      </Text>
+                      <Text className={`text-sm ${isSelected ? 'text-white' : 'text-gray-700'}`}>{option.label}</Text>
                     </View>
                   )
                 })}
               </View>
               {selectedInterests.length > 0 && (
-                <Text className="block text-xs text-gray-400 mt-2">
-                  已选择 {selectedInterests.length} 个标签
-                </Text>
+                <Text className="block text-xs text-gray-400 mt-2">已选择 {selectedInterests.length} 个标签</Text>
               )}
             </View>
           </CardContent>
@@ -478,31 +521,39 @@ const DatingProfilePage: FC = () => {
         {/* 操作按钮 */}
         <View className="flex flex-row gap-3 mb-4">
           <View className="flex-1">
-            <Button
-              variant="default"
-              className="bg-blue-500 text-white rounded-xl"
-              disabled={loading || (!bio.trim() && selectedInterests.length === 0)}
-              onClick={handleAnalyze}
-            >
+            <Button variant="default" className="bg-blue-500 text-white rounded-xl" disabled={!canAnalyze} onClick={handleAnalyze}>
               <Text className="text-white">{loading ? '分析中...' : '开始分析'}</Text>
             </Button>
           </View>
           <View className="flex-1">
-            <Button
-              variant="secondary"
-              className="rounded-xl"
-              onClick={handleReset}
-            >
+            <Button variant="secondary" className="rounded-xl" onClick={handleReset}>
               <Text>重置</Text>
             </Button>
           </View>
         </View>
 
+        {/* 空状态引导 */}
+        {!analysis && !loading && !nickname.trim() && !bio.trim() && selectedInterests.length === 0 && (
+          <View className="py-6 flex flex-col items-center">
+            <Sparkles size={32} color="#d1d5db" />
+            <Text className="text-sm text-gray-400 mt-3">填写昵称、简介或选择兴趣标签后开始分析</Text>
+            <Text className="text-xs text-gray-300 mt-1">至少填写一项即可获取 AI 优化建议</Text>
+          </View>
+        )}
+
         {/* 分析结果 */}
         {analysis && (
-          <View className="space-y-4">
+          <View>
+            {/* 兜底提示 */}
+            {analysis.isFallback && (
+              <View className="bg-amber-50 rounded-xl px-4 py-3 mb-4 flex flex-row items-center">
+                <CircleAlert size={16} color="#f59e0b" />
+                <Text className="text-xs text-amber-600 ml-2 flex-1">AI 分析遇到问题，以下为参考建议，建议稍后重试获取更精准结果</Text>
+              </View>
+            )}
+
             {/* 平台标签 */}
-            <View className="flex flex-row items-center justify-center">
+            <View className="flex flex-row items-center justify-center mb-4">
               <View className="bg-blue-100 rounded-full px-3 py-1 flex flex-row items-center">
                 <Text className="text-sm mr-1">{currentPlatform.icon}</Text>
                 <Text className="text-xs text-blue-600">{currentPlatform.label} 专属建议</Text>
@@ -510,7 +561,7 @@ const DatingProfilePage: FC = () => {
             </View>
 
             {/* 总体评分 */}
-            <Card className="bg-gradient-to-br from-blue-500 to-blue-600">
+            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 mb-4">
               <CardContent className="py-6">
                 <View className="flex flex-col items-center">
                   <Text className="block text-sm text-blue-100 mb-2">资料吸引力评分</Text>
@@ -521,7 +572,7 @@ const DatingProfilePage: FC = () => {
             </Card>
 
             {/* 优势 */}
-            <Card>
+            <Card className="mb-4">
               <CardHeader className="pb-3">
                 <View className="flex flex-row items-center">
                   <CircleCheck size={18} color="#22c55e" />
@@ -539,7 +590,7 @@ const DatingProfilePage: FC = () => {
             </Card>
 
             {/* 需要改进 */}
-            <Card>
+            <Card className="mb-4">
               <CardHeader className="pb-3">
                 <View className="flex flex-row items-center">
                   <CircleAlert size={18} color="#f59e0b" />
@@ -557,7 +608,7 @@ const DatingProfilePage: FC = () => {
             </Card>
 
             {/* 具体优化建议 */}
-            <Card>
+            <Card className="mb-4">
               <CardHeader className="pb-3">
                 <Text className="block text-base font-semibold text-gray-900">优化方案</Text>
               </CardHeader>
@@ -565,9 +616,7 @@ const DatingProfilePage: FC = () => {
                 {analysis.suggestions.length > 0 ? (
                   analysis.suggestions.map((suggestion, index) => (
                     <View key={index} className="mb-4 pb-4 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0">
-                      <Text className="block text-sm font-medium text-gray-900 mb-2">
-                        {suggestion.field}
-                      </Text>
+                      <Text className="block text-sm font-medium text-gray-900 mb-2">{suggestion.field}</Text>
                       <View className="bg-gray-50 rounded-lg p-3 mb-2">
                         <Text className="block text-xs text-gray-500 mb-1">原文：</Text>
                         <Text className="block text-sm text-gray-600">{suggestion.original || '（未填写）'}</Text>
@@ -589,7 +638,7 @@ const DatingProfilePage: FC = () => {
             </Card>
 
             {/* 总结 */}
-            <Card className="bg-blue-50">
+            <Card className="bg-blue-50 mb-4">
               <CardContent className="py-4">
                 <Text className="block text-sm text-blue-700 leading-relaxed">{analysis.summary}</Text>
               </CardContent>
@@ -597,10 +646,7 @@ const DatingProfilePage: FC = () => {
 
             {/* AI聊天按钮 */}
             {!showChat && (
-              <Button
-                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl py-3"
-                onClick={handleStartChat}
-              >
+              <Button className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl py-3" onClick={handleStartChat}>
                 <View className="flex flex-row items-center justify-center">
                   <MessageCircle size={18} color="#fff" />
                   <Text className="text-white ml-2 font-medium">继续和 AI 深入讨论</Text>
@@ -622,24 +668,15 @@ const DatingProfilePage: FC = () => {
                 </CardHeader>
                 <CardContent>
                   {/* 聊天消息列表 */}
-                  <ScrollView scrollY className="max-h-80 mb-3">
+                  <ScrollView scrollY scrollIntoView={chatScrollId.current} className="max-h-80 mb-3">
                     {chatMessages.map((msg, index) => (
                       <View
                         key={index}
+                        id={`chat-msg-${index}`}
                         className={`mb-3 ${msg.role === 'user' ? 'flex flex-row justify-end' : ''}`}
                       >
-                        <View
-                          className={`rounded-xl px-4 py-2 max-w-[85%] ${
-                            msg.role === 'user'
-                              ? 'bg-blue-500'
-                              : 'bg-gray-100'
-                          }`}
-                        >
-                          <Text
-                            className={`text-sm leading-relaxed ${
-                              msg.role === 'user' ? 'text-white' : 'text-gray-700'
-                            }`}
-                          >
+                        <View className={`rounded-xl px-4 py-2 max-w-[85%] ${msg.role === 'user' ? 'bg-blue-500' : 'bg-gray-100'}`}>
+                          <Text className={`text-sm leading-relaxed ${msg.role === 'user' ? 'text-white' : 'text-gray-700'}`}>
                             {msg.content}
                           </Text>
                         </View>
@@ -669,11 +706,7 @@ const DatingProfilePage: FC = () => {
                       />
                     </View>
                     <View
-                      className={`rounded-xl p-2 ${
-                        chatInput.trim() && !chatLoading
-                          ? 'bg-blue-500'
-                          : 'bg-gray-200'
-                      }`}
+                      className={`rounded-xl p-2 ${chatInput.trim() && !chatLoading ? 'bg-blue-500' : 'bg-gray-200'}`}
                       onClick={handleSendMessage}
                     >
                       <Send size={20} color={chatInput.trim() && !chatLoading ? '#fff' : '#9ca3af'} />
