@@ -57,30 +57,33 @@ const TruthDarePage: FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState<string>('')
   const [isRevealed, setIsRevealed] = useState(false)
   const [history, setHistory] = useState<string[]>([])
+  const [usedQuestions, setUsedQuestions] = useState<string[]>([])
 
   useLoad(() => {
     console.log('Truth or Dare game loaded.')
   })
 
-  const getRandomQuestion = (questions: string[]): string => {
-    let newQuestion
-    do {
-      newQuestion = questions[Math.floor(Math.random() * questions.length)]
-    } while (newQuestion === currentQuestion && questions.length > 1)
-    return newQuestion
+  const getRandomQuestion = (questions: string[], used: string[]): string => {
+    const available = questions.filter(q => !used.includes(q))
+    const pool = available.length > 0 ? available : questions
+    return pool[Math.floor(Math.random() * pool.length)]
   }
 
   const handleNewQuestion = () => {
-    const question = getRandomQuestion(mode === 'truth' ? truthQuestions : dareChallenges)
+    const questions = mode === 'truth' ? truthQuestions : dareChallenges
+    const question = getRandomQuestion(questions, usedQuestions)
     setCurrentQuestion(question)
     setIsRevealed(false)
-    setHistory(prev => [question, ...prev])
+    const modeTag = mode === 'truth' ? '💕 真心话' : '✨ 大冒险'
+    setHistory(prev => [`${modeTag}：${question}`, ...prev])
+    setUsedQuestions(prev => usedQuestions.includes(question) ? prev : [...prev, question])
   }
 
   const handleSwitchMode = (newMode: 'truth' | 'dare') => {
     setMode(newMode)
     setIsRevealed(false)
     setCurrentQuestion('')
+    setUsedQuestions([])
   }
 
   return (
@@ -179,7 +182,7 @@ const TruthDarePage: FC = () => {
                 >
                   <View className="flex flex-row items-center justify-center">
                     <ArrowRight size={18} color="#fff" />
-                    <Text className="text-white ml-2 font-medium">揭晓答案</Text>
+                    <Text className="text-white ml-2 font-medium">翻牌</Text>
                   </View>
                 </Button>
               ) : (

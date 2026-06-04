@@ -214,7 +214,6 @@ const categories: Category[] = [
       { id: 'pr30', text: 'TA认为应该讨论性吗？', options: ['应该', '不应该'], answer: 0 },
       { id: 'pr31', text: 'TA认为性应该有前戏吗？', options: ['应该', '没必要'], answer: 0 },
       { id: 'pr32', text: 'TA认为性应该有后戏吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'pr33', text: 'TA认为性应该有后戏吗？', options: ['应该', '没必要'], answer: 0 },
       { id: 'pr34', text: 'TA认为性应该安全吗？', options: ['应该', '无所谓'], answer: 0 },
       { id: 'pr35', text: 'TA会用安全措施吗？', options: ['会', '不会'], answer: 0 },
       { id: 'pr36', text: 'TA认为应该用安全措施吗？', options: ['应该', '没必要'], answer: 0 },
@@ -231,10 +230,12 @@ const QuickPage: FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
-  const [timeLeft, setTimeLeft] = useState(3)
+  const [timeLeft, setTimeLeft] = useState(8)
   const [score, setScore] = useState(0)
   const [totalCorrect, setTotalCorrect] = useState(0)
   const [isTimerActive, setIsTimerActive] = useState(false)
+  const [totalTimeUsed, setTotalTimeUsed] = useState(0)
+  const [answeredCount, setAnsweredCount] = useState(0)
 
   useLoad(() => {
     console.log('Quick game loaded.')
@@ -252,15 +253,19 @@ const QuickPage: FC = () => {
     return () => clearInterval(interval)
   }, [step, isTimerActive, timeLeft])
 
+  const QUESTION_TIME = 8
+
   const handleSelectCategory = (category: Category) => {
     setSelectedCategory(category)
     setStep('play')
     setCurrentQuestionIndex(0)
     setSelectedOption(null)
-    setTimeLeft(3)
+    setTimeLeft(QUESTION_TIME)
     setScore(0)
     setTotalCorrect(0)
     setIsTimerActive(true)
+    setTotalTimeUsed(0)
+    setAnsweredCount(0)
   }
 
   const handleSelectOption = (index: number) => {
@@ -270,6 +275,8 @@ const QuickPage: FC = () => {
 
     setSelectedOption(index)
     setIsTimerActive(false)
+    setTotalTimeUsed(prev => prev + (QUESTION_TIME - timeLeft))
+    setAnsweredCount(prev => prev + 1)
 
     if (index === currentQuestion.answer) {
       setScore((prev) => prev + (timeLeft > 0 ? 100 + timeLeft * 10 : 100))
@@ -280,7 +287,7 @@ const QuickPage: FC = () => {
       if (currentQuestionIndex < selectedCategory.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1)
         setSelectedOption(null)
-        setTimeLeft(3)
+        setTimeLeft(QUESTION_TIME)
         setIsTimerActive(true)
       } else {
         setStep('result')
@@ -290,11 +297,15 @@ const QuickPage: FC = () => {
 
   const handleTimeUp = () => {
     if (selectedCategory && currentQuestionIndex < selectedCategory.questions.length - 1) {
+      setTotalTimeUsed(prev => prev + QUESTION_TIME)
+      setAnsweredCount(prev => prev + 1)
       setCurrentQuestionIndex(currentQuestionIndex + 1)
       setSelectedOption(null)
-      setTimeLeft(3)
+      setTimeLeft(QUESTION_TIME)
       setIsTimerActive(true)
     } else {
+      setTotalTimeUsed(prev => prev + QUESTION_TIME)
+      setAnsweredCount(prev => prev + 1)
       setStep('result')
       setIsTimerActive(false)
     }
@@ -305,10 +316,12 @@ const QuickPage: FC = () => {
     setSelectedCategory(null)
     setCurrentQuestionIndex(0)
     setSelectedOption(null)
-    setTimeLeft(3)
+    setTimeLeft(QUESTION_TIME)
     setScore(0)
     setTotalCorrect(0)
     setIsTimerActive(false)
+    setTotalTimeUsed(0)
+    setAnsweredCount(0)
   }
 
   const getMatchRate = () => {
@@ -317,10 +330,10 @@ const QuickPage: FC = () => {
   }
 
   const getMatchText = (rate: number) => {
-    if (rate >= 80) return { text: '非常了解对方', color: 'text-green-600', icon: '❤️' }
-    if (rate >= 60) return { text: '比较了解对方', color: 'text-blue-600', icon: '💙' }
-    if (rate >= 40) return { text: '还需更多了解', color: 'text-amber-600', icon: '💛' }
-    return { text: '继续加深了解', color: 'text-rose-600', icon: '💜' }
+    if (rate >= 80) return { text: '默契十足', color: 'text-green-600', icon: '❤️' }
+    if (rate >= 60) return { text: '心有灵犀', color: 'text-blue-600', icon: '💙' }
+    if (rate >= 40) return { text: '还需磨合', color: 'text-amber-600', icon: '💛' }
+    return { text: '继续探索', color: 'text-rose-600', icon: '💜' }
   }
 
   return (
@@ -329,7 +342,7 @@ const QuickPage: FC = () => {
       <View className="bg-gradient-to-r from-purple-500 to-violet-500 px-4 py-6">
         <Text className="block text-2xl font-bold text-white mb-2">快速问答</Text>
         <Text className="block text-sm text-gray-200">
-          3秒二选一，极速了解TA
+          猜猜TA的想法，测试你们的默契
         </Text>
       </View>
 
@@ -379,7 +392,7 @@ const QuickPage: FC = () => {
                 <View className="flex flex-row items-start">
                   <Zap size={16} color="#f59e0b" className="mr-2 mt-1 flex-shrink-0" />
                   <Text className="text-xs text-amber-700 leading-relaxed">
-                    ⚠️ 本游戏包含深入、私密的问题，每题只有3秒时间，二选一。建议双方轮流提问和回答，快速了解彼此。
+                    💡 本游戏需要双方一起玩！一人根据对TA的了解选择答案，另一人揭晓真实想法，看看你们有多默契。每题限时8秒，快速作答获额外加分。
                   </Text>
                 </View>
               </CardContent>
@@ -401,8 +414,8 @@ const QuickPage: FC = () => {
                 </Text>
               </View>
               <View className="flex flex-row items-center">
-                <Clock size={16} color={timeLeft === 3 ? '#6b7280' : timeLeft === 2 ? '#f59e0b' : '#ef4444'} />
-                <Text className={`text-sm font-bold ml-2 ${timeLeft === 3 ? 'text-gray-700' : timeLeft === 2 ? 'text-amber-500' : 'text-red-500'}`}>
+                <Clock size={16} color={timeLeft > 4 ? '#6b7280' : timeLeft > 2 ? '#f59e0b' : '#ef4444'} />
+                <Text className={`text-sm font-bold ml-2 ${timeLeft > 4 ? 'text-gray-700' : timeLeft > 2 ? 'text-amber-500' : 'text-red-500'}`}>
                   {timeLeft}s
                 </Text>
               </View>
@@ -460,7 +473,7 @@ const QuickPage: FC = () => {
             </View>
 
             {/* 倒计时提示 */}
-            {timeLeft <= 2 && selectedOption === null && (
+            {timeLeft <= 3 && selectedOption === null && (
               <View className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
                 <View className="flex flex-row items-center justify-center">
                   <Clock size={16} color="#ef4444" />
@@ -501,7 +514,7 @@ const QuickPage: FC = () => {
             <View className="grid grid-cols-2 gap-3 mb-4">
               <Card>
                 <CardContent className="py-4">
-                  <Text className="block text-xs text-gray-500 mb-1">正确题数</Text>
+                  <Text className="block text-xs text-gray-500 mb-1">答对题数</Text>
                   <Text className="block text-2xl font-bold text-purple-600">
                     {totalCorrect} / {selectedCategory.questions.length}
                   </Text>
@@ -509,7 +522,7 @@ const QuickPage: FC = () => {
               </Card>
               <Card>
                 <CardContent className="py-4">
-                  <Text className="block text-xs text-gray-500 mb-1">了解程度</Text>
+                  <Text className="block text-xs text-gray-500 mb-1">默契度</Text>
                   <Text className="block text-2xl font-bold text-purple-600">{getMatchRate()}%</Text>
                 </CardContent>
               </Card>
@@ -523,7 +536,7 @@ const QuickPage: FC = () => {
                 <CardContent className="py-4">
                   <Text className="block text-xs text-gray-500 mb-1">平均反应时间</Text>
                   <Text className="block text-2xl font-bold text-purple-600">
-                    {3 - Math.round(score / 100 - selectedCategory.questions.length)}s
+                    {answeredCount > 0 ? (totalTimeUsed / answeredCount).toFixed(1) : '0'}s
                   </Text>
                 </CardContent>
               </Card>
@@ -535,15 +548,15 @@ const QuickPage: FC = () => {
                 <View className="flex flex-row items-start">
                   <Star size={16} color="#f59e0b" className="mr-2 mt-1 flex-shrink-0" />
                   <View className="flex-1">
-                    <Text className="text-xs text-gray-500 mb-1">建议</Text>
+                    <Text className="text-xs text-gray-500 mb-1">小贴士</Text>
                     <Text className="text-sm text-gray-700 leading-relaxed">
                       {getMatchRate() >= 80
-                        ? '你对TA的了解非常深入！继续保持这种沟通和了解。'
+                        ? '你们的默契度超棒！很多想法都不谋而合，继续珍惜这份心有灵犀。'
                         : getMatchRate() >= 60
-                          ? '你对TA有一定了解，还可以通过更多深入交流加深。'
+                          ? '你们已经很有默契了！再多聊聊彼此的想法，默契度还会提升。'
                           : getMatchRate() >= 40
-                            ? '你们之间还有很多不了解的地方，建议多进行深入对话。'
-                            : '你们之间还有很多未知，建议多花时间了解对方的想法。'}
+                            ? '你们还有很多想法不一致的地方，这正是了解彼此的好机会！'
+                            : '差异也是一种魅力！多聊聊彼此的想法，发现更多共同点。'}
                     </Text>
                   </View>
                 </View>
@@ -570,7 +583,7 @@ const QuickPage: FC = () => {
         <View className="flex flex-row items-center">
           <Zap size={16} color="#a855f7" />
           <Text className="block text-xs text-gray-500 ml-2">
-            提示：3秒二选一，快速选择获得额外加分
+            提示：每题限时8秒，快速选择获额外加分，看看你们有多默契
           </Text>
         </View>
       </View>

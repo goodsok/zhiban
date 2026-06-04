@@ -313,12 +313,82 @@ const scenarios: Scenario[] = [
           },
         ],
       },
+      {
+        id: 2,
+        context: '你们在商场逛街，对方试了好几件衣服但都没买，看起来有点纠结。',
+        question: '这时你应该怎么做？',
+        options: [
+          {
+            id: 'a',
+            text: '耐心等待，适时给出真诚的建议和夸奖',
+            isBest: true,
+            score: 100,
+            feedback: '非常好！既展现了你的耐心，又能在对方需要时给予真诚的参考意见。',
+          },
+          {
+            id: 'b',
+            text: '催促对方快点决定',
+            isBest: false,
+            score: 30,
+            feedback: '催促会让对方觉得你不耐烦，逛街本来就需要耐心陪伴。',
+          },
+          {
+            id: 'c',
+            text: '坐在一旁玩手机等对方',
+            isBest: false,
+            score: 50,
+            feedback: '虽然不催促了，但玩手机显得不够关心对方，建议偶尔关注和互动。',
+          },
+          {
+            id: 'd',
+            text: '主动帮对方挑选，不停推荐',
+            isBest: false,
+            score: 60,
+            feedback: '出发点好，但过度推荐可能让对方有压力，适度建议就好。',
+          },
+        ],
+      },
+      {
+        id: 3,
+        context: '你们周末去郊游，路上堵车了，预计要等很久。',
+        question: '你该怎么让等待不那么无聊？',
+        options: [
+          {
+            id: 'a',
+            text: '放些轻松的音乐，聊聊有趣的话题，把堵车变成聊天时光',
+            isBest: true,
+            score: 100,
+            feedback: '太棒了！把无聊的等待变成愉快的聊天时光，展现你的乐观和情商。',
+          },
+          {
+            id: 'b',
+            text: '不停看导航找其他路线，显得很焦躁',
+            isBest: false,
+            score: 40,
+            feedback: '虽然想解决问题，但焦虑情绪会传染给对方，不如先放松。',
+          },
+          {
+            id: 'c',
+            text: '提议取消行程回家',
+            isBest: false,
+            score: 30,
+            feedback: '太容易放弃了，堵车是常见的情况，积极面对才更好。',
+          },
+          {
+            id: 'd',
+            text: '各自玩手机安静等待',
+            isBest: false,
+            score: 50,
+            feedback: '安静等待可以，但错过了一起互动的机会，可以适度聊聊天。',
+          },
+        ],
+      },
     ],
   },
 ]
 
 const ScenarioPage: FC = () => {
-  const [step, setStep] = useState<'select' | 'play' | 'result'>('select')
+  const [step, setStep] = useState<'select' | 'play' | 'feedback' | 'summary'>('select')
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null)
   const [currentSituationIndex, setCurrentSituationIndex] = useState(0)
   const [selectedOption, setSelectedOption] = useState<ScenarioOption | null>(null)
@@ -342,7 +412,12 @@ const ScenarioPage: FC = () => {
     setSelectedOption(option)
     setTotalScore(prev => prev + option.score)
     setCompletedSituations(prev => prev + 1)
-    setStep('result')
+    // 如果是最后一题，进入 summary；否则进入 feedback
+    if (selectedScenario && currentSituationIndex === selectedScenario.situations.length - 1) {
+      setStep('summary')
+    } else {
+      setStep('feedback')
+    }
   }
 
   const handleNextSituation = () => {
@@ -480,9 +555,9 @@ const ScenarioPage: FC = () => {
           </>
         )}
 
-        {step === 'result' && selectedScenario && selectedOption && (
+        {step === 'feedback' && selectedScenario && selectedOption && (
           <>
-            {/* 结果卡片 */}
+            {/* 单题反馈卡片 */}
             <Card
               className={`mb-4 ${
                 selectedOption.isBest
@@ -564,51 +639,132 @@ const ScenarioPage: FC = () => {
               </Card>
             )}
 
-            {/* 总分 */}
-            {currentSituationIndex === selectedScenario.situations.length - 1 && (
-              <Card className="mb-4">
-                <CardContent className="py-4">
-                  <View className="flex flex-col items-center">
-                    <Text className="text-sm text-gray-500 mb-2">综合评分</Text>
-                    <Text className="block text-4xl font-bold text-gray-900 mb-1">
-                      {getAverageScore()}分
+            {/* 下一题按钮 */}
+            <Button
+              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl py-3"
+              onClick={handleNextSituation}
+            >
+              <View className="flex flex-row items-center justify-center">
+                <Play size={18} color="#fff" />
+                <Text className="text-white ml-2 font-medium">下一场景</Text>
+              </View>
+            </Button>
+          </>
+        )}
+
+        {step === 'summary' && selectedScenario && selectedOption && (
+          <>
+            {/* 最后一题反馈 */}
+            <Card
+              className={`mb-4 ${
+                selectedOption.isBest
+                  ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-100'
+                  : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100'
+              }`}
+            >
+              <CardContent className="py-5">
+                <View className="flex flex-col items-center">
+                  <View
+                    className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${
+                      selectedOption.isBest ? 'bg-green-500' : 'bg-amber-500'
+                    }`}
+                  >
+                    {selectedOption.isBest ? (
+                      <Check size={32} color="white" />
+                    ) : (
+                      <X size={32} color="white" />
+                    )}
+                  </View>
+                  <Text
+                    className={`block text-lg font-semibold ${
+                      selectedOption.isBest ? 'text-green-600' : 'text-amber-600'
+                    }`}
+                  >
+                    {selectedOption.isBest ? '最佳选择！' : '还可以更好'}
+                  </Text>
+                  <View className="flex flex-row items-center mt-2">
+                    <Text className="text-sm text-gray-500">本次得分：</Text>
+                    <Text
+                      className={`text-sm font-bold ml-1 ${
+                        selectedOption.score >= 80
+                          ? 'text-green-600'
+                          : selectedOption.score >= 60
+                            ? 'text-blue-600'
+                            : 'text-amber-600'
+                      }`}
+                    >
+                      {selectedOption.score}分
                     </Text>
-                    <View className="flex flex-row items-center">
-                      <Text className="text-xl mr-2">{getPerformanceText(getAverageScore()).icon}</Text>
-                      <Text className={`text-base font-semibold ${getPerformanceText(getAverageScore()).color}`}>
-                        {getPerformanceText(getAverageScore()).text}
-                      </Text>
+                  </View>
+                </View>
+              </CardContent>
+            </Card>
+
+            {/* 反馈 */}
+            <Card className="mb-4">
+              <CardContent className="py-4">
+                <View className="flex flex-row items-start">
+                  <Lightbulb size={16} color="#f59e0b" className="mr-2 mt-1 flex-shrink-0" />
+                  <View className="flex-1">
+                    <Text className="text-xs text-gray-500 mb-1">反馈</Text>
+                    <Text className="text-sm text-gray-700 leading-relaxed">
+                      {selectedOption.feedback}
+                    </Text>
+                  </View>
+                </View>
+              </CardContent>
+            </Card>
+
+            {/* 最佳答案 */}
+            {!selectedOption.isBest && (
+              <Card className="mb-4 bg-blue-50 border-blue-100">
+                <CardContent className="py-4">
+                  <View className="flex flex-row items-start">
+                    <TriangleAlert size={16} color="#3b82f6" className="mr-2 mt-1 flex-shrink-0" />
+                    <View className="flex-1">
+                      <Text className="text-xs text-blue-600 mb-1">最佳答案</Text>
+                      {selectedScenario.situations[currentSituationIndex].options
+                        .filter(opt => opt.isBest)
+                        .map(opt => (
+                          <Text key={opt.id} className="text-sm text-gray-700 leading-relaxed">
+                            {opt.text}
+                          </Text>
+                        ))}
                     </View>
                   </View>
                 </CardContent>
               </Card>
             )}
 
-            {/* 操作按钮 */}
-            <View className="space-y-3">
-              {currentSituationIndex < selectedScenario.situations.length - 1 ? (
-                <Button
-                  className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl py-3"
-                  onClick={handleNextSituation}
-                >
-                  <View className="flex flex-row items-center justify-center">
-                    <Play size={18} color="#fff" />
-                    <Text className="text-white ml-2 font-medium">下一场景</Text>
+            {/* 综合评分 */}
+            <Card className="mb-4">
+              <CardContent className="py-4">
+                <View className="flex flex-col items-center">
+                  <Text className="text-sm text-gray-500 mb-2">综合评分</Text>
+                  <Text className="block text-4xl font-bold text-gray-900 mb-1">
+                    {getAverageScore()}分
+                  </Text>
+                  <View className="flex flex-row items-center">
+                    <Text className="text-xl mr-2">{getPerformanceText(getAverageScore()).icon}</Text>
+                    <Text className={`text-base font-semibold ${getPerformanceText(getAverageScore()).color}`}>
+                      {getPerformanceText(getAverageScore()).text}
+                    </Text>
                   </View>
-                </Button>
-              ) : (
-                <Button
-                  variant="secondary"
-                  className="rounded-xl py-3"
-                  onClick={handleReset}
-                >
-                  <View className="flex flex-row items-center justify-center">
-                    <RefreshCw size={18} color="#6b7280" />
-                    <Text className="ml-2">选择其他场景</Text>
-                  </View>
-                </Button>
-              )}
-            </View>
+                </View>
+              </CardContent>
+            </Card>
+
+            {/* 重新开始 */}
+            <Button
+              variant="secondary"
+              className="rounded-xl py-3"
+              onClick={handleReset}
+            >
+              <View className="flex flex-row items-center justify-center">
+                <RefreshCw size={18} color="#6b7280" />
+                <Text className="ml-2">选择其他场景</Text>
+              </View>
+            </Button>
           </>
         )}
       </View>

@@ -303,6 +303,7 @@ const ChallengePage: FC = () => {
   const [score, setScore] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
   const [isTimerActive, setIsTimerActive] = useState(false)
+  const [totalTimeUsed, setTotalTimeUsed] = useState(0)
 
   useLoad(() => {
     console.log('Challenge game loaded.')
@@ -343,6 +344,7 @@ const ChallengePage: FC = () => {
     setScore(0)
     setCorrectCount(0)
     setIsTimerActive(true)
+    setTotalTimeUsed(0)
   }
 
   const handleReadTimeUp = () => {
@@ -360,6 +362,7 @@ const ChallengePage: FC = () => {
       setSelectedOption(optionId)
       setShowResult(true)
       setIsTimerActive(false)
+      setTotalTimeUsed(prev => prev + (30 - timeLeft))
 
       if (option.isCorrect) {
         setScore((prev) => prev + (timeLeft > 0 ? 100 + timeLeft : 100))
@@ -371,6 +374,7 @@ const ChallengePage: FC = () => {
   const handleAnswerTimeUp = () => {
     setShowResult(true)
     setIsTimerActive(false)
+    setTotalTimeUsed(prev => prev + 30)
   }
 
   const handleNextQuestion = () => {
@@ -400,6 +404,7 @@ const ChallengePage: FC = () => {
     setScore(0)
     setCorrectCount(0)
     setIsTimerActive(false)
+    setTotalTimeUsed(0)
   }
 
   const getObservationScore = () => {
@@ -687,7 +692,9 @@ const ChallengePage: FC = () => {
                 <CardContent className="py-4">
                   <Text className="block text-xs text-gray-500 mb-1">平均用时</Text>
                   <Text className="block text-2xl font-bold text-indigo-600">
-                    {Math.round((30 * selectedChallenge.questions.length - timeLeft) / selectedChallenge.questions.length)}s
+                    {selectedChallenge.questions.length > 0
+                      ? Math.round(totalTimeUsed / selectedChallenge.questions.length)
+                      : 0}s
                   </Text>
                 </CardContent>
               </Card>

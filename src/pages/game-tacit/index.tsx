@@ -161,7 +161,7 @@ const categories: TacitTestCategory[] = [
 ]
 
 const TacitPage: FC = () => {
-  const [step, setStep] = useState<'select' | 'intro' | 'player-a' | 'player-b' | 'result'>('select')
+  const [step, setStep] = useState<'select' | 'intro' | 'player-a' | 'handover' | 'player-b' | 'result'>('select')
   const [selectedCategory, setSelectedCategory] = useState<TacitTestCategory | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [playerAAnswers, setPlayerAAnswers] = useState<number[]>([])
@@ -191,9 +191,8 @@ const TacitPage: FC = () => {
       if (currentQuestionIndex < selectedCategory!.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1)
       } else {
-        // A回答完成，切换到B
-        setCurrentQuestionIndex(0)
-        setStep('player-b')
+        // A回答完成，切换到交接页面
+        setStep('handover')
       }
     } else if (step === 'player-b') {
       const newAnswers = [...playerBAnswers, optionIndex]
@@ -206,6 +205,11 @@ const TacitPage: FC = () => {
         setStep('result')
       }
     }
+  }
+
+  const handleStartPlayerB = () => {
+    setCurrentQuestionIndex(0)
+    setStep('player-b')
   }
 
   const handleReset = () => {
@@ -306,6 +310,33 @@ const TacitPage: FC = () => {
                   onClick={handleStartTest}
                 >
                   <Text className="text-white font-medium">开始测试</Text>
+                </Button>
+              </View>
+            </CardContent>
+          </Card>
+        )}
+
+        {step === 'handover' && selectedCategory && (
+          <Card className="bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-100">
+            <CardContent className="py-10">
+              <View className="flex flex-col items-center">
+                <View className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
+                  <Users size={40} color="#6366f1" />
+                </View>
+                <Text className="block text-xl font-bold text-gray-900 mb-3">
+                  请将设备交给 B
+                </Text>
+                <Text className="block text-sm text-gray-500 text-center mb-2 leading-relaxed">
+                  A 已完成所有回答
+                </Text>
+                <Text className="block text-sm text-gray-500 text-center mb-8 leading-relaxed">
+                  请将手机交给 B，由 B 独立回答相同的问题。{'\n'}B 准备好后点击下方按钮开始。
+                </Text>
+                <Button
+                  className="bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-xl px-8 py-3"
+                  onClick={handleStartPlayerB}
+                >
+                  <Text className="text-white font-medium">B 开始作答</Text>
                 </Button>
               </View>
             </CardContent>

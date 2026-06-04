@@ -111,14 +111,28 @@ const UnderstandPage: FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState<string>('')
   const [questionIndex, setQuestionIndex] = useState(0)
+  const [completedCategoryIds, setCompletedCategoryIds] = useState<string[]>([])
 
   useLoad(() => {
     console.log('Understand game loaded.')
   })
 
+  const shuffleArray = <T,>(arr: T[]): T[] => {
+    const shuffled = [...arr]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled
+  }
+
   const handleSelectCategory = (category: QuestionCategory) => {
-    setSelectedCategory(category)
-    setCurrentQuestion(category.questions[0])
+    const shuffledQuestions = shuffleArray(category.questions)
+    setSelectedCategory({
+      ...category,
+      questions: shuffledQuestions,
+    })
+    setCurrentQuestion(shuffledQuestions[0])
     setQuestionIndex(0)
   }
 
@@ -135,6 +149,11 @@ const UnderstandPage: FC = () => {
   }
 
   const handleBack = () => {
+    if (selectedCategory) {
+      setCompletedCategoryIds(prev =>
+        prev.includes(selectedCategory.id) ? prev : [...prev, selectedCategory.id]
+      )
+    }
     setSelectedCategory(null)
     setCurrentQuestion('')
     setQuestionIndex(0)
@@ -177,7 +196,14 @@ const UnderstandPage: FC = () => {
                             </Text>
                           </View>
                         </View>
-                        <ChevronRight size={20} color="white" />
+                        <View className="flex flex-row items-center">
+                          {completedCategoryIds.includes(category.id) && (
+                            <View className="bg-white bg-opacity-30 rounded-full px-2 py-1 mr-2">
+                              <Text className="text-xs text-white">已聊</Text>
+                            </View>
+                          )}
+                          <ChevronRight size={20} color="white" />
+                        </View>
                       </View>
                     </View>
                   </View>
