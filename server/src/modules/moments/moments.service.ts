@@ -114,6 +114,13 @@ export class MomentsService {
       occupation: string
       hobbies: string
       personality: string
+      currentFocus: string
+      lifeStage: string
+      favoriteMusic: string
+      sportsPreferences: string
+      foodPreferences: string
+      travelPreferences: string
+      weekendPreferences: string
     } | null = null
     if (matchId) {
       objectInfo = await this.getMatchInfo(matchId, request)
@@ -260,6 +267,13 @@ export class MomentsService {
       occupation: string
       hobbies: string
       personality: string
+      currentFocus: string
+      lifeStage: string
+      favoriteMusic: string
+      sportsPreferences: string
+      foodPreferences: string
+      travelPreferences: string
+      weekendPreferences: string
     } | null = null
     if (matchId) {
       objectInfo = await this.getMatchInfo(matchId, request)
@@ -379,24 +393,41 @@ export class MomentsService {
       .single()
 
     const { data: dimensions } = await client
-      .from('match_dimensions')
-      .select('dimension_key, dimension_value')
+      .from('profile_dimension_values')
+      .select('dimension_key, value')
       .eq('match_id', matchId)
 
     const dimensionMap: Record<string, string> = {}
-    dimensions?.forEach((d: { dimension_key: string; dimension_value: string }) => {
-      dimensionMap[d.dimension_key] = d.dimension_value
+    dimensions?.forEach((d: { dimension_key: string; value: string }) => {
+      dimensionMap[d.dimension_key] = d.value
     })
 
     return {
       name: match?.name || '',
       gender: match?.gender || '',
-      relationshipType: dimensionMap['relationship_type'] || match?.relationship_type || 'both',
+      relationshipType: dimensionMap['relationshipGoal'] || match?.relationship_type || 'both',
       mbti: dimensionMap['mbti'] || '',
-      attachmentType: dimensionMap['attachment_type'] || '',
+      attachmentType: dimensionMap['attachmentStyle'] || '',
       occupation: dimensionMap['occupation'] || '',
       hobbies: dimensionMap['hobbies'] || '',
-      personality: dimensionMap['personality'] || '',
+      personality: [
+        dimensionMap['bigFive'] && `大五人格: ${dimensionMap['bigFive']}`,
+        dimensionMap['enneagram'] && `九型人格: ${dimensionMap['enneagram']}`,
+        dimensionMap['extroversionLevel'] && `外向性: ${dimensionMap['extroversionLevel']}`,
+        dimensionMap['emotionalStabilityLevel'] && `情绪稳定性: ${dimensionMap['emotionalStabilityLevel']}`,
+        dimensionMap['empathyLevel'] && `同理心: ${dimensionMap['empathyLevel']}`,
+        dimensionMap['communicationStyle'] && `沟通风格: ${dimensionMap['communicationStyle']}`,
+        dimensionMap['loveLanguage'] && `爱语: ${dimensionMap['loveLanguage']}`,
+        dimensionMap['stressResponse'] && `压力应对: ${dimensionMap['stressResponse']}`,
+      ].filter(Boolean).join('；') || '',
+      // 额外补充对发圈有价值的信息
+      currentFocus: dimensionMap['currentFocus'] || '',
+      lifeStage: dimensionMap['lifeStage'] || '',
+      favoriteMusic: dimensionMap['favoriteMusic'] || '',
+      sportsPreferences: dimensionMap['sportsPreferences'] || '',
+      foodPreferences: dimensionMap['foodPreferences'] || '',
+      travelPreferences: dimensionMap['travelPreferences'] || '',
+      weekendPreferences: dimensionMap['weekendPreferences'] || '',
     }
   }
 
@@ -512,9 +543,19 @@ ${PERSONA_TAGS.map(t => `- ${t.name}：${t.description}`).join('\n')}
     if (objectInfo) {
       userPrompt += `\n\n目标对象信息：`
       userPrompt += `\n- 姓名：${objectInfo.name}`
+      if (objectInfo.gender) userPrompt += `\n- 性别：${objectInfo.gender}`
       if (objectInfo.mbti) userPrompt += `\n- MBTI：${objectInfo.mbti}`
       if (objectInfo.hobbies) userPrompt += `\n- 兴趣爱好：${objectInfo.hobbies}`
       if (objectInfo.personality) userPrompt += `\n- 性格特点：${objectInfo.personality}`
+      if (objectInfo.occupation) userPrompt += `\n- 职业：${objectInfo.occupation}`
+      if (objectInfo.attachmentType) userPrompt += `\n- 依恋类型：${objectInfo.attachmentType}`
+      if (objectInfo.currentFocus) userPrompt += `\n- 当前关注：${objectInfo.currentFocus}`
+      if (objectInfo.lifeStage) userPrompt += `\n- 人生阶段：${objectInfo.lifeStage}`
+      if (objectInfo.favoriteMusic) userPrompt += `\n- 音乐偏好：${objectInfo.favoriteMusic}`
+      if (objectInfo.sportsPreferences) userPrompt += `\n- 运动偏好：${objectInfo.sportsPreferences}`
+      if (objectInfo.foodPreferences) userPrompt += `\n- 美食偏好：${objectInfo.foodPreferences}`
+      if (objectInfo.travelPreferences) userPrompt += `\n- 旅行偏好：${objectInfo.travelPreferences}`
+      if (objectInfo.weekendPreferences) userPrompt += `\n- 周末偏好：${objectInfo.weekendPreferences}`
     }
 
     try {
@@ -650,8 +691,19 @@ INFJ特别注意：
       if (objectInfo) {
         textContent += `\n\n已知对象信息：`
         textContent += `\n- 姓名：${objectInfo.name}`
+        if (objectInfo.gender) textContent += `\n- 性别：${objectInfo.gender}`
         if (objectInfo.mbti) textContent += `\n- MBTI：${objectInfo.mbti}`
         if (objectInfo.hobbies) textContent += `\n- 兴趣爱好：${objectInfo.hobbies}`
+        if (objectInfo.personality) textContent += `\n- 性格特点：${objectInfo.personality}`
+        if (objectInfo.occupation) textContent += `\n- 职业：${objectInfo.occupation}`
+        if (objectInfo.attachmentType) textContent += `\n- 依恋类型：${objectInfo.attachmentType}`
+        if (objectInfo.currentFocus) textContent += `\n- 当前关注：${objectInfo.currentFocus}`
+        if (objectInfo.lifeStage) textContent += `\n- 人生阶段：${objectInfo.lifeStage}`
+        if (objectInfo.favoriteMusic) textContent += `\n- 音乐偏好：${objectInfo.favoriteMusic}`
+        if (objectInfo.sportsPreferences) textContent += `\n- 运动偏好：${objectInfo.sportsPreferences}`
+        if (objectInfo.foodPreferences) textContent += `\n- 美食偏好：${objectInfo.foodPreferences}`
+        if (objectInfo.travelPreferences) textContent += `\n- 旅行偏好：${objectInfo.travelPreferences}`
+        if (objectInfo.weekendPreferences) textContent += `\n- 周末偏好：${objectInfo.weekendPreferences}`
       }
 
       // 添加用户性格信息（用于个性化建议风格）
