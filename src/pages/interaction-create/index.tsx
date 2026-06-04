@@ -74,15 +74,45 @@ const DURATION_OPTIONS = [
 
 // 活动 tag 预设
 const ACTIVITY_PRESETS: Record<InteractionType, string[]> = {
-  date: ['吃饭', '看电影', '散步', '喝咖啡', '逛街', '旅行'],
-  chat: ['日常闲聊', '深入话题', '暧昧调情', '倾诉心事'],
-  call: ['晚安电话', '通勤聊天', '深夜长谈'],
-  video: ['视频约会', '一起看电影', '远程陪伴'],
-  message: ['早晚问候', '分享日常', '表情包互动'],
-  gift: ['鲜花', '零食', '饰品', '惊喜快递'],
-  physical: ['牵手', '拥抱', '亲吻'],
-  social: ['朋友聚会', '双人约会', '家庭见面'],
-  other: [],
+  date: [
+    '吃饭', '看电影', '散步', '喝咖啡', '逛街', '旅行',
+    '看展', '游乐园', '露营', '唱K', '做饭', '泡温泉',
+    '看演出', '逛市集', '密室逃脱', '桌游', '自驾游',
+  ],
+  chat: [
+    '日常闲聊', '深入话题', '暧昧调情', '倾诉心事',
+    '分享趣事', '讨论计划', '回忆往事', '谈心',
+    '聊梦想', '聊烦恼', '聊童年', '聊未来',
+  ],
+  call: [
+    '晚安电话', '通勤聊天', '深夜长谈',
+    '早安电话', '午休闲聊', '加班陪伴', '睡前故事',
+  ],
+  video: [
+    '视频约会', '一起看电影', '远程陪伴',
+    '视频做饭', '云逛街', '连麦学习', '一起打游戏',
+  ],
+  message: [
+    '早晚问候', '分享日常', '表情包互动',
+    '发红包', '分享音乐', '分享文章', '语音条',
+    '位置共享', '拍一拍', '猜谜语',
+  ],
+  gift: [
+    '鲜花', '零食', '饰品', '惊喜快递',
+    '手工礼物', '数码产品', '书籍', '护肤品',
+    '衣服', '蛋糕', '公仔', '红包',
+  ],
+  physical: [
+    '牵手', '拥抱', '亲吻',
+    '靠肩', '摸头', '背抱', '依偎',
+    '挽臂', '十指紧扣', '额头吻',
+  ],
+  social: [
+    '朋友聚会', '双人约会', '家庭见面',
+    '同学会', '同事聚餐', '生日会',
+    '户外活动', '唱K聚会', '旅行团建',
+  ],
+  other: ['其他'],
 }
 
 // 聊天记录卡片类型
@@ -125,6 +155,8 @@ export default function InteractionCreatePage() {
 
   // 活动标签
   const [activities, setActivities] = useState<string[]>([])
+  const [customActivity, setCustomActivity] = useState('')
+  const [showCustomActivityInput, setShowCustomActivityInput] = useState(false)
 
   // 聊天记录相关状态
   const [chatRecords, setChatRecords] = useState<ChatRecordCard[]>([])
@@ -618,7 +650,44 @@ export default function InteractionCreatePage() {
                       </View>
                     )
                   })}
+                  {/* 自定义标签按钮 */}
+                  <View
+                    className="px-3 py-2 rounded-full border border-dashed border-gray-300 bg-gray-50"
+                    onClick={() => setShowCustomActivityInput(!showCustomActivityInput)}
+                  >
+                    <Text className="block text-xs text-gray-400">+ 自定义</Text>
+                  </View>
                 </View>
+                {/* 自定义标签输入框 */}
+                {showCustomActivityInput && (
+                  <View style={{ marginLeft: '52px', marginTop: '8px' }} className="flex flex-row gap-2">
+                    <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                      <Input
+                        style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
+                        placeholder="输入自定义活动..."
+                        value={customActivity}
+                        onInput={e => setCustomActivity(e.detail.value)}
+                        onConfirm={() => {
+                          if (customActivity.trim() && !activities.includes(customActivity.trim())) {
+                            setActivities([...activities, customActivity.trim()])
+                            setCustomActivity('')
+                          }
+                        }}
+                      />
+                    </View>
+                    <View
+                      className="px-4 py-2 bg-gray-900 rounded-lg"
+                      onClick={() => {
+                        if (customActivity.trim() && !activities.includes(customActivity.trim())) {
+                          setActivities([...activities, customActivity.trim()])
+                          setCustomActivity('')
+                        }
+                      }}
+                    >
+                      <Text className="block text-xs text-white">添加</Text>
+                    </View>
+                  </View>
+                )}
               </View>
             )}
 

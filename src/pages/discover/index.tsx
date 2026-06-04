@@ -1,7 +1,7 @@
 import { View, Text } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Moon, MessageCircle, Theater, Zap, BookOpen, Smartphone, Heart, Gamepad2, TrendingUp } from 'lucide-react-taro'
+import { Moon, MessageCircle, Theater, Zap, BookOpen, Smartphone, Heart, Gamepad2, TrendingUp, MessageSquareText, CalendarHeart, Flame } from 'lucide-react-taro'
 
 interface KnowledgeCategory {
   id: string
@@ -94,6 +94,33 @@ const categories: KnowledgeCategory[] = [
     pagePath: '/pages/grow/index',
     bgColor: 'bg-white border border-gray-200',
     iconBg: 'bg-emerald-50',
+  },
+  {
+    id: 'chat-review',
+    title: '聊天复盘',
+    subtitle: 'AI分析对话，洞察对方心意',
+    icon: MessageSquareText,
+    pagePath: '/pages/chat-review/index',
+    bgColor: 'bg-white border border-gray-200',
+    iconBg: 'bg-blue-50',
+  },
+  {
+    id: 'date-plan',
+    title: '约会计划',
+    subtitle: 'AI定制专属约会方案',
+    icon: CalendarHeart,
+    pagePath: '/pages/date-plan/index',
+    bgColor: 'bg-white border border-gray-200',
+    iconBg: 'bg-pink-50',
+  },
+  {
+    id: 'sweet-talk',
+    title: '情话生成器',
+    subtitle: '自然不油腻，让对方心动',
+    icon: Flame,
+    pagePath: '/pages/sweet-talk/index',
+    bgColor: 'bg-white border border-gray-200',
+    iconBg: 'bg-orange-50',
   },
 ]
 

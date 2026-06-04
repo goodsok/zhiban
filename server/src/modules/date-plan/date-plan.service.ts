@@ -191,7 +191,7 @@ ${preferenceContext}
   async getPlans(matchId?: number) {
     let query = getSupabaseClient()
       .from('date_plans')
-      .select('*, matches(name)')
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(20)
 
@@ -206,13 +206,26 @@ ${preferenceContext}
       return { code: 500, data: null, message: error.message }
     }
 
+    // 批量获取对象名称
+    const matchIds = [...new Set((data || []).map((p: Record<string, unknown>) => p.match_id as number))]
+    const matchNameMap: Record<number, string> = {}
+    if (matchIds.length > 0) {
+      const { data: matches } = await getSupabaseClient()
+        .from('matches')
+        .select('id, name')
+        .in('id', matchIds)
+      ;(matches || []).forEach((m: { id: number; name: string }) => {
+        matchNameMap[m.id] = m.name
+      })
+    }
+
     return {
       code: 200,
       data: {
         list: data?.map((plan: Record<string, unknown>) => ({
           id: plan.id,
           matchId: plan.match_id,
-          matchName: (plan.matches as Record<string, string>)?.name || '未知',
+          matchName: matchNameMap[plan.match_id as number] || '未知',
           title: plan.title,
           description: plan.description,
           totalBudget: plan.total_budget,

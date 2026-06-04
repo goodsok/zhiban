@@ -46,6 +46,9 @@ export default defineAppConfig({
     'pages/game-breath/index',
     'pages/grow/index',
     'pages/cycle/index',
+    'pages/chat-review/index',
+    'pages/date-plan/index',
+    'pages/sweet-talk/index',
   ],
   window: {
     backgroundTextStyle: 'light',

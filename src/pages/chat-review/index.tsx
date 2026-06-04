@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ChevronRight, MessageSquare, TrendingUp, Heart, Zap, Clock, BarChart3, LoaderCircle } from 'lucide-react-taro'
+import { ChevronRight, MessageSquare, TrendingUp, Heart, Zap, Clock, SquareChartGantt, LoaderCircle } from 'lucide-react-taro'
 
 // 对象信息
 interface MatchItem {
@@ -55,7 +55,7 @@ const levelConfig: Record<string, { color: string; label: string }> = {
 // 情绪趋势颜色
 const trendConfig: Record<string, { color: string; icon: typeof TrendingUp }> = {
   '升温中': { color: 'text-emerald-600', icon: TrendingUp },
-  '稳定': { color: 'text-gray-600', icon: BarChart3 },
+  '稳定': { color: 'text-gray-600', icon: SquareChartGantt },
   '降温中': { color: 'text-red-500', icon: TrendingUp },
 }
 
