@@ -27,6 +27,13 @@ export interface BehaviorTag {
 /**
  * 行为模块 — 一个可读的行为侧写区域
  */
+export interface BehaviorSuggestion {
+  /** 场景（如"争论时"、"想升温关系时"） */
+  scenario: string
+  /** 具体应对建议（1-2句，可操作） */
+  advice: string
+}
+
 export interface BehaviorSection {
   /** 模块标题 */
   title: string
@@ -34,6 +41,8 @@ export interface BehaviorSection {
   description: string
   /** 关键行为标签（3-5个，从维度数据提取） */
   tags: BehaviorTag[]
+  /** 应对建议（2-3条，场景化可操作建议） */
+  suggestions: BehaviorSuggestion[]
 }
 
 /**
@@ -194,7 +203,7 @@ export class InteractionProfileAnalyzer {
   private async analyzeWithLLM(dimensions: AggregatedDimension[], request: Request): Promise<InteractionProfileResult> {
     const dimensionText = this.formatDimensionsForPrompt(dimensions)
 
-    const systemPrompt = `你是一位关系行为分析师。你的任务是将维度数据合成为7个模块的"相处模式"画像。
+    const systemPrompt = `你是一位关系行为分析师。你的任务是将维度数据合成为7个模块的"相处模式"画像，并为每个模块提供场景化的应对建议。
 
 核心原则：
 1. **说人话**：不要说"沟通偏好=文字"，要说"更习惯用文字表达情感，电话里可能反而话少"
@@ -203,43 +212,51 @@ export class InteractionProfileAnalyzer {
 4. **标签要精炼**：每个模块3-5个标签，每个4-8字
 5. **标签要可感**：不要"社交活跃度高"，要"朋友多但圈层分明"
 6. **区分数据来源**：AI分析的维度可能不准，手动填写的更可靠，描述时要有分寸
+7. **应对建议要具体可操作**：不要"多沟通"，要"争论时给她半天空间再回来说"；不要"注意边界"，要"确定关系前不要主动问过去感情细节"
 
 你必须严格返回以下JSON格式（不要加任何markdown标记）：
 {
   "communicationRhythm": {
     "title": "沟通节奏",
     "description": "1-3句自然语言，合成维度：响应速度、沟通偏好、线上/线下沟通风格、活跃时段、幽默感等。要具体到'他/她习惯怎么沟通'",
-    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}],
+    "suggestions": [{"scenario": "如'想聊重要话题时'", "advice": "1-2句具体操作建议"}, {"scenario": "另一个场景", "advice": "具体建议"}, {"scenario": "第三个场景", "advice": "具体建议"}]
   },
   "emotionalExpression": {
     "title": "情感表达",
     "description": "1-3句自然语言，合成维度：情绪表达方式、共情能力、亲密需求、爱语、情绪稳定性等。要具体到'他/她怎么表达感情'",
-    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}],
+    "suggestions": [{"scenario": "如'想表达关心时'", "advice": "1-2句具体操作建议"}, {"scenario": "另一个场景", "advice": "具体建议"}, {"scenario": "第三个场景", "advice": "具体建议"}]
   },
   "conflictPattern": {
     "title": "冲突模式",
     "description": "1-3句自然语言，合成维度：冲突处理风格、压力反应、承诺态度、吃醋程度等。要具体到'遇到矛盾时他/她会怎么做'",
-    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}],
+    "suggestions": [{"scenario": "如'发生争执时'", "advice": "1-2句具体操作建议"}, {"scenario": "另一个场景", "advice": "具体建议"}, {"scenario": "第三个场景", "advice": "具体建议"}]
   },
   "socialPortrait": {
     "title": "社交画像",
     "description": "1-3句自然语言，合成维度：社交活跃度、社交圈特点、独处偏好、社交能耗等。要具体到'他/她在社交中是什么样的'",
-    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}],
+    "suggestions": [{"scenario": "如'参加他/她的社交活动时'", "advice": "1-2句具体操作建议"}, {"scenario": "另一个场景", "advice": "具体建议"}, {"scenario": "第三个场景", "advice": "具体建议"}]
   },
   "lifeRhythm": {
     "title": "生活节奏",
     "description": "1-3句自然语言，合成维度：作息规律、兴趣偏好、消费习惯、生活态度、饮食偏好、运动习惯等。要具体到'他/她日常怎么过日子'",
-    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}],
+    "suggestions": [{"scenario": "如'约他/她出去时'", "advice": "1-2句具体操作建议"}, {"scenario": "另一个场景", "advice": "具体建议"}, {"scenario": "第三个场景", "advice": "具体建议"}]
   },
   "loveStyle": {
     "title": "恋爱风格",
     "description": "1-3句自然语言，合成维度：恋爱模式、约会偏好、承诺准备、关系期望、依恋类型、恋爱价值观等。要具体到'他/她谈恋爱是什么风格'",
-    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}],
+    "suggestions": [{"scenario": "如'想推进关系时'", "advice": "1-2句具体操作建议"}, {"scenario": "另一个场景", "advice": "具体建议"}, {"scenario": "第三个场景", "advice": "具体建议"}]
   },
   "intimacyBoundary": {
     "title": "亲密边界",
     "description": "1-3句自然语言，合成维度：身体接触偏好、隐私边界、情感投入节奏、依赖程度、性亲密态度等。要具体到'他/她对于亲密关系有什么边界和节奏'",
-    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}],
+    "suggestions": [{"scenario": "如'想拉近身体距离时'", "advice": "1-2句具体操作建议"}, {"scenario": "另一个场景", "advice": "具体建议"}, {"scenario": "第三个场景", "advice": "具体建议"}]
   }
 }`
 
@@ -316,6 +333,13 @@ ${dimensionText}
 
   private normalizeSection(raw: any, defaultTitle: string): BehaviorSection {
     if (!raw || typeof raw !== 'object') return this.emptySection(defaultTitle)
+    const suggestions = (raw.suggestions || raw.tips || []).map((s: any) => {
+      if (typeof s === 'string') return { scenario: '', advice: s }
+      return {
+        scenario: s.scenario || s.situation || s.scene || '',
+        advice: s.advice || s.tip || s.suggestion || '',
+      }
+    }).filter((s: any) => s.advice)
     return {
       title: raw.title || defaultTitle,
       description: raw.description || raw.summary || '',
@@ -323,11 +347,12 @@ ${dimensionText}
         label: t.label || t.text || String(t),
         dimensionKey: t.dimensionKey || t.dimension_key || t.key || '',
       })),
+      suggestions,
     }
   }
 
   private emptySection(title: string): BehaviorSection {
-    return { title, description: '暂无足够数据', tags: [] }
+    return { title, description: '暂无足够数据', tags: [], suggestions: [] }
   }
 
   // ==================== 降级结果 ====================
@@ -356,36 +381,43 @@ ${dimensionText}
         title: '沟通节奏',
         description: mkDesc('沟通偏好', [['communication_preference']], '请补充更多沟通相关维度获得完整分析。'),
         tags: tag(find(['communication_preference', 'response_speed'])),
+        suggestions: [],
       },
       emotionalExpression: {
         title: '情感表达',
         description: mkDesc('情感表达方式', [['emotional_expression']], '请补充更多情感相关维度获得完整分析。'),
         tags: tag(find(['emotional_expression', 'empathy_ability'])),
+        suggestions: [],
       },
       conflictPattern: {
         title: '冲突模式',
         description: mkDesc('冲突处理倾向', [['conflict_handling']], '请补充更多冲突相关维度获得完整分析。'),
         tags: tag(find(['conflict_handling', 'stress_response'])),
+        suggestions: [],
       },
       socialPortrait: {
         title: '社交画像',
         description: mkDesc('社交活跃度', [['social_activity_level']], '请补充更多社交相关维度获得完整分析。'),
         tags: tag(find(['social_activity_level', 'social_circle_type'])),
+        suggestions: [],
       },
       lifeRhythm: {
         title: '生活节奏',
         description: mkDesc('生活态度', [['life_attitude_general']], '请补充更多生活相关维度获得完整分析。'),
         tags: tag(find(['life_attitude_general', 'exercise_habits'])),
+        suggestions: [],
       },
       loveStyle: {
         title: '恋爱风格',
         description: mkDesc('恋爱模式', [['love_pattern']], '请补充更多恋爱相关维度获得完整分析。'),
         tags: tag(find(['love_pattern', 'attachment_style'])),
+        suggestions: [],
       },
       intimacyBoundary: {
         title: '亲密边界',
         description: mkDesc('亲密需求', [['intimacy_needs']], '请补充更多亲密相关维度获得完整分析。'),
         tags: tag(find(['intimacy_needs', 'physical_touch_preference'])),
+        suggestions: [],
       },
     }
   }
@@ -395,6 +427,7 @@ ${dimensionText}
       title,
       description: '维度数据不足，无法生成相处模式分析。请先填写更多维度信息。',
       tags: [],
+      suggestions: [],
     })
 
     return {

@@ -23,11 +23,18 @@ interface BehaviorTag {
   dimensionKey: string
 }
 
+/** 应对建议 */
+interface BehaviorSuggestion {
+  scenario: string
+  advice: string
+}
+
 /** 行为模块 */
 interface BehaviorSection {
   title: string
   description: string
   tags: BehaviorTag[]
+  suggestions: BehaviorSuggestion[]
 }
 
 /** 相处模式数据 */
@@ -235,6 +242,35 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
                     </Text>
                   </View>
                 ))}
+              </View>
+            )}
+
+            {/* 应对建议 */}
+            {section.suggestions && section.suggestions.length > 0 && (
+              <View className="px-3 pb-3 mt-1">
+                <View className="rounded-lg p-3" style={{ backgroundColor: config.tag }}>
+                  <Text className="block text-xs font-medium mb-2" style={{ color: config.accent }}>
+                    如何应对
+                  </Text>
+                  {section.suggestions.map((sug, idx) => (
+                    <View key={idx} className="mb-2 last:mb-0">
+                      {sug.scenario ? (
+                        <View>
+                          <Text className="block text-xs font-medium" style={{ color: config.accent }}>
+                            {sug.scenario}
+                          </Text>
+                          <Text className="block text-xs mt-1 leading-relaxed" style={{ color: '#555' }}>
+                            {sug.advice}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text className="block text-xs leading-relaxed" style={{ color: '#555' }}>
+                          {sug.advice}
+                        </Text>
+                      )}
+                    </View>
+                  ))}
+                </View>
               </View>
             )}
           </View>
