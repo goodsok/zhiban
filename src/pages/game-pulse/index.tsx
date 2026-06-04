@@ -86,7 +86,7 @@ const proximityChallenges: ProximityChallenge[] = [
 ]
 
 const PulsePage: FC = () => {
-  const [step, setStep] = useState<'intro' | 'measure' | 'counting' | 'input' | 'result' | 'summary'>('intro')
+  const [step, setStep] = useState<'intro' | 'invite' | 'measure' | 'counting' | 'input' | 'result' | 'summary'>('intro')
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0)
   const [countdown, setCountdown] = useState(0)
   const [personABeats, setPersonABeats] = useState('')
@@ -289,13 +289,53 @@ const PulsePage: FC = () => {
 
             <Button
               className="bg-gradient-to-r from-red-400 to-rose-500 text-white rounded-xl py-3 w-full"
-              onClick={() => setStep('measure')}
+              onClick={() => setStep('invite')}
             >
               <View className="flex flex-row items-center justify-center">
                 <HeartPulse size={18} color="white" />
-                <Text className="text-white ml-2 font-medium">开始测量</Text>
+                <Text className="text-white ml-2 font-medium">邀请TA一起玩</Text>
               </View>
             </Button>
+          </View>
+        )}
+
+        {/* 邀请话术 */}
+        {step === 'invite' && (
+          <View className="flex flex-col items-center">
+            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-100 to-red-100 flex items-center justify-center mb-4">
+              <Sparkles size={32} color="#e11d48" />
+            </View>
+            <Text className="block text-lg font-bold text-gray-900 mb-2">把手机递给TA</Text>
+            <Text className="block text-sm text-gray-500 mb-6 text-center leading-relaxed">
+              让TA看到这段话，如果愿意就点「好呀」
+            </Text>
+
+            <Card className="mb-6 w-full bg-gradient-to-br from-rose-50 to-red-50 border-rose-100">
+              <CardContent className="py-5">
+                <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
+                  "你知道吗？{'\n'}靠近喜欢的人时，{'\n'}心跳会不自觉地加速。{'\n'}{'\n'}我们来验证一下？{'\n'}你摸我的脉搏，我摸你的，{'\n'}看看谁先'露馅'。{'\n'}{'\n'}敢试试吗？"
+                </Text>
+              </CardContent>
+            </Card>
+
+            <View className="w-full space-y-3">
+              <Button
+                className="bg-gradient-to-r from-red-400 to-rose-500 text-white rounded-xl py-3 w-full"
+                onClick={() => setStep('measure')}
+              >
+                <View className="flex flex-row items-center justify-center">
+                  <HeartPulse size={18} color="white" />
+                  <Text className="text-white ml-2 font-medium">好呀，开始吧</Text>
+                </View>
+              </Button>
+              <Button
+                variant="ghost"
+                className="rounded-xl py-2 w-full"
+                onClick={() => setStep('intro')}
+              >
+                <Text className="text-gray-400 text-sm">返回</Text>
+              </Button>
+            </View>
           </View>
         )}
 

@@ -54,7 +54,7 @@ const actionSets: MirrorAction[][] = [
 ]
 
 const MirrorPage: FC = () => {
-  const [step, setStep] = useState<'intro' | 'playing' | 'scoring' | 'result'>('intro')
+  const [step, setStep] = useState<'intro' | 'invite' | 'playing' | 'scoring' | 'result'>('intro')
   const [currentRound, setCurrentRound] = useState(0) // 0-3
   const [currentActionIndex, setCurrentActionIndex] = useState(0)
   const [isLeaderA, setIsLeaderA] = useState(true) // A是领动者
@@ -78,6 +78,10 @@ const MirrorPage: FC = () => {
   }
 
   const handleStart = () => {
+    setStep('invite')
+  }
+
+  const handleInviteConfirm = () => {
     setStep('playing')
     setActionTimer(10)
   }
@@ -266,9 +270,49 @@ const MirrorPage: FC = () => {
             >
               <View className="flex flex-row items-center justify-center">
                 <Sparkles size={18} color="white" />
-                <Text className="text-white ml-2 font-medium">开始镜像</Text>
+                <Text className="text-white ml-2 font-medium">邀请TA一起玩</Text>
               </View>
             </Button>
+          </View>
+        )}
+
+        {/* 邀请话术 */}
+        {step === 'invite' && (
+          <View className="flex flex-col items-center">
+            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center mb-4">
+              <Sparkles size={32} color="#7c3aed" />
+            </View>
+            <Text className="block text-lg font-bold text-gray-900 mb-2">把手机递给TA</Text>
+            <Text className="block text-sm text-gray-500 mb-6 text-center leading-relaxed">
+              让TA看到这段话，如果愿意就点「好呀」
+            </Text>
+
+            <Card className="mb-6 w-full bg-gradient-to-br from-violet-50 to-purple-50 border-violet-100">
+              <CardContent className="py-5">
+                <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
+                  "我们来玩镜像游戏吧！{'\n'}你做什么我就跟着做，{'\n'}我做什么你也跟着做。{'\n'}{'\n'}必须一直看着对方的眼睛哦，{'\n'}看谁先笑出来。{'\n'}{'\n'}敢不敢？"
+                </Text>
+              </CardContent>
+            </Card>
+
+            <View className="w-full space-y-3">
+              <Button
+                className="bg-gradient-to-r from-violet-400 to-purple-500 text-white rounded-xl py-3 w-full"
+                onClick={handleInviteConfirm}
+              >
+                <View className="flex flex-row items-center justify-center">
+                  <Sparkles size={18} color="white" />
+                  <Text className="text-white ml-2 font-medium">好呀，开始吧</Text>
+                </View>
+              </Button>
+              <Button
+                variant="ghost"
+                className="rounded-xl py-2 w-full"
+                onClick={() => setStep('intro')}
+              >
+                <Text className="text-gray-400 text-sm">返回</Text>
+              </Button>
+            </View>
           </View>
         )}
 

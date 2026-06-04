@@ -1,5 +1,5 @@
-import { View, Text } from '@tarojs/components'
-import Taro, { useLoad, useRouter } from '@tarojs/taro'
+import { View, Text, ScrollView } from '@tarojs/components'
+import Taro, { useLoad, useRouter, useDidShow } from '@tarojs/taro'
 import { useState, useCallback } from 'react'
 import { Network } from '@/network'
 import { Button } from '@/components/ui/button'
@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import CustomHeader from '@/components/custom-header'
 import { 
   Plus, Calendar, MessageCircle, Phone, Video, Gift, Heart, Users, 
-  Clock, MapPin, Sparkles, ChevronRight, TrendingUp
+  Clock, MapPin, Sparkles, ChevronRight, TrendingUp, Image
 } from 'lucide-react-taro'
 
 // 互动类型
@@ -18,15 +18,18 @@ interface InteractionEvent {
   id: number
   matchId: number
   interactionType: InteractionType
+  interactionCategory: string | null
   startedAt: string | null
   durationMinutes: number | null
   initiator: string | null
   location: string | null
   title: string | null
   description: string | null
+  activities: string[]
   mood: string | null
   energyChange: number
   breakthroughMoment: string | null
+  chatRecordIds: number[]
   createdAt: string
 }
 
@@ -42,17 +45,16 @@ const INTERACTION_TYPE_CONFIG: Record<InteractionType, {
   label: string
   icon: typeof Calendar
   color: string
-  bgColor: string
 }> = {
-  date: { label: '约会', icon: Calendar, color: '#EC4899', bgColor: 'bg-pink-500' },
-  chat: { label: '聊天', icon: MessageCircle, color: '#3B82F6', bgColor: 'bg-blue-500' },
-  call: { label: '通话', icon: Phone, color: '#10B981', bgColor: 'bg-emerald-500' },
-  video: { label: '视频', icon: Video, color: '#8B5CF6', bgColor: 'bg-violet-500' },
-  message: { label: '消息', icon: MessageCircle, color: '#F59E0B', bgColor: 'bg-amber-500' },
-  gift: { label: '礼物', icon: Gift, color: '#EF4444', bgColor: 'bg-red-500' },
-  physical: { label: '亲密', icon: Heart, color: '#EC4899', bgColor: 'bg-rose-500' },
-  social: { label: '社交', icon: Users, color: '#06B6D4', bgColor: 'bg-cyan-500' },
-  other: { label: '其他', icon: Calendar, color: '#6B7280', bgColor: 'bg-gray-500' },
+  date: { label: '约会', icon: Calendar, color: '#EC4899' },
+  chat: { label: '聊天', icon: MessageCircle, color: '#3B82F6' },
+  call: { label: '通话', icon: Phone, color: '#10B981' },
+  video: { label: '视频', icon: Video, color: '#8B5CF6' },
+  message: { label: '消息', icon: MessageCircle, color: '#F59E0B' },
+  gift: { label: '礼物', icon: Gift, color: '#EF4444' },
+  physical: { label: '亲密', icon: Heart, color: '#EC4899' },
+  social: { label: '社交', icon: Users, color: '#06B6D4' },
+  other: { label: '其他', icon: Calendar, color: '#6B7280' },
 }
 
 // 心情配置
@@ -79,7 +81,6 @@ export default function InteractionsPage() {
 
     setLoading(true)
     try {
-      // 并行加载互动列表和能量数据
       const [eventsRes, energyRes] = await Promise.all([
         Network.request({ url: `/api/interaction/match/${matchId}` }),
         Network.request({ url: `/api/interaction/match/${matchId}/energy` }),
@@ -88,11 +89,11 @@ export default function InteractionsPage() {
       console.log('Load interactions response:', eventsRes.data)
       console.log('Load energy response:', energyRes.data)
 
-      if (eventsRes.data.code === 200) {
-        setEvents(eventsRes.data.data.list || [])
+      if (eventsRes.data?.code === 200) {
+        setEvents(eventsRes.data.data?.list || [])
       }
       
-      if (energyRes.data.code === 200) {
+      if (energyRes.data?.code === 200) {
         setEnergy(energyRes.data.data)
       }
     } catch (error) {
@@ -104,6 +105,13 @@ export default function InteractionsPage() {
 
   useLoad(() => {
     loadData()
+  })
+
+  // 从创建页返回时刷新列表
+  useDidShow(() => {
+    if (events.length > 0 || !loading) {
+      loadData()
+    }
   })
 
   // 过滤事件
@@ -165,11 +173,12 @@ export default function InteractionsPage() {
       {energy && (
         <View className="mx-4 mt-4 mb-3">
           <View 
-            className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-4 border border-amber-100"
+            className="rounded-2xl p-4 border border-amber-100"
+            style={{ background: 'linear-gradient(to right, #FFFBEB, #FFF7ED)' }}
           >
             <View className="flex items-center justify-between mb-3">
               <View className="flex items-center gap-2">
-                <View className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                <View className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FEF3C7' }}>
                   <Sparkles size={16} color="#F59E0B" />
                 </View>
                 <Text className="block text-sm font-medium text-gray-900">关系能量</Text>
@@ -197,32 +206,32 @@ export default function InteractionsPage() {
         </View>
       )}
 
-      {/* 类型筛选 - 横向滚动 */}
+      {/* 类型筛选 - ScrollView 横向滚动 */}
       <View className="bg-white border-b border-gray-100">
-        <View className="flex flex-row px-4 py-3 gap-2" style={{ overflowX: 'scroll' }}>
+        <ScrollView scrollX className="flex flex-row px-4 py-3 gap-2" style={{ whiteSpace: 'nowrap' }}>
           <View
-            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm ${
-              activeType === 'all' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'
-            }`}
+            className="flex-shrink-0 px-4 py-2 rounded-full"
+            style={{ 
+              backgroundColor: activeType === 'all' ? '#1f2937' : '#f3f4f6',
+            }}
             onClick={() => setActiveType('all')}
           >
-            <Text className="block">全部</Text>
+            <Text className="block text-sm" style={{ color: activeType === 'all' ? '#fff' : '#4b5563' }}>全部</Text>
           </View>
           {Object.entries(INTERACTION_TYPE_CONFIG).map(([type, config]) => {
             const isActive = activeType === type
             return (
               <View
                 key={type}
-                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm ${
-                  isActive ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'
-                }`}
+                className="flex-shrink-0 px-4 py-2 rounded-full"
+                style={{ backgroundColor: isActive ? '#1f2937' : '#f3f4f6' }}
                 onClick={() => setActiveType(type as InteractionType)}
               >
-                <Text className="block">{config.label}</Text>
+                <Text className="block text-sm" style={{ color: isActive ? '#fff' : '#4b5563' }}>{config.label}</Text>
               </View>
             )
           })}
-        </View>
+        </ScrollView>
       </View>
 
       {/* 互动列表 */}
@@ -251,7 +260,7 @@ export default function InteractionsPage() {
 
               {/* 该日期的事件列表 */}
               {dateEvents.map(event => {
-                const typeConfig = INTERACTION_TYPE_CONFIG[event.interactionType]
+                const typeConfig = INTERACTION_TYPE_CONFIG[event.interactionType] || INTERACTION_TYPE_CONFIG.other
                 const moodConfig = event.mood ? MOOD_CONFIG[event.mood] : null
                 const IconComponent = typeConfig.icon
 
@@ -295,41 +304,58 @@ export default function InteractionsPage() {
 
                           {/* 元信息 */}
                           <View className="flex flex-row flex-wrap gap-3 mb-2">
-                            {event.durationMinutes && (
+                            {event.durationMinutes ? (
                               <View className="flex items-center gap-1">
                                 <Clock size={12} color="#9CA3AF" />
                                 <Text className="block text-xs text-gray-500">{formatDuration(event.durationMinutes)}</Text>
                               </View>
-                            )}
-                            {event.location && (
+                            ) : null}
+                            {event.location ? (
                               <View className="flex items-center gap-1">
                                 <MapPin size={12} color="#9CA3AF" />
                                 <Text className="block text-xs text-gray-500">{event.location}</Text>
                               </View>
-                            )}
-                            {moodConfig && (
+                            ) : null}
+                            {moodConfig ? (
                               <View className="flex items-center gap-1">
                                 <Text className="block text-xs">{moodConfig.emoji}</Text>
                                 <Text className="block text-xs text-gray-500">{moodConfig.label}</Text>
                               </View>
-                            )}
+                            ) : null}
+                            {event.chatRecordIds && event.chatRecordIds.length > 0 ? (
+                              <View className="flex items-center gap-1">
+                                <Image size={12} color="#9CA3AF" />
+                                <Text className="block text-xs text-gray-500">{event.chatRecordIds.length}条聊天记录</Text>
+                              </View>
+                            ) : null}
                           </View>
+
+                          {/* 活动标签 */}
+                          {event.activities && event.activities.length > 0 && (
+                            <View className="flex flex-row flex-wrap gap-1 mb-2">
+                              {event.activities.map((activity, idx) => (
+                                <View key={idx} className="px-2 py-1 rounded-full" style={{ backgroundColor: '#f3f4f6' }}>
+                                  <Text className="block text-xs text-gray-600">{activity}</Text>
+                                </View>
+                              ))}
+                            </View>
+                          )}
 
                           {/* 底部：能量 + 突破 */}
                           <View className="flex items-center justify-between pt-2 border-t border-gray-50">
                             <View className="flex items-center gap-2">
-                              {event.energyChange > 0 && (
-                                <View className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-full">
+                              {event.energyChange > 0 ? (
+                                <View className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ backgroundColor: '#FFFBEB' }}>
                                   <Sparkles size={10} color="#F59E0B" />
                                   <Text className="block text-xs text-amber-600">+{event.energyChange.toFixed(0)}</Text>
                                 </View>
-                              )}
-                              {event.breakthroughMoment && (
-                                <View className="flex items-center gap-1 px-2 py-1 bg-rose-50 rounded-full">
+                              ) : null}
+                              {event.breakthroughMoment ? (
+                                <View className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ backgroundColor: '#FFF1F2' }}>
                                   <Heart size={10} color="#EC4899" />
                                   <Text className="block text-xs text-rose-600">突破</Text>
                                 </View>
-                              )}
+                              ) : null}
                             </View>
                             <ChevronRight size={16} color="#D1D5DB" />
                           </View>
@@ -344,13 +370,16 @@ export default function InteractionsPage() {
         )}
       </View>
 
-      {/* 底部浮动按钮 */}
+      {/* 底部浮动按钮 - 避开 TabBar */}
       <View 
-        className="fixed bottom-6 left-4 right-4"
-        style={{ position: 'fixed', bottom: 24, left: 16, right: 16 }}
+        style={{
+          position: 'fixed', bottom: 60, left: 16, right: 16,
+          zIndex: 100
+        }}
       >
         <Button
-          className="w-full bg-black text-white py-4 rounded-2xl shadow-lg"
+          className="w-full py-4 rounded-2xl shadow-lg"
+          style={{ backgroundColor: '#1f2937' }}
           onClick={goCreateInteraction}
         >
           <View className="flex items-center justify-center gap-2">

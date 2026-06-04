@@ -1,7 +1,7 @@
 import { View, Text, ScrollView } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Heart, Sparkles, MessageSquare, Brain, Users, Zap, ArrowRight, TrendingUp, Hand, HeartPulse } from 'lucide-react-taro'
+import { Heart, Sparkles, MessageSquare, Brain, Users, Zap, ArrowRight, TrendingUp, Hand, HeartPulse, EyeOff, Magnet, Wind } from 'lucide-react-taro'
 
 interface GameCard {
   id: string
@@ -113,6 +113,39 @@ const games: GameCard[] = [
     color: 'from-red-400 to-rose-500',
     pagePath: '/pages/game-pulse/index',
     difficulty: 'hard',
+    players: 2,
+  },
+  {
+    id: 'blind',
+    title: '盲触感知',
+    subtitle: '闭眼猜触碰',
+    description: '闭上眼，触碰会被放大100倍。一方触碰一方猜，在未知中感受彼此最真实的存在。',
+    icon: EyeOff,
+    color: 'from-teal-400 to-cyan-500',
+    pagePath: '/pages/game-blind/index',
+    difficulty: 'medium',
+    players: 2,
+  },
+  {
+    id: 'distance',
+    title: '距离挑战',
+    subtitle: '从一米到零距离',
+    description: '6步走进对方心里——从面对面一米到相拥零距离，每靠近一步暧昧翻倍。',
+    icon: Magnet,
+    color: 'from-orange-400 to-amber-500',
+    pagePath: '/pages/game-distance/index',
+    difficulty: 'medium',
+    players: 2,
+  },
+  {
+    id: 'breath',
+    title: '呼吸同步',
+    subtitle: '最安静的亲密',
+    description: '从各自呼吸到呼吸合一——当两个人呼吸同频，心跳也会慢慢靠近，科学证明的亲密感。',
+    icon: Wind,
+    color: 'from-sky-400 to-indigo-500',
+    pagePath: '/pages/game-breath/index',
+    difficulty: 'easy',
     players: 2,
   },
 ]
