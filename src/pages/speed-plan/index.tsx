@@ -133,6 +133,11 @@ const SpeedPlanPage: FC = () => {
       loadPlanDetail()
     } else {
       loadDraft()
+      // 如果 URL 带了 matchId，自动选中该对象
+      const urlMatchId = router.params.matchId
+      if (urlMatchId) {
+        fetchMatchDetail(Number(urlMatchId))
+      }
     }
   })
 

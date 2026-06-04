@@ -43,7 +43,12 @@ import {
   ClipboardList,
   Zap,
   ChartPie,
-  Trash2
+  Trash2,
+  Sparkles,
+  Search,
+  BookOpen,
+  Gamepad2,
+  Theater
 } from 'lucide-react-taro'
 
 // 关系类型
@@ -544,6 +549,115 @@ const DetailPage: FC = () => {
               <Text className="block text-xs text-gray-700">周期</Text>
             </View>
           )}
+        </View>
+      </View>
+
+      {/* 智能助手：关联发现页功能的快捷入口 */}
+      <View className="px-4 pb-4">
+        <View className="flex items-center gap-2 mb-3">
+          <Sparkles size={14} color="#6366F1" />
+          <Text className="block text-sm font-semibold text-gray-900">智能助手</Text>
+          <Text className="block text-xs text-gray-400">基于 TA 的档案，为你推荐</Text>
+        </View>
+        <View className="bg-white rounded-xl border border-gray-100 p-4">
+          <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', marginLeft: '-8px' }}>
+            {/* 速推方案 */}
+            <View
+              style={{ width: '25%', paddingLeft: '8px', marginBottom: '12px' }}
+              onClick={() => navigateTo({ url: `/pages/speed-plan/index?matchId=${detail.id}` })}
+            >
+              <View className="flex flex-col items-center">
+                <View className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center mb-1">
+                  <Zap size={18} color="#F59E0B" />
+                </View>
+                <Text className="block text-xs text-gray-700">速推方案</Text>
+              </View>
+            </View>
+            {/* 朋友圈分析 */}
+            <View
+              style={{ width: '25%', paddingLeft: '8px', marginBottom: '12px' }}
+              onClick={() => navigateTo({ url: `/pages/moments-analyze/index?matchId=${detail.id}` })}
+            >
+              <View className="flex flex-col items-center">
+                <View className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center mb-1">
+                  <Search size={18} color="#6366F1" />
+                </View>
+                <Text className="block text-xs text-gray-700">朋友圈</Text>
+              </View>
+            </View>
+            {/* 破冰话题 */}
+            <View
+              style={{ width: '25%', paddingLeft: '8px', marginBottom: '12px' }}
+              onClick={() => navigateTo({ url: `/pages/knowledge-icebreaker/index?matchId=${detail.id}` })}
+            >
+              <View className="flex flex-col items-center">
+                <View className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center mb-1">
+                  <MessageCircle size={18} color="#10B981" />
+                </View>
+                <Text className="block text-xs text-gray-700">破冰话题</Text>
+              </View>
+            </View>
+            {/* 开场白生成 */}
+            <View
+              style={{ width: '25%', paddingLeft: '8px', marginBottom: '12px' }}
+              onClick={() => navigateTo({ url: `/pages/dating-opener/index?matchId=${detail.id}` })}
+            >
+              <View className="flex flex-col items-center">
+                <View className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-1">
+                  <BookOpen size={18} color="#22C55E" />
+                </View>
+                <Text className="block text-xs text-gray-700">开场白</Text>
+              </View>
+            </View>
+            {/* 共同成长 */}
+            <View
+              style={{ width: '25%', paddingLeft: '8px' }}
+              onClick={() => navigateTo({ url: `/pages/grow/index?matchId=${detail.id}` })}
+            >
+              <View className="flex flex-col items-center">
+                <View className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center mb-1">
+                  <TrendingUp size={18} color="#F43F5E" />
+                </View>
+                <Text className="block text-xs text-gray-700">共同成长</Text>
+              </View>
+            </View>
+            {/* 互动游戏 */}
+            <View
+              style={{ width: '25%', paddingLeft: '8px' }}
+              onClick={() => navigateTo({ url: `/pages/interactive-games/index?matchId=${detail.id}` })}
+            >
+              <View className="flex flex-col items-center">
+                <View className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center mb-1">
+                  <Gamepad2 size={18} color="#8B5CF6" />
+                </View>
+                <Text className="block text-xs text-gray-700">互动游戏</Text>
+              </View>
+            </View>
+            {/* 场景演练 */}
+            <View
+              style={{ width: '25%', paddingLeft: '8px' }}
+              onClick={() => navigateTo({ url: `/pages/knowledge-scenario/index?matchId=${detail.id}` })}
+            >
+              <View className="flex flex-col items-center">
+                <View className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mb-1">
+                  <Theater size={18} color="#3B82F6" />
+                </View>
+                <Text className="block text-xs text-gray-700">场景演练</Text>
+              </View>
+            </View>
+            {/* 周期科学 */}
+            <View
+              style={{ width: '25%', paddingLeft: '8px' }}
+              onClick={() => navigateTo({ url: `/pages/knowledge-cycle/index?matchId=${detail.id}` })}
+            >
+              <View className="flex flex-col items-center">
+                <View className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center mb-1">
+                  <Moon size={18} color="#EC4899" />
+                </View>
+                <Text className="block text-xs text-gray-700">周期科学</Text>
+              </View>
+            </View>
+          </View>
         </View>
       </View>
 

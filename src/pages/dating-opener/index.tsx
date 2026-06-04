@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
-import { useLoad } from '@tarojs/taro'
+import { useLoad, useRouter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { MessageCircle, RefreshCw, Sparkles, Copy, Check, ChevronDown, History, Trash2, Clock, CircleAlert, Loader, User } from 'lucide-react-taro'
 import { Network } from '@/network'
@@ -43,6 +43,7 @@ const platformOptions = [
 const PAGE_SIZE = 10
 
 const DatingOpenerPage: FC = () => {
+  const router = useRouter()
   const [targetProfile, setTargetProfile] = useState('')
   const [selfProfile, setSelfProfile] = useState('')
   const [platform, setPlatform] = useState('tantan')
@@ -63,7 +64,32 @@ const DatingOpenerPage: FC = () => {
 
   useLoad(() => {
     console.log('Dating opener generation page loaded.')
+    // 如果 URL 带了 matchId，自动拉取对象信息填充 targetProfile
+    const matchId = router.params.matchId
+    if (matchId) {
+      fetchMatchProfile(Number(matchId))
+    }
   })
+
+  const fetchMatchProfile = async (matchId: number) => {
+    try {
+      const res = await Network.request({ url: `/api/match/${matchId}` })
+      if (res.data?.code === 200 && res.data?.data) {
+        const match = res.data.data
+        // 用对象档案信息自动填充"对方资料"
+        const parts: string[] = []
+        if (match.name) parts.push(`姓名：${match.name}`)
+        if (match.gender) parts.push(`性别：${match.gender}`)
+        if (match.notes) parts.push(`备注：${match.notes}`)
+        if (match.relationshipType) parts.push(`关系类型：${match.relationshipType}`)
+        if (parts.length > 0) {
+          setTargetProfile(parts.join('，'))
+        }
+      }
+    } catch (error) {
+      console.error('Fetch match profile error:', error)
+    }
+  }
 
   useEffect(() => {
     if (showHistory) {

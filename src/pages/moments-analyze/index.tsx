@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, Image } from '@tarojs/components'
-import { useLoad, chooseImage, showToast } from '@tarojs/taro'
+import { useLoad, useRouter, chooseImage, showToast } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
@@ -31,6 +31,7 @@ interface AnalysisData {
 }
 
 const MomentsAnalyzePage: FC = () => {
+  const router = useRouter()
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null)
   const [inputContent, setInputContent] = useState('')
   const [matches, setMatches] = useState<Match[]>([])
@@ -48,7 +49,16 @@ const MomentsAnalyzePage: FC = () => {
     try {
       const res = await Network.request({ url: '/api/match/list' })
       if (res.data?.code === 200 && res.data?.data?.list) {
-        setMatches(res.data.data.list)
+        const matchList = res.data.data.list
+        setMatches(matchList)
+        // 如果 URL 带了 matchId，自动选中该对象
+        const urlMatchId = router.params.matchId
+        if (urlMatchId) {
+          const autoSelect = matchList.find((m: Match) => String(m.id) === urlMatchId)
+          if (autoSelect) {
+            setSelectedMatch(autoSelect)
+          }
+        }
       }
     } catch (error) {
       console.error('Fetch matches error:', error)
