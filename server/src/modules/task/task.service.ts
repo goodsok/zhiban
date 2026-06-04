@@ -23,6 +23,10 @@ export interface Task {
   completed: boolean
   completedAt?: string
   createdAt: string
+  // 任务详情
+  reason?: string       // 做这个任务的原因
+  steps?: string[]      // 执行步骤
+  tags?: string[]       // 多维标签（信息补全/关系推进/周期适配/互动破冰/情感升温 等）
   // 关联信息
   relatedKeyInfo?: string[]  // 关联的关键信息类型
   relatedStage?: string      // 关联的关系阶段
@@ -50,6 +54,9 @@ interface DbTask {
   suitable_phases: unknown
   avoid_phases: unknown
   lesson_learned: string | null
+  reason: string | null
+  steps: unknown
+  tags: unknown
   created_at: string
   updated_at: string | null
 }
@@ -61,6 +68,9 @@ interface AiGeneratedTask {
   description: string
   difficulty: '简单' | '中等' | '困难'
   duration: string
+  reason: string
+  steps: string[]
+  tags: string[]
   suitablePhases?: string[]
   avoidPhases?: string[]
 }
@@ -150,6 +160,9 @@ const dbToTask = (db: DbTask): Task => ({
   source: (db.source as TaskSource) || 'system',
   completed: db.completed === 1,
   completedAt: db.completed_at || undefined,
+  reason: db.reason || undefined,
+  steps: Array.isArray(db.steps) ? db.steps as string[] : undefined,
+  tags: Array.isArray(db.tags) ? db.tags as string[] : undefined,
   relatedKeyInfo: Array.isArray(db.related_key_info) ? db.related_key_info as string[] : undefined,
   relatedStage: db.related_stage || undefined,
   suitablePhases: Array.isArray(db.suitable_phases) ? db.suitable_phases as string[] : undefined,
@@ -270,6 +283,9 @@ export class TaskService {
     difficulty?: '简单' | '中等' | '困难'
     duration?: string
     source?: TaskSource
+    reason?: string
+    steps?: string[]
+    tags?: string[]
     relatedKeyInfo?: string[]
     relatedStage?: string
     suitablePhases?: string[]
@@ -288,6 +304,9 @@ export class TaskService {
           duration: taskData.duration || '15分钟',
           source: taskData.source || 'manual',
           completed: 0,
+          reason: taskData.reason || null,
+          steps: taskData.steps || [],
+          tags: taskData.tags || [],
           related_key_info: taskData.relatedKeyInfo || [],
           related_stage: taskData.relatedStage || null,
           suitable_phases: taskData.suitablePhases || [],
@@ -683,16 +702,19 @@ ${interactionStr}
 
 请生成 5-8 个个性化行动任务，要求：
 
-1. 每个任务必须包含: category, title, description, difficulty, duration, suitablePhases, avoidPhases
+1. 每个任务必须包含: category, title, description, difficulty, duration, reason, steps, tags, suitablePhases, avoidPhases
 2. category 取值: prepare(准备/了解信息), chat(聊天交流), game(互动游戏), romantic(浪漫约会)
 3. suitablePhases 和 avoidPhases 取值: menstrual, follicular, ovulation, luteal_early, luteal_mid, luteal_late（为空数组表示通用）
-4. 任务必须基于对象的已知维度信息个性化定制，禁止生成泛泛而谈的通用任务
-5. 优先弥补信息短板：未填写的 critical/important 维度 → 对应 prepare 类型任务
-6. 根据关系推进阶段推荐适合的互动深度和方式
-7. 根据周期阶段调整任务内容：月经期/黄体晚期避免体力消耗和浪漫约会，卵泡期/排卵期适合约会和深度交流
-8. 严禁与已完成的任务或当前待完成任务重复或高度相似
-9. 已完成任务的 lessonLearned 经验要体现在新任务中
-10. 根据关系能量趋势决定任务节奏：能量上升期可安排更多任务，下降期减少任务数量和难度
+4. reason: 说明为什么要做这个任务（基于具体数据，如"你们已经认识2周但还没有了解她的饮食偏好"或"当前处于卵泡期，她精力充沛适合约出来"）
+5. steps: 2-4个具体执行步骤（如"1. 侧面问她的同事她喜欢什么菜系 2. 查找附近评分高的对应餐厅 3. 找一个自然的话题提起美食"）
+6. tags: 从以下标签中选择1-3个最匹配的：信息补全, 关系推进, 周期适配, 互动破冰, 情感升温, 深度了解, 趣味互动, 浪漫约会, 贴心关怀, 话题拓展, 表达心意, 创造回忆
+7. 任务必须基于对象的已知维度信息个性化定制，禁止生成泛泛而谈的通用任务
+8. 优先弥补信息短板：未填写的 critical/important 维度 → 对应 prepare 类型任务
+9. 根据关系推进阶段推荐适合的互动深度和方式
+10. 根据周期阶段调整任务内容：月经期/黄体晚期避免体力消耗和浪漫约会，卵泡期/排卵期适合约会和深度交流
+11. 严禁与已完成的任务或当前待完成任务重复或高度相似
+12. 已完成任务的 lessonLearned 经验要体现在新任务中
+13. 根据关系能量趋势决定任务节奏：能量上升期可安排更多任务，下降期减少任务数量和难度
 
 返回纯 JSON 数组，格式如下，不要包含任何其他文字：
 [
@@ -702,6 +724,9 @@ ${interactionStr}
     "description": "任务描述，包含具体操作建议",
     "difficulty": "简单",
     "duration": "15分钟",
+    "reason": "为什么要做这个任务，基于具体数据给出理由",
+    "steps": ["步骤1：具体操作", "步骤2：具体操作", "步骤3：具体操作"],
+    "tags": ["信息补全", "贴心关怀"],
     "suitablePhases": ["follicular", "ovulation"],
     "avoidPhases": ["menstrual"]
   }
@@ -744,12 +769,17 @@ ${interactionStr}
       const validCategories = ['prepare', 'chat', 'game', 'romantic']
       const validDifficulties = ['简单', '中等', '困难']
       const validPhases = ['menstrual', 'follicular', 'ovulation', 'luteal_early', 'luteal_mid', 'luteal_late']
+      const validTags = ['信息补全', '关系推进', '周期适配', '互动破冰', '情感升温', '深度了解', '趣味互动', '浪漫约会', '贴心关怀', '话题拓展', '表达心意', '创造回忆']
 
       for (const task of parsed) {
         if (!task.title || !task.description) continue
         if (!validCategories.includes(task.category)) task.category = 'chat'
         if (!validDifficulties.includes(task.difficulty)) task.difficulty = '简单'
         if (!task.duration) task.duration = '15分钟'
+        if (!task.reason) task.reason = '基于当前关系状态推荐'
+        if (!Array.isArray(task.steps) || task.steps.length === 0) task.steps = ['按任务描述执行']
+        if (!Array.isArray(task.tags)) task.tags = []
+        else task.tags = task.tags.filter((t: string) => validTags.includes(t))
         if (!Array.isArray(task.suitablePhases)) task.suitablePhases = []
         else task.suitablePhases = task.suitablePhases.filter((p: string) => validPhases.includes(p))
         if (!Array.isArray(task.avoidPhases)) task.avoidPhases = []
@@ -828,6 +858,9 @@ ${interactionStr}
         description: aiTask.description,
         difficulty: aiTask.difficulty,
         duration: aiTask.duration,
+        reason: aiTask.reason,
+        steps: aiTask.steps,
+        tags: aiTask.tags,
         source: 'ai',
         suitablePhases: aiTask.suitablePhases,
         avoidPhases: aiTask.avoidPhases,
