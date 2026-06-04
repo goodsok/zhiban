@@ -92,4 +92,12 @@ export class PortraitService {
   async generateInsight(matchId: number, req: Request, forceRefresh = false): Promise<InsightAnalysisResult> {
     return this.portraitEngine.generateInsight(matchId, req, forceRefresh)
   }
+
+  /**
+   * 生成相处模式画像
+   * 从维度数据合成为可读的行为侧写
+   */
+  async generateInteractionProfile(matchId: number, req: Request, forceRefresh = false) {
+    return this.portraitEngine.generateInteractionProfile(matchId, req, forceRefresh)
+  }
 }

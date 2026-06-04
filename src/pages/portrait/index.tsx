@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Loader, RefreshCw, Brain, History, ArrowRight } from 'lucide-react-taro'
 import RadarChart from '@/components/portrait-radar'
 import DimensionCard from '@/components/portrait-dimension-card'
-import DimensionOverview from '@/components/dimension-overview'
+import InteractionProfile from '@/components/interaction-profile'
 import PortraitHistory from '@/components/portrait-history'
 import InsightSection from '@/components/insight-section'
 
@@ -71,8 +71,7 @@ const PortraitPage: FC = () => {
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
   const [portrait, setPortrait] = useState<FullPortrait | null>(null)
-  const [dimensionData, setDimensionData] = useState<Record<string, any> | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'dimensions' | 'insight' | 'history'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'interaction' | 'insight' | 'history'>('overview')
   const [matchName, setMatchName] = useState('')
 
   useLoad(() => {
@@ -112,16 +111,6 @@ const PortraitPage: FC = () => {
       
       if (matchRes.data?.code === 200 && matchRes.data?.data?.name) {
         setMatchName(matchRes.data.data.name)
-      }
-
-      // 获取维度数据
-      const dimRes = await Network.request({
-        url: `/api/dimension/profile/${matchId}`,
-        method: 'GET'
-      })
-      
-      if (dimRes.data?.code === 200 && dimRes.data?.data?.dimensions) {
-        setDimensionData(dimRes.data.data.dimensions)
       }
     } catch (error) {
       console.error('Fetch portrait error:', error)
@@ -321,7 +310,7 @@ const PortraitPage: FC = () => {
         <View className="flex bg-gray-100 rounded-lg p-1">
           {[
             { key: 'overview', label: '概览' },
-            { key: 'dimensions', label: '维度' },
+            { key: 'interaction', label: '相处' },
             { key: 'insight', label: '洞察' },
             { key: 'history', label: '历史' },
           ].map((tab) => (
@@ -451,11 +440,9 @@ const PortraitPage: FC = () => {
         </View>
       )}
 
-      {/* 维度 Tab */}
-      {activeTab === 'dimensions' && dimensionData && (
-        <View className="p-4">
-          <DimensionOverview dimensions={dimensionData} />
-        </View>
+      {/* 相处模式 Tab */}
+      {activeTab === 'interaction' && (
+        <InteractionProfile matchId={router.params.matchId ?? ''} />
       )}
 
       {/* 洞察 Tab */}

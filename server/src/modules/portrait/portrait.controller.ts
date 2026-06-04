@@ -127,4 +127,30 @@ export class PortraitController {
       return { code: 500, data: null, message: '洞察生成失败' }
     }
   }
+
+  /**
+   * 获取相处模式画像
+   * 从维度数据合成为可读的行为侧写（沟通节奏/情感表达/冲突模式/社交画像）
+   * 如果已有缓存结果，默认直接返回；forceRefresh=true 时重新生成
+   */
+  @Get(':matchId/interaction-profile')
+  async getInteractionProfile(
+    @Param('matchId') matchId: string,
+    @Query('forceRefresh') forceRefresh: string,
+    @Req() req: Request
+  ) {
+    const id = parseInt(matchId, 10)
+    if (isNaN(id)) {
+      return { code: 400, data: null, message: '无效的ID' }
+    }
+
+    try {
+      const shouldForce = forceRefresh === 'true' || forceRefresh === '1'
+      const profile = await this.portraitService.generateInteractionProfile(id, req, shouldForce)
+      return { code: 200, data: profile, message: 'success' }
+    } catch (error) {
+      console.error('Generate interaction profile error:', error)
+      return { code: 500, data: null, message: '相处模式生成失败' }
+    }
+  }
 }

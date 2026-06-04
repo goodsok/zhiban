@@ -24,6 +24,7 @@ import { BehaviorPatternAnalyzer } from './analyzers/behavior-pattern.analyzer'
 import { TrendPredictor, TrendPredictionInput } from './predictors/trend-predictor'
 import { StrategyRecommender, StrategyRecommendationInput } from './predictors/strategy-recommender'
 import { InsightAnalyzer, InsightAnalysisResult } from './analyzers/insight.analyzer'
+import { InteractionProfileAnalyzer } from './analyzers/interaction-profile.analyzer'
 
 /** 维度值到画像数值的映射规则 */
 const DIMENSION_TO_PORTRAIT_MAP: Record<string, {
@@ -89,6 +90,7 @@ export class PortraitEngineService {
     private readonly trendPredictor: TrendPredictor,
     private readonly strategyRecommender: StrategyRecommender,
     private readonly insightAnalyzer: InsightAnalyzer,
+    private readonly interactionProfileAnalyzer: InteractionProfileAnalyzer,
   ) {}
 
   // ==================== 画像数据管理 ====================
@@ -724,5 +726,16 @@ export class PortraitEngineService {
     forceRefresh = false
   ): Promise<InsightAnalysisResult> {
     return this.insightAnalyzer.analyze(matchId, request, forceRefresh)
+  }
+
+  /**
+   * 生成相处模式画像（从维度数据合成行为侧写）
+   */
+  async generateInteractionProfile(
+    matchId: number,
+    request: Request,
+    forceRefresh = false
+  ): Promise<import('./analyzers/interaction-profile.analyzer').InteractionProfileResult> {
+    return this.interactionProfileAnalyzer.analyze(matchId, request, forceRefresh)
   }
 }

@@ -13,6 +13,7 @@ import { TrendPredictor } from './predictors/trend-predictor'
 import { StrategyRecommender } from './predictors/strategy-recommender'
 
 import { InsightAnalyzer } from './analyzers/insight.analyzer'
+import { InteractionProfileAnalyzer } from './analyzers/interaction-profile.analyzer'
 
 @Module({
   providers: [
@@ -23,6 +24,7 @@ import { InsightAnalyzer } from './analyzers/insight.analyzer'
     ChatRecordAnalyzer,
     BehaviorPatternAnalyzer,
     InsightAnalyzer,
+    InteractionProfileAnalyzer,
     // 预测器
     TrendPredictor,
     StrategyRecommender,
