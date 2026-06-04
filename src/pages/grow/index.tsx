@@ -505,17 +505,7 @@ const GrowPage: FC = () => {
       {matchId && !loading && (
         <View className="p-4">
           <TabsContent value="anniversary">
-            <View className="flex flex-row items-center justify-between mb-3">
-              <Text className="block text-xs text-gray-400">重要时刻</Text>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => openAddDialog('anniversary')}
-              >
-                <Plus size={14} color="#000000" />
-                <Text className="text-xs text-black ml-1">添加</Text>
-              </Button>
-            </View>
+            <Text className="block text-xs text-gray-400">重要时刻</Text>
 
             {anniversaries.map((item) => {
               const nextDate = getNextAnniversary(item.date)
@@ -568,17 +558,7 @@ const GrowPage: FC = () => {
           </TabsContent>
 
           <TabsContent value="goal">
-            <View className="flex flex-row items-center justify-between mb-3">
-              <Text className="block text-xs text-gray-400">努力方向</Text>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => openAddDialog('goal')}
-              >
-                <Plus size={14} color="#000000" />
-                <Text className="text-xs text-black ml-1">添加</Text>
-              </Button>
-            </View>
+            <Text className="block text-xs text-gray-400">努力方向</Text>
 
             {/* 推荐目标 */}
             <Card className="mb-4 p-4 bg-gray-50">
@@ -703,17 +683,7 @@ const GrowPage: FC = () => {
           </TabsContent>
 
           <TabsContent value="memory">
-            <View className="flex flex-row items-center justify-between mb-3">
-              <Text className="block text-xs text-gray-400">美好回忆</Text>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => openAddDialog('memory')}
-              >
-                <Plus size={14} color="#000000" />
-                <Text className="text-xs text-black ml-1">记录</Text>
-              </Button>
-            </View>
+            <Text className="block text-xs text-gray-400">美好回忆</Text>
 
             {memories.map((item) => (
               <Card key={item.id} className="mb-3">
@@ -746,17 +716,7 @@ const GrowPage: FC = () => {
           </TabsContent>
 
           <TabsContent value="promise">
-            <View className="flex flex-row items-center justify-between mb-3">
-              <Text className="block text-xs text-gray-400">我们的承诺</Text>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => openAddDialog('promise')}
-              >
-                <Plus size={14} color="#000000" />
-                <Text className="text-xs text-black ml-1">添加</Text>
-              </Button>
-            </View>
+            <Text className="block text-xs text-gray-400">我们的承诺</Text>
 
             {/* 推荐约定 */}
             <Card className="mb-4 p-4 bg-gray-50">
@@ -851,6 +811,35 @@ const GrowPage: FC = () => {
               </Card>
             )}
           </TabsContent>
+        </View>
+      )}
+
+      {/* 底部浮动添加按钮 */}
+      {matchId && !loading && (
+        <View
+          style={{
+            position: 'fixed',
+            bottom: 50,
+            left: 0,
+            right: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            padding: '12px 16px',
+            zIndex: 100,
+          }}
+        >
+          <Button
+            onClick={() => openAddDialog(activeTab as 'anniversary' | 'goal' | 'memory' | 'promise')}
+            className="w-full bg-black hover:bg-gray-800 rounded-xl py-5 shadow-lg"
+          >
+            <Plus size={20} color="#ffffff" />
+            <Text className="block text-base font-semibold text-white ml-2">
+              {activeTab === 'anniversary' && '添加纪念日'}
+              {activeTab === 'goal' && '添加新目标'}
+              {activeTab === 'memory' && '记录这一刻'}
+              {activeTab === 'promise' && '添加约定'}
+            </Text>
+          </Button>
         </View>
       )}
 
