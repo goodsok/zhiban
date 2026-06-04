@@ -96,13 +96,13 @@ const DatingAppPage: FC = () => {
     const count = featureStatus[feature.statusKey]
     if (count > 0) {
       return (
-        <View className="bg-rose-100 rounded-full px-2 py-0.5">
+        <View className="bg-rose-100 rounded-full px-2 py-0">
           <Text className="text-xs text-rose-600">已用{count}次</Text>
         </View>
       )
     }
     return (
-      <View className="bg-gray-100 rounded-full px-2 py-0.5">
+      <View className="bg-gray-100 rounded-full px-2 py-0">
         <Text className="text-xs text-gray-500">未使用</Text>
       </View>
     )

@@ -279,45 +279,179 @@ export class SpeedPlanService {
     return { code: 200, msg: 'success', data: null }
   }
 
+  // 对速推方案最有价值的维度 key（精选，避免 token 浪费）
+  private static readonly KEY_DIMENSIONS = [
+    // 硬件信息
+    'gender', 'birthYear', 'height', 'bodyType', 'education', 'occupation',
+    'currentCity', 'currentDistrict', 'hometownCity', 'industry',
+    // 核心性格/软件
+    'mbti', 'attachmentStyle', 'coreTemperament', 'coreValues',
+    'loveLanguage', 'communicationStyle', 'conflictStyle',
+    'emotionalExpressionStyle', 'emotionalAvailabilityLevel',
+    'emotionalInvestmentSpeed', 'emotionalStabilityLevel',
+    // 关系态度
+    'relationshipGoal', 'commitmentStyle', 'datingPacePreference',
+    'intimacyNeeds', 'physicalAffectionStyle', 'physicalIntimacyTimeline',
+    'boundariesStyle', 'exclusivityExpectation',
+    'casualDatingAcceptance', 'readinessForRelationship',
+    'marriageTimeline', 'relationshipFormPreference',
+    // 社交/生活偏好
+    'hobbies', 'weekendPreferences', 'foodPreferences',
+    'idealDateType', 'firstDatePreferences', 'giftPreferences',
+    'flirtingStyle', 'signalSensitivity',
+    'favoriteMusic', 'favoriteMovies', 'favoriteBooks',
+    'sportsPreferences', 'travelPreferences',
+    // 沟通习惯
+    'textingStyle', 'responseTimePreference', 'emojiUsage',
+    'initiativeStyle', 'listeningStyle', 'humorStyle',
+    // 当前状态
+    'currentDatingStatus', 'currentFocus', 'nearTermGoals',
+    'lifeStage', 'workLifeBalance', 'exerciseFrequency',
+    'sleepTime', 'wakeUpTime', 'socialEnergy',
+    // 大五人格维度
+    'opennessLevel', 'conscientiousnessLevel', 'extroversionLevel',
+    'agreeablenessLevel', 'empathyLevel',
+    // 风险/边界
+    'dealbreakerList', 'jealousyLevel', 'trustLevel',
+    'phonePrivacyBoundary', 'privacyProtectionLevel',
+  ]
+
+  // 维度 key → 中文标签
+  private static readonly DIMENSION_LABELS: Record<string, string> = {
+    gender: '性别', birthYear: '出生年份', height: '身高', bodyType: '体型',
+    education: '学历', occupation: '职业', currentCity: '所在城市',
+    currentDistrict: '所在区域', hometownCity: '家乡', industry: '行业',
+    mbti: 'MBTI', attachmentStyle: '依恋类型', coreTemperament: '核心气质',
+    coreValues: '核心价值观', loveLanguage: '爱的语言', communicationStyle: '沟通风格',
+    conflictStyle: '冲突风格', emotionalExpressionStyle: '情感表达方式',
+    emotionalAvailabilityLevel: '情感可获得性', emotionalInvestmentSpeed: '情感投入速度',
+    emotionalStabilityLevel: '情绪稳定性',
+    relationshipGoal: '关系目标', commitmentStyle: '承诺风格',
+    datingPacePreference: '约会节奏偏好', intimacyNeeds: '亲密需求',
+    physicalAffectionStyle: '肢体接触风格', physicalIntimacyTimeline: '身体亲密时间线',
+    boundariesStyle: '边界风格', exclusivityExpectation: '排他性期望',
+    casualDatingAcceptance: '随意约会接受度', readinessForRelationship: '恋爱准备度',
+    marriageTimeline: '婚姻时间线', relationshipFormPreference: '关系形式偏好',
+    hobbies: '兴趣爱好', weekendPreferences: '周末偏好', foodPreferences: '饮食偏好',
+    idealDateType: '理想约会类型', firstDatePreferences: '首次约会偏好',
+    giftPreferences: '礼物偏好', flirtingStyle: '撩人风格',
+    signalSensitivity: '信号敏感度', favoriteMusic: '音乐偏好',
+    favoriteMovies: '电影偏好', favoriteBooks: '阅读偏好',
+    sportsPreferences: '运动偏好', travelPreferences: '旅行偏好',
+    textingStyle: '聊天风格', responseTimePreference: '回复时间偏好',
+    emojiUsage: '表情包使用', initiativeStyle: '主动风格',
+    listeningStyle: '倾听风格', humorStyle: '幽默风格',
+    currentDatingStatus: '当前约会状态', currentFocus: '当前关注点',
+    nearTermGoals: '近期目标', lifeStage: '人生阶段',
+    workLifeBalance: '工作生活平衡', exerciseFrequency: '运动频率',
+    sleepTime: '入睡时间', wakeUpTime: '起床时间', socialEnergy: '社交能量',
+    opennessLevel: '开放性', conscientiousnessLevel: '尽责性',
+    extroversionLevel: '外向性', agreeablenessLevel: '宜人性',
+    empathyLevel: '共情能力', dealbreakerList: '底线清单',
+    jealousyLevel: '嫉妒程度', trustLevel: '信任水平',
+    phonePrivacyBoundary: '手机隐私边界', privacyProtectionLevel: '隐私保护程度',
+  }
+
   /**
-   * 获取对象信息
+   * 获取对象信息（从真实数据源：matches + profile_dimension_values + profile_portraits + interaction_events）
    */
   private async getMatchInfo(matchId: number, request: Request) {
     const client = getSupabaseClient()
 
+    // 1. 获取对象基础信息
     const { data: match } = await client
       .from('matches')
-      .select('*')
+      .select('id, name, gender, meeting_scene, relationship_stage, interaction_status, key_info, relationship_type, impression_tags')
       .eq('id', matchId)
       .single()
 
+    // 2. 获取对象档案维度数据
     const { data: dimensions } = await client
-      .from('match_dimensions')
-      .select('dimension_key, dimension_value')
+      .from('profile_dimension_values')
+      .select('dimension_key, value')
       .eq('match_id', matchId)
 
+    // 构建 key → value 映射
+    const dimensionMap: Record<string, any> = {}
+    dimensions?.forEach((d: { dimension_key: string; value: any }) => {
+      dimensionMap[d.dimension_key] = d.value
+    })
+
+    // 3. 获取画像量化数据
+    const { data: portrait } = await client
+      .from('profile_portraits')
+      .select('personality_openness, personality_conscientiousness, personality_extraversion, personality_agreeableness, personality_neuroticism, emotional_stability, emotional_empathy, communication_directness, communication_humor, communication_responsiveness, communication_depth, interaction_style')
+      .eq('match_id', matchId)
+      .single()
+
+    // 4. 获取互动统计数据
     const { data: interactions } = await client
       .from('interaction_events')
-      .select('energy_value')
+      .select('energy_change, quality_score, mood, breakthrough_moment')
       .eq('match_id', matchId)
-      .eq('status', 'completed')
 
-    const totalEnergy = interactions?.reduce((sum: number, i: { energy_value: number }) => sum + (i.energy_value || 0), 0) || 0
+    const totalEnergy = interactions?.reduce(
+      (sum: number, i: { energy_change: number | null }) => sum + (i.energy_change || 0), 0
+    ) || 0
+    const avgQuality = interactions?.length
+      ? interactions.reduce((sum: number, i: { quality_score: number | null }) => sum + (i.quality_score || 0), 0) / interactions.length
+      : 0
 
-    const dimensionMap: Record<string, string> = {}
-    dimensions?.forEach((d: { dimension_key: string; dimension_value: string }) => {
-      dimensionMap[d.dimension_key] = d.dimension_value
-    })
+    // 5. 构建精选维度摘要（只取对速推有价值的维度）
+    const profileSummary: string[] = []
+    for (const key of SpeedPlanService.KEY_DIMENSIONS) {
+      const value = dimensionMap[key]
+      if (value !== undefined && value !== null && value !== '') {
+        const label = SpeedPlanService.DIMENSION_LABELS[key] || key
+        const displayValue = Array.isArray(value) ? value.join('、') : String(value)
+        profileSummary.push(`${label}：${displayValue}`)
+      }
+    }
+
+    // 6. 构建 key_info 摘要
+    const keyInfoSummary: string[] = []
+    if (match?.key_info && Array.isArray(match.key_info)) {
+      match.key_info.forEach((item: { label?: string; type?: string; value?: string }) => {
+        if (item.label && item.value) {
+          keyInfoSummary.push(`${item.label}（${item.type || ''}）：${item.value}`)
+        }
+      })
+    }
 
     return {
       name: match?.name || '',
-      relationshipType: dimensionMap['relationship_type'] || 'both',
+      gender: match?.gender || dimensionMap['gender'] || '',
+      meetingScene: match?.meeting_scene || '',
+      relationshipStage: match?.relationship_stage || '',
+      interactionStatus: match?.interaction_status || '',
+      relationshipType: match?.relationship_type || dimensionMap['relationshipGoal'] || 'both',
       mbti: dimensionMap['mbti'] || '',
-      attachmentType: dimensionMap['attachment_type'] || '',
-      progressScore: match?.progress_score || 0,
-      relationshipEnergy: totalEnergy,
+      attachmentType: dimensionMap['attachmentStyle'] || '',
+      profileSummary,
+      keyInfoSummary,
+      portrait: portrait ? {
+        bigFive: {
+          openness: portrait.personality_openness,
+          conscientiousness: portrait.personality_conscientiousness,
+          extraversion: portrait.personality_extraversion,
+          agreeableness: portrait.personality_agreeableness,
+          neuroticism: portrait.personality_neuroticism,
+        },
+        emotional: {
+          stability: portrait.emotional_stability,
+          empathy: portrait.emotional_empathy,
+        },
+        communication: {
+          directness: portrait.communication_directness,
+          humor: portrait.communication_humor,
+          responsiveness: portrait.communication_responsiveness,
+          depth: portrait.communication_depth,
+        },
+        interactionStyle: portrait.interaction_style,
+      } : null,
       interactionCount: interactions?.length || 0,
-      cyclePhase: '',
+      totalEnergy,
+      avgQuality: Math.round(avgQuality),
     }
   }
 
@@ -331,10 +465,12 @@ export class SpeedPlanService {
       relationshipType: string
       mbti: string
       attachmentType: string
-      progressScore: number
-      relationshipEnergy: number
       interactionCount: number
-      cyclePhase: string
+      totalEnergy: number
+      avgQuality: number
+      relationshipStage: string
+      readinessForRelationship?: string
+      datingPacePreference?: string
     },
     targetHours: number
   ): { score: number; level: string; factors: string[] } {
@@ -350,7 +486,7 @@ export class SpeedPlanService {
     const timeFactor = Math.min(timePressure, 3)
 
     let relationshipFactor = 1
-    if (objectInfo.relationshipType === 'long_term') {
+    if (objectInfo.relationshipType === 'long_term' || objectInfo.relationshipType === 'serious_dating') {
       relationshipFactor = 1.2
     } else if (objectInfo.relationshipType === 'short_term') {
       relationshipFactor = 0.8
@@ -361,15 +497,28 @@ export class SpeedPlanService {
       attachmentFactor = 0.9
     } else if (objectInfo.attachmentType === 'anxious') {
       attachmentFactor = 0.8
-    } else if (objectInfo.attachmentType === 'avoidant') {
+    } else if (objectInfo.attachmentType === 'avoidant' || objectInfo.attachmentType === 'fearful') {
       attachmentFactor = 1.3
     }
 
-    const progressFactor = Math.max(0.5, 1 - objectInfo.progressScore / 200)
-    const energyFactor = Math.max(0.6, 1 - objectInfo.relationshipEnergy / 200)
+    // 关系阶段加成
+    const stageProgress: Record<string, number> = {
+      'just_met': 0, 'got_contact': 10, 'chatting': 20,
+      'met_up': 40, 'dating': 60, 'exclusive': 80, 'committed': 90,
+    }
+    const stageScore = stageProgress[objectInfo.relationshipStage] || 0
+    const progressFactor = Math.max(0.5, 1 - stageScore / 200)
+
+    const energyFactor = Math.max(0.6, 1 - objectInfo.totalEnergy / 200)
     const interactionFactor = Math.max(0.7, 1 - objectInfo.interactionCount / 20)
 
-    const totalDifficulty = baseDifficulty * timeFactor * relationshipFactor * attachmentFactor * progressFactor * energyFactor * interactionFactor
+    // 互动质量加成（高质量互动降低难度）
+    let qualityFactor = 1
+    if (objectInfo.avgQuality > 7) qualityFactor = 0.85
+    else if (objectInfo.avgQuality > 5) qualityFactor = 0.95
+    else if (objectInfo.avgQuality < 3) qualityFactor = 1.15
+
+    const totalDifficulty = baseDifficulty * timeFactor * relationshipFactor * attachmentFactor * progressFactor * energyFactor * interactionFactor * qualityFactor
     const score = Math.min(10, Math.max(1, Math.round(totalDifficulty)))
 
     let level = '简单'
@@ -382,9 +531,11 @@ export class SpeedPlanService {
     if (levelGap > 0) factors.push(`层级差距${levelGap}级`)
     if (timeFactor > 1.5) factors.push('时间紧迫')
     if (relationshipFactor > 1) factors.push('长期关系需要耐心')
-    if (attachmentFactor > 1) factors.push('回避型依恋')
-    if (objectInfo.progressScore > 50) factors.push('推进值较高')
-    if (objectInfo.relationshipEnergy > 30) factors.push('关系能量充足')
+    if (attachmentFactor > 1) factors.push('回避/恐惧型依恋')
+    if (stageScore > 30) factors.push('关系已有基础')
+    if (objectInfo.totalEnergy > 30) factors.push('关系能量充足')
+    if (qualityFactor < 1) factors.push('互动质量较高')
+    if (qualityFactor > 1) factors.push('互动质量偏低')
 
     return { score, level, factors }
   }

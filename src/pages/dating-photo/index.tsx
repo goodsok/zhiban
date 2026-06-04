@@ -442,7 +442,7 @@ const DatingPhotoPage: FC = () => {
                 >
                   <Image src={photo} mode="aspectFill" style={{ width: '100%', height: '100%' }} />
                   <View
-                    className="absolute top-1 right-1 bg-black/50 rounded-full w-5 h-5 flex items-center justify-center"
+                    className="absolute top-1 right-1 bg-black rounded-full w-5 h-5 flex items-center justify-center opacity-50"
                     onClick={() => handleRemovePhoto(index)}
                   >
                     <X size={12} color="#fff" />
