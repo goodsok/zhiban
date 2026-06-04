@@ -112,6 +112,7 @@ const MomentsAnalyzePage: FC = () => {
   }
 
   const analyze = async () => {
+    if (analyzing) return
     if (!inputContent.trim() && uploadedImages.length === 0) return
     
     try {

@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useDidShow } from '@tarojs/taro'
+import { useLoad, useDidShow, showToast, showModal } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
@@ -68,11 +68,18 @@ const MomentsHistoryPage: FC = () => {
 
   const deletePost = async (id: number) => {
     try {
+      const { confirm } = await showModal({
+        title: '确认删除',
+        content: '确定要删除这条发布记录吗？',
+      })
+      if (!confirm) return
+
       await Network.request({
         url: `/api/moments/post/${id}`,
         method: 'DELETE',
       })
       setPosts(posts.filter(p => p.id !== id))
+      showToast({ title: '已删除', icon: 'success' })
     } catch (error) {
       console.error('Delete post error:', error)
     }

@@ -1,11 +1,11 @@
 import { View, Text, ScrollView } from '@tarojs/components'
-import { useLoad } from '@tarojs/taro'
+import { useLoad, showToast } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
 import { Textarea } from '@/components/ui/textarea'
-import { ChevronRight, User, Sparkles, Check, LoaderCircle, Image, Clock } from 'lucide-react-taro'
+import { ChevronRight, User, Sparkles, Check, LoaderCircle, Image as ImageLucide, Clock } from 'lucide-react-taro'
 
 // 内容类型
 const POST_TYPES = [
@@ -146,6 +146,7 @@ const MomentsCreatePage: FC = () => {
           personaTags: selectedPersonas,
         }
       })
+      showToast({ title: '已保存发布记录', icon: 'success' })
       // 返回主页
       setCurrentStep(1)
       setSuggestion(null)
@@ -188,7 +189,7 @@ const MomentsCreatePage: FC = () => {
           {/* 图片建议 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
-              <Image size={18} color="#3B82F6" />
+              <ImageLucide size={18} color="#3B82F6" />
               <Text className="block text-base font-semibold text-gray-900">图片建议</Text>
             </View>
             {suggestion.imageSuggestions.map((img, index) => (
