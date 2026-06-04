@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Query, Req } from '@nestjs/common'
+import { Request } from 'express'
 import { TaskService } from './task.service'
 
 @Controller('task')
@@ -58,18 +59,16 @@ export class TaskController {
     return this.taskService.deleteTask(body.taskId)
   }
 
+  /**
+   * AI 生成推荐任务
+   * 后端自动聚合全部维度数据、进度、周期、能量等，无需前端传参
+   */
   @Post('generate/:matchId')
   async generateTasks(
+    @Req() req: Request,
     @Param('matchId') matchId: string,
-    @Body() body: {
-      relationshipStage: string
-      keyInfo: Array<{ type: string; label: string; value: string }>
-      interests: string[]
-      cycleStartDate?: string
-      cycleLength?: number
-    }
   ) {
-    const tasks = await this.taskService.generateRecommendedTasks(Number(matchId), body)
+    const tasks = await this.taskService.generateRecommendedTasks(Number(matchId), req)
     return {
       code: 200,
       data: tasks,
@@ -90,22 +89,6 @@ export class TaskController {
       Number(matchId),
       body.newStage,
       { keyInfo: body.keyInfo, interests: body.interests }
-    )
-    return {
-      code: 200,
-      data: tasks,
-      message: 'success',
-    }
-  }
-
-  @Post('create-from-suggestions/:matchId')
-  async createFromSuggestions(
-    @Param('matchId') matchId: string,
-    @Body() body: { suggestions: Array<{ action: string; reason: string; tips: string }> }
-  ) {
-    const tasks = await this.taskService.createFromSuggestions(
-      Number(matchId),
-      body.suggestions || []
     )
     return {
       code: 200,

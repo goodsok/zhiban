@@ -162,24 +162,13 @@ const TasksPage: FC = () => {
     if (!matchId) return
     try {
       setGenerating(true)
-      const detailRes = await Network.request({
-        url: `/api/match/${matchId}`
+      // 后端自动聚合全部维度数据、进度、周期、能量等，无需前端传参
+      await Network.request({
+        url: `/api/task/generate/${matchId}`,
+        method: 'POST',
       })
-      if (detailRes.data?.code === 200 && detailRes.data?.data) {
-        const matchData = detailRes.data.data
-        await Network.request({
-          url: `/api/task/generate/${matchId}`,
-          method: 'POST',
-          data: {
-            keyInfo: matchData.keyInfo || [],
-            interests: matchData.interests || [],
-            cycleStartDate: matchData.cycleStartDate,
-            cycleLength: matchData.cycleLength,
-          }
-        })
-        fetchTasks()
-        fetchProgress()
-      }
+      fetchTasks()
+      fetchProgress()
     } catch (error) {
       console.error('Failed to generate tasks:', error)
     } finally {
