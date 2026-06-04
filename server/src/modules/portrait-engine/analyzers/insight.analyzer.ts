@@ -440,7 +440,22 @@ export class InsightAnalyzer {
       }
     }
 
-    // === 3. 维度间的关键对比（帮助AI发现矛盾） ===
+    // === 3. 数据充分度提示 ===
+    const totalLayers = Object.keys(layerNames).length
+    const filledLayers = data.layerStats.filter(ls => ls.filled > 0).length
+    const totalDims = data.dimensions.length
+    if (filledLayers < totalLayers || totalDims < 20) {
+      const filledLayerNames = data.layerStats.filter(ls => ls.filled > 0).map(ls => layerNames[ls.layer])
+      const missingLayerNames = data.layerStats.filter(ls => ls.filled === 0).map(ls => layerNames[ls.layer])
+      sections.push(`\n【数据充分度提示】`)
+      sections.push(`当前共填写${totalDims}个维度，覆盖${filledLayers}/${totalLayers}层（${filledLayerNames.join('、')}）`)
+      if (missingLayerNames.length > 0) {
+        sections.push(`缺失层级：${missingLayerNames.join('、')} — 这些层级的缺失可能本身就是信号`)
+      }
+      sections.push(`请基于已有数据尽力洞察，但在 personalitySummary 末尾自然提示"填写更多维度可获得更精准洞察"`)
+    }
+
+    // === 4. 维度间的关键对比（帮助AI发现矛盾） ===
     const contradictionHints = this.findContradictionHints(data.dimensions)
     if (contradictionHints.length > 0) {
       sections.push(`\n【维度交叉提示（值得深挖的矛盾点）】\n${contradictionHints.join('\n')}`)
