@@ -562,13 +562,24 @@ export class SpeedPlanService {
     difficulty: { score: number; level: string; factors: string[] },
     objectInfo: {
       name: string
+      gender: string
+      meetingScene: string
+      relationshipStage: string
+      interactionStatus: string
       relationshipType: string
       mbti: string
       attachmentType: string
-      progressScore: number
-      relationshipEnergy: number
+      profileSummary: string[]
+      keyInfoSummary: string[]
+      portrait: {
+        bigFive: Record<string, number>
+        emotional: Record<string, number>
+        communication: Record<string, number>
+        interactionStyle: string
+      } | null
       interactionCount: number
-      cyclePhase: string
+      totalEnergy: number
+      avgQuality: number
     },
     request: Request
   ): Promise<string> {
@@ -593,8 +604,55 @@ export class SpeedPlanService {
       'long_term': '长期关系（以结婚或长期伴侣为目标）',
       'short_term': '短期关系（双方都明确的恋爱尝试，不承诺长期发展）',
       'both': '灵活关系（根据相处情况决定发展方向）',
+      'serious_dating': '认真恋爱',
+      'casual_dating': '轻松约会',
     }
     const relationshipDesc = relationshipTypeDesc[objectInfo.relationshipType] || '未明确'
+
+    // 构建对象档案摘要
+    const profileSection = objectInfo.profileSummary.length > 0
+      ? objectInfo.profileSummary.join('\n')
+      : '暂无详细档案信息'
+
+    // 构建 AI 洞察摘要
+    const keyInfoSection = objectInfo.keyInfoSummary.length > 0
+      ? objectInfo.keyInfoSummary.join('\n')
+      : '暂无'
+
+    // 构建画像量化摘要
+    let portraitSection = '暂无画像数据'
+    if (objectInfo.portrait) {
+      const p = objectInfo.portrait
+      const bigFiveDesc = Object.entries(p.bigFive)
+        .filter(([, v]) => v !== 50) // 过滤掉默认值
+        .map(([k, v]) => {
+          const labels: Record<string, string> = {
+            openness: '开放性', conscientiousness: '尽责性',
+            extraversion: '外向性', agreeableness: '宜人性', neuroticism: '神经质',
+          }
+          const level = v >= 70 ? '高' : v <= 30 ? '低' : '中等'
+          return `${labels[k] || k}${level}(${v})`
+        }).join('、')
+
+      const commDesc = Object.entries(p.communication)
+        .filter(([, v]) => v !== 50)
+        .map(([k, v]) => {
+          const labels: Record<string, string> = {
+            directness: '直接度', humor: '幽默感',
+            responsiveness: '回复积极性', depth: '沟通深度',
+          }
+          const level = v >= 70 ? '高' : v <= 30 ? '低' : '中等'
+          return `${labels[k] || k}${level}(${v})`
+        }).join('、')
+
+      portraitSection = [bigFiveDesc, commDesc, p.interactionStyle ? `互动风格：${p.interactionStyle}` : ''].filter(Boolean).join('\n')
+    }
+
+    const stageDesc: Record<string, string> = {
+      'just_met': '刚认识', 'got_contact': '已获得联系方式',
+      'chatting': '聊天中', 'met_up': '已见面', 'dating': '约会中',
+      'exclusive': '已确定排他关系', 'committed': '已承诺关系',
+    }
 
     const systemPrompt = `你是一位专业的婚恋情感咨询师，为成年人提供恋爱关系发展指导。
 
@@ -611,23 +669,29 @@ export class SpeedPlanService {
 3. 关注对方的感受和边界，及时沟通彼此的期待
 4. 强调情感连接和氛围营造的重要性
 
+关键要求：
+- 你必须充分结合对方的档案数据（性格、偏好、边界等）来制定个性化方案
+- 如果对方有明确的边界或底线（如 physicalIntimacyTimeline、boundariesStyle、dealbreakerList），方案中必须予以尊重和体现
+- 利用对方的兴趣爱好、爱的语言等偏好来设计具体的约会和互动建议
+- 结合对方的性格特点（如 MBTI、依恋类型、沟通风格）来调整话术和推进节奏
+
 输出要求：
-1. 方案应该具体、可执行
+1. 方案应该具体、可执行，深度结合对方档案数据
 2. 每个步骤都要有明确的时间节点
-3. 根据关系类型调整节奏和策略
-4. 给出具体的聊天话题或行动建议
-5. 指出需要注意的边界和尊重事项
+3. 根据关系类型和对方性格调整节奏和策略
+4. 给出具体的聊天话题或行动建议，要贴合对方的兴趣和偏好
+5. 指出需要注意的边界和尊重事项，特别是对方明确设定的底线
 
 输出格式：
-【总体策略】（一句话概括）
-【难度分析】（结合难度系数和影响因素）
+【总体策略】（一句话概括，体现对对方性格的针对性）
+【难度分析】（结合难度系数、影响因素和对方性格特点）
 【分步计划】
 1. 第X步：xxx（时间：XX小时内）
-   - 具体行动
-   - 话术示例
+   - 具体行动（结合对方兴趣和偏好）
+   - 话术示例（符合对方沟通风格）
 2. ...
-【注意事项】（特别强调尊重边界和双方意愿）
-【备选方案】（如果计划受阻）`
+【注意事项】（特别强调尊重边界和双方意愿，引用对方明确的底线）
+【备选方案】（如果计划受阻，提供替代路径）`
 
     const userMessage = `请为以下情况生成关系推进方案：
 
@@ -635,16 +699,29 @@ export class SpeedPlanService {
 ${background || '未提供'}
 
 【当前进展】
-${progressNames.length > 0 ? progressNames.join('、') : '刚开始认识'}
+- 关系阶段：${stageDesc[objectInfo.relationshipStage] || objectInfo.relationshipStage || '未知'}
+- 互动状态：${objectInfo.interactionStatus || '未知'}
+- 已达成的进展：${progressNames.length > 0 ? progressNames.join('、') : '刚开始认识'}
+- 互动次数：${objectInfo.interactionCount}次
+- 互动质量评分：${objectInfo.avgQuality}/10
+- 关系能量：${objectInfo.totalEnergy}
 
-【对象信息】
-- 姓名：${objectInfo.name}
-- 关系类型：${relationshipDesc}
-- MBTI：${objectInfo.mbti || '未知'}
-- 依恋类型：${objectInfo.attachmentType || '未知'}
-- 推进值：${objectInfo.progressScore}
-- 关系能量：${objectInfo.relationshipEnergy}
-- 互动次数：${objectInfo.interactionCount}
+【对象完整档案】
+姓名：${objectInfo.name}
+性别：${objectInfo.gender || '未知'}
+认识场景：${objectInfo.meetingScene || '未知'}
+关系类型：${relationshipDesc}
+MBTI：${objectInfo.mbti || '未知'}
+依恋类型：${objectInfo.attachmentType || '未知'}
+
+--- 个人资料 ---
+${profileSection}
+
+--- AI 洞察分析 ---
+${keyInfoSection}
+
+--- 性格画像 ---
+${portraitSection}
 
 【目标】
 在${targetHours}小时内推进到"${targetDisplayName}"阶段
@@ -653,7 +730,7 @@ ${progressNames.length > 0 ? progressNames.join('、') : '刚开始认识'}
 ${difficulty.score}/10（${difficulty.level}）
 影响因素：${difficulty.factors.length > 0 ? difficulty.factors.join('、') : '无特殊因素'}
 
-请生成具体的推进方案。`
+请结合对方档案数据生成具体、个性化的推进方案。方案中要具体引用对方的性格特点、兴趣爱好、偏好和边界来设计每一步行动。`
 
     try {
       const response = await client.invoke([
@@ -684,24 +761,35 @@ ${difficulty.score}/10（${difficulty.level}）
     const target = BEHAVIOR_LEVELS.find(b => b.code === plan.target_behavior)
     const targetName = target?.name || plan.target_behavior
 
+    // 补充获取对象档案数据，让对话中也能参考
+    const objectProfile = await this.getMatchInfo(plan.match_id, request)
+    const profileHint = objectProfile.profileSummary.length > 0
+      ? `\n\n--- 对方关键档案 ---\n${objectProfile.profileSummary.slice(0, 15).join('\n')}\n\n对方MBTI：${objectProfile.mbti || '未知'}，依恋类型：${objectProfile.attachmentType || '未知'}，爱的语言：${objectProfile.profileSummary.find(s => s.startsWith('爱的语言'))?.replace('爱的语言：', '') || '未知'}`
+      : ''
+    const keyInfoHint = objectProfile.keyInfoSummary.length > 0
+      ? `\n\n--- AI之前的洞察 ---\n${objectProfile.keyInfoSummary.join('\n')}`
+      : ''
+
     const systemPrompt = `你是一位专业的婚恋情感咨询师，正在帮助用户推进恋爱关系。
 
 当前方案背景：
 - 对象：${plan.matches?.name || '对方'}
 - 目标：在${plan.target_hours}小时内推进到"${targetName}"
 - 难度：${plan.difficulty_score}/10
+- 背景：${plan.background || '未提供'}${profileHint}${keyInfoHint}
 
 你的任务是：
-1. 根据用户的反馈调整方案
+1. 根据用户的反馈调整方案，方案要结合对方的档案数据
 2. 回答用户的具体问题
-3. 提供应对建议
+3. 提供应对建议，考虑对方的性格和偏好
 4. 保持真诚、尊重的态度
 
 回复要求：
 - 简洁实用，避免重复
 - 针对用户的具体问题回答
 - 如果用户说某步骤不合适，提供替代方案
-- 保持温暖的语气`
+- 保持温暖的语气
+- 参考对方档案数据给出个性化建议`
 
     // 构建消息历史
     const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [

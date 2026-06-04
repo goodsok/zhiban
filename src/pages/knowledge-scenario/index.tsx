@@ -92,10 +92,10 @@ const KnowledgeScenarioPage: FC = () => {
   const readProgress = totalCases > 0 ? Math.round((readCount / totalCases) * 100) : 0
 
   return (
-    <View className="min-h-screen bg-gray-50">
+    <View style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#f9fafb' }}>
       <CustomHeader title="场景演练" />
 
-      <ScrollView scrollY className="h-screen">
+      <ScrollView scrollY style={{ flex: 1 }}>
         {/* 搜索栏 + 进度 */}
         <View className="px-4 pt-3 pb-2 bg-white border-b border-gray-100">
           <View className="bg-gray-50 rounded-xl px-3 py-2">
