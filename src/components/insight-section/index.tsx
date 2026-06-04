@@ -91,7 +91,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
           <View className="space-y-3">
             <View className="flex items-center gap-2">
               <View className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-              <Text className="block text-sm text-gray-500">扫描{matchName}的所有行为数据...</Text>
+              <Text className="block text-sm text-gray-500">扫描{matchName}的所有维度数据...</Text>
             </View>
             <View className="flex items-center gap-2">
               <View className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" style={{ animationDelay: '0.3s' }} />

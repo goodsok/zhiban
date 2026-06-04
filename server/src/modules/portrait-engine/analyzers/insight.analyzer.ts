@@ -1,8 +1,10 @@
 /**
  * AI 洞察分析器
  *
- * 聚合该对象的全部维度数据，调用 LLM 进行深度洞察分析
- * 重点：发现用户不容易觉察的隐蔽模式、矛盾信号、潜在风险
+ * 数据来源：全部来自维度系统（profile_dimension_values + dimension_definitions）
+ * 不依赖任何其他数据表
+ *
+ * 核心：发现用户不容易觉察的隐蔽模式、矛盾信号、潜在风险
  * 支持持久化：分析结果存入数据库，刷新不丢失
  */
 
@@ -90,6 +92,25 @@ interface AggregatedDimension {
   source: string
   previousValue: any
   changedReason: string | null
+  confidence: number | null
+  description: string | null
+}
+
+/** 层级统计 */
+interface LayerStat {
+  layer: number
+  layerName: string
+  filled: number
+  total: number
+  categories: Record<string, { filled: number; total: number; catName: string }>
+}
+
+/** 聚合后的全部数据（仅来自维度系统） */
+interface AggregatedData {
+  match: { id: number; name: string; gender: string; relationship_type: string; meeting_scene: string; impression_tags: string[]; notes: string; status: string } | null
+  dimensions: AggregatedDimension[]
+  layerStats: LayerStat[]
+  hasEnoughData: boolean
 }
 
 @Injectable()
@@ -108,13 +129,13 @@ export class InsightAnalyzer {
       }
     }
 
-    // 2. 聚合所有数据（维度优先）
-    const aggregatedData = await this.aggregateAllData(matchId)
-    console.log(`[InsightAnalyzer] Aggregated data for match ${matchId}: dimensions=${aggregatedData.dimensions.length}, hasEnoughData=${aggregatedData.hasEnoughData}, energy=${!!aggregatedData.energy}`)
+    // 2. 从维度系统聚合数据
+    const aggregatedData = await this.aggregateDimensionData(matchId)
+    console.log(`[InsightAnalyzer] Aggregated dimension data for match ${matchId}: dimensions=${aggregatedData.dimensions.length}, hasEnoughData=${aggregatedData.hasEnoughData}`)
 
     // 3. 检查是否有足够数据
     if (!aggregatedData.hasEnoughData) {
-      console.log(`[InsightAnalyzer] Insufficient data for match ${matchId}`)
+      console.log(`[InsightAnalyzer] Insufficient dimension data for match ${matchId}`)
       const result = this.getInsufficientDataResult()
       await this.saveToCache(matchId, result, 'insufficient')
       return result
@@ -134,123 +155,34 @@ export class InsightAnalyzer {
     }
   }
 
-  /**
-   * 从数据库加载已缓存的洞察
-   */
-  private async loadFromCache(matchId: number): Promise<InsightAnalysisResult | null> {
-    const client = getSupabaseClient()
-    const { data, error } = await client
-      .from('insight_cache')
-      .select('*')
-      .eq('match_id', matchId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (error || !data) return null
-
-    return {
-      personalitySummary: data.personality_summary,
-      relationshipDynamics: data.relationship_dynamics,
-      emotionalPatterns: data.emotional_patterns,
-      communicationStyle: data.communication_style,
-      keyFindings: data.key_findings as string[],
-      blindSpots: data.blind_spots as string[],
-      hiddenSignals: (data.hidden_signals as HiddenSignal[]) || [],
-      growthSuggestions: data.growth_suggestions as string[],
-      actionPriority: data.action_priority,
-    }
-  }
+  // ==================== 数据聚合（纯维度） ====================
 
   /**
-   * 保存洞察结果到数据库
+   * 从维度系统聚合全部数据
+   * 数据来源：profile_dimension_values + dimension_definitions + matches（基本信息）
    */
-  private async saveToCache(matchId: number, result: InsightAnalysisResult, fingerprint: string): Promise<void> {
+  private async aggregateDimensionData(matchId: number): Promise<AggregatedData> {
     const client = getSupabaseClient()
 
-    // 先删除旧缓存（每个 match 只保留最新一条）
-    await client.from('insight_cache').delete().eq('match_id', matchId)
-
-    const { error } = await client.from('insight_cache').insert({
-      match_id: matchId,
-      personality_summary: result.personalitySummary,
-      relationship_dynamics: result.relationshipDynamics,
-      emotional_patterns: result.emotionalPatterns,
-      communication_style: result.communicationStyle,
-      key_findings: result.keyFindings,
-      blind_spots: result.blindSpots,
-      hidden_signals: result.hiddenSignals,
-      growth_suggestions: result.growthSuggestions,
-      action_priority: result.actionPriority,
-      data_fingerprint: fingerprint,
-    })
-
-    if (error) {
-      console.error('[InsightAnalyzer] Failed to save cache:', error)
-    }
-  }
-
-  /**
-   * 计算数据指纹（用于判断数据是否有变化，决定是否需要重新分析）
-   */
-  private computeDataFingerprint(data: Awaited<ReturnType<typeof this.aggregateAllData>>): string {
-    const parts: string[] = []
-    // 维度数量和最后更新时间
-    parts.push(`d:${data.dimensions.length}`)
-    // 关系能量
-    if (data.energy) parts.push(`e:${data.energy.total_energy}`)
-    // 基本信息
-    if (data.match) parts.push(`m:${data.match.id}`)
-    // 任务数量
-    parts.push(`t:${data.tasks?.length || 0}`)
-    return parts.join('|')
-  }
-
-  /**
-   * 聚合该对象的所有数据（以维度数据为核心）
-   */
-  private async aggregateAllData(matchId: number) {
-    const client = getSupabaseClient()
-
-    // 并行查询所有数据源
+    // 并行查询：基本信息 + 维度值 + 维度定义
     const [
       matchResult,
       dimensionsResult,
       definitionsResult,
-      energyResult,
-      tasksResult,
-      energyHistoryResult,
     ] = await Promise.all([
-      // 基本信息
-      client.from('matches').select('*').eq('id', matchId).maybeSingle(),
-      // 维度值
+      client.from('matches').select('id, name, gender, relationship_type, meeting_scene, impression_tags, notes, status').eq('id', matchId).maybeSingle(),
       client.from('profile_dimension_values').select('*').eq('match_id', matchId),
-      // 维度定义（所有活跃定义）
       client.from('dimension_definitions').select('*').eq('is_active', true),
-      // 关系能量
-      client.from('relationship_energy').select('*').eq('match_id', matchId).maybeSingle(),
-      // 任务
-      client.from('tasks').select('*').eq('match_id', matchId).order('created_at', { ascending: false }).limit(20),
-      // 关系能量历史
-      client.from('relationship_energy_history').select('*').eq('match_id', matchId).order('created_at', { ascending: false }).limit(10),
     ])
 
     const match = matchResult.data
-    const dimensionValues = dimensionsResult.data || []
-    const definitions = definitionsResult.data || []
-    const energy = energyResult.data
-    const tasks = tasksResult.data || []
-    const energyHistory = energyHistoryResult.data || []
+    const dimensionValues = (dimensionsResult.data || []) as DimensionValueRow[]
+    const definitions = (definitionsResult.data || []) as DimensionDefRow[]
 
-    // 合并维度值和定义
+    // 构建维度定义 Map
     const defMap = new Map<string, DimensionDefRow>()
     for (const def of definitions) {
-      defMap.set(def.dimension_key, def as DimensionDefRow)
-    }
-
-    const valueMap = new Map<string, DimensionValueRow>()
-    for (const val of dimensionValues) {
-      valueMap.set(val.dimension_key, val as DimensionValueRow)
+      defMap.set(def.dimension_key, def)
     }
 
     // 构建聚合维度列表
@@ -269,21 +201,22 @@ export class InsightAnalyzer {
         source: val.source,
         previousValue: val.previous_value,
         changedReason: val.changed_reason,
+        confidence: val.confidence,
+        description: def?.description || null,
       })
     }
 
     // 按层级分组统计
     const layerStats = this.computeLayerStats(dimensions, definitions)
 
-    const hasEnoughData = dimensions.length >= 3
+    // 判断数据充足：至少 5 个有值维度（避免只有基本信息）
+    const meaningfulDims = dimensions.filter(d => d.layer >= 2)
+    const hasEnoughData = meaningfulDims.length >= 3 || dimensions.length >= 5
 
     return {
       match,
       dimensions,
       layerStats,
-      energy,
-      tasks,
-      energyHistory,
       hasEnoughData,
     }
   }
@@ -329,13 +262,7 @@ export class InsightAnalyzer {
   /**
    * 计算各层级维度填写统计
    */
-  private computeLayerStats(dimensions: AggregatedDimension[], definitions: DimensionDefRow[]): {
-    layer: number
-    layerName: string
-    filled: number
-    total: number
-    categories: Record<string, { filled: number; total: number }>
-  }[] {
+  private computeLayerStats(dimensions: AggregatedDimension[], definitions: DimensionDefRow[]): LayerStat[] {
     const layerNames: Record<number, string> = {
       1: '静态属性',
       2: '性格情感',
@@ -343,12 +270,22 @@ export class InsightAnalyzer {
       4: '深层模式',
     }
 
+    const categoryNames: Record<string, string> = {
+      identity: '身份', education: '教育职业', family: '家庭背景', appearance: '外在形象',
+      life_stage: '人生阶段', location: '地理位置', core_personality: '核心人格', values: '价值观',
+      personality: '性格特质', emotion: '情感特质', social: '社交特质', communication: '沟通方式',
+      life_attitude: '生活态度', love_style: '恋爱风格', interests: '兴趣爱好', lifestyle: '生活习惯',
+      dating: '约会偏好', communication_pref: '沟通偏好', current: '当前状态', sexual_intimacy: '亲密关系',
+      relationship_form: '关系形态', emotional_investment: '情感投入', time_availability: '时间精力',
+      privacy_public: '隐私公开', short_term_patterns: '短期关系模式', dating_dynamics: '约会动态',
+      current_status: '当前状态',
+    }
+
     const filledKeys = new Set(dimensions.map(d => d.key))
 
     const layerData: Record<number, {
-      filled: number
-      total: number
-      categories: Record<string, { filled: number; total: number }>
+      filled: number; total: number;
+      categories: Record<string, { filled: number; total: number; catName: string }>
     }> = {}
 
     for (const def of definitions) {
@@ -359,7 +296,7 @@ export class InsightAnalyzer {
       layerData[layer].total++
       const cat = def.category
       if (!layerData[layer].categories[cat]) {
-        layerData[layer].categories[cat] = { filled: 0, total: 0 }
+        layerData[layer].categories[cat] = { filled: 0, total: 0, catName: categoryNames[cat] || cat }
       }
       layerData[layer].categories[cat].total++
 
@@ -378,10 +315,12 @@ export class InsightAnalyzer {
     })).sort((a, b) => a.layer - b.layer)
   }
 
+  // ==================== LLM 分析 ====================
+
   /**
    * 使用 LLM 进行深度分析
    */
-  private async analyzeWithLLM(data: Awaited<ReturnType<typeof this.aggregateAllData>>, request: Request): Promise<InsightAnalysisResult> {
+  private async analyzeWithLLM(data: AggregatedData, request: Request): Promise<InsightAnalysisResult> {
     const customHeaders = HeaderUtils.extractForwardHeaders(request.headers as Record<string, string>)
     const config = new Config()
     const client = new LLMClient(config, customHeaders)
@@ -411,19 +350,19 @@ export class InsightAnalyzer {
 
   /**
    * 构建深度洞察分析提示词
-   * 核心：完全基于维度数据，发现用户看不到的隐蔽模式
+   * 数据来源：纯维度系统，不依赖其他表
    */
-  private buildInsightPrompt(data: Awaited<ReturnType<typeof this.aggregateAllData>>): string {
+  private buildInsightPrompt(data: AggregatedData): string {
     const sections: string[] = []
     const name = data.match?.name || '对方'
 
-    sections.push(`你是一位极其敏锐的关系心理分析师，擅长从看似普通的个人信息中发现人眼难以察觉的隐蔽模式。你的洞察不是对数据的复述，而是对数据背后的深层含义的揭示。
+    sections.push(`你是一位极其敏锐的关系心理分析师，擅长从看似普通的个人信息维度中发现人眼难以察觉的隐蔽模式。你的洞察不是对维度值的复述，而是对维度组合背后深层含义的揭示。
 
 【你的核心能力】
-- 发现数据之间的矛盾和张力（比如：声称想要稳定，但行为模式显示追求刺激）
+- 发现维度之间的矛盾和张力（比如：声称想要稳定，但深层模式维度显示追求刺激）
 - 捕捉维度之间的微妙关联（比如：依恋类型和冲突处理风格的隐性关系）
 - 识别用户自身的认知偏差（比如：用户以为对方不在意，但维度组合表明相反）
-- 从多维度交叉中提炼非常规发现（比如：价值观和情感表达方式的落差）
+- 从多层维度交叉中提炼非常规发现（比如：价值观和情感表达方式的落差）
 
 【分析原则】
 1. 不要复述数据——"对方MBTI是ESFJ"不是洞察，"对方的ESFJ性格叠加高共情力和回避型冲突处理，意味着她会在关系中极力维持和谐表面，但内心积压的不满会在某一刻爆发"才是洞察
@@ -431,11 +370,13 @@ export class InsightAnalyzer {
 3. 要有证据链——每个结论都要指向具体维度数据的交叉，不是凭空推测
 4. 要有实用性——指出隐藏风险或被忽略的机会，给出可操作建议
 5. 尤其关注矛盾——不同层维度之间的不一致、价值观与行为的错位、公开偏好与隐私态度的冲突
-6. 利用层级结构——Layer 1（静态属性）和 Layer 4（深层模式）之间的张力最值得深挖
+6. 利用层级结构——Layer 1（基础画像）和 Layer 4（深层模式）之间的张力最值得深挖
+7. 注意数据来源——标注了[AI分析]的维度是通过聊天内容推断的，可能存在偏差；其他维度是用户手动填写的，更可靠
+8. 关注数据空白——某个关键分类完全没有填写，本身就是一种信号（回避？不了解？）
 
 请基于以下关于"${name}"的全部维度数据，进行深度人物洞察分析。用中文回答。`)
 
-    // === 1. 基本信息 ===
+    // === 1. 基本信息（从 matches 表） ===
     if (data.match) {
       const m = data.match
       const parts: string[] = []
@@ -451,43 +392,12 @@ export class InsightAnalyzer {
       }
     }
 
-    // === 2. 维度数据（按层级和分类组织，核心数据） ===
-    // 按层级和分类分组
+    // === 2. 维度数据（按层级和分类组织 — 这是核心数据） ===
     const layerNames: Record<number, string> = {
       1: '基础画像',
       2: '性格与情感',
       3: '生活方式',
       4: '深层模式',
-    }
-
-    const categoryNames: Record<string, string> = {
-      identity: '身份',
-      education: '教育职业',
-      family: '家庭背景',
-      appearance: '外在形象',
-      life_stage: '人生阶段',
-      location: '地理位置',
-      core_personality: '核心人格',
-      values: '价值观',
-      personality: '性格特质',
-      emotion: '情感特质',
-      social: '社交特质',
-      communication: '沟通方式',
-      life_attitude: '生活态度',
-      love_style: '恋爱风格',
-      interests: '兴趣爱好',
-      lifestyle: '生活习惯',
-      dating: '约会偏好',
-      communication_pref: '沟通偏好',
-      current: '当前状态',
-      sexual_intimacy: '亲密关系',
-      relationship_form: '关系形态',
-      emotional_investment: '情感投入',
-      time_availability: '时间精力',
-      privacy_public: '隐私公开',
-      short_term_patterns: '短期关系模式',
-      dating_dynamics: '约会动态',
-      current_status: '当前状态',
     }
 
     for (const ls of data.layerStats) {
@@ -506,7 +416,8 @@ export class InsightAnalyzer {
       }
 
       for (const [cat, dims] of grouped) {
-        const catName = categoryNames[cat] || cat
+        const catInfo = ls.categories[cat]
+        const catName = catInfo?.catName || cat
         const lines = dims.map(d => {
           let line = `${d.displayName}: ${d.displayValue}`
           // 如果数据来源是AI分析，标注
@@ -517,7 +428,15 @@ export class InsightAnalyzer {
           }
           return line
         })
-        sections.push(`  ${catName}：${lines.join('；')}`)
+        sections.push(`  ${catName}（${catInfo?.filled || dims.length}/${catInfo?.total || dims.length}）：${lines.join('；')}`)
+      }
+
+      // 如果该层有未填的分类，提示数据空白
+      const unfilledCats = Object.entries(ls.categories)
+        .filter(([_, v]) => v.filled === 0)
+        .map(([_, v]) => v.catName)
+      if (unfilledCats.length > 0 && unfilledCats.length < Object.keys(ls.categories).length) {
+        sections.push(`  ⚠ 未填写的分类：${unfilledCats.join('、')}`)
       }
     }
 
@@ -527,46 +446,10 @@ export class InsightAnalyzer {
       sections.push(`\n【维度交叉提示（值得深挖的矛盾点）】\n${contradictionHints.join('\n')}`)
     }
 
-    // === 4. 关系能量 ===
-    if (data.energy) {
-      const e = data.energy
-      const parts: string[] = []
-      parts.push(`关系能量: ${e.total_energy}/100`)
-      parts.push(`信息维度: ${e.information_score}/100, 互动维度: ${e.interaction_score}/100, 情感维度: ${e.emotional_score}/100`)
-      const trendLabels: Record<string, string> = { rising: '上升', stable: '稳定', declining: '下降', stagnant: '停滞' }
-      parts.push(`趋势: ${trendLabels[e.trend] || e.trend}`)
-      if (e.current_stage) parts.push(`关系阶段: ${e.current_stage}`)
-      if (e.last_interaction_days >= 0) parts.push(`距上次互动: ${e.last_interaction_days}天`)
-
-      sections.push(`\n【关系能量】\n${parts.join('\n')}`)
-    }
-
-    // === 5. 关系能量历史 ===
-    if (data.energyHistory && data.energyHistory.length >= 2) {
-      const parts: string[] = []
-      for (const h of data.energyHistory.slice(0, 5)) {
-        const date = new Date(h.created_at).toLocaleDateString('zh-CN')
-        parts.push(`${date}: 能量${h.total_energy}, 信息${h.information_score}, 互动${h.interaction_score}, 情感${h.emotional_score}`)
-      }
-      sections.push(`\n【关系能量变化趋势】\n${parts.join('\n')}`)
-    }
-
-    // === 6. 任务完成情况 ===
-    if (data.tasks && data.tasks.length > 0) {
-      const t = data.tasks
-      const completed = t.filter(x => x.completed === 1).length
-      const parts: string[] = []
-      parts.push(`任务总数: ${t.length}, 已完成: ${completed}`)
-      const recentCompleted = t.filter(x => x.completed === 1).slice(0, 5)
-      if (recentCompleted.length > 0) {
-        parts.push(`已完成: ${recentCompleted.map(x => x.title).join('、')}`)
-      }
-      const pending = t.filter(x => x.completed === 0).slice(0, 5)
-      if (pending.length > 0) {
-        parts.push(`待完成: ${pending.map(x => x.title).join('、')}`)
-      }
-
-      sections.push(`\n【任务进展】\n${parts.join('\n')}`)
+    // === 4. 数据置信度提示 ===
+    const lowConfidenceDims = data.dimensions.filter(d => d.confidence !== null && d.confidence < 0.5)
+    if (lowConfidenceDims.length > 0) {
+      sections.push(`\n【低置信度维度】\n${lowConfidenceDims.map(d => `- ${d.displayName}（置信度${Math.round(d.confidence! * 100)}%，来源：${d.source}）`).join('\n')}`)
     }
 
     // === 输出要求 ===
@@ -599,7 +482,8 @@ export class InsightAnalyzer {
 - opportunity: 被忽略的机会（如某个维度组合暗示的未利用窗口）
 
 至少生成2条hiddenSignals，最多4条。这些是本次分析最有价值的部分——是AI能发现但人很难注意到的。
-重点从Layer 1（基础画像）和Layer 4（深层模式）之间的张力中寻找隐蔽信号。`)
+重点从Layer 1（基础画像）和Layer 4（深层模式）之间的张力中寻找隐蔽信号。
+如果某些分类完全没有数据，也可以作为一种隐蔽信号——数据空白本身就是信息。`)
 
     return sections.join('\n')
   }
@@ -674,8 +558,94 @@ export class InsightAnalyzer {
       }
     }
 
+    // 结婚意愿 vs 害怕承诺
+    const marriageIntention = dimMap.get('marriageIntention')
+    const commitFear = dimMap.get('fearOfCommitment')
+    if (marriageIntention && commitFear) {
+      if ((marriageIntention.value === 'within_1year' || marriageIntention.value === 'within_3years') && commitFear.value === true) {
+        hints.push(`- 有结婚计划但害怕承诺：把结婚当目标而非自然结果，可能导致婚后矛盾`)
+      }
+    }
+
     return hints
   }
+
+  // ==================== 持久化 ====================
+
+  /**
+   * 从数据库加载已缓存的洞察
+   */
+  private async loadFromCache(matchId: number): Promise<InsightAnalysisResult | null> {
+    const client = getSupabaseClient()
+    const { data, error } = await client
+      .from('insight_cache')
+      .select('*')
+      .eq('match_id', matchId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error || !data) return null
+
+    return {
+      personalitySummary: data.personality_summary,
+      relationshipDynamics: data.relationship_dynamics,
+      emotionalPatterns: data.emotional_patterns,
+      communicationStyle: data.communication_style,
+      keyFindings: data.key_findings as string[],
+      blindSpots: data.blind_spots as string[],
+      hiddenSignals: (data.hidden_signals as HiddenSignal[]) || [],
+      growthSuggestions: data.growth_suggestions as string[],
+      actionPriority: data.action_priority,
+    }
+  }
+
+  /**
+   * 保存洞察结果到数据库
+   */
+  private async saveToCache(matchId: number, result: InsightAnalysisResult, fingerprint: string): Promise<void> {
+    const client = getSupabaseClient()
+
+    // 先删除旧缓存（每个 match 只保留最新一条）
+    await client.from('insight_cache').delete().eq('match_id', matchId)
+
+    const { error } = await client.from('insight_cache').insert({
+      match_id: matchId,
+      personality_summary: result.personalitySummary,
+      relationship_dynamics: result.relationshipDynamics,
+      emotional_patterns: result.emotionalPatterns,
+      communication_style: result.communicationStyle,
+      key_findings: result.keyFindings,
+      blind_spots: result.blindSpots,
+      hidden_signals: result.hiddenSignals,
+      growth_suggestions: result.growthSuggestions,
+      action_priority: result.actionPriority,
+      data_fingerprint: fingerprint,
+    })
+
+    if (error) {
+      console.error('[InsightAnalyzer] Failed to save cache:', error)
+    }
+  }
+
+  /**
+   * 计算数据指纹（仅基于维度数据）
+   */
+  private computeDataFingerprint(data: AggregatedData): string {
+    const parts: string[] = []
+    // 维度数量
+    parts.push(`d:${data.dimensions.length}`)
+    // 各层填写数量
+    for (const ls of data.layerStats) {
+      parts.push(`l${ls.layer}:${ls.filled}/${ls.total}`)
+    }
+    // 维度 key 哈希（判断维度组合是否有变化）
+    const keyHash = data.dimensions.map(d => d.key).sort().join(',')
+    parts.push(`k:${keyHash.length}`)
+    return parts.join('|')
+  }
+
+  // ==================== 降级处理 ====================
 
   /**
    * 数据不足时的默认结果
@@ -706,7 +676,7 @@ export class InsightAnalyzer {
   /**
    * LLM 失败时的降级结果（基于维度数据的规则分析）
    */
-  private getFallbackResult(data: Awaited<ReturnType<typeof this.aggregateAllData>>): InsightAnalysisResult {
+  private getFallbackResult(data: AggregatedData): InsightAnalysisResult {
     const name = data.match?.name || '对方'
     const findings: string[] = []
     const suggestions: string[] = []
