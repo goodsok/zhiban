@@ -4,6 +4,7 @@ import type { FC } from 'react'
 import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Slider } from '@/components/ui/slider'
 import { Badge } from '@/components/ui/badge'
 import CustomHeader from '@/components/custom-header'
 import { Check, Loader, Search, Plus, X } from 'lucide-react-taro'
@@ -380,6 +381,73 @@ const DimensionEditPage: FC = () => {
                 </View>
               )}
             </View>
+          </View>
+        )
+      }
+      
+      case 'slider': {
+        const min = definition.validation_rules?.min ?? 0
+        const max = definition.validation_rules?.max ?? 100
+        const step = definition.data_type === 'float' ? 0.1 : 1
+        const sliderValue = inputValue ? parseFloat(inputValue) : min
+        return (
+          <View className="bg-white rounded-xl border border-gray-100 p-4">
+            {/* 当前值显示 */}
+            <View className="flex items-center justify-between mb-4">
+              <Text className="text-sm text-gray-500">{min}</Text>
+              <View className="flex items-baseline gap-1">
+                <Text className="text-3xl font-bold text-gray-900">
+                  {inputValue || min}
+                </Text>
+                <Text className="text-xs text-gray-400">/ {max}</Text>
+              </View>
+              <Text className="text-sm text-gray-500">{max}</Text>
+            </View>
+            
+            {/* 滑块 */}
+            <Slider
+              value={[sliderValue]}
+              min={min}
+              max={max}
+              step={step}
+              onValueChange={(vals) => {
+                const v = vals[0]
+                const displayVal = definition.data_type === 'float' ? v.toFixed(1) : String(Math.round(v))
+                setInputValue(displayVal)
+              }}
+            />
+            
+            {/* 帮助文本（滑块两端的含义说明） */}
+            {definition.help_text && (
+              <View className="mt-4 pt-3 border-t border-gray-100">
+                <Text className="block text-xs text-gray-400">{definition.help_text}</Text>
+              </View>
+            )}
+            
+            {/* 快捷按钮：常见数值 */}
+            {max - min >= 50 && (
+              <View className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                <Text className="text-xs text-gray-400">快捷选择</Text>
+                <View className="flex gap-2">
+                  {[25, 50, 75].map(v => {
+                    const inRange = v >= min && v <= max
+                    return inRange ? (
+                      <View
+                        key={v}
+                        className={`px-3 py-1 rounded-full ${
+                          parseInt(inputValue) === v ? 'bg-black' : 'bg-gray-100'
+                        }`}
+                        onClick={() => setInputValue(String(v))}
+                      >
+                        <Text className={`text-xs ${parseInt(inputValue) === v ? 'text-white' : 'text-gray-600'}`}>
+                          {v}
+                        </Text>
+                      </View>
+                    ) : null
+                  })}
+                </View>
+              </View>
+            )}
           </View>
         )
       }
