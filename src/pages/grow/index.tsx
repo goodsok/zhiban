@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { View, Text } from '@tarojs/components'
+import { useState, useEffect, useCallback } from 'react'
+import { View, Text, Picker } from '@tarojs/components'
 import { useRouter } from '@tarojs/taro'
 import type { FC } from 'react'
 import {
@@ -32,16 +32,17 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog'
+import { Network } from '@/network'
 
 interface Anniversary {
-  id: string
+  id: number
   title: string
   date: string
   icon: string
 }
 
 interface Goal {
-  id: string
+  id: number
   title: string
   progress: number
   total: number
@@ -49,13 +50,13 @@ interface Goal {
 }
 
 interface Memory {
-  id: string
+  id: number
   content: string
   date: string
 }
 
 interface PromiseItem {
-  id: string
+  id: number
   content: string
   completed: boolean
 }
@@ -131,29 +132,14 @@ const getRandomItems = <T,>(arr: T[], count: number): T[] => {
 
 const GrowPage: FC = () => {
   const router = useRouter()
-  const matchId = router.params.matchId
+  const matchId = Number(router.params.matchId) || 0
 
   const [activeTab, setActiveTab] = useState('anniversary')
-  const [anniversaries, setAnniversaries] = useState<Anniversary[]>([
-    { id: '1', title: '相识纪念', date: '2024-01-01', icon: '💫' },
-    { id: '2', title: '在一起', date: '2024-02-14', icon: '💕' },
-    { id: '3', title: '第一次约会', date: '2024-02-21', icon: '🌹' },
-  ])
-  const [goals, setGoals] = useState<Goal[]>([
-    { id: '1', title: '一起读完5本书', progress: 3, total: 5, completed: false },
-    { id: '2', title: '攒够旅行基金', progress: 8000, total: 20000, completed: false },
-    { id: '3', title: '一起健身100天', progress: 45, total: 100, completed: false },
-  ])
-  const [memories, setMemories] = useState<Memory[]>([
-    { id: '1', content: '今天一起去看了日出，她靠在我肩上说这是我最浪漫的生日礼物', date: '2024-03-15' },
-    { id: '2', content: '第一次一起做饭，虽然厨房差点被烧了，但是笑得很开心', date: '2024-03-10' },
-    { id: '3', content: '周末一起去逛宜家，讨论以后家的装修风格，感觉未来可期', date: '2024-03-05' },
-  ])
-  const [promises, setPromises] = useState<PromiseItem[]>([
-    { id: '1', content: '每天早晚各说一次我想你', completed: true },
-    { id: '2', content: '吵架不过夜，当天解决', completed: false },
-    { id: '3', content: '每月至少一次约会', completed: true },
-  ])
+  const [anniversaries, setAnniversaries] = useState<Anniversary[]>([])
+  const [goals, setGoals] = useState<Goal[]>([])
+  const [memories, setMemories] = useState<Memory[]>([])
+  const [promises, setPromises] = useState<PromiseItem[]>([])
+  const [loading, setLoading] = useState(true)
 
   // 推荐目标
   const [recommendedGoals, setRecommendedGoals] = useState<{ title: string; total: number }[]>(
@@ -174,9 +160,38 @@ const GrowPage: FC = () => {
   const [newContent, setNewContent] = useState('')
   const [newGoalTotal, setNewGoalTotal] = useState('')
 
+  // 目标增量输入
+  const [goalDeltaInput, setGoalDeltaInput] = useState<Record<number, string>>({})
+
   // 删除确认
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string } | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: number } | null>(null)
+
+  // 加载数据
+  const loadData = useCallback(async () => {
+    if (!matchId) return
+    try {
+      const res = await Network.request({
+        url: `/api/grow?matchId=${matchId}`,
+      })
+      console.log('Grow data response:', res.data)
+      const d = res.data?.data
+      if (d) {
+        setAnniversaries(d.anniversaries || [])
+        setGoals(d.goals || [])
+        setMemories(d.memories || [])
+        setPromises(d.promises || [])
+      }
+    } catch (err) {
+      console.error('Load grow data error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [matchId])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   // 日期工具
   const getDaysUntil = (dateStr: string) => {
@@ -206,42 +221,51 @@ const GrowPage: FC = () => {
     return years
   }
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (addType === 'anniversary' && newTitle && newDate) {
-      const newItem: Anniversary = {
-        id: Date.now().toString(),
-        title: newTitle,
-        date: newDate,
-        icon: '💝'
+      const res = await Network.request({
+        url: '/api/grow/anniversary',
+        method: 'POST',
+        data: { matchId, title: newTitle, date: newDate, icon: '💝' },
+      })
+      console.log('Add anniversary response:', res.data)
+      if (res.data?.code === 200) {
+        toast.success('纪念日已添加')
+        loadData()
       }
-      setAnniversaries([...anniversaries, newItem])
-      toast.success('纪念日已添加')
     } else if (addType === 'goal' && newTitle && newGoalTotal) {
-      const newItem: Goal = {
-        id: Date.now().toString(),
-        title: newTitle,
-        progress: 0,
-        total: parseInt(newGoalTotal),
-        completed: false
+      const res = await Network.request({
+        url: '/api/grow/goal',
+        method: 'POST',
+        data: { matchId, title: newTitle, total: parseInt(newGoalTotal) },
+      })
+      console.log('Add goal response:', res.data)
+      if (res.data?.code === 200) {
+        toast.success('目标已添加')
+        loadData()
       }
-      setGoals([...goals, newItem])
-      toast.success('目标已添加')
     } else if (addType === 'memory' && newContent) {
-      const newItem: Memory = {
-        id: Date.now().toString(),
-        content: newContent,
-        date: new Date().toISOString().split('T')[0]
+      const res = await Network.request({
+        url: '/api/grow/memory',
+        method: 'POST',
+        data: { matchId, content: newContent },
+      })
+      console.log('Add memory response:', res.data)
+      if (res.data?.code === 200) {
+        toast.success('回忆已记录')
+        loadData()
       }
-      setMemories([newItem, ...memories])
-      toast.success('回忆已记录')
     } else if (addType === 'promise' && newContent) {
-      const newItem: PromiseItem = {
-        id: Date.now().toString(),
-        content: newContent,
-        completed: false
+      const res = await Network.request({
+        url: '/api/grow/promise',
+        method: 'POST',
+        data: { matchId, content: newContent },
+      })
+      console.log('Add promise response:', res.data)
+      if (res.data?.code === 200) {
+        toast.success('约定已添加')
+        loadData()
       }
-      setPromises([...promises, newItem])
-      toast.success('约定已添加')
     }
     setShowAddDialog(false)
     setNewTitle('')
@@ -250,84 +274,108 @@ const GrowPage: FC = () => {
     setNewGoalTotal('')
   }
 
-  const handleTogglePromise = (id: string) => {
-    setPromises(promises.map(p =>
-      p.id === id ? { ...p, completed: !p.completed } : p
-    ))
+  const handleTogglePromise = async (id: number) => {
+    const res = await Network.request({
+      url: `/api/grow/promise/${id}/toggle`,
+      method: 'POST',
+    })
+    console.log('Toggle promise response:', res.data)
+    if (res.data?.code === 200) {
+      loadData()
+    }
   }
 
-  const handleUpdateGoal = (id: string, delta: number) => {
-    setGoals(goals.map(g => {
-      if (g.id === id) {
-        const newProgress = Math.min(Math.max(0, g.progress + delta), g.total)
-        const completed = newProgress >= g.total
-        if (completed && !g.completed) {
-          toast.success(`恭喜完成目标「${g.title}」！`)
-        }
-        return { ...g, progress: newProgress, completed }
+  const handleUpdateGoal = async (id: number, delta: number) => {
+    const res = await Network.request({
+      url: `/api/grow/goal/${id}/progress`,
+      method: 'POST',
+      data: { delta },
+    })
+    console.log('Update goal progress response:', res.data)
+    if (res.data?.code === 200) {
+      const updatedGoal = res.data?.data
+      if (updatedGoal?.completed) {
+        toast.success(`恭喜完成目标「${updatedGoal.title}」！`)
       }
-      return g
-    }))
+      loadData()
+    }
   }
 
-  const handleDeleteConfirm = () => {
+  // 自定义增量更新目标
+  const handleCustomGoalUpdate = async (id: number) => {
+    const deltaStr = goalDeltaInput[id]
+    if (!deltaStr) return
+    const delta = parseInt(deltaStr)
+    if (Number.isNaN(delta) || delta === 0) return
+    await handleUpdateGoal(id, delta)
+    setGoalDeltaInput(prev => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }
+
+  const handleDeleteConfirm = async () => {
     if (!deleteTarget) return
     const { type, id } = deleteTarget
-    if (type === 'anniversary') {
-      setAnniversaries(anniversaries.filter(a => a.id !== id))
-    } else if (type === 'goal') {
-      setGoals(goals.filter(g => g.id !== id))
-    } else if (type === 'memory') {
-      setMemories(memories.filter(m => m.id !== id))
-    } else if (type === 'promise') {
-      setPromises(promises.filter(p => p.id !== id))
+    const endpointMap: Record<string, string> = {
+      anniversary: `/api/grow/anniversary/${id}`,
+      goal: `/api/grow/goal/${id}`,
+      memory: `/api/grow/memory/${id}`,
+      promise: `/api/grow/promise/${id}`,
     }
-    toast.success('已删除')
+    const res = await Network.request({
+      url: endpointMap[type],
+      method: 'DELETE',
+    })
+    console.log('Delete response:', res.data)
+    if (res.data?.code === 200) {
+      toast.success('已删除')
+      loadData()
+    }
     setShowDeleteDialog(false)
     setDeleteTarget(null)
   }
 
-  const handleDeleteClick = (type: string, id: string) => {
+  const handleDeleteClick = (type: string, id: number) => {
     setDeleteTarget({ type, id })
     setShowDeleteDialog(true)
   }
 
-  // 重新生成推荐目标
   const handleRegenerateGoals = () => {
     setRecommendedGoals(getRandomItems(goalPool, 5))
     setAddedGoals(new Set())
   }
 
-  // 直接添加推荐目标
-  const handleAddRecommendedGoal = (goal: { title: string; total: number }) => {
-    const newItem: Goal = {
-      id: Date.now().toString() + Math.random(),
-      title: goal.title,
-      progress: 0,
-      total: goal.total,
-      completed: false
+  const handleAddRecommendedGoal = async (goal: { title: string; total: number }) => {
+    const res = await Network.request({
+      url: '/api/grow/goal',
+      method: 'POST',
+      data: { matchId, title: goal.title, total: goal.total },
+    })
+    if (res.data?.code === 200) {
+      setAddedGoals(prev => new Set([...prev, goal.title]))
+      toast.success('目标已添加')
+      loadData()
     }
-    setGoals([...goals, newItem])
-    setAddedGoals(prev => new Set([...prev, goal.title]))
-    toast.success('目标已添加')
   }
 
-  // 重新生成推荐约定
   const handleRegeneratePromises = () => {
     setRecommendedPromises(getRandomItems(promisePool, 5))
     setAddedPromises(new Set())
   }
 
-  // 直接添加推荐约定
-  const handleAddRecommendedPromise = (promise: string) => {
-    const newItem: PromiseItem = {
-      id: Date.now().toString() + Math.random(),
-      content: promise,
-      completed: false
+  const handleAddRecommendedPromise = async (promise: string) => {
+    const res = await Network.request({
+      url: '/api/grow/promise',
+      method: 'POST',
+      data: { matchId, content: promise },
+    })
+    if (res.data?.code === 200) {
+      setAddedPromises(prev => new Set([...prev, promise]))
+      toast.success('约定已添加')
+      loadData()
     }
-    setPromises([...promises, newItem])
-    setAddedPromises(prev => new Set([...prev, promise]))
-    toast.success('约定已添加')
   }
 
   const openAddDialog = (type: 'anniversary' | 'goal' | 'memory' | 'promise') => {
@@ -352,13 +400,18 @@ const GrowPage: FC = () => {
     { value: 'promise', label: '约定', icon: Heart, count: promises.filter(p => !p.completed).length },
   ]
 
+  // 日期选择器变更
+  const handleDateChange = (e) => {
+    setNewDate(e.detail.value)
+  }
+
   return (
     <View className="min-h-screen bg-gray-50 pb-20">
       {/* 顶部 */}
       <View className="bg-black px-4 py-6">
         <Text className="block text-xl font-bold text-white mb-1">共同成长</Text>
         <Text className="block text-xs text-gray-400">
-          一起变得更好的每一天{matchId ? ` · ID: ${matchId}` : ''}
+          一起变得更好的每一天
         </Text>
       </View>
 
@@ -390,332 +443,365 @@ const GrowPage: FC = () => {
         </Tabs>
       </View>
 
+      {/* 加载态 */}
+      {loading && (
+        <View className="flex flex-col items-center py-16">
+          <Text className="block text-sm text-gray-400">加载中...</Text>
+        </View>
+      )}
+
       {/* 内容区域 */}
-      <View className="p-4">
-        <TabsContent value="anniversary">
-          <View className="flex flex-row items-center justify-between mb-3">
-            <Text className="block text-xs text-gray-400">重要时刻</Text>
-            <View
-              onClick={() => openAddDialog('anniversary')}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '4px 8px' }}
-            >
-              <Plus size={14} color="#000000" />
-              <Text className="block text-xs text-black ml-1">添加</Text>
+      {!loading && (
+        <View className="p-4">
+          <TabsContent value="anniversary">
+            <View className="flex flex-row items-center justify-between mb-3">
+              <Text className="block text-xs text-gray-400">重要时刻</Text>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => openAddDialog('anniversary')}
+              >
+                <Plus size={14} color="#000000" />
+                <Text className="text-xs text-black ml-1">添加</Text>
+              </Button>
             </View>
-          </View>
 
-          {anniversaries.map((item) => {
-            const nextDate = getNextAnniversary(item.date)
-            const daysUntil = getDaysUntil(nextDate.toISOString().split('T')[0])
-            const years = getYearsTogether(item.date)
+            {anniversaries.map((item) => {
+              const nextDate = getNextAnniversary(item.date)
+              const daysUntil = getDaysUntil(nextDate.toISOString().split('T')[0])
+              const years = getYearsTogether(item.date)
 
-            return (
-              <Card key={item.id} className="mb-3 overflow-hidden">
-                <View className="bg-black px-4 py-4">
-                  <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                      <Text className="text-2xl mr-3">{item.icon}</Text>
+              return (
+                <Card key={item.id} className="mb-3 overflow-hidden">
+                  <View className="bg-gray-800 px-4 py-4">
+                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                        <Text className="text-2xl mr-3">{item.icon}</Text>
+                        <View>
+                          <Text className="block text-base font-semibold text-white">{item.title}</Text>
+                          <Text className="block text-xs text-gray-300">
+                            在一起 {years} 年
+                          </Text>
+                        </View>
+                      </View>
                       <View>
-                        <Text className="block text-base font-semibold text-white">{item.title}</Text>
-                        <Text className="block text-xs text-gray-400">
-                          在一起 {years} 年
-                        </Text>
+                        <Text className="block text-2xl font-bold text-white text-right">{daysUntil}</Text>
+                        <Text className="block text-xs text-gray-300 text-right">天后</Text>
                       </View>
                     </View>
-                    <View>
-                      <Text className="block text-2xl font-bold text-white text-right">{daysUntil}</Text>
-                      <Text className="block text-xs text-gray-400 text-right">天后</Text>
+                  </View>
+                  <CardContent className="py-3 px-4">
+                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                        <Clock size={12} color="#9ca3af" />
+                        <Text className="block text-xs text-gray-500 ml-1">{item.date}</Text>
+                      </View>
+                      <View onClick={() => handleDeleteClick('anniversary', item.id)} className="p-1">
+                        <Trash2 size={14} color="#ef4444" />
+                      </View>
+                    </View>
+                  </CardContent>
+                </Card>
+              )
+            })}
+
+            {anniversaries.length === 0 && (
+              <Card className="p-8">
+                <View className="flex flex-col items-center">
+                  <Calendar size={40} color="#d1d5db" />
+                  <Text className="block text-sm text-gray-400 mt-3">还没有纪念日</Text>
+                  <Text className="block text-xs text-gray-300 mt-1">点击右上角添加你们的第一个纪念日</Text>
+                </View>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="goal">
+            <View className="flex flex-row items-center justify-between mb-3">
+              <Text className="block text-xs text-gray-400">努力方向</Text>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => openAddDialog('goal')}
+              >
+                <Plus size={14} color="#000000" />
+                <Text className="text-xs text-black ml-1">添加</Text>
+              </Button>
+            </View>
+
+            {/* 推荐目标 */}
+            <Card className="mb-4 p-4 bg-gray-50">
+              <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                  <Sparkles size={16} color="#000000" />
+                  <Text className="block text-xs font-medium text-black ml-2">推荐目标</Text>
+                </View>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRegenerateGoals}
+                >
+                  <RotateCw size={12} color="#6b7280" />
+                  <Text className="text-xs text-gray-500 ml-1">换一批</Text>
+                </Button>
+              </View>
+              <View className="mt-3">
+                {recommendedGoals.map((goal, index) => (
+                  <View key={index} className="mb-2 last:mb-0">
+                    <View
+                      onClick={() => !addedGoals.has(goal.title) && handleAddRecommendedGoal(goal)}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 12px',
+                        backgroundColor: addedGoals.has(goal.title) ? '#f9fafb' : '#ffffff',
+                        borderRadius: '8px',
+                        border: `1px solid ${addedGoals.has(goal.title) ? '#d1d5db' : '#e5e7eb'}`
+                      }}
+                    >
+                      <View className="flex-1">
+                        <Text className={`block text-xs ${addedGoals.has(goal.title) ? 'text-gray-400' : 'text-gray-700'}`}>{goal.title}</Text>
+                        <Text className="block text-xs text-gray-400 mt-1">
+                          目标: {goal.total > 100 ? `${goal.total}元` : `${goal.total}次`}
+                        </Text>
+                      </View>
+                      {addedGoals.has(goal.title) ? (
+                        <Text className="block text-xs text-gray-400">已添加</Text>
+                      ) : (
+                        <Plus size={16} color="#000000" />
+                      )}
                     </View>
                   </View>
-                </View>
-                <CardContent className="py-3 px-4">
-                  <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                      <Clock size={12} color="#9ca3af" />
-                      <Text className="block text-xs text-gray-500 ml-1">{item.date}</Text>
+                ))}
+              </View>
+            </Card>
+
+            {goals.map((item) => (
+              <Card key={item.id} className="mb-3">
+                <CardContent className="py-4">
+                  <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <View className="flex-1">
+                      <Text className={`block text-sm font-medium ${item.completed ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                        {item.title}
+                      </Text>
+                      <Text className="block text-xs text-gray-500 mt-1">
+                        {item.progress} / {item.total}{item.total > 100 ? '' : ' 次'}
+                      </Text>
                     </View>
-                    <View onClick={() => handleDeleteClick('anniversary', item.id)} className="p-1">
+                    <View onClick={() => handleDeleteClick('goal', item.id)} className="p-1">
+                      <Trash2 size={14} color="#ef4444" />
+                    </View>
+                  </View>
+                  <View className="mt-3 mb-3">
+                    <Progress value={(item.progress / item.total) * 100} className="h-2" />
+                  </View>
+                  <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Text className="block text-xs text-gray-500">
+                      {Math.round((item.progress / item.total) * 100)}% 完成
+                    </Text>
+                    {!item.completed && (
+                      <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                        <View
+                          onClick={() => handleUpdateGoal(item.id, -1)}
+                          style={{ width: '28px', height: '28px', borderRadius: '14px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <Text className="block text-sm text-gray-600">-</Text>
+                        </View>
+                        <View
+                          onClick={() => handleUpdateGoal(item.id, 1)}
+                          style={{ width: '28px', height: '28px', borderRadius: '14px', backgroundColor: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '8px' }}
+                        >
+                          <Text className="block text-sm text-white">+</Text>
+                        </View>
+                        {/* 自定义增量 */}
+                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginLeft: '8px' }}>
+                          <View style={{ width: '50px', backgroundColor: '#f9fafb', borderRadius: '6px', padding: '2px 6px' }}>
+                            <Input
+                              style={{ width: '100%', fontSize: '12px', textAlign: 'center' }}
+                              type="number"
+                              placeholder="N"
+                              value={goalDeltaInput[item.id] || ''}
+                              onInput={(e) => setGoalDeltaInput(prev => ({ ...prev, [item.id]: e.detail.value }))}
+                            />
+                          </View>
+                          <View
+                            onClick={() => handleCustomGoalUpdate(item.id)}
+                            style={{ marginLeft: '4px', width: '28px', height: '28px', borderRadius: '6px', backgroundColor: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <Text className="block text-xs text-white">Go</Text>
+                          </View>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                </CardContent>
+              </Card>
+            ))}
+
+            {goals.length === 0 && (
+              <Card className="p-8">
+                <View className="flex flex-col items-center">
+                  <Target size={40} color="#d1d5db" />
+                  <Text className="block text-sm text-gray-400 mt-3">还没有共同目标</Text>
+                  <Text className="block text-xs text-gray-300 mt-1">设定一个一起努力的目标吧</Text>
+                </View>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="memory">
+            <View className="flex flex-row items-center justify-between mb-3">
+              <Text className="block text-xs text-gray-400">美好回忆</Text>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => openAddDialog('memory')}
+              >
+                <Plus size={14} color="#000000" />
+                <Text className="text-xs text-black ml-1">记录</Text>
+              </Button>
+            </View>
+
+            {memories.map((item) => (
+              <Card key={item.id} className="mb-3">
+                <CardContent className="py-4">
+                  <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <View className="flex-1">
+                      <Text className="block text-sm text-gray-800 leading-relaxed">{item.content}</Text>
+                      <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }} className="mt-2">
+                        <Calendar size={12} color="#9ca3af" />
+                        <Text className="block text-xs text-gray-500 ml-1">{item.date}</Text>
+                      </View>
+                    </View>
+                    <View onClick={() => handleDeleteClick('memory', item.id)} className="p-1 ml-2">
                       <Trash2 size={14} color="#ef4444" />
                     </View>
                   </View>
                 </CardContent>
               </Card>
-            )
-          })}
+            ))}
 
-          {anniversaries.length === 0 && (
-            <Card className="p-8">
-              <View className="flex flex-col items-center">
-                <Calendar size={40} color="#d1d5db" />
-                <Text className="block text-sm text-gray-400 mt-3">还没有纪念日</Text>
-                <Text className="block text-xs text-gray-300 mt-1">点击右上角添加你们的第一个纪念日</Text>
+            {memories.length === 0 && (
+              <Card className="p-8">
+                <View className="flex flex-col items-center">
+                  <BookHeart size={40} color="#d1d5db" />
+                  <Text className="block text-sm text-gray-400 mt-3">还没有记录</Text>
+                  <Text className="block text-xs text-gray-300 mt-1">记录你们的第一个美好时刻</Text>
+                </View>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="promise">
+            <View className="flex flex-row items-center justify-between mb-3">
+              <Text className="block text-xs text-gray-400">我们的承诺</Text>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => openAddDialog('promise')}
+              >
+                <Plus size={14} color="#000000" />
+                <Text className="text-xs text-black ml-1">添加</Text>
+              </Button>
+            </View>
+
+            {/* 推荐约定 */}
+            <Card className="mb-4 p-4 bg-gray-50">
+              <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                  <Sparkles size={16} color="#000000" />
+                  <Text className="block text-xs font-medium text-black ml-2">推荐约定</Text>
+                </View>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRegeneratePromises}
+                >
+                  <RotateCw size={12} color="#6b7280" />
+                  <Text className="text-xs text-gray-500 ml-1">换一批</Text>
+                </Button>
+              </View>
+              <View className="mt-3">
+                {recommendedPromises.map((promise, index) => (
+                  <View key={index} className="mb-2 last:mb-0">
+                    <View
+                      onClick={() => !addedPromises.has(promise) && handleAddRecommendedPromise(promise)}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 12px',
+                        backgroundColor: addedPromises.has(promise) ? '#f9fafb' : '#ffffff',
+                        borderRadius: '8px',
+                        border: `1px solid ${addedPromises.has(promise) ? '#d1d5db' : '#e5e7eb'}`
+                      }}
+                    >
+                      <View className="flex-1">
+                        <Text className={`block text-xs ${addedPromises.has(promise) ? 'text-gray-400' : 'text-gray-700'}`}>{promise}</Text>
+                      </View>
+                      {addedPromises.has(promise) ? (
+                        <Text className="block text-xs text-gray-400">已添加</Text>
+                      ) : (
+                        <Plus size={16} color="#000000" />
+                      )}
+                    </View>
+                  </View>
+                ))}
               </View>
             </Card>
-          )}
-        </TabsContent>
 
-        <TabsContent value="goal">
-          <View className="flex flex-row items-center justify-between mb-3">
-            <Text className="block text-xs text-gray-400">努力方向</Text>
-            <View
-              onClick={() => openAddDialog('goal')}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '4px 8px' }}
-            >
-              <Plus size={14} color="#000000" />
-              <Text className="block text-xs text-black ml-1">添加</Text>
-            </View>
-          </View>
+            {/* 完成进度 */}
+            {promises.length > 0 && (
+              <Card className="mb-3 p-4 bg-gray-50">
+                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                  <Heart size={16} color="#000000" />
+                  <Text className="block text-xs text-gray-700 ml-2">
+                    已完成 {promises.filter(p => p.completed).length} / {promises.length} 个约定
+                  </Text>
+                </View>
+              </Card>
+            )}
 
-          {/* 推荐目标 */}
-          <Card className="mb-4 p-4 bg-gray-50">
-            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                <Sparkles size={16} color="#000000" />
-                <Text className="block text-xs font-medium text-black ml-2">推荐目标</Text>
-              </View>
-              <View
-                onClick={handleRegenerateGoals}
-                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '4px 8px' }}
-              >
-                <RotateCw size={12} color="#6b7280" />
-                <Text className="block text-xs text-gray-500 ml-1">换一批</Text>
-              </View>
-            </View>
-            <View className="mt-3">
-              {recommendedGoals.map((goal, index) => (
-                <View key={index} className="mb-2 last:mb-0">
-                  <View
-                    onClick={() => handleAddRecommendedGoal(goal)}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      backgroundColor: addedGoals.has(goal.title) ? '#f9fafb' : '#ffffff',
-                      borderRadius: '8px',
-                      border: `1px solid ${addedGoals.has(goal.title) ? '#e5e7eb' : '#e5e7eb'}`
-                    }}
-                  >
-                    <View className="flex-1">
-                      <Text className="block text-xs text-gray-700">{goal.title}</Text>
-                      <Text className="block text-xs text-gray-400 mt-1">
-                        目标: {goal.total > 100 ? `${goal.total}元` : `${goal.total}次`}
+            {promises.map((item) => (
+              <Card key={item.id} className="mb-3">
+                <CardContent className="py-4">
+                  <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <View
+                      style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', flex: 1 }}
+                    >
+                      <View className="mr-3 mt-1">
+                        <Checkbox
+                          checked={item.completed}
+                          onCheckedChange={() => handleTogglePromise(item.id)}
+                        />
+                      </View>
+                      <Text className={`block text-sm flex-1 ${item.completed ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                        {item.content}
                       </Text>
                     </View>
-                    {addedGoals.has(goal.title) ? (
-                      <Text className="block text-xs text-gray-400">已添加</Text>
-                    ) : (
-                      <Plus size={16} color="#000000" />
-                    )}
-                  </View>
-                </View>
-              ))}
-            </View>
-          </Card>
-
-          {goals.map((item) => (
-            <Card key={item.id} className="mb-3">
-              <CardContent className="py-4">
-                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <View className="flex-1">
-                    <Text className={`block text-sm font-medium ${item.completed ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-                      {item.title}
-                    </Text>
-                    <Text className="block text-xs text-gray-500 mt-1">
-                      {item.progress} / {item.total}{item.total > 100 ? '' : ' 次'}
-                    </Text>
-                  </View>
-                  <View onClick={() => handleDeleteClick('goal', item.id)} className="p-1">
-                    <Trash2 size={14} color="#ef4444" />
-                  </View>
-                </View>
-                <View className="mt-3 mb-3">
-                  <Progress value={(item.progress / item.total) * 100} className="h-2" />
-                </View>
-                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text className="block text-xs text-gray-500">
-                    {Math.round((item.progress / item.total) * 100)}% 完成
-                  </Text>
-                  {!item.completed && (
-                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                      <View
-                        onClick={() => handleUpdateGoal(item.id, -1)}
-                        style={{ width: '28px', height: '28px', borderRadius: '14px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        <Text className="block text-sm text-gray-600">-</Text>
-                      </View>
-                      <View
-                        onClick={() => handleUpdateGoal(item.id, 1)}
-                        style={{ width: '28px', height: '28px', borderRadius: '14px', backgroundColor: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '8px' }}
-                      >
-                        <Text className="block text-sm text-white">+</Text>
-                      </View>
-                    </View>
-                  )}
-                </View>
-              </CardContent>
-            </Card>
-          ))}
-
-          {goals.length === 0 && (
-            <Card className="p-8">
-              <View className="flex flex-col items-center">
-                <Target size={40} color="#d1d5db" />
-                <Text className="block text-sm text-gray-400 mt-3">还没有共同目标</Text>
-                <Text className="block text-xs text-gray-300 mt-1">设定一个一起努力的目标吧</Text>
-              </View>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="memory">
-          <View className="flex flex-row items-center justify-between mb-3">
-            <Text className="block text-xs text-gray-400">美好回忆</Text>
-            <View
-              onClick={() => openAddDialog('memory')}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '4px 8px' }}
-            >
-              <Plus size={14} color="#000000" />
-              <Text className="block text-xs text-black ml-1">记录</Text>
-            </View>
-          </View>
-
-          {memories.map((item) => (
-            <Card key={item.id} className="mb-3">
-              <CardContent className="py-4">
-                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <View className="flex-1">
-                    <Text className="block text-sm text-gray-800 leading-relaxed">{item.content}</Text>
-                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }} className="mt-2">
-                      <Calendar size={12} color="#9ca3af" />
-                      <Text className="block text-xs text-gray-500 ml-1">{item.date}</Text>
+                    <View onClick={() => handleDeleteClick('promise', item.id)} className="p-1 ml-2">
+                      <Trash2 size={14} color="#ef4444" />
                     </View>
                   </View>
-                  <View onClick={() => handleDeleteClick('memory', item.id)} className="p-1 ml-2">
-                    <Trash2 size={14} color="#ef4444" />
-                  </View>
+                </CardContent>
+              </Card>
+            ))}
+
+            {promises.length === 0 && (
+              <Card className="p-8">
+                <View className="flex flex-col items-center">
+                  <Heart size={40} color="#d1d5db" />
+                  <Text className="block text-sm text-gray-400 mt-3">还没有约定</Text>
+                  <Text className="block text-xs text-gray-300 mt-1">添加你们的第一个约定吧</Text>
                 </View>
-              </CardContent>
-            </Card>
-          ))}
-
-          {memories.length === 0 && (
-            <Card className="p-8">
-              <View className="flex flex-col items-center">
-                <BookHeart size={40} color="#d1d5db" />
-                <Text className="block text-sm text-gray-400 mt-3">还没有记录</Text>
-                <Text className="block text-xs text-gray-300 mt-1">记录你们的第一个美好时刻</Text>
-              </View>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="promise">
-          <View className="flex flex-row items-center justify-between mb-3">
-            <Text className="block text-xs text-gray-400">我们的承诺</Text>
-            <View
-              onClick={() => openAddDialog('promise')}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '4px 8px' }}
-            >
-              <Plus size={14} color="#000000" />
-              <Text className="block text-xs text-black ml-1">添加</Text>
-            </View>
-          </View>
-
-          {/* 推荐约定 */}
-          <Card className="mb-4 p-4 bg-gray-50">
-            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                <Sparkles size={16} color="#000000" />
-                <Text className="block text-xs font-medium text-black ml-2">推荐约定</Text>
-              </View>
-              <View
-                onClick={handleRegeneratePromises}
-                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '4px 8px' }}
-              >
-                <RotateCw size={12} color="#6b7280" />
-                <Text className="block text-xs text-gray-500 ml-1">换一批</Text>
-              </View>
-            </View>
-            <View className="mt-3">
-              {recommendedPromises.map((promise, index) => (
-                <View key={index} className="mb-2 last:mb-0">
-                  <View
-                    onClick={() => handleAddRecommendedPromise(promise)}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      backgroundColor: addedPromises.has(promise) ? '#f9fafb' : '#ffffff',
-                      borderRadius: '8px',
-                      border: '1px solid #e5e7eb'
-                    }}
-                  >
-                    <View className="flex-1">
-                      <Text className="block text-xs text-gray-700">{promise}</Text>
-                    </View>
-                    {addedPromises.has(promise) ? (
-                      <Text className="block text-xs text-gray-400">已添加</Text>
-                    ) : (
-                      <Plus size={16} color="#000000" />
-                    )}
-                  </View>
-                </View>
-              ))}
-            </View>
-          </Card>
-
-          {/* 完成进度 */}
-          {promises.length > 0 && (
-            <Card className="mb-3 p-4 bg-gray-50">
-              <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                <Heart size={16} color="#000000" />
-                <Text className="block text-xs text-gray-700 ml-2">
-                  已完成 {promises.filter(p => p.completed).length} / {promises.length} 个约定
-                </Text>
-              </View>
-            </Card>
-          )}
-
-          {promises.map((item) => (
-            <Card key={item.id} className="mb-3">
-              <CardContent className="py-4">
-                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <View
-                    style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', flex: 1 }}
-                  >
-                    <View className="mr-3 mt-1">
-                      <Checkbox
-                        checked={item.completed}
-                        onCheckedChange={() => handleTogglePromise(item.id)}
-                      />
-                    </View>
-                    <Text className={`block text-sm flex-1 ${item.completed ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
-                      {item.content}
-                    </Text>
-                  </View>
-                  <View onClick={() => handleDeleteClick('promise', item.id)} className="p-1 ml-2">
-                    <Trash2 size={14} color="#ef4444" />
-                  </View>
-                </View>
-              </CardContent>
-            </Card>
-          ))}
-
-          {promises.length === 0 && (
-            <Card className="p-8">
-              <View className="flex flex-col items-center">
-                <Heart size={40} color="#d1d5db" />
-                <Text className="block text-sm text-gray-400 mt-3">还没有约定</Text>
-                <Text className="block text-xs text-gray-300 mt-1">添加你们的第一个约定吧</Text>
-              </View>
-            </Card>
-          )}
-        </TabsContent>
-      </View>
+              </Card>
+            )}
+          </TabsContent>
+        </View>
+      )}
 
       {/* 删除确认弹窗 */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -763,13 +849,13 @@ const GrowPage: FC = () => {
                 </View>
                 <View className="mb-4">
                   <Text className="block text-xs text-gray-500 mb-1">日期</Text>
-                  <View className="bg-gray-50 rounded-xl px-4 py-3">
-                    <Input
-                      value={newDate}
-                      onInput={(e) => setNewDate(e.detail.value)}
-                      placeholder="YYYY-MM-DD"
-                    />
-                  </View>
+                  <Picker mode="date" onChange={handleDateChange} value={newDate || ''}>
+                    <View className="bg-gray-50 rounded-xl px-4 py-3">
+                      <Text className={`block ${newDate ? 'text-gray-900' : 'text-gray-400'}`}>
+                        {newDate || '请选择日期'}
+                      </Text>
+                    </View>
+                  </Picker>
                 </View>
               </View>
             )}
