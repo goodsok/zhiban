@@ -836,3 +836,22 @@ export const contactMethodOptions = [
   { value: 'email', label: '邮件' },
   { value: 'other', label: '其他' }
 ]
+
+// 调情风格选项
+export const flirtingStyleOptions = [
+  { value: 'verbal_teasing', label: '言语挑逗' },
+  { value: 'eye_contact', label: '眼神交流' },
+  { value: 'physical_touch', label: '肢体接触' },
+  { value: 'gift_giving', label: '送小礼物' },
+  { value: 'compliments', label: '甜言蜜语' },
+  { value: 'humor_flirting', label: '幽默撩拨' },
+  { value: 'mystery', label: '欲擒故纵' },
+  { value: 'direct', label: '直球表达' },
+  { value: 'subtle_hints', label: '含蓄暗示' },
+  { value: 'playful_banter', label: '打情骂俏' },
+  { value: 'attention', label: '主动关心' },
+  { value: 'sharing', label: '分享私密' },
+  { value: 'dress_up', label: '精心打扮' },
+  { value: 'create_atmosphere', label: '制造氛围' },
+  { value: 'other', label: '其他' }
+]

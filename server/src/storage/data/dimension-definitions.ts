@@ -26,7 +26,8 @@ import {
   humorStyleOptions,
   marriageNonNegotiablesOptions,
   relationshipFormOptions,
-  contactMethodOptions
+  contactMethodOptions,
+  flirtingStyleOptions
 } from './dimension-enum-options'
 
 export interface DimensionDefinition {
@@ -2954,6 +2955,7 @@ export const layer4Dimensions: DimensionDefinition[] = [
     layer: 4,
     category: 'dating_dynamics',
     data_type: 'string[]',
+    enum_options: flirtingStyleOptions,
     input_type: 'multiselect',
     placeholder: '如: 言语挑逗、肢体接触、眼神交流、送礼物',
     weight: 0.8,
