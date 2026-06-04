@@ -1,5 +1,5 @@
 import { View, Text, ScrollView } from '@tarojs/components'
-import Taro, { useLoad, useDidShow } from '@tarojs/taro'
+import { useLoad, useDidShow } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ChevronRight, MessageSquare, TrendingUp, Heart, Zap, Clock, SquareChartGantt, LoaderCircle } from 'lucide-react-taro'
+import { MessageSquare, TrendingUp, Heart, Zap, Clock, SquareChartGantt, LoaderCircle } from 'lucide-react-taro'
 
 // 对象信息
 interface MatchItem {
@@ -127,7 +127,7 @@ const ChatReviewPage: FC = () => {
 
   // 分析结果视图
   if (selectedMatch && (analyzing || analysis)) {
-    const TrendIcon = analysis ? (trendConfig[analysis.emotionState.trend]?.icon || BarChart3) : BarChart3
+    const TrendIcon = analysis ? (trendConfig[analysis.emotionState.trend]?.icon || SquareChartGantt) : SquareChartGantt
 
     return (
       <View className="min-h-screen bg-gray-50">
@@ -276,7 +276,7 @@ const ChatReviewPage: FC = () => {
                       </View>
                       <View className="flex-1">
                         <Text className="block text-base font-semibold text-gray-900">{match.name}</Text>
-                        <Text className="block text-xs text-gray-500 mt-0.5">
+                        <Text className="block text-xs text-gray-500 mt-1">
                           {hasChat ? `${match.chatHistoryCount}条对话 · ${match.chatRecordCount}条记录` : '暂无聊天记录'}
                         </Text>
                       </View>

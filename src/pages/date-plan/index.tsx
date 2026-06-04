@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Calendar, MapPin, Clock, DollarSign, Sparkles, ChevronRight, LoaderCircle, Heart, Lightbulb, Shirt } from 'lucide-react-taro'
+import { MapPin, Clock, DollarSign, Sparkles, ChevronRight, LoaderCircle, Heart, Lightbulb, Shirt } from 'lucide-react-taro'
 
 // 对象信息
 interface MatchItem {

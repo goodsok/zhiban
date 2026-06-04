@@ -7,9 +7,8 @@ import CustomHeader from '@/components/custom-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
-import { Sparkles, Sun, Moon, Heart, HandHelping, SmilePlus, MessageCircleHeart, PartyPopper, ChevronRight, LoaderCircle, Copy, Check } from 'lucide-react-taro'
+import { Sparkles, Sun, Moon, Heart, HandHelping, SmilePlus, MessageCircleHeart, PartyPopper, LoaderCircle, Copy, Check } from 'lucide-react-taro'
 
 // 场景配置
 const SCENES = [
