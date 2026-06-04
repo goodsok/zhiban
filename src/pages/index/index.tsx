@@ -3,7 +3,17 @@ import { useLoad, useDidShow, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
-import { Plus, ChevronRight, Sparkles, Heart, Sun, Moon, Cloud, MessageCirclePlus } from 'lucide-react-taro'
+import { Plus, ChevronRight, Sparkles, Heart, Sun, Moon, Cloud, MessageCirclePlus, Trash2 } from 'lucide-react-taro'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog'
 
 interface Match {
   id: number
@@ -43,6 +53,8 @@ const Index: FC = () => {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [cycleInfos, setCycleInfos] = useState<Record<number, CycleInfo>>({})
+  const [deleteTarget, setDeleteTarget] = useState<Match | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useLoad(() => {
     console.log('Index page loaded.')
@@ -103,6 +115,27 @@ const Index: FC = () => {
 
   const goToDetail = (id: number) => {
     navigateTo({ url: `/pages/detail/index?id=${id}` })
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget || deleting) return
+    try {
+      setDeleting(true)
+      const res = await Network.request({
+        url: `/api/match/${deleteTarget.id}/delete`,
+        method: 'POST',
+      })
+      console.log('Delete match response:', res?.data)
+      const responseData = res?.data
+      if (responseData?.code === 200) {
+        setDeleteTarget(null)
+        fetchMatches()
+      }
+    } catch (error) {
+      console.error('Delete match error:', error)
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -191,6 +224,15 @@ const Index: FC = () => {
                     <Sparkles size={14} color="#6B7280" />
                     <Text className="block text-xs font-medium text-gray-600">查看档案</Text>
                   </View>
+                  <View 
+                    className="flex items-center justify-center py-2 px-3 bg-red-50 rounded-lg"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setDeleteTarget(match)
+                    }}
+                  >
+                    <Trash2 size={14} color="#EF4444" />
+                  </View>
                 </View>
                 
                 {/* 周期阶段显示 */}
@@ -212,6 +254,28 @@ const Index: FC = () => {
           })
         )}
       </View>
+
+      {/* 删除确认弹窗 */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Text className="block text-lg font-semibold">确认删除</Text>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <Text className="block text-sm text-gray-500">确定要删除「{deleteTarget?.name}」的档案吗？删除后无法恢复。</Text>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Text className="block">取消</Text>
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>
+              <Text className="block text-red-500">{deleting ? '删除中...' : '删除'}</Text>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </View>
   )
 }
