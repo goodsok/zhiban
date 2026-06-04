@@ -169,7 +169,10 @@ const GrowPage: FC = () => {
 
   // 加载数据
   const loadData = useCallback(async () => {
-    if (!matchId) return
+    if (!matchId) {
+      setLoading(false)
+      return
+    }
     try {
       const res = await Network.request({
         url: `/api/grow?matchId=${matchId}`,
@@ -178,9 +181,20 @@ const GrowPage: FC = () => {
       const d = res.data?.data
       if (d) {
         setAnniversaries(d.anniversaries || [])
-        setGoals(d.goals || [])
+        const loadedGoals: Goal[] = d.goals || []
+        setGoals(loadedGoals)
         setMemories(d.memories || [])
-        setPromises(d.promises || [])
+        const loadedPromises: PromiseItem[] = d.promises || []
+        setPromises(loadedPromises)
+        // 同步推荐项的"已添加"状态
+        setAddedGoals(prev => {
+          const goalTitles = new Set(loadedGoals.map((g: Goal) => g.title))
+          return new Set([...prev, ...goalTitles])
+        })
+        setAddedPromises(prev => {
+          const promiseContents = new Set(loadedPromises.map((p: PromiseItem) => p.content))
+          return new Set([...prev, ...promiseContents])
+        })
       }
     } catch (err) {
       console.error('Load grow data error:', err)
@@ -222,7 +236,11 @@ const GrowPage: FC = () => {
   }
 
   const handleAdd = async () => {
-    if (addType === 'anniversary' && newTitle && newDate) {
+    if (addType === 'anniversary') {
+      if (!newTitle || !newDate) {
+        toast.error('请填写名称和日期')
+        return
+      }
       const res = await Network.request({
         url: '/api/grow/anniversary',
         method: 'POST',
@@ -233,18 +251,31 @@ const GrowPage: FC = () => {
         toast.success('纪念日已添加')
         loadData()
       }
-    } else if (addType === 'goal' && newTitle && newGoalTotal) {
+    } else if (addType === 'goal') {
+      if (!newTitle || !newGoalTotal) {
+        toast.error('请填写目标和数量')
+        return
+      }
+      const total = parseInt(newGoalTotal)
+      if (Number.isNaN(total) || total <= 0) {
+        toast.error('目标数量需大于0')
+        return
+      }
       const res = await Network.request({
         url: '/api/grow/goal',
         method: 'POST',
-        data: { matchId, title: newTitle, total: parseInt(newGoalTotal) },
+        data: { matchId, title: newTitle, total },
       })
       console.log('Add goal response:', res.data)
       if (res.data?.code === 200) {
         toast.success('目标已添加')
         loadData()
       }
-    } else if (addType === 'memory' && newContent) {
+    } else if (addType === 'memory') {
+      if (!newContent) {
+        toast.error('请写下你的回忆')
+        return
+      }
       const res = await Network.request({
         url: '/api/grow/memory',
         method: 'POST',
@@ -255,7 +286,11 @@ const GrowPage: FC = () => {
         toast.success('回忆已记录')
         loadData()
       }
-    } else if (addType === 'promise' && newContent) {
+    } else if (addType === 'promise') {
+      if (!newContent) {
+        toast.error('请填写约定内容')
+        return
+      }
       const res = await Network.request({
         url: '/api/grow/promise',
         method: 'POST',
@@ -286,6 +321,14 @@ const GrowPage: FC = () => {
   }
 
   const handleUpdateGoal = async (id: number, delta: number) => {
+    // 防止进度减到负数
+    const goal = goals.find(g => g.id === id)
+    if (!goal) return
+    const newProgress = goal.progress + delta
+    if (newProgress < 0) {
+      toast.error('进度不能小于0')
+      return
+    }
     const res = await Network.request({
       url: `/api/grow/goal/${id}/progress`,
       method: 'POST',
@@ -401,7 +444,7 @@ const GrowPage: FC = () => {
   ]
 
   // 日期选择器变更
-  const handleDateChange = (e) => {
+  const handleDateChange = (e: { detail: { value: string } }) => {
     setNewDate(e.detail.value)
   }
 
@@ -443,15 +486,23 @@ const GrowPage: FC = () => {
         </Tabs>
       </View>
 
+      {/* 无效matchId提示 */}
+      {!matchId && (
+        <View className="flex flex-col items-center py-16">
+          <Text className="block text-sm text-gray-400">无效的页面参数</Text>
+          <Text className="block text-xs text-gray-300 mt-1">请从正确的入口进入</Text>
+        </View>
+      )}
+
       {/* 加载态 */}
-      {loading && (
+      {matchId && loading && (
         <View className="flex flex-col items-center py-16">
           <Text className="block text-sm text-gray-400">加载中...</Text>
         </View>
       )}
 
       {/* 内容区域 */}
-      {!loading && (
+      {matchId && !loading && (
         <View className="p-4">
           <TabsContent value="anniversary">
             <View className="flex flex-row items-center justify-between mb-3">
@@ -564,7 +615,7 @@ const GrowPage: FC = () => {
                       <View className="flex-1">
                         <Text className={`block text-xs ${addedGoals.has(goal.title) ? 'text-gray-400' : 'text-gray-700'}`}>{goal.title}</Text>
                         <Text className="block text-xs text-gray-400 mt-1">
-                          目标: {goal.total > 100 ? `${goal.total}元` : `${goal.total}次`}
+                          目标: {goal.total}{goal.total >= 1000 ? '元' : '次'}
                         </Text>
                       </View>
                       {addedGoals.has(goal.title) ? (
@@ -587,7 +638,7 @@ const GrowPage: FC = () => {
                         {item.title}
                       </Text>
                       <Text className="block text-xs text-gray-500 mt-1">
-                        {item.progress} / {item.total}{item.total > 100 ? '' : ' 次'}
+                        {item.progress} / {item.total}{item.total >= 1000 ? '元' : ' 次'}
                       </Text>
                     </View>
                     <View onClick={() => handleDeleteClick('goal', item.id)} className="p-1">
