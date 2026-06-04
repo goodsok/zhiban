@@ -45,63 +45,56 @@ interface InteractionProfileProps {
   matchId: string
 }
 
-/** 模块配置 — 7色系 */
+/** 模块配置 — 低饱和度柔色系 */
 const SECTION_CONFIG = [
   {
     key: 'communicationRhythm' as const,
     icon: MessageCircle,
-    gradient: ['#3B82F6', '#60A5FA'],
-    bg: '#F0F7FF',
-    border: '#93C5FD',
-    tag: '#DBEAFE',
+    accent: '#7C9AB6',
+    bg: '#F6F8FA',
+    tag: '#EDF1F5',
   },
   {
     key: 'emotionalExpression' as const,
     icon: Heart,
-    gradient: ['#EF4444', '#F87171'],
-    bg: '#FFF1F2',
-    border: '#FCA5A5',
-    tag: '#FFE4E6',
+    accent: '#B68F8F',
+    bg: '#FAF7F7',
+    tag: '#F3EDED',
   },
   {
     key: 'conflictPattern' as const,
     icon: Swords,
-    gradient: ['#F59E0B', '#FBBF24'],
-    bg: '#FFFBEB',
-    border: '#FCD34D',
-    tag: '#FEF3C7',
+    accent: '#B6A07A',
+    bg: '#FAF8F4',
+    tag: '#F2EFE8',
   },
   {
     key: 'socialPortrait' as const,
     icon: Users,
-    gradient: ['#10B981', '#34D399'],
-    bg: '#ECFDF5',
-    border: '#6EE7B7',
-    tag: '#D1FAE5',
+    accent: '#82A089',
+    bg: '#F5F9F6',
+    tag: '#EAF1EB',
   },
   {
     key: 'lifeRhythm' as const,
     icon: Clock,
-    gradient: ['#8B5CF6', '#A78BFA'],
-    bg: '#F5F3FF',
-    border: '#C4B5FD',
-    tag: '#EDE9FE',
+    accent: '#9090B0',
+    bg: '#F7F7FA',
+    tag: '#EDEDF3',
   },
   {
     key: 'loveStyle' as const,
     icon: Flame,
-    gradient: ['#EC4899', '#F472B6'],
-    bg: '#FDF2F8',
-    border: '#F9A8D4',
-    tag: '#FCE7F3',
+    accent: '#B08898',
+    bg: '#FAF6F8',
+    tag: '#F3ECF0',
   },
   {
     key: 'intimacyBoundary' as const,
     icon: Lock,
-    gradient: ['#6366F1', '#818CF8'],
-    bg: '#EEF2FF',
-    border: '#A5B4FC',
-    tag: '#E0E7FF',
+    accent: '#7A8FB0',
+    bg: '#F5F7FA',
+    tag: '#EAEEF5',
   },
 ]
 
@@ -146,9 +139,9 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
     return (
       <View className="flex flex-col items-center justify-center py-10 px-4">
         <View className="mb-3">
-          <Sparkles size={44} color="#6366F1" />
+          <Sparkles size={44} color="#9090B0" />
         </View>
-        <Text className="block text-lg font-semibold text-gray-800 mb-2">相处模式分析</Text>
+        <Text className="block text-base font-medium text-gray-700 mb-2">相处模式分析</Text>
         <Text className="block text-sm text-gray-500 text-center leading-relaxed mb-1">
           从维度数据中合成7个行为侧写
         </Text>
@@ -168,9 +161,9 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
     return (
       <View className="flex flex-col items-center justify-center py-10 px-4">
         <View className="mb-3 animate-pulse">
-          <Sparkles size={44} color="#6366F1" />
+          <Sparkles size={44} color="#9090B0" />
         </View>
-        <Text className="block text-base font-medium text-gray-700 mb-2">正在扫描维度数据...</Text>
+        <Text className="block text-sm font-medium text-gray-600 mb-2">正在扫描维度数据...</Text>
         <Text className="block text-sm text-gray-400">合成行为侧写中，请稍候</Text>
       </View>
     )
@@ -186,7 +179,7 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
   }
 
   return (
-    <View className="flex flex-col gap-3 pb-6">
+    <View className="flex flex-col gap-4 pb-6 px-2">
       {/* 7个行为模块 */}
       {SECTION_CONFIG.map(config => {
         const section = profile[config.key]
@@ -197,47 +190,47 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
         return (
           <View
             key={config.key}
-            className="rounded-xl overflow-hidden"
+            className="rounded-lg overflow-hidden"
             style={{
-              background: `linear-gradient(135deg, ${config.bg} 0%, white 100%)`,
-              borderLeft: `3px solid ${config.gradient[0]}`,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              backgroundColor: '#fff',
+              borderLeft: `2px solid ${config.accent}`,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
             }}
           >
             {/* 头部 */}
-            <View className="flex flex-row items-center gap-2 px-4 pt-4 pb-2">
+            <View className="flex flex-row items-center gap-2 px-3 pt-3 pb-1">
               <View
-                className="rounded-lg flex items-center justify-center"
+                className="rounded flex items-center justify-center"
                 style={{
-                  background: `linear-gradient(135deg, ${config.gradient[0]}, ${config.gradient[1]})`,
-                  width: '28px',
-                  height: '28px',
+                  backgroundColor: config.bg,
+                  width: '24px',
+                  height: '24px',
                 }}
               >
-                <IconComp size={16} color="#fff" />
+                <IconComp size={14} color={config.accent} />
               </View>
-              <Text className="block text-sm font-bold" style={{ color: config.gradient[0] }}>
+              <Text className="block text-sm font-medium" style={{ color: config.accent }}>
                 {section.title}
               </Text>
             </View>
 
             {/* 描述 */}
-            <View className="px-4 pb-2">
-              <Text className="block text-sm text-gray-700 leading-relaxed">
+            <View className="px-3 pb-2">
+              <Text className="block text-sm text-gray-600 leading-relaxed">
                 {isEmpty ? '维度数据不足，请先填写更多维度' : section.description}
               </Text>
             </View>
 
             {/* 标签 */}
             {section.tags && section.tags.length > 0 && (
-              <View className="flex flex-row flex-wrap gap-2 px-4 pb-4">
+              <View className="flex flex-row flex-wrap gap-1 px-3 pb-3">
                 {section.tags.map((tag, idx) => (
                   <View
                     key={idx}
-                    className="rounded-full px-3 py-1"
+                    className="rounded-full px-2 py-1"
                     style={{ backgroundColor: config.tag }}
                   >
-                    <Text className="block text-xs font-medium" style={{ color: config.gradient[0] }}>
+                    <Text className="block text-xs" style={{ color: config.accent }}>
                       {tag.label}
                     </Text>
                   </View>
