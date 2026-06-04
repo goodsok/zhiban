@@ -200,7 +200,7 @@ const InteractiveGamesPage: FC = () => {
         <Text className="block text-sm font-medium text-gray-500 mb-3">破冰交流</Text>
         
         <ScrollView scrollY className="max-h-[calc(100vh-280px)]">
-          {games.filter(g => !['touch', 'mirror', 'pulse'].includes(g.id)).map((game) => {
+          {games.filter(g => !['touch', 'mirror', 'pulse', 'blind', 'distance', 'breath'].includes(g.id)).map((game) => {
             const GameIcon = game.icon
             return (
               <View
@@ -257,7 +257,7 @@ const InteractiveGamesPage: FC = () => {
             <View className="h-px bg-rose-200 flex-1" />
           </View>
 
-          {games.filter(g => ['touch', 'mirror', 'pulse'].includes(g.id)).map((game) => {
+          {games.filter(g => ['touch', 'mirror', 'pulse', 'blind', 'distance', 'breath'].includes(g.id)).map((game) => {
             const GameIcon = game.icon
             return (
               <View

@@ -290,7 +290,7 @@ const MirrorPage: FC = () => {
             <Card className="mb-6 w-full bg-gradient-to-br from-violet-50 to-purple-50 border-violet-100">
               <CardContent className="py-5">
                 <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
-                  "我们来玩镜像游戏吧！{'\n'}你做什么我就跟着做，{'\n'}我做什么你也跟着做。{'\n'}{'\n'}必须一直看着对方的眼睛哦，{'\n'}看谁先笑出来。{'\n'}{'\n'}敢不敢？"
+                  “我们来玩镜像游戏吧！{'\n'}你做什么我就跟着做，{'\n'}我做什么你也跟着做。{'\n'}{'\n'}必须一直看着对方的眼睛哦，{'\n'}看谁先笑出来。{'\n'}{'\n'}敢不敢？”
                 </Text>
               </CardContent>
             </Card>

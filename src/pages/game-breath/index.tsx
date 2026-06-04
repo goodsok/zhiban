@@ -255,7 +255,7 @@ const BreathPage: FC = () => {
             <Card className="mb-6 w-full bg-gradient-to-br from-sky-50 to-indigo-50 border-sky-100">
               <CardContent className="py-5">
                 <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
-                  "你有没有试过，{'\n'}两个人什么也不做，{'\n'}只是安静地一起呼吸？{'\n'}{'\n'}听说呼吸同步的时候，{'\n'}心跳也会慢慢一致。{'\n'}{'\n'}想试试吗？"
+                  “你有没有试过，{'\n'}两个人什么也不做，{'\n'}只是安静地一起呼吸？{'\n'}{'\n'}听说呼吸同步的时候，{'\n'}心跳也会慢慢一致。{'\n'}{'\n'}想试试吗？”
                 </Text>
               </CardContent>
             </Card>

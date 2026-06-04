@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
-import { EyeOff, Sparkles, Check, ArrowRight, RotateCcw, HelpCircle } from 'lucide-react-taro'
+import { EyeOff, Sparkles, Check, ArrowRight, RotateCcw, CircleQuestionMark } from 'lucide-react-taro'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -259,7 +259,7 @@ const BlindPage: FC = () => {
             <Card className="mb-6 w-full bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-100">
               <CardContent className="py-5">
                 <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
-                  "你相信吗？{'\n'}闭上眼睛之后，{'\n'}触碰会变得完全不同。{'\n'}{'\n'}我碰你，你来猜，{'\n'}猜对了有奖励哦。{'\n'}{'\n'}敢不敢闭眼试试？"
+                  “你相信吗？{'\n'}闭上眼睛之后，{'\n'}触碰会变得完全不同。{'\n'}{'\n'}我碰你，你来猜，{'\n'}猜对了有奖励哦。{'\n'}{'\n'}敢不敢闭眼试试？”
                 </Text>
               </CardContent>
             </Card>
@@ -323,7 +323,7 @@ const BlindPage: FC = () => {
               onClick={handleFinishTouch}
             >
               <View className="flex flex-row items-center justify-center">
-                <HelpCircle size={18} color="white" />
+                <CircleQuestionMark size={18} color="white" />
                 <Text className="text-white ml-2 font-medium">触碰完成，开始猜</Text>
               </View>
             </Button>
@@ -334,7 +334,7 @@ const BlindPage: FC = () => {
         {step === 'guess' && currentRound && (
           <View className="flex flex-col items-center">
             <View className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center mb-3">
-              <HelpCircle size={32} color="white" />
+              <CircleQuestionMark size={32} color="white" />
             </View>
             <Text className="block text-lg font-bold text-gray-900 mb-2">睁开眼睛，开始猜测</Text>
             <Text className="block text-sm text-gray-500 mb-6 text-center leading-relaxed">

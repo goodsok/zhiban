@@ -252,7 +252,7 @@ const TouchPage: FC = () => {
             <Card className="mb-6 w-full bg-gradient-to-br from-rose-50 to-pink-50 border-rose-100">
               <CardContent className="py-5">
                 <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
-                  "我想和你玩一个游戏，{'\n'}从指尖开始，{'\n'}慢慢感受彼此的温度。{'\n'}{'\n'}如果任何一步你觉得不舒服，{'\n'}我们可以随时停下来。{'\n'}{'\n'}愿意吗？"
+                  “我想和你玩一个游戏，{'\n'}从指尖开始，{'\n'}慢慢感受彼此的温度。{'\n'}{'\n'}如果任何一步你觉得不舒服，{'\n'}我们可以随时停下来。{'\n'}{'\n'}愿意吗？”
                 </Text>
               </CardContent>
             </Card>

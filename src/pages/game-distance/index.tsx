@@ -231,7 +231,7 @@ const DistancePage: FC = () => {
             <Card className="mb-6 w-full bg-gradient-to-br from-orange-50 to-amber-50 border-orange-100">
               <CardContent className="py-5">
                 <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
-                  "你有没有想过，{'\n'}从一米远到拥抱，{'\n'}需要走几步？{'\n'}{'\n'}我们来试试，{'\n'}每一步我都会等你，{'\n'}不想走了随时可以停。{'\n'}{'\n'}一起走吗？"
+                  “你有没有想过，{'\n'}从一米远到拥抱，{'\n'}需要走几步？{'\n'}{'\n'}我们来试试，{'\n'}每一步我都会等你，{'\n'}不想走了随时可以停。{'\n'}{'\n'}一起走吗？”
                 </Text>
               </CardContent>
             </Card>

@@ -313,7 +313,7 @@ const PulsePage: FC = () => {
             <Card className="mb-6 w-full bg-gradient-to-br from-rose-50 to-red-50 border-rose-100">
               <CardContent className="py-5">
                 <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
-                  "你知道吗？{'\n'}靠近喜欢的人时，{'\n'}心跳会不自觉地加速。{'\n'}{'\n'}我们来验证一下？{'\n'}你摸我的脉搏，我摸你的，{'\n'}看看谁先'露馅'。{'\n'}{'\n'}敢试试吗？"
+                  “你知道吗？{'\n'}靠近喜欢的人时，{'\n'}心跳会不自觉地加速。{'\n'}{'\n'}我们来验证一下？{'\n'}你摸我的脉搏，我摸你的，{'\n'}看看谁先‘露馅’。{'\n'}{'\n'}敢试试吗？”
                 </Text>
               </CardContent>
             </Card>
