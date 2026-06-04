@@ -144,7 +144,7 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
   // 未请求态：展示说明 + 开始按钮
   if (!requested && !loading && !profile) {
     return (
-      <View className="flex flex-col items-center justify-center py-10 px-4">
+      <View className="flex flex-col items-center justify-center pt-10 pb-10 px-4">
         <View className="mb-3">
           <Sparkles size={44} color="#9090B0" />
         </View>
@@ -186,7 +186,7 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
   }
 
   return (
-    <View className="flex flex-col gap-4 pb-6 px-2">
+    <View className="flex flex-col gap-4 pb-6 px-4 pt-4">
       {/* 7个行为模块 */}
       {SECTION_CONFIG.map(config => {
         const section = profile[config.key]
