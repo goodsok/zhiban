@@ -133,7 +133,10 @@ const DimensionEditPage: FC = () => {
     if (customInputValue.trim() && !multiSelectValues.includes(customInputValue.trim())) {
       setMultiSelectValues(prev => [...prev, customInputValue.trim()])
       setCustomInputValue('')
-      setShowCustomInput(false)
+      // 有预设选项时折叠输入框，无预设选项时保持输入框打开方便连续添加
+      if (definition?.enum_options?.length) {
+        setShowCustomInput(false)
+      }
     }
   }
 
@@ -269,11 +272,12 @@ const DimensionEditPage: FC = () => {
           </View>
         )
       
-      case 'multiselect':
+      case 'multiselect': {
+        const hasEnumOptions = (definition.enum_options?.length || 0) > 0
         return (
           <View>
             {/* 搜索框 */}
-            {showSearch && (
+            {showSearch && hasEnumOptions && (
               <View className="bg-gray-50 rounded-lg px-4 py-3 mb-3 flex items-center gap-2">
                 <Search size={16} color="#9CA3AF" />
                 <View className="flex-1">
@@ -290,7 +294,7 @@ const DimensionEditPage: FC = () => {
             {/* 已选择的标签 */}
             {multiSelectValues.length > 0 && (
               <View className="mb-4">
-                <Text className="text-xs text-gray-500 mb-2">已选择 ({multiSelectValues.length})</Text>
+                <Text className="block text-xs text-gray-500 mb-2">已选择 ({multiSelectValues.length})</Text>
                 <View className="flex flex-wrap gap-2">
                   {multiSelectValues.map(value => {
                     const option = definition.enum_options?.find(o => o.value === value)
@@ -310,30 +314,32 @@ const DimensionEditPage: FC = () => {
               </View>
             )}
             
-            {/* 可选标签 */}
-            <View className="mb-2">
-              <Text className="text-xs text-gray-500 mb-2">可选项</Text>
-              <View className="flex flex-wrap gap-2">
-                {filteredOptions
-                  .filter(option => !multiSelectValues.includes(option.value))
-                  .map(option => (
-                    <Badge
-                      key={option.value}
-                      className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      onClick={() => handleMultiSelect(option.value)}
-                    >
-                      {option.label}
-                    </Badge>
-                  ))}
-                {filteredOptions.filter(option => !multiSelectValues.includes(option.value)).length === 0 && (
-                  <Text className="text-sm text-gray-400">暂无可选项</Text>
-                )}
+            {/* 预设可选标签（仅在有预设选项时显示） */}
+            {hasEnumOptions && (
+              <View className="mb-2">
+                <Text className="block text-xs text-gray-500 mb-2">可选项</Text>
+                <View className="flex flex-wrap gap-2">
+                  {filteredOptions
+                    .filter(option => !multiSelectValues.includes(option.value))
+                    .map(option => (
+                      <Badge
+                        key={option.value}
+                        className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        onClick={() => handleMultiSelect(option.value)}
+                      >
+                        {option.label}
+                      </Badge>
+                    ))}
+                  {filteredOptions.filter(option => !multiSelectValues.includes(option.value)).length === 0 && (
+                    <Text className="text-sm text-gray-400">暂无可选项</Text>
+                  )}
+                </View>
               </View>
-            </View>
+            )}
             
-            {/* 自定义输入 */}
-            <View className="mt-4 pt-4 border-t border-gray-100">
-              {!showCustomInput ? (
+            {/* 自定义输入（无预设选项时直接展开输入框） */}
+            <View className={hasEnumOptions ? 'mt-4 pt-4 border-t border-gray-100' : ''}>
+              {!showCustomInput && hasEnumOptions ? (
                 <View 
                   className="flex items-center gap-2 text-gray-500"
                   onClick={() => setShowCustomInput(true)}
@@ -342,31 +348,41 @@ const DimensionEditPage: FC = () => {
                   <Text className="text-sm">添加自定义选项</Text>
                 </View>
               ) : (
-                <View className="flex items-center gap-2">
-                  <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
-                    <Input
-                      value={customInputValue}
-                      onInput={(e) => setCustomInputValue(e.detail.value)}
-                      placeholder="输入自定义内容..."
-                      className="w-full bg-transparent text-sm"
-                    />
-                  </View>
-                  <Button
-                    size="sm"
-                    className="bg-black"
-                    onClick={handleAddCustomValue}
-                    disabled={!customInputValue.trim()}
-                  >
-                    <Text className="text-white text-xs">添加</Text>
-                  </Button>
-                  <View onClick={() => { setShowCustomInput(false); setCustomInputValue('') }}>
-                    <X size={20} color="#9CA3AF" />
+                <View>
+                  {!hasEnumOptions && multiSelectValues.length === 0 && (
+                    <Text className="block text-xs text-gray-500 mb-2">输入后按回车或点击添加</Text>
+                  )}
+                  <View className="flex items-center gap-2">
+                    <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                      <Input
+                        value={customInputValue}
+                        onInput={(e) => setCustomInputValue(e.detail.value)}
+                        placeholder={hasEnumOptions ? '输入自定义内容...' : `添加${definition.display_name}标签...`}
+                        className="w-full bg-transparent text-sm"
+                        onConfirm={handleAddCustomValue}
+                        focus={!hasEnumOptions && multiSelectValues.length === 0}
+                      />
+                    </View>
+                    <Button
+                      size="sm"
+                      className="bg-black"
+                      onClick={handleAddCustomValue}
+                      disabled={!customInputValue.trim()}
+                    >
+                      <Text className="text-white text-xs">添加</Text>
+                    </Button>
+                    {hasEnumOptions && showCustomInput && (
+                      <View onClick={() => { setShowCustomInput(false); setCustomInputValue('') }}>
+                        <X size={20} color="#9CA3AF" />
+                      </View>
+                    )}
                   </View>
                 </View>
               )}
             </View>
           </View>
         )
+      }
       
       case 'number':
         return (
