@@ -29,6 +29,7 @@ const DimensionEditPage: FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [customInputValue, setCustomInputValue] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
+  const [isCustomSelected, setIsCustomSelected] = useState(false)
 
   useLoad(() => {
     if (matchId && dimensionKey) {
@@ -59,6 +60,16 @@ const DimensionEditPage: FC = () => {
             setMultiSelectValues(dimData.value.value || [])
           } else {
             setInputValue(dimData.value.value?.toString() || '')
+            // 判断当前值是否不在预设选项中（自定义值）
+            const currentDimValue = dimData.value?.value
+            if (defRes.data.input_type === 'select' && currentDimValue) {
+              const isPreset = defRes.data.enum_options?.some(
+                (opt: { value: string }) => opt.value === currentDimValue
+              )
+              if (!isPreset) {
+                setIsCustomSelected(true)
+              }
+            }
           }
         }
       }
@@ -132,6 +143,17 @@ const DimensionEditPage: FC = () => {
 
   const handleEnumSelect = (optionValue: string) => {
     setInputValue(optionValue)
+    setIsCustomSelected(false)
+    setShowCustomInput(false)
+    setCustomInputValue('')
+  }
+
+  const handleCustomConfirm = () => {
+    if (customInputValue.trim()) {
+      setInputValue(customInputValue.trim())
+      setIsCustomSelected(true)
+      setShowCustomInput(false)
+    }
   }
 
   // 过滤选项
@@ -176,18 +198,71 @@ const DimensionEditPage: FC = () => {
                   key={option.value}
                   className={`flex items-center justify-between px-4 py-3 ${
                     index !== filteredOptions.length - 1 ? 'border-b border-gray-50' : ''
-                  } ${inputValue === option.value ? 'bg-gray-50' : ''}`}
+                  } ${!isCustomSelected && inputValue === option.value ? 'bg-gray-50' : ''}`}
                   onClick={() => handleEnumSelect(option.value)}
                 >
                   <Text className="text-sm text-gray-900">{option.label}</Text>
-                  {inputValue === option.value && (
+                  {!isCustomSelected && inputValue === option.value && (
                     <Check size={16} color="#000" />
                   )}
                 </View>
               ))}
-              {filteredOptions.length === 0 && (
+
+              {/* 自定义选项入口 */}
+              {!showCustomInput ? (
+                <View
+                  className={`flex items-center gap-2 px-4 py-3 ${
+                    filteredOptions.length > 0 ? 'border-t border-gray-50' : ''
+                  } ${isCustomSelected ? 'bg-gray-50' : ''}`}
+                  onClick={() => {
+                    setShowCustomInput(true)
+                    if (isCustomSelected) {
+                      setCustomInputValue(inputValue)
+                    }
+                  }}
+                >
+                  <Plus size={16} color="#9CA3AF" />
+                  <Text className={`text-sm ${isCustomSelected ? 'text-gray-900' : 'text-gray-500'}`}>
+                    {isCustomSelected ? inputValue : '自定义'}
+                  </Text>
+                  {isCustomSelected && (
+                    <View className="ml-auto">
+                      <Check size={16} color="#000" />
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <View
+                  className={`flex items-center gap-2 px-4 py-3 ${
+                    filteredOptions.length > 0 ? 'border-t border-gray-50' : ''
+                  } bg-gray-50`}
+                >
+                  <View className="flex-1">
+                    <Input
+                      value={customInputValue}
+                      onInput={(e) => setCustomInputValue(e.detail.value)}
+                      placeholder="输入自定义内容..."
+                      className="w-full bg-transparent text-sm"
+                      focus
+                    />
+                  </View>
+                  <Button
+                    size="sm"
+                    className="bg-black"
+                    onClick={handleCustomConfirm}
+                    disabled={!customInputValue.trim()}
+                  >
+                    <Text className="text-white text-xs">确定</Text>
+                  </Button>
+                  <View onClick={() => { setShowCustomInput(false); setCustomInputValue('') }}>
+                    <X size={20} color="#9CA3AF" />
+                  </View>
+                </View>
+              )}
+
+              {filteredOptions.length === 0 && !showCustomInput && (
                 <View className="px-4 py-8 flex items-center justify-center">
-                  <Text className="text-sm text-gray-400">没有找到匹配项</Text>
+                  <Text className="text-sm text-gray-400">没有找到匹配项，试试自定义</Text>
                 </View>
               )}
             </View>
