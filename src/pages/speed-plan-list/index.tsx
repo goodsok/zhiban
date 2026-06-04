@@ -1,4 +1,4 @@
-import { View, Text } from '@tarojs/components'
+import { View, Text, Image } from '@tarojs/components'
 import { useDidShow, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -7,7 +7,6 @@ import CustomHeader from '@/components/custom-header'
 import { Plus, Clock, ChevronRight, Sparkles } from 'lucide-react-taro'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -23,6 +22,7 @@ interface Plan {
   created_at: string
   matches?: {
     name: string
+    avatar_url?: string
   }
 }
 
@@ -35,6 +35,7 @@ const BEHAVIOR_MAP: Record<string, string> = {
 }
 
 const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
+  'active': { label: '进行中', variant: 'default' },
   'draft': { label: '草稿', variant: 'outline' },
   'in_progress': { label: '进行中', variant: 'default' },
   'completed': { label: '已完成', variant: 'secondary' },
@@ -57,6 +58,14 @@ const formatDate = (dateStr: string) => {
 
 const getStatusConfig = (status: string) =>
   STATUS_MAP[status] || { label: status, variant: 'outline' as const }
+
+const getDifficultyColor = (score: number) => {
+  if (score <= 2) return 'text-emerald-600'
+  if (score <= 4) return 'text-green-600'
+  if (score <= 6) return 'text-amber-600'
+  if (score <= 8) return 'text-orange-600'
+  return 'text-red-600'
+}
 
 const SpeedPlanListPage: FC = () => {
   const [plans, setPlans] = useState<Plan[]>([])
@@ -138,6 +147,22 @@ const SpeedPlanListPage: FC = () => {
     </View>
   )
 
+  // 渲染对象头像
+  const renderMatchAvatar = (name: string, avatarUrl?: string) => {
+    if (avatarUrl) {
+      return (
+        <Image className="w-10 h-10 rounded-full" src={avatarUrl} mode="aspectFill" />
+      )
+    }
+    return (
+      <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+        <Text className="block text-sm font-medium text-gray-600">
+          {name?.charAt(0) || '?'}
+        </Text>
+      </View>
+    )
+  }
+
   // 方案卡片
   const renderPlanCard = (plan: Plan) => {
     const statusConfig = getStatusConfig(plan.status)
@@ -152,11 +177,7 @@ const SpeedPlanListPage: FC = () => {
           {/* 头部：头像 + 名称 + 状态 + 箭头 */}
           <View className="flex items-center justify-between mb-3">
             <View className="flex items-center gap-3">
-              <Avatar className="w-10 h-10 bg-gray-100">
-                <AvatarFallback className="text-sm font-medium text-gray-600">
-                  {plan.matches?.name?.charAt(0) || '?'}
-                </AvatarFallback>
-              </Avatar>
+              {renderMatchAvatar(plan.matches?.name || '', plan.matches?.avatar_url)}
               <View>
                 <View className="flex items-center gap-2">
                   <Text className="block font-medium text-gray-900">
@@ -190,14 +211,19 @@ const SpeedPlanListPage: FC = () => {
             </View>
           </View>
 
-          {/* 难度 */}
+          {/* 难度 - 带颜色标识 */}
           <View className="flex items-center justify-between mt-2">
             <View className="flex items-center gap-2">
               <Text className="block text-sm text-gray-500">
-                难度：{plan.difficulty_level}
+                难度：
+              </Text>
+              <Text className={`block text-sm font-medium ${getDifficultyColor(plan.difficulty_score)}`}>
+                {plan.difficulty_level}
               </Text>
               <Badge variant="outline" className="text-xs px-1 py-1">
-                <Text className="text-xs text-gray-500">{plan.difficulty_score}/10</Text>
+                <Text className={`text-xs ${getDifficultyColor(plan.difficulty_score)}`}>
+                  {plan.difficulty_score}/10
+                </Text>
               </Badge>
             </View>
           </View>

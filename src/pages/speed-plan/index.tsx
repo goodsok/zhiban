@@ -1,12 +1,14 @@
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro, { useLoad, useDidShow, useRouter } from '@tarojs/taro'
 import type { FC } from 'react'
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { ChevronRight, User, Target, Sparkles, Check, LoaderCircle, Send } from 'lucide-react-taro'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { ChevronRight, User, Target, Sparkles, Check, LoaderCircle, Send, CircleDot, CircleCheck, CircleX } from 'lucide-react-taro'
 
 // 本地存储key
 const STORAGE_KEY = 'speed_plan_draft'
@@ -54,6 +56,9 @@ const TARGET_BEHAVIORS = [
   { code: 'relationship', name: '确认恋爱关系' },
 ]
 
+// 生成唯一ID
+const generateId = () => Date.now() + Math.floor(Math.random() * 10000)
+
 interface Match {
   id: number
   name: string
@@ -78,6 +83,12 @@ interface Message {
   created_at: string
 }
 
+interface StepItem {
+  id: string
+  title: string
+  status: 'pending' | 'done' | 'failed'
+}
+
 interface PlanDetail {
   id: number
   match_id: number
@@ -90,6 +101,7 @@ interface PlanDetail {
   matches?: {
     id: number
     name: string
+    avatar_url?: string
     relationship_type?: string
   }
 }
@@ -100,6 +112,143 @@ interface DraftData {
   selectedMatchId?: number
   targetHours: number
   targetBehavior: string
+}
+
+/**
+ * 前端难度计算（与后端 calculateDifficulty 逻辑对齐）
+ */
+const calculateLocalDifficulty = (
+  currentProgress: string[],
+  targetBehavior: string,
+  matchDetail: MatchDetail | null,
+  targetHours: number
+): { score: number; level: string; factors: string[] } => {
+  // 计算当前层级
+  let maxLevel = 0
+  currentProgress.forEach(code => {
+    const behavior = BEHAVIOR_LEVELS.find(b => b.code === code)
+    if (behavior && behavior.level > maxLevel) {
+      maxLevel = behavior.level
+    }
+  })
+
+  const target = BEHAVIOR_LEVELS.find(b => b.code === targetBehavior)
+  const targetLevel = target?.level || 3
+  const levelGap = Math.max(0, targetLevel - maxLevel)
+  const baseDifficulty = levelGap * 2
+
+  const baseTime = 72
+  const timePressure = baseTime / Math.max(targetHours, 1)
+  const timeFactor = Math.min(timePressure, 3)
+
+  let relationshipFactor = 1
+  const relType = matchDetail?.relationship_type
+  if (relType === 'long_term' || relType === 'serious_dating') {
+    relationshipFactor = 1.2
+  } else if (relType === 'short_term') {
+    relationshipFactor = 0.8
+  }
+
+  let attachmentFactor = 1
+  const attachType = matchDetail?.attachment_type
+  if (attachType === 'secure') {
+    attachmentFactor = 0.9
+  } else if (attachType === 'anxious') {
+    attachmentFactor = 0.8
+  } else if (attachType === 'avoidant' || attachType === 'fearful') {
+    attachmentFactor = 1.3
+  }
+
+  const interactionCount = matchDetail?.interaction_count || 0
+  const interactionFactor = Math.max(0.7, 1 - interactionCount / 20)
+
+  const energy = matchDetail?.relationship_energy || 0
+  const energyFactor = Math.max(0.6, 1 - energy / 200)
+
+  const totalDifficulty = baseDifficulty * timeFactor * relationshipFactor * attachmentFactor * interactionFactor * energyFactor
+  const score = Math.min(10, Math.max(1, Math.round(totalDifficulty)))
+
+  let level = '简单'
+  if (score >= 8) level = '极难'
+  else if (score >= 6) level = '困难'
+  else if (score >= 4) level = '中等'
+  else if (score >= 2) level = '较易'
+
+  const factors: string[] = []
+  if (levelGap > 0) factors.push(`层级差距${levelGap}级`)
+  if (timeFactor > 1.5) factors.push('时间紧迫')
+  if (relationshipFactor > 1) factors.push('长期关系需要耐心')
+  if (attachmentFactor > 1) factors.push('回避/恐惧型依恋')
+  if (energy > 30) factors.push('关系能量充足')
+  if (interactionCount > 5) factors.push('互动基础较好')
+
+  return { score, level, factors }
+}
+
+/**
+ * 从 AI 方案文本中解析出步骤
+ */
+const parseStepsFromContent = (content: string): StepItem[] => {
+  const steps: StepItem[] = []
+  // 匹配 "1. 第X步：xxx" 或 "1. xxx（时间：xxx）" 格式
+  const stepRegex = /\d+\.\s*(第\d+步[：:]\s*[^（(\n]+)/g
+  let match
+  while ((match = stepRegex.exec(content)) !== null) {
+    const title = match[1].trim()
+    if (title) {
+      steps.push({ id: `step-${steps.length}`, title, status: 'pending' })
+    }
+  }
+  // 如果没匹配到"第X步"格式，尝试匹配"1. xxx"格式
+  if (steps.length === 0) {
+    const simpleStepRegex = /(\d+)\.\s*(.{2,30}?)(?:\n|（|\(|$)/g
+    while ((match = simpleStepRegex.exec(content)) !== null) {
+      const title = match[2].trim()
+      if (title && !title.startsWith('【')) {
+        steps.push({ id: `step-${steps.length}`, title, status: 'pending' })
+      }
+    }
+  }
+  return steps.slice(0, 8) // 最多8步
+}
+
+/**
+ * 根据方案内容生成动态快捷回复
+ */
+const generateQuickReplies = (plan: PlanDetail | null, steps: StepItem[]): string[] => {
+  const replies: string[] = []
+
+  if (steps.length > 0) {
+    const pendingStep = steps.find(s => s.status === 'pending')
+    if (pendingStep) {
+      replies.push(`${pendingStep.title}怎么做更好`)
+    }
+    const doneStep = steps.find(s => s.status === 'done')
+    if (doneStep) {
+      replies.push('下一步怎么做')
+    }
+    const failedStep = steps.find(s => s.status === 'failed')
+    if (failedStep) {
+      replies.push('这步失败了怎么办')
+    }
+  }
+
+  if (plan) {
+    if (plan.difficulty_score >= 6) {
+      replies.push('有没有更稳妥的方式')
+    }
+    if (plan.target_hours <= 48) {
+      replies.push('时间快到了怎么办')
+    }
+  }
+
+  // 确保至少有2个快捷回复
+  if (replies.length < 2) {
+    if (!replies.includes('调整方案')) replies.push('调整方案')
+    if (!replies.includes('换个思路')) replies.push('换个思路')
+  }
+
+  return replies.slice(0, 4)
 }
 
 const SpeedPlanPage: FC = () => {
@@ -116,6 +265,12 @@ const SpeedPlanPage: FC = () => {
   const [sending, setSending] = useState(false)
   const [expandedMessages, setExpandedMessages] = useState<Set<number>>(new Set())
   
+  // 步骤打卡状态
+  const [steps, setSteps] = useState<StepItem[]>([])
+
+  // 滚动相关
+  const [scrollTop, setScrollTop] = useState(0)
+
   // 新建模式状态
   const [currentStep, setCurrentStep] = useState(1)
   const [background, setBackground] = useState('')
@@ -126,6 +281,23 @@ const SpeedPlanPage: FC = () => {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
+
+  // 难度预估（实时计算）
+  const difficultyResult = calculateLocalDifficulty(currentProgress, targetBehavior, selectedMatch, targetHours)
+
+  // 动态快捷回复
+  const quickReplies = generateQuickReplies(plan, steps)
+
+  // 滚动到底部
+  const scrollToBottom = useCallback(() => {
+    setTimeout(() => {
+      // 使用一个较大的 scrollTop 值来确保滚到底部
+      setScrollTop(prev => prev + 9999)
+    }, 100)
+  }, [])
+
+  // 当消息变化时自动滚到底部
+  const prevMsgCountRef = useRef(0)
 
   useLoad(() => {
     console.log('Speed plan page loaded, planId:', planId)
@@ -147,6 +319,13 @@ const SpeedPlanPage: FC = () => {
     }
   })
 
+  // 消息变化自动滚底
+  const currentMsgCount = messages.length + (sending ? 1 : 0)
+  if (currentMsgCount !== prevMsgCountRef.current) {
+    prevMsgCountRef.current = currentMsgCount
+    scrollToBottom()
+  }
+
   // 加载方案详情
   const loadPlanDetail = async () => {
     if (!planId) return
@@ -154,20 +333,18 @@ const SpeedPlanPage: FC = () => {
     try {
       setLoading(true)
       const res = await Network.request({ url: `/api/speed-plan/${planId}` })
+      console.log('Load plan detail response:', res.data)
       if (res.data?.code === 200 && res.data?.data) {
-        setPlan(res.data.data.plan)
-        setMessages(res.data.data.messages || [])
-        // 滚动到底部
-        setTimeout(() => {
-          Taro.createSelectorQuery()
-            .select('.message-list')
-            .scrollOffset()
-            .exec((scrollRes) => {
-              if (scrollRes[0]) {
-                // 已滚动到底部
-              }
-            })
-        }, 100)
+        const planData = res.data.data.plan
+        setPlan(planData)
+        const msgs = res.data.data.messages || []
+        setMessages(msgs)
+        // 从第一条AI消息中解析步骤
+        const firstAiMsg = msgs.find((m: Message) => m.role === 'assistant')
+        if (firstAiMsg) {
+          setSteps(parseStepsFromContent(firstAiMsg.content))
+        }
+        scrollToBottom()
       }
     } catch (error) {
       console.error('Load plan detail error:', error)
@@ -186,7 +363,7 @@ const SpeedPlanPage: FC = () => {
     
     // 先添加用户消息到列表
     const tempUserMsg: Message = {
-      id: Date.now(),
+      id: generateId(),
       role: 'user',
       content: userMessage,
       created_at: new Date().toISOString(),
@@ -199,11 +376,12 @@ const SpeedPlanPage: FC = () => {
         method: 'POST',
         data: { message: userMessage },
       })
+      console.log('Send message response:', res.data)
       
       if (res.data?.code === 200 && res.data?.data?.reply) {
         // 添加AI回复
         const aiMsg: Message = {
-          id: Date.now() + 1,
+          id: generateId(),
           role: 'assistant',
           content: res.data.data.reply,
           created_at: new Date().toISOString(),
@@ -230,12 +408,10 @@ const SpeedPlanPage: FC = () => {
     })
   }
 
-  // 快捷回复
-  const quickReplies = [
-    '调整方案',
-    '如果失败怎么办',
-    '换个思路',
-  ]
+  // 步骤打卡
+  const updateStepStatus = (stepId: string, status: StepItem['status']) => {
+    setSteps(prev => prev.map(s => s.id === stepId ? { ...s, status } : s))
+  }
 
   const handleQuickReply = (text: string) => {
     setChatInput(text)
@@ -279,6 +455,7 @@ const SpeedPlanPage: FC = () => {
     try {
       setLoading(true)
       const res = await Network.request({ url: '/api/match/list' })
+      console.log('Fetch matches response:', res.data)
       if (res.data?.code === 200 && res.data?.data?.list) {
         setMatches(res.data.data.list)
       }
@@ -292,6 +469,7 @@ const SpeedPlanPage: FC = () => {
   const fetchMatchDetail = async (matchId: number) => {
     try {
       const res = await Network.request({ url: `/api/match/${matchId}` })
+      console.log('Fetch match detail response:', res.data)
       if (res.data?.code === 200 && res.data?.data) {
         const detail = res.data.data
         if (detail.cycleStartDate) {
@@ -341,16 +519,19 @@ const SpeedPlanPage: FC = () => {
           targetBehavior,
         }
       })
+      console.log('Create plan response:', res.data)
       
       if (res.data?.code === 200 && res.data?.data) {
         // 添加初始消息
         const initialMsg: Message = {
-          id: 1,
+          id: generateId(),
           role: 'assistant',
           content: res.data.data.initialMessage,
           created_at: new Date().toISOString(),
         }
         setMessages([initialMsg])
+        // 解析步骤
+        setSteps(parseStepsFromContent(res.data.data.initialMessage))
         setPlan({
           id: res.data.data.planId,
           match_id: selectedMatch.id,
@@ -360,12 +541,13 @@ const SpeedPlanPage: FC = () => {
           target_behavior: targetBehavior,
           difficulty_score: res.data.data.difficulty,
           difficulty_level: res.data.data.difficultyLevel,
-          matches: { id: selectedMatch.id, name: selectedMatch.name },
+          matches: { id: selectedMatch.id, name: selectedMatch.name, avatar_url: selectedMatch.avatar_url },
         })
         // 切换到聊天模式
         setCurrentStep(4)
         // 清除草稿
         Taro.removeStorageSync(STORAGE_KEY)
+        scrollToBottom()
       }
     } catch (error) {
       console.error('Create plan error:', error)
@@ -410,21 +592,46 @@ const SpeedPlanPage: FC = () => {
     return labels[phase || ''] || ''
   }
 
-  const getDifficultyStars = (score: number) => {
-    if (score <= 2) return '⭐'
-    if (score <= 4) return '⭐⭐'
-    if (score <= 6) return '⭐⭐⭐'
-    if (score <= 8) return '⭐⭐⭐⭐'
-    return '⭐⭐⭐⭐⭐'
-  }
-
   const getBehaviorName = (code: string) => {
     const behavior = BEHAVIOR_LEVELS.find(b => b.code === code)
     return behavior?.name || code
   }
 
+  const getDifficultyColor = (score: number) => {
+    if (score <= 2) return 'text-emerald-600'
+    if (score <= 4) return 'text-green-600'
+    if (score <= 6) return 'text-amber-600'
+    if (score <= 8) return 'text-orange-600'
+    return 'text-red-600'
+  }
+
+  // 渲染对象头像（支持图片和首字回退）
+  const renderAvatar = (name: string, avatarUrl?: string, size: 'sm' | 'md' = 'sm') => {
+    const sizeClass = size === 'sm' ? 'w-8 h-8' : 'w-10 h-10'
+    const textSizeClass = size === 'sm' ? 'text-xs' : 'text-sm'
+    if (avatarUrl) {
+      return (
+        <Image 
+          className={`${sizeClass} rounded-full`} 
+          src={avatarUrl} 
+          mode="aspectFill"
+        />
+      )
+    }
+    return (
+      <View className={`${sizeClass} rounded-full bg-gray-100 flex items-center justify-center`}>
+        <Text className={`block ${textSizeClass} font-medium text-gray-600`}>
+          {name.charAt(0)}
+        </Text>
+      </View>
+    )
+  }
+
   // 聊天模式渲染
   if (isViewMode || currentStep === 4) {
+    const doneSteps = steps.filter(s => s.status === 'done').length
+    const totalSteps = steps.length
+
     return (
       <View className="min-h-screen bg-gray-50 flex flex-col">
         <CustomHeader title="速推方案" />
@@ -434,11 +641,7 @@ const SpeedPlanPage: FC = () => {
           <View className="bg-white px-4 py-3 border-b border-gray-100">
             <View className="flex items-center justify-between">
               <View className="flex items-center gap-2">
-                <View className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Text className="block text-xs font-medium text-gray-600">
-                    {plan.matches?.name?.charAt(0) || '?'}
-                  </Text>
-                </View>
+                {renderAvatar(plan.matches?.name || '?', plan.matches?.avatar_url)}
                 <View>
                   <Text className="block text-sm font-medium text-gray-900">{plan.matches?.name}</Text>
                   <View className="flex items-center gap-2 mt-1">
@@ -454,9 +657,97 @@ const SpeedPlanPage: FC = () => {
               </View>
               <View className="text-right">
                 <Text className="block text-xs text-gray-400">难度</Text>
-                <Text className="block text-sm">{getDifficultyStars(plan.difficulty_score)}</Text>
+                <Text className={`block text-sm ${getDifficultyColor(plan.difficulty_score)}`}>
+                  {plan.difficulty_level} {plan.difficulty_score}/10
+                </Text>
               </View>
             </View>
+
+            {/* 步骤进度条 */}
+            {totalSteps > 0 && (
+              <View className="mt-3 pt-3 border-t border-gray-100">
+                <View className="flex items-center justify-between mb-1">
+                  <Text className="block text-xs text-gray-500">执行进度</Text>
+                  <Text className="block text-xs text-gray-400">{doneSteps}/{totalSteps} 步完成</Text>
+                </View>
+                <View className="w-full bg-gray-100 rounded-full h-2">
+                  <View 
+                    className="bg-emerald-500 h-2 rounded-full transition-all"
+                    style={{ width: `${totalSteps > 0 ? (doneSteps / totalSteps * 100) : 0}%` }}
+                  />
+                </View>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* 步骤打卡区域 */}
+        {steps.length > 0 && (
+          <View className="bg-white mx-4 mt-3 rounded-xl border border-gray-100 overflow-hidden">
+            <View className="px-3 py-2 bg-gray-50 border-b border-gray-100">
+              <View className="flex items-center gap-1">
+                <CircleDot size={14} color="#6B7280" />
+                <Text className="block text-xs font-medium text-gray-600">方案步骤</Text>
+              </View>
+            </View>
+            {steps.map((step, idx) => (
+              <View 
+                key={step.id} 
+                className={`px-3 py-2 flex items-center justify-between ${
+                  idx < steps.length - 1 ? 'border-b border-gray-50' : ''
+                }`}
+              >
+                <View className="flex items-center gap-2 flex-1 mr-2">
+                  {step.status === 'done' ? (
+                    <CircleCheck size={16} color="#10B981" />
+                  ) : step.status === 'failed' ? (
+                    <CircleX size={16} color="#EF4444" />
+                  ) : (
+                    <CircleDot size={16} color="#9CA3AF" />
+                  )}
+                  <Text
+                    className={`block text-sm ${
+                      step.status === 'done' ? 'text-gray-400 line-through' :
+                      step.status === 'failed' ? 'text-red-500' : 'text-gray-700'
+                    }`}
+                  >
+                    {step.title}
+                  </Text>
+                </View>
+                {step.status === 'pending' && (
+                  <View className="flex items-center gap-1 shrink-0">
+                    <View
+                      className="px-2 py-1 rounded bg-emerald-50"
+                      onClick={() => updateStepStatus(step.id, 'done')}
+                    >
+                      <Text className="block text-xs text-emerald-600">完成</Text>
+                    </View>
+                    <View
+                      className="px-2 py-1 rounded bg-red-50"
+                      onClick={() => updateStepStatus(step.id, 'failed')}
+                    >
+                      <Text className="block text-xs text-red-500">卡住</Text>
+                    </View>
+                  </View>
+                )}
+                {step.status === 'done' && (
+                  <Badge variant="secondary" className="text-xs px-1 py-0">
+                    <Text className="text-xs">已完成</Text>
+                  </Badge>
+                )}
+                {step.status === 'failed' && (
+                  <View
+                    className="px-2 py-1 rounded bg-amber-50"
+                    onClick={() => {
+                      updateStepStatus(step.id, 'pending')
+                      setChatInput(`「${step.title}」这步卡住了，怎么办？`)
+                    }}
+                  >
+                    <Text className="block text-xs text-amber-600">求助</Text>
+                  </View>
+                )}
+              </View>
+            ))}
           </View>
         )}
 
@@ -465,6 +756,7 @@ const SpeedPlanPage: FC = () => {
           className="message-list flex-1 p-4"
           scrollY
           scrollWithAnimation
+          scrollTop={scrollTop}
         >
           {messages.map((msg) => {
             const isExpanded = expandedMessages.has(msg.id)
@@ -486,8 +778,7 @@ const SpeedPlanPage: FC = () => {
                   <Text 
                     className={`block text-sm whitespace-pre-wrap ${
                       msg.role === 'user' ? 'text-white' : 'text-gray-700'
-                    }`}
-                    style={{ maxHeight: isLong && !isExpanded ? '200px' : 'none', overflow: 'hidden' }}
+                    } ${isLong && !isExpanded ? 'line-clamp-8' : ''}`}
                   >
                     {msg.content}
                   </Text>
@@ -497,7 +788,7 @@ const SpeedPlanPage: FC = () => {
                       style={{ display: 'flex' }}
                       onClick={() => toggleMessageExpand(msg.id)}
                     >
-                      <Text className={`block text-xs ${msg.role === 'user' ? 'text-gray-300' : 'text-blue-500'}`}>
+                      <Text className={`block text-xs ${msg.role === 'user' ? 'text-gray-300' : 'text-indigo-500'}`}>
                         {isExpanded ? '收起' : '展开全部'}
                       </Text>
                     </View>
@@ -506,11 +797,14 @@ const SpeedPlanPage: FC = () => {
               </View>
             )
           })}
-          
+
           {sending && (
             <View className="mb-4 items-start" style={{ display: 'flex' }}>
               <View className="bg-white border border-gray-100 rounded-2xl p-3">
-                <Text className="block text-sm text-gray-400">正在思考...</Text>
+                <View className="flex items-center gap-2">
+                  <LoaderCircle size={14} color="#9CA3AF" className="animate-spin" />
+                  <Text className="block text-sm text-gray-400">正在思考...</Text>
+                </View>
               </View>
             </View>
           )}
@@ -518,25 +812,27 @@ const SpeedPlanPage: FC = () => {
 
         {/* 快捷回复 */}
         <View className="bg-white px-4 py-2 border-t border-gray-100">
-          <View className="flex gap-2">
-            {quickReplies.map((text) => (
-              <View
-                key={text}
-                className="px-3 py-2 rounded-full bg-gray-100"
-                onClick={() => handleQuickReply(text)}
-              >
-                <Text className="block text-xs text-gray-600">{text}</Text>
-              </View>
-            ))}
-          </View>
+          <ScrollView scrollX className="whitespace-nowrap">
+            <View className="flex gap-2">
+              {quickReplies.map((text) => (
+                <View
+                  key={text}
+                  className="px-3 py-2 rounded-full bg-gray-100 shrink-0"
+                  onClick={() => handleQuickReply(text)}
+                >
+                  <Text className="block text-xs text-gray-600">{text}</Text>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
         </View>
 
         {/* 输入框 */}
         <View className="bg-white px-4 py-3 border-t border-gray-100">
-          <View className="flex items-center gap-2">
-            <View className="flex-1 bg-gray-50 rounded-xl px-4 py-2">
+          <View style={{ display: 'flex', flexDirection: 'row', gap: '8px', alignItems: 'center' }}>
+            <View style={{ flex: 1, backgroundColor: '#f9fafb', borderRadius: '12px', padding: '8px 12px' }}>
               <Input
-                className="w-full"
+                style={{ width: '100%', fontSize: '14px' }}
                 placeholder="输入问题或反馈..."
                 value={chatInput}
                 onInput={(e) => setChatInput(e.detail.value)}
@@ -545,9 +841,12 @@ const SpeedPlanPage: FC = () => {
               />
             </View>
             <View
-              className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                chatInput.trim() ? 'bg-black' : 'bg-gray-200'
-              }`}
+              style={{
+                width: '40px', height: '40px', borderRadius: '20px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backgroundColor: chatInput.trim() ? '#000' : '#e5e7eb',
+                flexShrink: 0,
+              }}
               onClick={sendMessage}
             >
               <Send size={18} color={chatInput.trim() ? '#fff' : '#9CA3AF'} />
@@ -578,7 +877,7 @@ const SpeedPlanPage: FC = () => {
               <View key={label} className="flex items-center">
                 <View 
                   className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                    isCompleted ? 'bg-green-500' : isActive ? 'bg-black' : 'bg-gray-200'
+                    isCompleted ? 'bg-emerald-500' : isActive ? 'bg-black' : 'bg-gray-200'
                   }`}
                 >
                   {isCompleted ? (
@@ -593,7 +892,11 @@ const SpeedPlanPage: FC = () => {
                   {label}
                 </Text>
                 {index < 3 && (
-                  <View className="w-6 h-1 bg-gray-200 mx-2" />
+                  <View
+                    className={`w-6 h-1 mx-2 rounded ${
+                      isCompleted ? 'bg-emerald-500' : 'bg-gray-200'
+                    }`}
+                  />
                 )}
               </View>
             )
@@ -648,13 +951,13 @@ const SpeedPlanPage: FC = () => {
             ))}
           </View>
 
-          <View
-            className="bg-black rounded-xl py-3 flex items-center justify-center"
+          <Button
+            className="w-full bg-black rounded-xl py-3"
             onClick={() => setCurrentStep(2)}
           >
-            <Text className="block text-white font-medium">下一步</Text>
+            <Text className="text-white font-medium">下一步</Text>
             <ChevronRight size={18} color="#fff" />
-          </View>
+          </Button>
         </View>
       )}
 
@@ -688,17 +991,21 @@ const SpeedPlanPage: FC = () => {
                       onClick={() => handleMatchSelect(match)}
                     >
                       <View className="flex items-center gap-3">
-                        <View className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          isSelected ? 'bg-white' : 'bg-gray-200'
-                        }`}
-                        >
-                          <Text className={`block text-sm font-medium ${
-                            isSelected ? 'text-black' : 'text-gray-600'
-                          }`}
-                          >
-                            {match.name.charAt(0)}
-                          </Text>
-                        </View>
+                        {isSelected ? (
+                          <View className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                            <Text className="block text-sm font-medium text-black">
+                              {match.name.charAt(0)}
+                            </Text>
+                          </View>
+                        ) : match.avatar_url ? (
+                          <Image className="w-10 h-10 rounded-full" src={match.avatar_url} mode="aspectFill" />
+                        ) : (
+                          <View className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                            <Text className="block text-sm font-medium text-gray-600">
+                              {match.name.charAt(0)}
+                            </Text>
+                          </View>
+                        )}
                         <View>
                           <Text className={`block font-medium ${
                             isSelected ? 'text-white' : 'text-gray-900'
@@ -756,22 +1063,22 @@ const SpeedPlanPage: FC = () => {
           )}
 
           <View className="flex gap-3">
-            <View
-              className="flex-1 bg-gray-100 rounded-xl py-3 flex items-center justify-center"
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl py-3"
               onClick={() => setCurrentStep(1)}
             >
-              <Text className="block text-gray-600">上一步</Text>
-            </View>
-            <View
-              className={`flex-1 rounded-xl py-3 flex items-center justify-center ${
-                selectedMatch ? 'bg-black' : 'bg-gray-200'
-              }`}
+              <Text className="text-gray-600">上一步</Text>
+            </Button>
+            <Button
+              className={`flex-1 rounded-xl py-3 ${selectedMatch ? 'bg-black' : 'bg-gray-200'}`}
+              disabled={!selectedMatch}
               onClick={() => selectedMatch && setCurrentStep(3)}
             >
               <Text className={`block font-medium ${selectedMatch ? 'text-white' : 'text-gray-400'}`}>
                 下一步
               </Text>
-            </View>
+            </Button>
           </View>
         </View>
       )}
@@ -790,7 +1097,7 @@ const SpeedPlanPage: FC = () => {
               <View className="flex items-center gap-2">
                 <View className="bg-gray-50 rounded-xl px-4 py-3 flex-1">
                   <Input
-                    className="w-full text-center"
+                    style={{ width: '100%', textAlign: 'center' }}
                     type="number"
                     value={String(targetHours)}
                     onInput={(e) => handleTargetHoursChange(Number(e.detail.value))}
@@ -842,36 +1149,61 @@ const SpeedPlanPage: FC = () => {
             </View>
           </View>
 
+          {/* 难度预估 - 实时计算 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-2">
-              <Sparkles size={18} color="#F59E0B" />
-              <Text className="block text-sm font-medium text-gray-900">难度预估</Text>
+            <View className="flex items-center justify-between mb-2">
+              <View className="flex items-center gap-2">
+                <Sparkles size={18} color="#F59E0B" />
+                <Text className="block text-sm font-medium text-gray-900">难度预估</Text>
+              </View>
+              <View className="flex items-center gap-2">
+                <Text className={`block text-lg font-bold ${getDifficultyColor(difficultyResult.score)}`}>
+                  {difficultyResult.score}/10
+                </Text>
+                <Badge variant={difficultyResult.score >= 6 ? 'default' : 'secondary'} className="text-xs px-2 py-0">
+                  <Text className="text-xs">{difficultyResult.level}</Text>
+                </Badge>
+              </View>
             </View>
-            <Text className="block text-2xl font-bold text-gray-900">
-              {getDifficultyStars(3)}
-            </Text>
-            <Text className="block text-sm text-gray-500 mt-1">
-              根据对象数据实时计算
+            {difficultyResult.factors.length > 0 && (
+              <View className="flex flex-wrap gap-1 mt-2">
+                {difficultyResult.factors.map((factor) => (
+                  <View key={factor} className="px-2 py-1 rounded bg-gray-50">
+                    <Text className="block text-xs text-gray-500">{factor}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            <Text className="block text-xs text-gray-400 mt-2">
+              基于当前进展、对象数据和时间目标实时计算
             </Text>
           </View>
 
           <View className="flex gap-3">
-            <View
-              className="flex-1 bg-gray-100 rounded-xl py-3 flex items-center justify-center"
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl py-3"
               onClick={() => setCurrentStep(2)}
             >
-              <Text className="block text-gray-600">上一步</Text>
-            </View>
-            <View
-              className="flex-1 bg-black rounded-xl py-3 flex items-center justify-center"
+              <Text className="text-gray-600">上一步</Text>
+            </Button>
+            <Button
+              className="flex-1 bg-black rounded-xl py-3"
               onClick={createPlan}
+              disabled={generating}
             >
               {generating ? (
-                <LoaderCircle size={18} color="#fff" className="animate-spin" />
+                <View className="flex items-center gap-2">
+                  <LoaderCircle size={18} color="#fff" className="animate-spin" />
+                  <Text className="text-white font-medium">生成中...</Text>
+                </View>
               ) : (
-                <Text className="block text-white font-medium">生成方案</Text>
+                <View className="flex items-center gap-1">
+                  <Sparkles size={16} color="#fff" />
+                  <Text className="text-white font-medium">生成方案</Text>
+                </View>
               )}
-            </View>
+            </Button>
           </View>
         </View>
       )}
