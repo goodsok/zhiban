@@ -361,7 +361,7 @@ export class SpeedPlanService {
     // 1. 获取对象基础信息
     const { data: match } = await client
       .from('matches')
-      .select('id, name, gender, meeting_scene, relationship_stage, interaction_status, key_info, relationship_type, impression_tags')
+      .select('id, name, gender, meeting_scene, relationship_stage, interaction_status, key_info, relationship_type, impression_tags, cycle_start_date, cycle_length')
       .eq('id', matchId)
       .single()
 
@@ -418,9 +418,75 @@ export class SpeedPlanService {
       })
     }
 
+    // 7. 计算生理周期信息（仅女性且有周期数据时）
+    let cycleInfo: {
+      currentDay: number
+      phase: string
+      phaseName: string
+      description: string
+      characteristics: string[]
+      recommendations: string[]
+      partnerTips: string
+    } | null = null
+
+    const gender = match?.gender || dimensionMap['gender'] || ''
+    const cycleStartDate = match?.cycle_start_date
+    const cycleLength = match?.cycle_length || 28
+
+    if (gender === 'female' && cycleStartDate) {
+      const startDate = new Date(cycleStartDate)
+      const today = new Date()
+      const dayDiff = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      const currentDay = (dayDiff % cycleLength) + 1
+
+      // 根据当前天数判断周期阶段
+      let phase = 'follicular'
+      if (currentDay <= 5) phase = 'menstrual'
+      else if (currentDay <= 13) phase = 'follicular'
+      else if (currentDay <= 16) phase = 'ovulation'
+      else if (currentDay <= 21) phase = 'luteal_early'
+      else if (currentDay <= 25) phase = 'luteal_mid'
+      else phase = 'luteal_late'
+
+      // 从知识库获取该阶段的详细信息
+      const { data: phaseKnowledge } = await client
+        .from('hormone_cycle_knowledge')
+        .select('phase_name, description, characteristics, recommendations, partner_tips')
+        .eq('phase_key', phase)
+        .single()
+
+      if (phaseKnowledge) {
+        const characteristics: string[] = []
+        const charData = phaseKnowledge.characteristics as Record<string, string> || {}
+        const charLabels: Record<string, string> = {
+          body: '身体状况', emotion: '情绪状态', libido: '性欲水平',
+          social: '社交意愿', thinking: '思维状态', appearance: '外在表现',
+        }
+        for (const [key, label] of Object.entries(charLabels)) {
+          if (charData[key]) characteristics.push(`${label}：${charData[key]}`)
+        }
+
+        const recommendations: string[] = []
+        const recData = phaseKnowledge.recommendations as Record<string, string[]> || {}
+        if (recData.best_actions) recommendations.push(`推荐行动：${recData.best_actions.join('、')}`)
+        if (recData.avoid_actions) recommendations.push(`避免行为：${recData.avoid_actions.join('、')}`)
+        if (recData.self_care) recommendations.push(`自我照顾：${recData.self_care.join('、')}`)
+
+        cycleInfo = {
+          currentDay,
+          phase,
+          phaseName: phaseKnowledge.phase_name,
+          description: phaseKnowledge.description,
+          characteristics,
+          recommendations,
+          partnerTips: phaseKnowledge.partner_tips || '',
+        }
+      }
+    }
+
     return {
       name: match?.name || '',
-      gender: match?.gender || dimensionMap['gender'] || '',
+      gender,
       meetingScene: match?.meeting_scene || '',
       relationshipStage: match?.relationship_stage || '',
       interactionStatus: match?.interaction_status || '',
@@ -452,6 +518,7 @@ export class SpeedPlanService {
       interactionCount: interactions?.length || 0,
       totalEnergy,
       avgQuality: Math.round(avgQuality),
+      cycleInfo,
     }
   }
 
@@ -580,6 +647,15 @@ export class SpeedPlanService {
       interactionCount: number
       totalEnergy: number
       avgQuality: number
+      cycleInfo: {
+        currentDay: number
+        phase: string
+        phaseName: string
+        description: string
+        characteristics: string[]
+        recommendations: string[]
+        partnerTips: string
+      } | null
     },
     request: Request
   ): Promise<string> {
@@ -674,6 +750,12 @@ export class SpeedPlanService {
 - 如果对方有明确的边界或底线（如 physicalIntimacyTimeline、boundariesStyle、dealbreakerList），方案中必须予以尊重和体现
 - 利用对方的兴趣爱好、爱的语言等偏好来设计具体的约会和互动建议
 - 结合对方的性格特点（如 MBTI、依恋类型、沟通风格）来调整话术和推进节奏
+- **如果对方是女性且有生理周期数据，必须结合当前周期阶段来调整策略：**
+  - 不同周期阶段的女性的情绪、精力、社交意愿差异很大，这直接影响互动效果
+  - 排卵期（精力巅峰、社交意愿最强）适合安排约会和重要对话
+  - 月经期和黄体晚期（精力低谷、情绪敏感）应以关心体贴为主，避免施压
+  - 黄体中期（情绪波动）需要更多耐心，避免敏感话题
+  - 请在方案中标注当前周期状态，并据此调整每个时间节点的行动策略
 
 输出要求：
 1. 方案应该具体、可执行，深度结合对方档案数据
@@ -685,12 +767,13 @@ export class SpeedPlanService {
 输出格式：
 【总体策略】（一句话概括，体现对对方性格的针对性）
 【难度分析】（结合难度系数、影响因素和对方性格特点）
+${objectInfo.cycleInfo ? '【周期状态】（当前周期阶段、对互动的影响、策略调整要点）' : ''}
 【分步计划】
 1. 第X步：xxx（时间：XX小时内）
    - 具体行动（结合对方兴趣和偏好）
    - 话术示例（符合对方沟通风格）
 2. ...
-【注意事项】（特别强调尊重边界和双方意愿，引用对方明确的底线）
+【注意事项】（特别强调尊重边界和双方意愿，引用对方明确的底线${objectInfo.cycleInfo ? '，结合周期阶段给出关怀提醒' : ''}）
 【备选方案】（如果计划受阻，提供替代路径）`
 
     const userMessage = `请为以下情况生成关系推进方案：
@@ -722,6 +805,13 @@ ${keyInfoSection}
 
 --- 性格画像 ---
 ${portraitSection}
+
+${objectInfo.cycleInfo ? `--- 生理周期状态（重要参考） ---
+当前周期第${objectInfo.cycleInfo.currentDay}天，处于「${objectInfo.cycleInfo.phaseName}」
+阶段概述：${objectInfo.cycleInfo.description}
+${objectInfo.cycleInfo.characteristics.length > 0 ? objectInfo.cycleInfo.characteristics.join('\n') : ''}
+${objectInfo.cycleInfo.recommendations.length > 0 ? objectInfo.cycleInfo.recommendations.join('\n') : ''}
+给伴侣的建议：${objectInfo.cycleInfo.partnerTips}` : ''}
 
 【目标】
 在${targetHours}小时内推进到"${targetDisplayName}"阶段
@@ -769,6 +859,9 @@ ${difficulty.score}/10（${difficulty.level}）
     const keyInfoHint = objectProfile.keyInfoSummary.length > 0
       ? `\n\n--- AI之前的洞察 ---\n${objectProfile.keyInfoSummary.join('\n')}`
       : ''
+    const cycleHint = objectProfile.cycleInfo
+      ? `\n\n--- 对方当前生理周期 ---\n周期第${objectProfile.cycleInfo.currentDay}天，${objectProfile.cycleInfo.phaseName}（${objectProfile.cycleInfo.description}）\n给伴侣的建议：${objectProfile.cycleInfo.partnerTips}`
+      : ''
 
     const systemPrompt = `你是一位专业的婚恋情感咨询师，正在帮助用户推进恋爱关系。
 
@@ -776,20 +869,22 @@ ${difficulty.score}/10（${difficulty.level}）
 - 对象：${plan.matches?.name || '对方'}
 - 目标：在${plan.target_hours}小时内推进到"${targetName}"
 - 难度：${plan.difficulty_score}/10
-- 背景：${plan.background || '未提供'}${profileHint}${keyInfoHint}
+- 背景：${plan.background || '未提供'}${profileHint}${keyInfoHint}${cycleHint}
 
 你的任务是：
 1. 根据用户的反馈调整方案，方案要结合对方的档案数据
 2. 回答用户的具体问题
 3. 提供应对建议，考虑对方的性格和偏好
 4. 保持真诚、尊重的态度
+5. 如果有周期数据，提醒用户当前周期阶段对互动的影响（如对方处于月经期/黄体晚期应多关心少施压，排卵期适合约会等）
 
 回复要求：
 - 简洁实用，避免重复
 - 针对用户的具体问题回答
 - 如果用户说某步骤不合适，提供替代方案
 - 保持温暖的语气
-- 参考对方档案数据给出个性化建议`
+- 参考对方档案数据给出个性化建议
+- 如果有周期数据，在建议中自然融入周期因素（如"她现在处于XX期，建议..."）`
 
     // 构建消息历史
     const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
