@@ -3,17 +3,8 @@ import { useLoad, useDidShow, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
-import { Plus, ChevronRight, Sparkles, Heart, Sun, Moon, Cloud, MessageCirclePlus, Trash2 } from 'lucide-react-taro'
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from '@/components/ui/alert-dialog'
+import { Plus, ChevronRight, Sparkles, Heart, Sun, Moon, Cloud, MessageCirclePlus, EyeOff, Eye } from 'lucide-react-taro'
+import { Switch } from '@/components/ui/switch'
 
 interface Match {
   id: number
@@ -53,8 +44,7 @@ const Index: FC = () => {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [cycleInfos, setCycleInfos] = useState<Record<number, CycleInfo>>({})
-  const [deleteTarget, setDeleteTarget] = useState<Match | null>(null)
-  const [deleting, setDeleting] = useState(false)
+  const [showHidden, setShowHidden] = useState(false)
 
   useLoad(() => {
     console.log('Index page loaded.')
@@ -117,33 +107,41 @@ const Index: FC = () => {
     navigateTo({ url: `/pages/detail/index?id=${id}` })
   }
 
-  const handleDelete = async () => {
-    if (!deleteTarget || deleting) return
+  const toggleHide = async (match: Match) => {
+    const newStatus = match.status === 'hidden' ? 'active' : 'hidden'
     try {
-      setDeleting(true)
       const res = await Network.request({
-        url: `/api/match/${deleteTarget.id}/delete`,
+        url: `/api/match/${match.id}/update`,
         method: 'POST',
+        data: { status: newStatus },
       })
-      console.log('Delete match response:', res?.data)
+      console.log('Toggle hide response:', res?.data)
       const responseData = res?.data
       if (responseData?.code === 200) {
-        setDeleteTarget(null)
         fetchMatches()
       }
     } catch (error) {
-      console.error('Delete match error:', error)
-    } finally {
-      setDeleting(false)
+      console.error('Toggle hide error:', error)
     }
   }
+
+  // 根据开关过滤列表
+  const visibleMatches = showHidden
+    ? matches
+    : matches.filter(m => m.status !== 'hidden')
 
   return (
     <View className="min-h-screen bg-gray-50 pb-20">
       {/* 顶部 */}
       <View className="bg-white px-4 py-4 border-b border-gray-100">
         <View className="flex items-center justify-between">
-          <Text className="block text-xl font-bold text-gray-900">对象</Text>
+          <View className="flex items-center gap-2">
+            <Text className="block text-xl font-bold text-gray-900">对象</Text>
+            <Switch
+              checked={showHidden}
+              onCheckedChange={setShowHidden}
+            />
+          </View>
           <View 
             className="flex items-center gap-1 text-gray-500"
             onClick={goToCreate}
@@ -160,27 +158,34 @@ const Index: FC = () => {
           <View className="text-center py-12">
             <Text className="block text-gray-400">加载中...</Text>
           </View>
-        ) : matches.length === 0 ? (
+        ) : visibleMatches.length === 0 ? (
           <View className="text-center py-12">
-            <Text className="block text-gray-400 mb-4">还没有记录任何对象</Text>
-            <View 
-              className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
-              onClick={goToCreate}
-            >
-              <Plus size={16} color="#fff" />
-              <Text className="block text-sm">添加第一个对象</Text>
-            </View>
+            <Text className="block text-gray-400 mb-4">
+              {showHidden ? '还没有记录任何对象' : '没有可见的对象'}
+            </Text>
+            {!showHidden && matches.length > 0 ? (
+              <Text className="block text-sm text-gray-300">打开开关查看已隐藏的对象</Text>
+            ) : (
+              <View 
+                className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
+                onClick={goToCreate}
+              >
+                <Plus size={16} color="#fff" />
+                <Text className="block text-sm">添加第一个对象</Text>
+              </View>
+            )}
           </View>
         ) : (
-          matches.map((match) => {
+          visibleMatches.map((match) => {
             const cycleInfo = cycleInfos[match.id]
             const phaseConf = cycleInfo ? phaseConfig[cycleInfo.phase] : null
             const PhaseIcon = phaseConf?.icon || Heart
+            const isHidden = match.status === 'hidden'
             
             return (
               <View
                 key={match.id}
-                className="bg-white rounded-xl border border-gray-100 p-4 mb-3"
+                className={`bg-white rounded-xl border border-gray-100 p-4 mb-3 ${isHidden ? 'opacity-60' : ''}`}
               >
                 <View className="flex items-center justify-between" onClick={() => goToDetail(match.id)}>
                   <View className="flex-1 min-w-0">
@@ -188,6 +193,11 @@ const Index: FC = () => {
                       <Text className="block text-base font-semibold text-gray-900 flex-shrink-0">
                         {match.name}
                       </Text>
+                      {isHidden && (
+                        <View className="px-1 py-1 bg-gray-100 rounded">
+                          <Text className="block text-xs text-gray-400">已隐藏</Text>
+                        </View>
+                      )}
                     </View>
                     {/* 推进值显示 */}
                     {match.progressScore !== undefined && (
@@ -225,13 +235,17 @@ const Index: FC = () => {
                     <Text className="block text-xs font-medium text-gray-600">查看档案</Text>
                   </View>
                   <View 
-                    className="flex items-center justify-center py-2 px-3 bg-red-50 rounded-lg"
+                    className="flex items-center justify-center py-2 px-3 bg-gray-50 rounded-lg"
                     onClick={(e) => {
                       e.stopPropagation()
-                      setDeleteTarget(match)
+                      toggleHide(match)
                     }}
                   >
-                    <Trash2 size={14} color="#EF4444" />
+                    {isHidden ? (
+                      <Eye size={14} color="#6B7280" />
+                    ) : (
+                      <EyeOff size={14} color="#9CA3AF" />
+                    )}
                   </View>
                 </View>
                 
@@ -254,28 +268,6 @@ const Index: FC = () => {
           })
         )}
       </View>
-
-      {/* 删除确认弹窗 */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              <Text className="block text-lg font-semibold">确认删除</Text>
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              <Text className="block text-sm text-gray-500">确定要删除「{deleteTarget?.name}」的档案吗？删除后无法恢复。</Text>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              <Text className="block">取消</Text>
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              <Text className="block text-red-500">{deleting ? '删除中...' : '删除'}</Text>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </View>
   )
 }
