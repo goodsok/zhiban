@@ -83,6 +83,7 @@ const BreathPage: FC = () => {
   const [countdown, setCountdown] = useState(0)
   const [breathText, setBreathText] = useState('')
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const breathTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useLoad(() => {
     console.log('Breath sync game loaded.')
@@ -91,6 +92,7 @@ const BreathPage: FC = () => {
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
+      if (breathTimerRef.current) clearInterval(breathTimerRef.current)
     }
   }, [])
 
@@ -106,7 +108,7 @@ const BreathPage: FC = () => {
     let remaining = currentPhase.duration
     // 呼吸引导：吸气3秒 呼气3秒 交替
     let breathCycle = 0
-    const breathInterval = setInterval(() => {
+    breathTimerRef.current = setInterval(() => {
       breathCycle += 1
       if (breathCycle % 6 < 3) {
         setBreathText('吸气...')
@@ -115,11 +117,11 @@ const BreathPage: FC = () => {
       }
     }, 1000)
 
-    const countdownInterval = setInterval(() => {
+    timerRef.current = setInterval(() => {
       remaining -= 1
       if (remaining <= 0) {
-        clearInterval(countdownInterval)
-        clearInterval(breathInterval)
+        if (timerRef.current) clearInterval(timerRef.current)
+        if (breathTimerRef.current) clearInterval(breathTimerRef.current)
         setBreathText('')
         setCountdown(0)
         setCompletedPhases(prev => [...prev, currentPhase.id])
@@ -129,7 +131,6 @@ const BreathPage: FC = () => {
         setCountdown(remaining)
       }
     }, 1000)
-    timerRef.current = countdownInterval
   }
 
   const handleNext = () => {
@@ -143,6 +144,7 @@ const BreathPage: FC = () => {
 
   const handleReset = () => {
     if (timerRef.current) clearInterval(timerRef.current)
+    if (breathTimerRef.current) clearInterval(breathTimerRef.current)
     setStep('intro')
     setCurrentPhaseIndex(0)
     setCompletedPhases([])
@@ -352,7 +354,7 @@ const BreathPage: FC = () => {
               <Text className="block text-3xl font-bold text-white">{countdown}</Text>
             </View>
             <Text className="block text-xl font-medium text-sky-600 mb-3">{breathText}</Text>
-            <Text className="block text-sm text-gray-400 text-center px-8 italic">{currentPhase.breathGuide}</Text>
+            <Text className="block text-sm text-gray-400 text-center px-8 italic">{currentPhase.tip}</Text>
           </View>
         )}
 

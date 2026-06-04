@@ -130,8 +130,11 @@ const PulsePage: FC = () => {
   }
 
   const handleSubmitBeats = () => {
-    const aBpm = Math.round((parseInt(personABeats) || 0) * (60 / currentChallenge.duration))
-    const bBpm = Math.round((parseInt(personBBeats) || 0) * (60 / currentChallenge.duration))
+    const aBeatsNum = parseInt(personABeats) || 0
+    const bBeatsNum = parseInt(personBBeats) || 0
+    if (aBeatsNum < 1 || bBeatsNum < 1) return
+    const aBpm = Math.round(aBeatsNum * (60 / currentChallenge.duration))
+    const bBpm = Math.round(bBeatsNum * (60 / currentChallenge.duration))
     setMeasurements(prev => [...prev, {
       challengeId: currentChallenge.id,
       challengeName: currentChallenge.name,
@@ -406,24 +409,37 @@ const PulsePage: FC = () => {
             <View className="w-32 h-32 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center mb-4">
               <Text className="block text-4xl font-bold text-white">{countdown}</Text>
             </View>
-            <Text className="block text-sm text-gray-500 mb-2">默数脉搏跳动次数</Text>
-            <Text className="block text-sm text-rose-500">专注于感受对方的心跳...</Text>
+            <Text className="block text-sm text-gray-500 mb-2">默数对方脉搏跳动次数</Text>
+            <Text className="block text-sm text-rose-500 mb-4">专注于感受对方的心跳...</Text>
+            <Card className="w-full bg-rose-50 border-rose-100">
+              <CardContent className="py-3">
+                <View className="flex flex-row items-start">
+                  <Sparkles size={14} color="#e11d48" className="mr-2 mt-1 flex-shrink-0" />
+                  <Text className="text-xs text-rose-600 leading-relaxed">
+                    {currentChallenge.instruction}
+                  </Text>
+                </View>
+              </CardContent>
+            </Card>
           </View>
         )}
 
         {/* 输入心跳数 */}
         {step === 'input' && currentChallenge && (
           <View className="flex flex-col items-center">
-            <Text className="block text-lg font-semibold text-gray-900 mb-4">记录心跳数据</Text>
+            <Text className="block text-lg font-semibold text-gray-900 mb-2">记录心跳数据</Text>
+            <Text className="block text-xs text-gray-400 mb-4 text-center leading-relaxed">
+              A 数 B 的脉搏跳动次数，B 数 A 的脉搏跳动次数
+            </Text>
 
             <Card className="mb-3 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-2">A 在 {currentChallenge.duration} 秒内感受到的脉搏次数</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-2">A 感受到 B 的脉搏次数（{currentChallenge.duration}秒）</Text>
                 <View className="bg-gray-50 rounded-xl px-4 py-3">
                   <input
                     type="number"
                     className="w-full bg-transparent text-2xl font-bold text-center text-gray-800"
-                    placeholder="输入次数"
+                    placeholder="输入次数（至少1）"
                     value={personABeats}
                     onChange={(e) => setPersonABeats((e as React.ChangeEvent<HTMLInputElement>).target.value)}
                   />
@@ -433,12 +449,12 @@ const PulsePage: FC = () => {
 
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-2">B 在 {currentChallenge.duration} 秒内感受到的脉搏次数</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-2">B 感受到 A 的脉搏次数（{currentChallenge.duration}秒）</Text>
                 <View className="bg-gray-50 rounded-xl px-4 py-3">
                   <input
                     type="number"
                     className="w-full bg-transparent text-2xl font-bold text-center text-gray-800"
-                    placeholder="输入次数"
+                    placeholder="输入次数（至少1）"
                     value={personBBeats}
                     onChange={(e) => setPersonBBeats((e as React.ChangeEvent<HTMLInputElement>).target.value)}
                   />
@@ -449,7 +465,7 @@ const PulsePage: FC = () => {
             <Button
               className="bg-gradient-to-r from-red-400 to-rose-500 text-white rounded-xl py-3 w-full"
               onClick={handleSubmitBeats}
-              disabled={!personABeats || !personBBeats}
+              disabled={!personABeats || !personBBeats || (parseInt(personABeats) || 0) < 1 || (parseInt(personBBeats) || 0) < 1}
             >
               <View className="flex flex-row items-center justify-center">
                 <Check size={18} color="white" />

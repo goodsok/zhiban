@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -99,20 +99,15 @@ const BlindPage: FC = () => {
   const [correctCount, setCorrectCount] = useState(0)
   const [options, setOptions] = useState<string[]>([])
   const [selectedOption, setSelectedOption] = useState('')
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  /** 记录每轮是否猜对 */
+  const [roundResults, setRoundResults] = useState<boolean[]>([])
 
   useLoad(() => {
     console.log('Blind touch game loaded.')
   })
 
   const currentRound = blindRounds[currentRoundIndex]
-
-  const clearTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current)
-      timerRef.current = null
-    }
-  }
 
   const handleStartRound = () => {
     setOptions(shuffleOptions(currentRound.bodyPart, currentRound.decoyOptions))
@@ -129,8 +124,10 @@ const BlindPage: FC = () => {
     if (option === currentRound.bodyPart) {
       setTotalScore(prev => prev + currentRound.intimacyScore)
       setCorrectCount(prev => prev + 1)
+      setRoundResults(prev => [...prev, true])
       setStep('correct')
     } else {
+      setRoundResults(prev => [...prev, false])
       setStep('wrong')
     }
   }
@@ -145,12 +142,12 @@ const BlindPage: FC = () => {
   }
 
   const handleReset = () => {
-    clearTimer()
     setStep('intro')
     setCurrentRoundIndex(0)
     setTotalScore(0)
     setCorrectCount(0)
     setSelectedOption('')
+    setRoundResults([])
   }
 
   const getProgressPercent = () => {
@@ -226,9 +223,14 @@ const BlindPage: FC = () => {
               <CardContent className="py-3">
                 <View className="flex flex-row items-start">
                   <Sparkles size={16} color="#f59e0b" className="mr-2 mt-1 flex-shrink-0" />
-                  <Text className="text-sm text-amber-700 leading-relaxed">
-                    核心魅力：闭上眼后，每一次触碰都会被放大。皮肤的每一寸都在专注感受对方——这就是信任的力量。
-                  </Text>
+                  <View className="flex-1">
+                    <Text className="block text-sm text-amber-700 leading-relaxed">
+                      核心魅力：闭上眼后，每一次触碰都会被放大。皮肤的每一寸都在专注感受对方——这就是信任的力量。
+                    </Text>
+                    <Text className="block text-xs text-amber-600 mt-2">
+                      提前准备：最后一轮需要一颗糖果（或薄荷糖），没有也可跳过
+                    </Text>
+                  </View>
                 </View>
               </CardContent>
             </Card>
@@ -327,6 +329,15 @@ const BlindPage: FC = () => {
                 <Text className="text-white ml-2 font-medium">触碰完成，开始猜</Text>
               </View>
             </Button>
+            {currentRoundIndex === blindRounds.length - 1 && (
+              <Button
+                variant="ghost"
+                className="rounded-xl py-2 w-full mt-2"
+                onClick={handleNextRound}
+              >
+                <Text className="text-gray-400 text-sm">没有糖果，跳过这轮</Text>
+              </Button>
+            )}
           </View>
         )}
 
@@ -449,13 +460,17 @@ const BlindPage: FC = () => {
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
                 <Text className="block text-sm font-medium text-gray-700 mb-3">挑战记录</Text>
-                {blindRounds.map(round => (
+                {blindRounds.map((round, idx) => (
                   <View key={round.id} className="flex flex-row items-center justify-between py-2">
                     <View className="flex flex-row items-center">
                       <Text className="text-sm text-gray-600 mr-2">第{round.id}轮</Text>
                       <Text className="text-sm text-gray-800">{round.name}</Text>
                     </View>
-                    <Text className="text-xs text-teal-600">+{round.intimacyScore}</Text>
+                    {roundResults[idx] ? (
+                      <Text className="text-xs text-green-600 font-medium">+{round.intimacyScore} 猜对</Text>
+                    ) : (
+                      <Text className="text-xs text-gray-400">未猜对</Text>
+                    )}
                   </View>
                 ))}
               </CardContent>

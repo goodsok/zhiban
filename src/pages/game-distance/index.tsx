@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -79,12 +79,20 @@ const DistancePage: FC = () => {
   const [step, setStep] = useState<'intro' | 'invite' | 'playing' | 'countdown' | 'completed' | 'summary'>('intro')
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0)
   const [completedLevels, setCompletedLevels] = useState<number[]>([])
+  const [skippedLevels, setSkippedLevels] = useState<number[]>([])
   const [totalScore, setTotalScore] = useState(0)
   const [countdown, setCountdown] = useState(0)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useLoad(() => {
     console.log('Distance game loaded.')
   })
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [])
 
   const currentLevel = distanceLevels[currentLevelIndex]
 
@@ -96,12 +104,14 @@ const DistancePage: FC = () => {
     setCountdown(currentLevel.duration)
     setStep('countdown')
     let remaining = currentLevel.duration
-    const timer = setInterval(() => {
+    timerRef.current = setInterval(() => {
       remaining -= 1
       if (remaining <= 0) {
-        clearInterval(timer)
+        if (timerRef.current) clearInterval(timerRef.current)
+        timerRef.current = null
         setCountdown(0)
         setCompletedLevels(prev => [...prev, currentLevel.id])
+        setSkippedLevels(prev => prev.filter(id => id !== currentLevel.id))
         setTotalScore(prev => prev + currentLevel.intimacyScore)
         setStep('completed')
       } else {
@@ -119,10 +129,28 @@ const DistancePage: FC = () => {
     }
   }
 
+  const handleSkip = () => {
+    setSkippedLevels(prev => [...prev, currentLevel.id])
+    handleNext()
+  }
+
+  const handleRetrySkipped = (levelId: number) => {
+    const idx = distanceLevels.findIndex(l => l.id === levelId)
+    if (idx >= 0) {
+      setCurrentLevelIndex(idx)
+      setStep('playing')
+    }
+  }
+
   const handleReset = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
     setStep('intro')
     setCurrentLevelIndex(0)
     setCompletedLevels([])
+    setSkippedLevels([])
     setTotalScore(0)
     setCountdown(0)
   }
@@ -305,14 +333,7 @@ const DistancePage: FC = () => {
               <Button
                 variant="ghost"
                 className="rounded-xl py-2 w-full"
-                onClick={() => {
-                  if (currentLevelIndex < distanceLevels.length - 1) {
-                    setCurrentLevelIndex(prev => prev + 1)
-                    setStep('playing')
-                  } else {
-                    setStep('summary')
-                  }
-                }}
+                onClick={handleSkip}
               >
                 <Text className="text-gray-400 text-sm">跳过这一级</Text>
               </Button>
@@ -386,25 +407,53 @@ const DistancePage: FC = () => {
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
                 <Text className="block text-sm font-medium text-gray-700 mb-3">靠近记录</Text>
-                {distanceLevels.map(level => (
-                  <View key={level.id} className="flex flex-row items-center justify-between py-2">
-                    <View className="flex flex-row items-center">
-                      {completedLevels.includes(level.id) ? (
-                        <View className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mr-2">
-                          <Check size={12} color="#16a34a" />
-                        </View>
-                      ) : (
-                        <View className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mr-2">
-                          <Text className="text-xs text-gray-400">-</Text>
-                        </View>
-                      )}
-                      <Text className={`text-sm ${completedLevels.includes(level.id) ? 'text-gray-700' : 'text-gray-400'}`}>
-                        Lv.{level.id} {level.name}
-                      </Text>
+                {distanceLevels.map(level => {
+                  const isCompleted = completedLevels.includes(level.id)
+                  const isSkipped = skippedLevels.includes(level.id)
+                  return (
+                    <View key={level.id} className="flex flex-row items-center justify-between py-2">
+                      <View className="flex flex-row items-center">
+                        {isCompleted ? (
+                          <View className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                            <Check size={12} color="#16a34a" />
+                          </View>
+                        ) : (
+                          <View className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mr-2">
+                            <Text className="text-xs text-gray-400">-</Text>
+                          </View>
+                        )}
+                        <Text className={`text-sm ${isCompleted ? 'text-gray-700' : isSkipped ? 'text-amber-500' : 'text-gray-400'}`}>
+                          Lv.{level.id} {level.name}
+                        </Text>
+                        {isSkipped && !isCompleted && (
+                          <Text className="text-xs text-amber-400 ml-2">已跳过</Text>
+                        )}
+                      </View>
+                      <Text className="text-xs text-gray-400">{level.distance}</Text>
                     </View>
-                    <Text className="text-xs text-gray-400">{level.distance}</Text>
+                  )
+                })}
+                {skippedLevels.some(id => !completedLevels.includes(id)) && (
+                  <View className="mt-3 pt-3 border-t border-gray-100">
+                    <Text className="block text-xs text-gray-500 mb-2">补玩跳过的等级</Text>
+                    <View className="flex flex-row flex-wrap gap-2">
+                      {skippedLevels.filter(id => !completedLevels.includes(id)).map(id => {
+                        const level = distanceLevels.find(l => l.id === id)
+                        return level ? (
+                          <Button
+                            key={id}
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg"
+                            onClick={() => handleRetrySkipped(id)}
+                          >
+                            <Text className="text-xs">Lv.{id} {level.name}</Text>
+                          </Button>
+                        ) : null
+                      })}
+                    </View>
                   </View>
-                ))}
+                )}
               </CardContent>
             </Card>
 

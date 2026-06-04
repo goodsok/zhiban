@@ -58,8 +58,9 @@ const MirrorPage: FC = () => {
   const [currentRound, setCurrentRound] = useState(0) // 0-3
   const [currentActionIndex, setCurrentActionIndex] = useState(0)
   const [isLeaderA, setIsLeaderA] = useState(true) // A是领动者
-  const [scores, setScores] = useState<number[]>([]) // 每轮得分
-  const [roundScore, setRoundScore] = useState(0)
+  const [scores, setScores] = useState<Array<{ total: number; aScore: number; bScore: number }>>([]) // 每轮得分
+  const roundScoreRef = useRef(0)
+  const leaderScoresRef = useRef({ aScore: 0, bScore: 0 })
   const [actionTimer, setActionTimer] = useState(10)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -108,7 +109,16 @@ const MirrorPage: FC = () => {
 
   const handleScore = (score: number) => {
     clearTimer()
-    setRoundScore(prev => prev + score)
+    const newRoundScore = roundScoreRef.current + score
+    roundScoreRef.current = newRoundScore
+    roundScoreRef.current = newRoundScore
+
+    // Track who was leader for this action
+    if (isLeaderA) {
+      leaderScoresRef.current.aScore += score
+    } else {
+      leaderScoresRef.current.bScore += score
+    }
 
     if (currentActionIndex < currentActionSet.length - 1) {
       // 下一题：交换领动者
@@ -117,7 +127,11 @@ const MirrorPage: FC = () => {
       setActionTimer(10)
     } else {
       // 本轮结束
-      setScores(prev => [...prev, roundScore + score])
+      setScores(prev => [...prev, {
+        total: newRoundScore,
+        aScore: leaderScoresRef.current.aScore,
+        bScore: leaderScoresRef.current.bScore,
+      }])
       setStep('scoring')
     }
   }
@@ -127,7 +141,8 @@ const MirrorPage: FC = () => {
       setCurrentRound(prev => prev + 1)
       setCurrentActionIndex(0)
       setIsLeaderA(true)
-      setRoundScore(0)
+      roundScoreRef.current = 0
+      leaderScoresRef.current = { aScore: 0, bScore: 0 }
       setActionTimer(10)
       setStep('playing')
     } else {
@@ -142,7 +157,8 @@ const MirrorPage: FC = () => {
     setCurrentActionIndex(0)
     setIsLeaderA(true)
     setScores([])
-    setRoundScore(0)
+    roundScoreRef.current = 0
+    leaderScoresRef.current = { aScore: 0, bScore: 0 }
     setActionTimer(10)
   }
 
@@ -156,7 +172,7 @@ const MirrorPage: FC = () => {
     return emojis[round] || ''
   }
 
-  const getTotalScore = () => scores.reduce((a, b) => a + b, 0)
+  const getTotalScore = () => scores.reduce((a, b) => a + b.total, 0)
 
   const getMaxScore = () => {
     // 每题最高3分，4题一轮
@@ -442,7 +458,7 @@ const MirrorPage: FC = () => {
               {getRoundName(currentRound)} 完成！
             </Text>
             <Text className="block text-sm text-gray-500 mb-4">
-              本轮得分：{scores[scores.length - 1]}/{currentActionSet.length * 3}
+              本轮得分：{scores[scores.length - 1]?.total || 0}/{currentActionSet.length * 3}
             </Text>
 
             <Card className="mb-4 w-full">
@@ -498,10 +514,31 @@ const MirrorPage: FC = () => {
                       <Text className="text-sm text-gray-700">{getRoundName(idx)}</Text>
                     </View>
                     <Text className="text-sm text-violet-600 font-medium">
-                      {scores[idx] || 0}/{set.length * 3}
+                      {scores[idx]?.total || 0}/{set.length * 3}
                     </Text>
                   </View>
                 ))}
+                <View className="mt-3 pt-3 border-t border-gray-100">
+                  <Text className="block text-sm font-medium text-gray-700 mb-2">谁模仿得更好？</Text>
+                  <View className="flex flex-row items-center justify-between">
+                    <View className="flex flex-row items-center">
+                      <View className="w-3 h-3 rounded-full bg-blue-400 mr-2" />
+                      <Text className="text-sm text-gray-700">A 领动时得分</Text>
+                    </View>
+                    <Text className="text-sm font-medium text-blue-600">
+                      {scores.reduce((a, s) => a + s.aScore, 0)} 分
+                    </Text>
+                  </View>
+                  <View className="flex flex-row items-center justify-between mt-1">
+                    <View className="flex flex-row items-center">
+                      <View className="w-3 h-3 rounded-full bg-pink-400 mr-2" />
+                      <Text className="text-sm text-gray-700">B 领动时得分</Text>
+                    </View>
+                    <Text className="text-sm font-medium text-pink-600">
+                      {scores.reduce((a, s) => a + s.bScore, 0)} 分
+                    </Text>
+                  </View>
+                </View>
               </CardContent>
             </Card>
 
