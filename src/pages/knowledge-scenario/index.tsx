@@ -3,7 +3,7 @@ import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import CustomHeader from '@/components/custom-header'
-import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command, ArrowRightLeft, Cat, Anchor, Scale, Zap } from 'lucide-react-taro'
+import { ChevronDown, ChevronUp, X, Check, Users, Coffee, Heart, MessageCircle, Shield, Lock, Command, ArrowRightLeft, Cat, Anchor, Scale, Zap, Flame, MapPin, RefreshCw, Crown } from 'lucide-react-taro'
 
 interface DialogueCase {
   id: string
