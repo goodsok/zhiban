@@ -37,7 +37,7 @@ export interface BehaviorSection {
 }
 
 /**
- * 相处模式分析结果
+ * 相处模式分析结果 — 7个行为侧写模块
  */
 export interface InteractionProfileResult {
   /** 沟通节奏 — 回复速度、沟通偏好、线上/线下风格 */
@@ -48,6 +48,12 @@ export interface InteractionProfileResult {
   conflictPattern: BehaviorSection
   /** 社交画像 — 社交活跃度、社交圈特点、独处/群聚偏好 */
   socialPortrait: BehaviorSection
+  /** 生活节奏 — 作息规律、兴趣偏好、消费习惯、生活态度 */
+  lifeRhythm: BehaviorSection
+  /** 恋爱风格 — 恋爱模式、约会偏好、承诺准备、关系期望 */
+  loveStyle: BehaviorSection
+  /** 亲密边界 — 身体接触偏好、隐私边界、情感投入节奏 */
+  intimacyBoundary: BehaviorSection
 }
 
 /** 维度值记录 */
@@ -188,44 +194,52 @@ export class InteractionProfileAnalyzer {
   private async analyzeWithLLM(dimensions: AggregatedDimension[], request: Request): Promise<InteractionProfileResult> {
     const dimensionText = this.formatDimensionsForPrompt(dimensions)
 
-    const systemPrompt = `你是一位关系行为分析师。你的任务是将维度数据合成为用户可读的"相处模式"画像。
+    const systemPrompt = `你是一位关系行为分析师。你的任务是将维度数据合成为7个模块的"相处模式"画像。
 
 核心原则：
 1. **说人话**：不要说"沟通偏好=文字"，要说"更习惯用文字表达情感，电话里可能反而话少"
 2. **有画面感**：不要说"冲突处理=回避"，要说"遇到矛盾倾向沉默消化，不会当面爆发但可能在心里默默扣分"
 3. **从维度合成**：不是罗列维度值，而是将多个相关维度交叉合成一个完整的行为描述
-4. **标签要精炼**：每个模块的标签控制在3-5个，每个标签4-8个字
+4. **标签要精炼**：每个模块3-5个标签，每个4-8字
 5. **标签要可感**：不要"社交活跃度高"，要"朋友多但圈层分明"
+6. **区分数据来源**：AI分析的维度可能不准，手动填写的更可靠，描述时要有分寸
 
 你必须严格返回以下JSON格式（不要加任何markdown标记）：
 {
   "communicationRhythm": {
     "title": "沟通节奏",
-    "description": "1-3句自然语言描述，合成以下维度：响应速度、沟通偏好、线上沟通风格、线下沟通风格、活跃时段等。描述要具体到'他/她习惯怎么沟通'而非'沟通偏好是什么'",
-    "tags": [
-      {"label": "4-8字标签", "dimensionKey": "对应的维度key"}
-    ]
+    "description": "1-3句自然语言，合成维度：响应速度、沟通偏好、线上/线下沟通风格、活跃时段、幽默感等。要具体到'他/她习惯怎么沟通'",
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
   },
   "emotionalExpression": {
     "title": "情感表达",
-    "description": "1-3句自然语言描述，合成以下维度：情绪表达方式、共情能力、亲密需求、情感依赖度、爱语、情绪稳定性等。描述要具体到'他/她表达情感的方式'而非'情感类型是什么'",
-    "tags": [
-      {"label": "4-8字标签", "dimensionKey": "对应的维度key"}
-    ]
+    "description": "1-3句自然语言，合成维度：情绪表达方式、共情能力、亲密需求、爱语、情绪稳定性等。要具体到'他/她怎么表达感情'",
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
   },
   "conflictPattern": {
     "title": "冲突模式",
-    "description": "1-3句自然语言描述，合成以下维度：冲突处理风格、压力反应、承诺态度、吃醋程度、嫉妒倾向等。描述要具体到'遇到矛盾时他/她会怎么做'而非'冲突风格是什么'",
-    "tags": [
-      {"label": "4-8字标签", "dimensionKey": "对应的维度key"}
-    ]
+    "description": "1-3句自然语言，合成维度：冲突处理风格、压力反应、承诺态度、吃醋程度等。要具体到'遇到矛盾时他/她会怎么做'",
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
   },
   "socialPortrait": {
     "title": "社交画像",
-    "description": "1-3句自然语言描述，合成以下维度：社交活跃度、社交圈特点、独处偏好、兴趣类型、生活节奏等。描述要具体到'他/她在社交中是什么样的'而非'社交分数是多少'",
-    "tags": [
-      {"label": "4-8字标签", "dimensionKey": "对应的维度key"}
-    ]
+    "description": "1-3句自然语言，合成维度：社交活跃度、社交圈特点、独处偏好、社交能耗等。要具体到'他/她在社交中是什么样的'",
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
+  },
+  "lifeRhythm": {
+    "title": "生活节奏",
+    "description": "1-3句自然语言，合成维度：作息规律、兴趣偏好、消费习惯、生活态度、饮食偏好、运动习惯等。要具体到'他/她日常怎么过日子'",
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
+  },
+  "loveStyle": {
+    "title": "恋爱风格",
+    "description": "1-3句自然语言，合成维度：恋爱模式、约会偏好、承诺准备、关系期望、依恋类型、恋爱价值观等。要具体到'他/她谈恋爱是什么风格'",
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
+  },
+  "intimacyBoundary": {
+    "title": "亲密边界",
+    "description": "1-3句自然语言，合成维度：身体接触偏好、隐私边界、情感投入节奏、依赖程度、性亲密态度等。要具体到'他/她对于亲密关系有什么边界和节奏'",
+    "tags": [{"label": "4-8字", "dimensionKey": "维度key"}]
   }
 }`
 
@@ -233,7 +247,7 @@ export class InteractionProfileAnalyzer {
 
 ${dimensionText}
 
-请将以上维度数据合成为4个模块的相处模式画像。记住：不要复述数据，要合成行为描述。`
+请将以上维度数据合成为7个模块的相处模式画像。记住：不要复述数据，要合成行为描述。如果某个模块相关的维度数据缺失，就如实说明"这部分信息暂缺"，不要编造。`
 
     const customHeaders = HeaderUtils.extractForwardHeaders(request.headers as Record<string, string>)
     const config = new Config()
@@ -245,6 +259,7 @@ ${dimensionText}
     ], { temperature: 0.7 })
 
     const text = response.content || ''
+    console.log('[InteractionProfile] LLM response length:', text.length)
     return this.parseLLMResponse(text)
   }
 
@@ -288,6 +303,9 @@ ${dimensionText}
         emotionalExpression: this.normalizeSection(parsed.emotionalExpression || parsed.emotional_expression, '情感表达'),
         conflictPattern: this.normalizeSection(parsed.conflictPattern || parsed.conflict_pattern, '冲突模式'),
         socialPortrait: this.normalizeSection(parsed.socialPortrait || parsed.social_portrait, '社交画像'),
+        lifeRhythm: this.normalizeSection(parsed.lifeRhythm || parsed.life_rhythm, '生活节奏'),
+        loveStyle: this.normalizeSection(parsed.loveStyle || parsed.love_style, '恋爱风格'),
+        intimacyBoundary: this.normalizeSection(parsed.intimacyBoundary || parsed.intimacy_boundary, '亲密边界'),
       }
       return result
     } catch (e) {
@@ -328,34 +346,46 @@ ${dimensionText}
       return [{ label: dim.displayValue, dimensionKey: dim.key }]
     }
 
+    const mkDesc = (prefix: string, keys: string[][], suffix = '') => {
+      const parts = keys.map(k => find(k)?.displayValue).filter(Boolean)
+      return parts.length > 0 ? `${prefix}${parts.join('，')}。${suffix}` : ''
+    }
+
     return {
       communicationRhythm: {
         title: '沟通节奏',
-        description: find(['communication_preference', 'response_speed', 'communication_style_online'])?.displayValue
-          ? `沟通偏好为${find(['communication_preference'])?.displayValue || '未知'}，线上风格${find(['communication_style_online'])?.displayValue || '未知'}。`
-          : '需要更多沟通相关维度数据来生成相处模式分析。请补充沟通偏好、响应速度等维度。',
+        description: mkDesc('沟通偏好', [['communication_preference']], '请补充更多沟通相关维度获得完整分析。'),
         tags: tag(find(['communication_preference', 'response_speed'])),
       },
       emotionalExpression: {
         title: '情感表达',
-        description: find(['emotional_expression', 'empathy_ability', 'intimacy_needs'])?.displayValue
-          ? `情感表达方式为${find(['emotional_expression'])?.displayValue || '未知'}，共情能力${find(['empathy_ability'])?.displayValue || '未知'}。`
-          : '需要更多情感相关维度数据来生成相处模式分析。请补充情绪表达、共情能力等维度。',
+        description: mkDesc('情感表达方式', [['emotional_expression']], '请补充更多情感相关维度获得完整分析。'),
         tags: tag(find(['emotional_expression', 'empathy_ability'])),
       },
       conflictPattern: {
         title: '冲突模式',
-        description: find(['conflict_handling', 'stress_response', 'commitment_readiness'])?.displayValue
-          ? `冲突处理倾向于${find(['conflict_handling'])?.displayValue || '未知'}，面对压力会${find(['stress_response'])?.displayValue || '未知'}。`
-          : '需要更多冲突相关维度数据来生成相处模式分析。请补充冲突处理、压力反应等维度。',
+        description: mkDesc('冲突处理倾向', [['conflict_handling']], '请补充更多冲突相关维度获得完整分析。'),
         tags: tag(find(['conflict_handling', 'stress_response'])),
       },
       socialPortrait: {
         title: '社交画像',
-        description: find(['social_activity_level', 'social_circle_type', 'alone_preference'])?.displayValue
-          ? `社交活跃度${find(['social_activity_level'])?.displayValue || '未知'}，社交圈特点为${find(['social_circle_type'])?.displayValue || '未知'}。`
-          : '需要更多社交相关维度数据来生成相处模式分析。请补充社交活跃度、社交圈特点等维度。',
+        description: mkDesc('社交活跃度', [['social_activity_level']], '请补充更多社交相关维度获得完整分析。'),
         tags: tag(find(['social_activity_level', 'social_circle_type'])),
+      },
+      lifeRhythm: {
+        title: '生活节奏',
+        description: mkDesc('生活态度', [['life_attitude_general']], '请补充更多生活相关维度获得完整分析。'),
+        tags: tag(find(['life_attitude_general', 'exercise_habits'])),
+      },
+      loveStyle: {
+        title: '恋爱风格',
+        description: mkDesc('恋爱模式', [['love_pattern']], '请补充更多恋爱相关维度获得完整分析。'),
+        tags: tag(find(['love_pattern', 'attachment_style'])),
+      },
+      intimacyBoundary: {
+        title: '亲密边界',
+        description: mkDesc('亲密需求', [['intimacy_needs']], '请补充更多亲密相关维度获得完整分析。'),
+        tags: tag(find(['intimacy_needs', 'physical_touch_preference'])),
       },
     }
   }
@@ -363,7 +393,7 @@ ${dimensionText}
   private getInsufficientDataResult(): InteractionProfileResult {
     const insufficient = (title: string) => ({
       title,
-      description: '维度数据不足，无法生成相处模式分析。请先填写更多维度信息，当填写超过5个维度后即可生成。',
+      description: '维度数据不足，无法生成相处模式分析。请先填写更多维度信息。',
       tags: [],
     })
 
@@ -372,6 +402,9 @@ ${dimensionText}
       emotionalExpression: insufficient('情感表达'),
       conflictPattern: insufficient('冲突模式'),
       socialPortrait: insufficient('社交画像'),
+      lifeRhythm: insufficient('生活节奏'),
+      loveStyle: insufficient('恋爱风格'),
+      intimacyBoundary: insufficient('亲密边界'),
     }
   }
 
@@ -394,6 +427,9 @@ ${dimensionText}
           emotionalExpression: data.emotional_expression,
           conflictPattern: data.conflict_pattern,
           socialPortrait: data.social_portrait,
+          lifeRhythm: data.life_rhythm || this.emptySection('生活节奏'),
+          loveStyle: data.love_style || this.emptySection('恋爱风格'),
+          intimacyBoundary: data.intimacy_boundary || this.emptySection('亲密边界'),
         }
       }
       return null
@@ -406,15 +442,16 @@ ${dimensionText}
   private async saveToCache(matchId: number, result: InteractionProfileResult, fingerprint: string): Promise<void> {
     try {
       const client = getSupabaseClient()
-      // Delete old cache
       await client.from('interaction_profile_cache').delete().eq('match_id', matchId)
-      // Insert new
       await client.from('interaction_profile_cache').insert({
         match_id: matchId,
         communication_rhythm: result.communicationRhythm,
         emotional_expression: result.emotionalExpression,
         conflict_pattern: result.conflictPattern,
         social_portrait: result.socialPortrait,
+        life_rhythm: result.lifeRhythm,
+        love_style: result.loveStyle,
+        intimacy_boundary: result.intimacyBoundary,
         data_fingerprint: fingerprint,
       })
       console.log(`[InteractionProfile] Saved to cache for match ${matchId}`)
