@@ -19,9 +19,12 @@ import { StoryModule } from '@/modules/story/story.module';
 import { MomentsModule } from '@/modules/moments/moments.module';
 import { DatingModule } from '@/modules/dating/dating.module';
 import { GrowModule } from '@/modules/grow/grow.module';
+import { ChatReviewModule } from '@/modules/chat-review/chat-review.module';
+import { DatePlanModule } from '@/modules/date-plan/date-plan.module';
+import { SweetTalkModule } from '@/modules/sweet-talk/sweet-talk.module';
 
 @Module({
-  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule, PortraitModule, UserProfileModule, DimensionModule, InteractionModule, SpeedPlanModule, StoryModule, MomentsModule, DatingModule, GrowModule],
+  imports: [MatchModule, CoupleModule, TopicModule, TaskModule, QuizModule, DateRecordModule, KnowledgeModule, ChatModule, ProfileAnalysisModule, PortraitModule, UserProfileModule, DimensionModule, InteractionModule, SpeedPlanModule, StoryModule, MomentsModule, DatingModule, GrowModule, ChatReviewModule, DatePlanModule, SweetTalkModule],
   controllers: [AppController],
   providers: [AppService],
 })

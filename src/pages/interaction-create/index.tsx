@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import CustomHeader from '@/components/custom-header'
 import {
   Calendar, MessageCircle, Phone, Video, Gift, Heart, Users, MapPin,
-  Clock, User, Sparkles, Check, Zap, Plus, Upload, Image, Paperclip, X
+  Clock, User, Sparkles, Check, Zap, Plus, Upload, Image, Paperclip, X, History
 } from 'lucide-react-taro'
 
 // 互动类型
@@ -396,7 +396,14 @@ export default function InteractionCreatePage() {
 
   return (
     <View className="min-h-screen bg-gray-50" style={{ paddingBottom: '100px' }}>
-      <CustomHeader title="记录互动" />
+      <CustomHeader
+        title="记录互动"
+        rightAction={
+          <View onClick={() => Taro.navigateTo({ url: `/pages/interactions/index?matchId=${matchId}` })}>
+            <History size={20} color="#6B7280" />
+          </View>
+        }
+      />
 
       {/* 互动类型选择 - ScrollView 横向滚动 */}
       <View className="bg-white px-4 py-4 border-b border-gray-100">
