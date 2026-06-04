@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Loader, RefreshCw, Brain, History, ArrowRight } from 'lucide-react-taro'
 import RadarChart from '@/components/portrait-radar'
 import DimensionCard from '@/components/portrait-dimension-card'
-import BehaviorPatternCard from '@/components/behavior-pattern-card'
+import DimensionOverview from '@/components/dimension-overview'
 import PortraitHistory from '@/components/portrait-history'
 import InsightSection from '@/components/insight-section'
 
@@ -41,24 +41,6 @@ interface PortraitDimensions {
   }
 }
 
-// 行为模式
-interface BehaviorPattern {
-  avgResponseTime: number | null
-  responseTimeVariance: number | null
-  activeHours: Record<string, number>
-  activeDays: Record<string, number>
-  messageLengthAvg: number | null
-  emojiUsageRate: number
-  questionRate: number
-  initiativeRate: number
-  topicCategories: Record<string, number>
-  emotionalKeywords: string[]
-  totalInteractions: number
-  dataSource: 'chat_record' | 'manual' | 'dimension' | 'none'
-  communicationStyleOnline?: string
-  communicationStyleOffline?: string
-}
-
 // 历史记录
 interface HistoryItem {
   id: number
@@ -74,7 +56,6 @@ interface HistoryItem {
 // 完整画像
 interface FullPortrait {
   dimensions: PortraitDimensions
-  behaviorPattern: BehaviorPattern
   interactionStyle: 'active' | 'passive' | 'balanced'
   preferredTopicTypes: string[]
   activeTimeSlots: string[]
@@ -90,7 +71,8 @@ const PortraitPage: FC = () => {
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
   const [portrait, setPortrait] = useState<FullPortrait | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'behavior' | 'insight' | 'history'>('overview')
+  const [dimensionData, setDimensionData] = useState<Record<string, any> | null>(null)
+  const [activeTab, setActiveTab] = useState<'overview' | 'dimensions' | 'insight' | 'history'>('overview')
   const [matchName, setMatchName] = useState('')
 
   useLoad(() => {
@@ -130,6 +112,16 @@ const PortraitPage: FC = () => {
       
       if (matchRes.data?.code === 200 && matchRes.data?.data?.name) {
         setMatchName(matchRes.data.data.name)
+      }
+
+      // 获取维度数据
+      const dimRes = await Network.request({
+        url: `/api/dimension/profile/${matchId}`,
+        method: 'GET'
+      })
+      
+      if (dimRes.data?.code === 200 && dimRes.data?.data?.dimensions) {
+        setDimensionData(dimRes.data.data.dimensions)
       }
     } catch (error) {
       console.error('Fetch portrait error:', error)
@@ -329,7 +321,7 @@ const PortraitPage: FC = () => {
         <View className="flex bg-gray-100 rounded-lg p-1">
           {[
             { key: 'overview', label: '概览' },
-            { key: 'behavior', label: '行为' },
+            { key: 'dimensions', label: '维度' },
             { key: 'insight', label: '洞察' },
             { key: 'history', label: '历史' },
           ].map((tab) => (
@@ -459,10 +451,10 @@ const PortraitPage: FC = () => {
         </View>
       )}
 
-      {/* 行为 Tab */}
-      {activeTab === 'behavior' && portrait && (
+      {/* 维度 Tab */}
+      {activeTab === 'dimensions' && dimensionData && (
         <View className="p-4">
-          <BehaviorPatternCard pattern={portrait.behaviorPattern} />
+          <DimensionOverview dimensions={dimensionData} />
         </View>
       )}
 
