@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import CustomHeader from '@/components/custom-header'
 import {
   Calendar, MessageCircle, Phone, Video, Gift, Heart, Users, MapPin,
-  Clock, User, Sparkles, Check, Zap, Plus, Upload, Image, Paperclip, Trash2, X
+  Clock, User, Sparkles, Check, Zap, Plus, Upload, Image, Paperclip, X
 } from 'lucide-react-taro'
 
 // 互动类型
@@ -293,22 +293,21 @@ export default function InteractionCreatePage() {
 
       console.log('Upload chat image response:', uploadRes.data)
 
-      // 解析返回数据
-      let result = uploadRes.data
-      if (typeof result === 'string') {
-        try { result = JSON.parse(result) } catch { /* ignore */ }
-      }
+      // 解析返回数据（uploadFile 返回的 data 可能是 string）
+      const result: any = typeof uploadRes.data === 'string'
+        ? (() => { try { return JSON.parse(uploadRes.data) } catch { return null } })()
+        : uploadRes.data
 
       if (result?.code === 200 && result?.data) {
         setChatRecords(prev => prev.map(r =>
           r.id === tempId
             ? {
-                id: result.data.id,
+                id: result.data.id as number,
                 contentType: 'image' as const,
-                rawContent: result.data.rawContent,
+                rawContent: (result.data.rawContent as string) || null,
                 source: chatSource,
-                summary: result.data.summary,
-                imageKey: result.data.imageKey,
+                summary: (result.data.summary as string) || null,
+                imageKey: (result.data.imageKey as string) || null,
                 uploading: false,
               }
             : r
