@@ -1,7 +1,7 @@
 import { View, Text, ScrollView } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
-import { Heart, Sparkles, MessageSquare, Brain, Users, Zap, ArrowRight, TrendingUp } from 'lucide-react-taro'
+import { Heart, Sparkles, MessageSquare, Brain, Users, Zap, ArrowRight, TrendingUp, Hand, HeartPulse } from 'lucide-react-taro'
 
 interface GameCard {
   id: string
@@ -82,6 +82,39 @@ const games: GameCard[] = [
     difficulty: 'medium',
     players: 2,
   },
+  {
+    id: 'touch',
+    title: '手心温度',
+    subtitle: '渐进式肢体接触',
+    description: '从指尖到额头，7个等级循序渐进。用温柔的方式打破身体距离，让触碰自然发生。',
+    icon: Hand,
+    color: 'from-rose-400 to-red-500',
+    pagePath: '/pages/game-touch/index',
+    difficulty: 'medium',
+    players: 2,
+  },
+  {
+    id: 'mirror',
+    title: '双人镜像',
+    subtitle: '你做我模仿',
+    description: '一人领动一人模仿，从表情到手势再到肢体互动，在模仿中自然靠近彼此。',
+    icon: Sparkles,
+    color: 'from-violet-400 to-purple-500',
+    pagePath: '/pages/game-mirror/index',
+    difficulty: 'medium',
+    players: 2,
+  },
+  {
+    id: 'pulse',
+    title: '心跳同步',
+    subtitle: '测量靠近时的心跳',
+    description: '测量平静和靠近时的心跳差异——身体不会说谎，心跳加速就是最好的答案。',
+    icon: HeartPulse,
+    color: 'from-red-400 to-rose-500',
+    pagePath: '/pages/game-pulse/index',
+    difficulty: 'hard',
+    players: 2,
+  },
 ]
 
 const InteractiveGamesPage: FC = () => {
@@ -131,10 +164,10 @@ const InteractiveGamesPage: FC = () => {
 
       {/* 游戏列表 */}
       <View className="p-4">
-        <Text className="block text-sm font-medium text-gray-500 mb-3">选择一个游戏开始</Text>
+        <Text className="block text-sm font-medium text-gray-500 mb-3">破冰交流</Text>
         
         <ScrollView scrollY className="max-h-[calc(100vh-280px)]">
-          {games.map((game) => {
+          {games.filter(g => !['touch', 'mirror', 'pulse'].includes(g.id)).map((game) => {
             const GameIcon = game.icon
             return (
               <View
@@ -178,6 +211,63 @@ const InteractiveGamesPage: FC = () => {
                       </View>
                     </View>
                     <Text className="text-xs text-purple-600 font-medium">开始游戏 →</Text>
+                  </View>
+                </View>
+              </View>
+            )
+          })}
+
+          {/* 肢体进挪分区 */}
+          <View className="flex flex-row items-center mt-2 mb-3">
+            <View className="h-px bg-rose-200 flex-1" />
+            <Text className="text-sm font-medium text-rose-500 mx-3">肢体进挪</Text>
+            <View className="h-px bg-rose-200 flex-1" />
+          </View>
+
+          {games.filter(g => ['touch', 'mirror', 'pulse'].includes(g.id)).map((game) => {
+            const GameIcon = game.icon
+            return (
+              <View
+                key={game.id}
+                className="bg-white rounded-2xl mb-4 overflow-hidden border border-rose-100"
+                onClick={() => goToGame(game.pagePath)}
+              >
+                {/* 游戏头部 */}
+                <View className={`bg-gradient-to-r ${game.color} px-4 py-4`}>
+                  <View className="flex flex-row items-center justify-between">
+                    <View className="flex flex-row items-center flex-1">
+                      <View className="w-10 h-10 rounded-xl flex items-center justify-center mr-3" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                        <GameIcon size={20} color="white" />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="block text-base font-semibold text-white">{game.title}</Text>
+                        <Text className="block text-xs text-gray-200">{game.subtitle}</Text>
+                      </View>
+                    </View>
+                    <View className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                      <ArrowRight size={18} color="white" />
+                    </View>
+                  </View>
+                </View>
+
+                {/* 游戏内容 */}
+                <View className="p-4">
+                  <Text className="block text-sm text-gray-600 leading-relaxed mb-3">
+                    {game.description}
+                  </Text>
+
+                  {/* 游戏信息 */}
+                  <View className="flex flex-row items-center justify-between">
+                    <View className="flex flex-row items-center gap-2">
+                      <View className={`px-2 py-1 rounded-full ${getDifficultyColor(game.difficulty)}`}>
+                        <Text className="text-xs">{getDifficultyText(game.difficulty)}</Text>
+                      </View>
+                      <View className="flex flex-row items-center">
+                        <Users size={14} color="#9ca3af" />
+                        <Text className="text-xs text-gray-500 ml-1">{game.players} 人</Text>
+                      </View>
+                    </View>
+                    <Text className="text-xs text-rose-600 font-medium">开始游戏 →</Text>
                   </View>
                 </View>
               </View>
