@@ -184,7 +184,7 @@ const SweetTalkPage: FC = () => {
             return (
               <View
                 key={scene.key}
-                className={`rounded-2xl p-4 border-2 ${selectedScene === scene.key ? 'border-black bg-white' : 'border-gray-200 bg-white'}`}
+                className={`rounded-2xl p-4 ${selectedScene === scene.key ? 'bg-green-50 shadow-soft' : 'bg-gray-50'}`}
                 style={{ width: '46%' }}
                 onClick={() => setSelectedScene(scene.key)}
               >

@@ -440,7 +440,7 @@ const DetailPage: FC = () => {
                       <View
                         key={type}
                         className={`px-3 py-2 rounded-full border-2 ${
-                          isSelected ? 'border-green-500' : 'border-gray-200'
+                          isSelected ? 'border-green-500' : 'bg-gray-50'
                         }`}
                         style={{ backgroundColor: isSelected ? config.bgColor.replace('bg-', '') : 'transparent' }}
                         onClick={() => saveRelationshipType(type)}
@@ -559,7 +559,7 @@ const DetailPage: FC = () => {
           <Text className="block text-sm font-semibold text-gray-900">智能助手</Text>
           <Text className="block text-xs text-gray-400">基于 TA 的档案，为你推荐</Text>
         </View>
-        <View className="bg-white rounded-xl p-4">
+        <View className="bg-white rounded-2xl shadow-soft p-4">
           <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', marginLeft: '-8px' }}>
             {/* 速推方案 */}
             <View
@@ -775,7 +775,7 @@ const DetailPage: FC = () => {
       <View className="px-4 pb-4">
         <Text className="block text-sm font-semibold text-gray-900 mb-2">备注</Text>
         {editingNotes ? (
-          <View className="bg-white rounded-xl p-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4">
             <View className="bg-gray-50 rounded-lg p-3 mb-4">
               <Input
                 className="w-full text-sm"
@@ -803,7 +803,7 @@ const DetailPage: FC = () => {
           </View>
         ) : (
           <View 
-            className="bg-white rounded-xl p-4"
+            className="bg-white rounded-2xl shadow-soft p-4"
             onClick={() => setEditingNotes(true)}
           >
             {detail.notes ? (

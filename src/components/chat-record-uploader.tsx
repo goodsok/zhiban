@@ -100,7 +100,7 @@ const ChatRecordUploader: FC<ChatRecordUploaderProps> = ({
   }
 
   return (
-    <View className="bg-white rounded-xl p-4">
+    <View className="bg-white rounded-2xl shadow-soft p-4">
       <Text className="block text-sm font-semibold text-gray-900 mb-2">上传聊天记录截图</Text>
       <Text className="block text-xs text-gray-400 mb-4">
         上传你和Ta的聊天截图，AI会自动分析Ta的行为特征
@@ -108,7 +108,7 @@ const ChatRecordUploader: FC<ChatRecordUploaderProps> = ({
 
       {/* 上传按钮 */}
       <View
-        className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-200 rounded-lg"
+        className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg"
         onClick={uploading ? undefined : handleChooseImage}
       >
         {uploading ? (

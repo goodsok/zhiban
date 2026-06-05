@@ -51,7 +51,7 @@ const StrategyCard: FC<StrategyCardProps> = ({ strategies }) => {
 
   if (strategies.length === 0) {
     return (
-      <View className="bg-white rounded-xl p-4">
+      <View className="bg-white rounded-2xl shadow-soft p-4">
         <Text className="block text-sm text-gray-400 text-center">暂无互动策略推荐</Text>
       </View>
     )
@@ -62,7 +62,7 @@ const StrategyCard: FC<StrategyCardProps> = ({ strategies }) => {
       {strategies.map((strategy, index) => (
         <View
           key={index}
-          className="bg-white rounded-xl p-4"
+          className="bg-white rounded-2xl shadow-soft p-4"
         >
           <View className="flex items-start gap-4">
             <View className={`w-8 h-8 rounded-lg flex items-center justify-center ${getCategoryBg(strategy.category)}`}>

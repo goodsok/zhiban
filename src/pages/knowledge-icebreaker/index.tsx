@@ -109,7 +109,7 @@ const KnowledgeIcebreakerPage: FC = () => {
               return (
                 <View
                   key={topic.id || index}
-                  className="bg-white rounded-xl p-4"
+                  className="bg-white rounded-2xl shadow-soft p-4"
                 >
                   <View className="flex items-start gap-4">
                     <View className={`w-8 h-8 rounded-full ${config.bgColor} flex items-center justify-center shrink-0`}>

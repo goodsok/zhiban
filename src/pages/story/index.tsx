@@ -359,7 +359,7 @@ const StoryPage: FC = () => {
           
           {sending && (
             <View className="mb-4 items-start" style={{ display: 'flex' }}>
-              <View className="bg-white rounded-2xl p-3">
+              <View className="bg-white rounded-2xl shadow-soft p-3">
                 <Text className="block text-sm text-gray-400">正在思考...</Text>
               </View>
             </View>
@@ -454,7 +454,7 @@ const StoryPage: FC = () => {
       {/* Step 1: 选择对象 */}
       {currentStep === 1 && (
         <View className="p-4">
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
               <User size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">选择对象（可选）</Text>
@@ -537,7 +537,7 @@ const StoryPage: FC = () => {
       {/* Step 2: 选择故事类型 */}
       {currentStep === 2 && (
         <View className="p-4">
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
               <BookOpen size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">选择故事类型</Text>
@@ -579,7 +579,7 @@ const StoryPage: FC = () => {
           </View>
 
           {/* 推进阶段选择 */}
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <Text className="block text-sm font-medium text-gray-900 mb-4">推进阶段（可选）</Text>
             <View className="flex flex-wrap gap-3">
               {RELATIONSHIP_STAGES.map((stage) => {
@@ -628,7 +628,7 @@ const StoryPage: FC = () => {
       {/* Step 3: 填写故事要素 */}
       {currentStep === 3 && (
         <View className="p-4">
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
               <Sparkles size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">故事要素</Text>
@@ -736,7 +736,7 @@ const StoryPage: FC = () => {
       {/* Step 4: 生成 */}
       {currentStep === 4 && (
         <View className="p-4">
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
               <Sparkles size={18} color="#F59E0B" />
               <Text className="block text-base font-semibold text-gray-900">准备生成</Text>

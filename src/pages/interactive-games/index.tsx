@@ -205,7 +205,7 @@ const InteractiveGamesPage: FC = () => {
             return (
               <View
                 key={game.id}
-                className="bg-white rounded-2xl mb-4 overflow-hidden"
+                className="bg-white rounded-2xl shadow-soft mb-4 overflow-hidden"
                 onClick={() => goToGame(game.pagePath)}
               >
                 {/* 游戏头部 */}
@@ -262,7 +262,7 @@ const InteractiveGamesPage: FC = () => {
             return (
               <View
                 key={game.id}
-                className="bg-white rounded-2xl mb-4 overflow-hidden border border-rose-100"
+                className="bg-white rounded-2xl shadow-soft mb-4 overflow-hidden"
                 onClick={() => goToGame(game.pagePath)}
               >
                 {/* 游戏头部 */}

@@ -90,7 +90,7 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
   const style = getInteractionStyle()
 
   return (
-    <View className="bg-white rounded-xl p-4">
+    <View className="bg-white rounded-2xl shadow-soft p-4">
       <View className="flex items-center justify-between mb-4">
         <Text className="block text-sm font-semibold text-gray-900">行为模式</Text>
         <View className="flex items-center gap-1">

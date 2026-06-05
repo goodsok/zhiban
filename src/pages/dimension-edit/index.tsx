@@ -391,7 +391,7 @@ const DimensionEditPage: FC = () => {
         const step = definition.data_type === 'float' ? 0.1 : 1
         const sliderValue = inputValue ? parseFloat(inputValue) : min
         return (
-          <View className="bg-white rounded-xl p-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4">
             {/* 当前值显示 */}
             <View className="flex items-center justify-between mb-4">
               <Text className="text-sm text-gray-500">{min}</Text>

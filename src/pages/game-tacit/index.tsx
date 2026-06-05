@@ -346,7 +346,7 @@ const TacitPage: FC = () => {
         {(step === 'player-a' || step === 'player-b') && selectedCategory && (
           <>
             {/* 进度和当前玩家 */}
-            <View className="bg-white rounded-xl px-4 py-3 mb-4 flex flex-row items-center justify-between">
+            <View className="bg-white rounded-2xl shadow-soft px-4 py-3 mb-4 flex flex-row items-center justify-between">
               <View className="flex flex-row items-center">
                 <Users size={16} color="#3b82f6" />
                 <Text className="text-sm font-medium text-gray-700 ml-2">

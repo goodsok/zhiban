@@ -243,7 +243,7 @@ const TasksPage: FC = () => {
 
       {/* 进度 */}
       <View className="px-4 py-4">
-        <View className="bg-white rounded-xl p-4">
+        <View className="bg-white rounded-2xl shadow-soft p-4">
           <View className="flex items-center justify-between mb-2">
             <Text className="block text-sm text-gray-500">完成进度</Text>
             <Text className="block text-sm font-semibold text-gray-900">
@@ -403,7 +403,7 @@ const TasksPage: FC = () => {
                         {!isExpanded && (
                           <View className="mt-2 flex items-center justify-end">
                             <View 
-                              className="flex items-center gap-3 px-3 py-1 rounded-full bg-gray-800"
+                              className="flex items-center gap-3 px-3 py-1 rounded-full bg-green-500"
                               onClick={() => completeTask(task.id)}
                             >
                               <Target size={12} color="#fff" />
@@ -414,7 +414,7 @@ const TasksPage: FC = () => {
                         {isExpanded && (
                           <View className="mt-3 flex items-center justify-end gap-3">
                             <View 
-                              className="flex items-center gap-3 px-4 py-2 rounded-full bg-gray-800"
+                              className="flex items-center gap-3 px-4 py-2 rounded-full bg-green-500"
                               onClick={() => completeTask(task.id)}
                             >
                               <Check size={14} color="#fff" />
@@ -449,7 +449,7 @@ const TasksPage: FC = () => {
                             </View>
                           )}
                         </View>
-                        <View className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center">
+                        <View className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
                           <Check size={14} color="#fff" />
                         </View>
                       </View>

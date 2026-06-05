@@ -19,7 +19,7 @@ const DimensionCard: FC<DimensionCardProps> = ({
   dimensions,
 }) => {
   return (
-    <View className="bg-white rounded-xl p-4 mb-4">
+    <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
       <View className="flex items-center gap-3 mb-4">
         <Text className="block text-lg">{icon}</Text>
         <Text className="block text-sm font-semibold text-gray-900">{title}</Text>

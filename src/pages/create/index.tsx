@@ -180,7 +180,7 @@ const CreatePage: FC = () => {
             <Text className="block text-xs text-gray-400">AI 智能分析</Text>
             <Text className="block text-xs text-gray-300">最多3张图片</Text>
           </View>
-          <View className="bg-white rounded-xl p-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4">
             {/* 已选图片列表 */}
             {selectedImages.length > 0 && (
               <View className="flex flex-wrap gap-3 mb-4">
@@ -212,7 +212,7 @@ const CreatePage: FC = () => {
             {/* 上传按钮 */}
             {selectedImages.length < 3 && (
               <View 
-                className="flex items-center justify-center py-4 border-2 border-dashed border-gray-200 rounded-lg"
+                className="flex items-center justify-center py-4 border-2 border-dashed border-gray-300 rounded-lg"
                 onClick={handleChooseImage}
               >
                 <View className="text-center">
@@ -247,7 +247,7 @@ const CreatePage: FC = () => {
         {/* 姓名 */}
         <View className="mb-4">
           <Text className="block text-xs text-gray-400 mb-2">姓名 *</Text>
-          <View className="bg-white rounded-xl p-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4">
             <Input
               className="w-full"
               placeholder="输入姓名"
@@ -263,7 +263,7 @@ const CreatePage: FC = () => {
           <View className="flex gap-3">
             <View 
               className={`flex-1 text-center py-2 rounded-lg ${
-                formData.gender === 'female' ? 'bg-green-500 text-white' : 'bg-white border border-gray-200 text-gray-600'
+                formData.gender === 'female' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'
               }`}
               onClick={() => setFormData({ ...formData, gender: 'female' })}
             >
@@ -271,7 +271,7 @@ const CreatePage: FC = () => {
             </View>
             <View 
               className={`flex-1 text-center py-2 rounded-lg ${
-                formData.gender === 'male' ? 'bg-green-500 text-white' : 'bg-white border border-gray-200 text-gray-600'
+                formData.gender === 'male' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'
               }`}
               onClick={() => setFormData({ ...formData, gender: 'male' })}
             >
@@ -303,7 +303,7 @@ const CreatePage: FC = () => {
         {/* 备注 */}
         <View className="mb-4">
           <Text className="block text-xs text-gray-400 mb-2">备注</Text>
-          <View className="bg-white rounded-xl p-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4">
             <Input
               className="w-full"
               placeholder="添加备注（选填）"

@@ -56,7 +56,7 @@ const PortraitHistory: FC<PortraitHistoryProps> = ({ history, limit = 5 }) => {
 
   if (displayHistory.length === 0) {
     return (
-      <View className="bg-white rounded-xl p-4">
+      <View className="bg-white rounded-2xl shadow-soft p-4">
         <Text className="block text-sm text-gray-400 text-center">暂无画像变化记录</Text>
       </View>
     )

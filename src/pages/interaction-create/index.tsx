@@ -675,7 +675,7 @@ export default function InteractionCreatePage() {
                       <View
                         key={tag}
                         className={`px-3 py-2 rounded-full border ${
-                          isActive ? 'bg-gray-800 border-gray-800' : 'bg-gray-50 border-gray-200'
+                          isActive ? 'bg-green-500 border-green-500' : 'bg-gray-100'
                         }`}
                         onClick={() => toggleActivity(tag)}
                       >
@@ -711,7 +711,7 @@ export default function InteractionCreatePage() {
                       />
                     </View>
                     <View
-                      className="px-4 py-2 bg-gray-800 rounded-lg"
+                      className="px-4 py-2 bg-green-500 rounded-lg"
                       onClick={() => {
                         if (customActivity.trim() && !activities.includes(customActivity.trim())) {
                           setActivities([...activities, customActivity.trim()])
@@ -819,7 +819,7 @@ export default function InteractionCreatePage() {
                   {CHAT_SOURCE_OPTIONS.map(opt => (
                     <View
                       key={opt.value}
-                      className={`px-3 py-2 rounded-lg ${chatSource === opt.value ? 'bg-blue-500' : 'bg-white border border-gray-200'}`}
+                      className={`px-3 py-2 rounded-lg ${chatSource === opt.value ? 'bg-blue-500' : 'bg-gray-100'}`}
                       onClick={() => setChatSource(opt.value)}
                     >
                       <Text className={`block text-xs ${chatSource === opt.value ? 'text-white' : 'text-gray-600'}`}>

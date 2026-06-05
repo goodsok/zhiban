@@ -233,7 +233,7 @@ const PortraitPage: FC = () => {
 
       {/* 数据来源提示：引导去档案维度填写 */}
       <View className="px-4 pt-4">
-        <View className="bg-white rounded-xl p-4">
+        <View className="bg-white rounded-2xl shadow-soft p-4">
           <View className="flex items-start gap-4 mb-4">
             <View className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
               <Brain size={18} color="#3B82F6" />
@@ -337,7 +337,7 @@ const PortraitPage: FC = () => {
       {activeTab === 'overview' && portrait && (
         <View className="p-4">
           {/* 雷达图 */}
-          <View className="bg-white rounded-xl p-4 mb-4 flex items-center justify-center">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4 flex items-center justify-center">
             <RadarChart dimensions={getRadarDimensions()} size={240} />
           </View>
 

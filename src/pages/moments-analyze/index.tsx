@@ -157,7 +157,7 @@ const MomentsAnalyzePage: FC = () => {
 
         <ScrollView className="p-4" scrollY>
           {/* 情绪状态 */}
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-2">
               <Heart size={18} color="#EC4899" />
               <Text className="block text-base font-semibold text-gray-900">情绪状态</Text>
@@ -166,7 +166,7 @@ const MomentsAnalyzePage: FC = () => {
           </View>
 
           {/* 兴趣爱好 */}
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <Text className="block text-base font-semibold text-gray-900 mb-2">推断的兴趣</Text>
             <View className="flex flex-wrap gap-3">
               {analysis.result.interests.map((interest, index) => (
@@ -178,13 +178,13 @@ const MomentsAnalyzePage: FC = () => {
           </View>
 
           {/* 生活重心 */}
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <Text className="block text-base font-semibold text-gray-900 mb-2">当前生活重心</Text>
             <Text className="block text-sm text-gray-600">{analysis.result.lifeFocus}</Text>
           </View>
 
           {/* 可切入话题 */}
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <Text className="block text-base font-semibold text-gray-900 mb-2">可切入话题</Text>
             {analysis.result.topics.map((topic, index) => (
               <View key={index} className="flex items-start gap-3 mb-2">
@@ -252,7 +252,7 @@ const MomentsAnalyzePage: FC = () => {
 
       <ScrollView className="p-4" scrollY>
         {/* 选择对象 */}
-        <View className="bg-white rounded-2xl p-4 mb-4">
+        <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
           <View className="flex items-center gap-3 mb-4">
             <User size={18} color="#374151" />
             <Text className="block text-base font-semibold text-gray-900">选择对象（可选）</Text>
@@ -292,7 +292,7 @@ const MomentsAnalyzePage: FC = () => {
         </View>
 
         {/* 上传截图 */}
-        <View className="bg-white rounded-2xl p-4 mb-4">
+        <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
           <View className="flex items-center gap-3 mb-4">
             <Camera size={18} color="#374151" />
             <Text className="block text-base font-semibold text-gray-900">上传朋友圈截图</Text>
@@ -319,7 +319,7 @@ const MomentsAnalyzePage: FC = () => {
             
             {uploadedImages.length < 3 && (
               <View
-                className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center"
+                className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center"
                 onClick={handleChooseImage}
               >
                 {uploading ? (
@@ -340,7 +340,7 @@ const MomentsAnalyzePage: FC = () => {
         </View>
 
         {/* 输入内容 */}
-        <View className="bg-white rounded-2xl p-4 mb-4">
+        <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
           <View className="flex items-center gap-3 mb-4">
             <Search size={18} color="#374151" />
             <Text className="block text-base font-semibold text-gray-900">补充文字内容（可选）</Text>

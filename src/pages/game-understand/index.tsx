@@ -180,7 +180,7 @@ const UnderstandPage: FC = () => {
                 {categories.map((category) => (
                   <View
                     key={category.id}
-                    className="bg-white rounded-2xl overflow-hidden"
+                    className="bg-white rounded-2xl shadow-soft overflow-hidden"
                     onClick={() => handleSelectCategory(category)}
                   >
                     <View className={`bg-gradient-to-r ${category.color} px-4 py-4`}>
@@ -214,7 +214,7 @@ const UnderstandPage: FC = () => {
         ) : currentQuestion ? (
           <>
             {/* 进度 */}
-            <View className="bg-white rounded-xl px-4 py-3 mb-4 flex flex-row items-center justify-between">
+            <View className="bg-white rounded-2xl shadow-soft px-4 py-3 mb-4 flex flex-row items-center justify-between">
               <Text className="text-sm text-gray-500">{selectedCategory.name}</Text>
               <Text className="text-sm text-orange-600 font-medium">
                 {questionIndex + 1} / {selectedCategory.questions.length}

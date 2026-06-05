@@ -174,7 +174,7 @@ const Index: FC = () => {
             return (
               <View
                 key={match.id}
-                className={`bg-white rounded-2xl p-4 mb-4 ${isHidden ? 'opacity-60' : ''}`}
+                className={`bg-white rounded-2xl shadow-soft p-4 mb-4 ${isHidden ? 'opacity-60' : ''}`}
                 style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}
               >
                 <View className="flex items-center justify-between" onClick={() => goToDetail(match.id)}>

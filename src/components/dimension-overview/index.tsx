@@ -167,7 +167,7 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
   return (
     <View className="space-y-3">
       {/* 总览进度 */}
-      <View className="bg-white rounded-xl p-4">
+      <View className="bg-white rounded-2xl shadow-soft p-4">
         <View className="flex items-center justify-between mb-4">
           <Text className="block text-sm font-semibold text-gray-900">维度完成度</Text>
           <Text className="block text-sm font-medium text-blue-600">

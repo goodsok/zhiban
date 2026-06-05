@@ -800,7 +800,7 @@ const SpeedPlanPage: FC = () => {
 
           {sending && (
             <View className="mb-4 items-start" style={{ display: 'flex' }}>
-              <View className="bg-white rounded-2xl p-3">
+              <View className="bg-white rounded-2xl shadow-soft p-3">
                 <View className="flex items-center gap-3">
                   <LoaderCircle size={14} color="#9CA3AF" className="animate-spin" />
                   <Text className="block text-sm text-gray-400">正在思考...</Text>
@@ -907,7 +907,7 @@ const SpeedPlanPage: FC = () => {
       {/* Step 1: 互动背景 */}
       {currentStep === 1 && (
         <View className="p-4">
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
               <User size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">互动背景</Text>
@@ -964,7 +964,7 @@ const SpeedPlanPage: FC = () => {
       {/* Step 2: 选择对象 */}
       {currentStep === 2 && (
         <View className="p-4">
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
               <User size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">选择对象</Text>
@@ -1031,7 +1031,7 @@ const SpeedPlanPage: FC = () => {
           </View>
 
           {selectedMatch && (
-            <View className="bg-white rounded-2xl p-4 mb-4">
+            <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
               <Text className="block text-sm text-gray-500 mb-2">对象分析</Text>
               <View className="grid grid-cols-2 gap-4">
                 {selectedMatch.mbti && (
@@ -1086,7 +1086,7 @@ const SpeedPlanPage: FC = () => {
       {/* Step 3: 设定目标 */}
       {currentStep === 3 && (
         <View className="p-4">
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
               <Target size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">设定目标</Text>
@@ -1150,7 +1150,7 @@ const SpeedPlanPage: FC = () => {
           </View>
 
           {/* 难度预估 - 实时计算 */}
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center justify-between mb-2">
               <View className="flex items-center gap-3">
                 <Sparkles size={18} color="#F59E0B" />

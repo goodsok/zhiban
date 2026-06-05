@@ -559,7 +559,7 @@ const DatingPhotoPage: FC = () => {
                 <View className="flex flex-col items-center">
                   <Wand size={24} color="#9333ea" />
                   <Text className="block text-sm font-medium text-gray-700 mt-2 mb-4">想看看优化后的效果？</Text>
-                  <Button variant="default" className="bg-purple-500 text-white rounded-xl px-6" disabled={generating} onClick={handleGenerateOptimized}>
+                  <Button variant="default" className="bg-green-500 text-white rounded-xl px-6" disabled={generating} onClick={handleGenerateOptimized}>
                     <Text className="text-white">{generating ? '生成中...' : '生成优化示例'}</Text>
                   </Button>
                   <Text className="block text-xs text-gray-400 mt-2">AI 将根据建议生成优化后的示例照片</Text>
@@ -588,17 +588,17 @@ const DatingPhotoPage: FC = () => {
                       </View>
                     </View>
                     <View className="flex-1">
-                      <Text className="block text-xs text-purple-600 mb-2 text-center">优化示例</Text>
+                      <Text className="block text-xs text-green-600 mb-2 text-center">优化示例</Text>
                       <View
-                        className="aspect-square rounded-xl overflow-hidden bg-purple-50 border-2 border-purple-200"
+                        className="aspect-square rounded-xl overflow-hidden bg-green-50 border-2 border-green-200"
                         onClick={() => handlePreviewImage(optimizedPhoto.optimizedUrl, [optimizedPhoto.originalUrl, optimizedPhoto.optimizedUrl])}
                       >
                         <Image src={optimizedPhoto.optimizedUrl} mode="aspectFill" style={{ width: '100%', height: '100%' }} />
                       </View>
                     </View>
                   </View>
-                  <View className="mt-3 p-3 bg-purple-50 rounded-lg">
-                    <Text className="block text-xs text-purple-700">
+                  <View className="mt-3 p-3 bg-green-50 rounded-lg">
+                    <Text className="block text-xs text-green-700">
                       点击图片可查看大图。这是 AI 根据建议生成的示例照片，仅供参考。实际优化时，建议根据建议重新拍摄或调整。
                     </Text>
                   </View>

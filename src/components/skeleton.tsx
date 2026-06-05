@@ -33,7 +33,7 @@ export const SkeletonText: FC<{ width?: string; lines?: number; className?: stri
 
 // 卡片骨架
 export const SkeletonCard: FC<{ className?: string }> = ({ className = '' }) => (
-  <View className={`bg-white rounded-xl p-4 ${className}`}>
+  <View className={`bg-white rounded-2xl shadow-soft p-4 ${className}`}>
     <View className="flex items-center justify-between mb-4">
       <Skeleton className="h-5 w-24" />
       <Skeleton className="h-4 w-16" />
@@ -96,7 +96,7 @@ export const SkeletonProfile: FC = () => (
   <View className="min-h-screen bg-gray-50 pb-24">
     {/* 头部信息 */}
     <View className="p-4">
-      <View className="bg-white rounded-xl p-4">
+      <View className="bg-white rounded-2xl shadow-soft p-4">
         <View className="flex items-center gap-3 mb-4">
           <Skeleton className="h-6 w-24" />
           <Skeleton className="h-4 w-12 rounded-full" />

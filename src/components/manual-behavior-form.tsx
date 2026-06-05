@@ -137,7 +137,7 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
               className={`flex items-center justify-between p-3 rounded-lg border ${
                 responseSpeed === option.value 
                   ? 'border-green-500 bg-green-50' 
-                  : 'border-gray-200'
+                  : 'bg-gray-50'
               }`}
               onClick={() => setResponseSpeed(option.value)}
             >
@@ -163,7 +163,7 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
                 activeTimeSlots.includes(option.value)
                   ? 'border-green-500 bg-green-50'
-                  : 'border-gray-200'
+                  : 'bg-gray-50'
               }`}
               onClick={() => toggleTimeSlot(option.value)}
             >
@@ -184,7 +184,7 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
                 topicPreferences.includes(option.value)
                   ? 'border-green-500 bg-green-50'
-                  : 'border-gray-200'
+                  : 'bg-gray-50'
               }`}
               onClick={() => toggleTopic(option.value)}
             >
@@ -211,7 +211,7 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
               className={`flex items-center justify-between p-3 rounded-lg border ${
                 communicationStyleOnline === option.value
                   ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200'
+                  : 'bg-gray-50'
               }`}
               onClick={() => setCommunicationStyleOnline(option.value)}
             >
@@ -243,7 +243,7 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
               className={`flex items-center justify-between p-3 rounded-lg border ${
                 communicationStyleOffline === option.value
                   ? 'border-green-500 bg-white'
-                  : 'border-gray-200'
+                  : 'bg-gray-50'
               }`}
               onClick={() => setCommunicationStyleOffline(option.value)}
             >
@@ -278,7 +278,7 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
               className={`flex items-center justify-between p-3 rounded-lg border ${
                 emotionalExpression === option.value
                   ? 'border-green-500 bg-green-50'
-                  : 'border-gray-200'
+                  : 'bg-gray-50'
               }`}
               onClick={() => setEmotionalExpression(option.value)}
             >
@@ -304,7 +304,7 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
               className={`flex items-center justify-between p-3 rounded-lg border ${
                 socialInitiative === option.value
                   ? 'border-green-500 bg-green-50'
-                  : 'border-gray-200'
+                  : 'bg-gray-50'
               }`}
               onClick={() => setSocialInitiative(option.value)}
             >

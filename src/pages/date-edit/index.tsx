@@ -132,7 +132,7 @@ const DateEditPage: FC = () => {
         {/* 基本信息 */}
         <View className="mb-6">
           <Text className="block text-xs text-gray-400 mb-2">基本信息</Text>
-          <View className="bg-white rounded-xl p-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4">
             <View className="mb-4">
               <Text className="block text-xs text-gray-400 mb-1">日期</Text>
               <Input
@@ -180,7 +180,7 @@ const DateEditPage: FC = () => {
               <View
                 key={option.value}
                 className={`flex-1 text-center py-2 rounded-lg ${
-                  mood === option.value ? 'bg-gray-800 text-white' : 'bg-white border border-gray-200 text-gray-600'
+                  mood === option.value ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'
                 }`}
                 onClick={() => setMood(option.value as typeof mood)}
               >
@@ -234,7 +234,7 @@ const DateEditPage: FC = () => {
               <Text className="ml-1">AI提取</Text>
             </Badge>
           </View>
-          <View className="bg-white rounded-xl p-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4">
             <Textarea
               style={{ width: '100%', minHeight: '100px', backgroundColor: 'transparent' }}
               placeholder="记录约会内容，AI会自动提取关键信息..."

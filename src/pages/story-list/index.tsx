@@ -142,7 +142,7 @@ const StoryListPage: FC = () => {
             {stories.map((story) => (
             <View
               key={story.id}
-              className="bg-white rounded-xl p-4 mb-4"
+              className="bg-white rounded-2xl shadow-soft p-4 mb-4"
               onClick={() => goToDetail(story.id)}
             >
               {/* 头部 */}

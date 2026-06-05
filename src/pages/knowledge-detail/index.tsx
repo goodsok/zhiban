@@ -120,7 +120,7 @@ const KnowledgeDetailPage: FC = () => {
       {/* 激素状态 */}
       <View className="mx-4 mt-4">
         <Text className="block text-sm font-semibold text-gray-900 mb-2">激素状态</Text>
-        <View className="bg-white rounded-xl p-4">
+        <View className="bg-white rounded-2xl shadow-soft p-4">
           <View className="flex flex-wrap gap-3">
             {Object.entries(knowledge.hormone_status || {}).map(([key, value]) => (
               <Badge key={key} variant="outline" className="text-xs">
@@ -134,7 +134,7 @@ const KnowledgeDetailPage: FC = () => {
       {/* 阶段特点 */}
       <View className="mx-4 mt-4">
         <Text className="block text-sm font-semibold text-gray-900 mb-2">阶段特点</Text>
-        <View className="bg-white rounded-xl p-4 space-y-3">
+        <View className="bg-white rounded-2xl shadow-soft p-4 space-y-3">
           {knowledge.characteristics?.emotion && (
             <View className="flex items-start gap-4">
               <View className="w-6 h-6 rounded-full bg-pink-50 flex items-center justify-center shrink-0 mt-1">
@@ -200,7 +200,7 @@ const KnowledgeDetailPage: FC = () => {
           
           {/* 推荐做的事 */}
           {knowledge.recommendations.best_actions && knowledge.recommendations.best_actions.length > 0 && (
-            <View className="bg-white rounded-xl p-4 mb-2">
+            <View className="bg-white rounded-2xl shadow-soft p-4 mb-2">
               <View className="flex items-center gap-3 mb-2">
                 <Check size={14} color="#4ECB71" />
                 <Text className="block text-xs font-medium text-gray-700">推荐做的事</Text>
@@ -218,7 +218,7 @@ const KnowledgeDetailPage: FC = () => {
 
           {/* 避免做的事 */}
           {knowledge.recommendations.avoid_actions && knowledge.recommendations.avoid_actions.length > 0 && (
-            <View className="bg-white rounded-xl p-4 mb-2">
+            <View className="bg-white rounded-2xl shadow-soft p-4 mb-2">
               <View className="flex items-center gap-3 mb-2">
                 <X size={14} color="#EF4444" />
                 <Text className="block text-xs font-medium text-gray-700">避免做的事</Text>
@@ -236,7 +236,7 @@ const KnowledgeDetailPage: FC = () => {
 
           {/* 自我照顾 */}
           {knowledge.recommendations.self_care && knowledge.recommendations.self_care.length > 0 && (
-            <View className="bg-white rounded-xl p-4">
+            <View className="bg-white rounded-2xl shadow-soft p-4">
               <View className="flex items-center gap-3 mb-2">
                 <Heart size={14} color="#EC4899" />
                 <Text className="block text-xs font-medium text-gray-700">自我照顾</Text>

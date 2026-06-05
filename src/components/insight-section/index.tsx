@@ -83,7 +83,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
   if (loading && !insight) {
     return (
       <View className="p-4">
-        <View className="bg-white rounded-xl p-6">
+        <View className="bg-white rounded-2xl shadow-soft p-6">
           <View className="flex items-center justify-center gap-3 mb-4">
             <Brain size={20} color="#4ECB71" className="animate-pulse" />
             <Text className="block text-base font-semibold text-gray-900">AI正在深度分析</Text>
@@ -111,7 +111,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
   if (error && !insight) {
     return (
       <View className="p-4">
-        <View className="bg-white rounded-xl p-6">
+        <View className="bg-white rounded-2xl shadow-soft p-6">
           <View className="flex items-center justify-center mb-4">
             <CircleAlert size={20} color="#EF4444" />
           </View>
@@ -227,7 +227,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
 
       {/* 关键发现 */}
       {insight.keyFindings && insight.keyFindings.length > 0 && (
-        <View className="bg-white rounded-xl p-4 mb-4">
+        <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
           <View className="flex items-center gap-3 mb-4">
             <View className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center">
               <Lightbulb size={14} color="#4ECB71" />
@@ -248,7 +248,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
       )}
 
       {/* 性格洞察 */}
-      <View className="bg-white rounded-xl p-4 mb-4">
+      <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
         <View className="flex items-center gap-3 mb-4">
           <View className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center">
             <Eye size={14} color="#4ECB71" />
@@ -259,7 +259,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
       </View>
 
       {/* 关系动态 */}
-      <View className="bg-white rounded-xl p-4 mb-4">
+      <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
         <View className="flex items-center gap-3 mb-4">
           <View className="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center">
             <Heart size={14} color="#F43F5E" />
@@ -270,7 +270,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
       </View>
 
       {/* 情感模式 */}
-      <View className="bg-white rounded-xl p-4 mb-4">
+      <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
         <View className="flex items-center gap-3 mb-4">
           <View className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
             <MessageSquare size={14} color="#F59E0B" />
@@ -281,7 +281,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
       </View>
 
       {/* 沟通风格 */}
-      <View className="bg-white rounded-xl p-4 mb-4">
+      <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
         <View className="flex items-center gap-3 mb-4">
           <View className="w-7 h-7 rounded-lg bg-sky-50 flex items-center justify-center">
             <MessageSquare size={14} color="#0EA5E9" />
@@ -293,7 +293,7 @@ const InsightSection: FC<InsightSectionProps> = ({ matchId, matchName }) => {
 
       {/* 成长建议 */}
       {insight.growthSuggestions && insight.growthSuggestions.length > 0 && (
-        <View className="bg-white rounded-xl p-4 mb-4">
+        <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
           <View className="flex items-center gap-3 mb-4">
             <View className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center">
               <TrendingUp size={14} color="#8B5CF6" />

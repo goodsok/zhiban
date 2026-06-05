@@ -474,7 +474,7 @@ const ChallengePage: FC = () => {
         {step === 'read' && selectedChallenge && (
           <>
             {/* 顶部信息栏 */}
-            <View className="bg-white rounded-xl px-4 py-3 mb-4 flex flex-row items-center justify-between">
+            <View className="bg-white rounded-2xl shadow-soft px-4 py-3 mb-4 flex flex-row items-center justify-between">
               <View className="flex flex-row items-center">
                 {(() => {
                   const Icon = selectedChallenge.icon
@@ -529,7 +529,7 @@ const ChallengePage: FC = () => {
         {step === 'play' && selectedChallenge && (
           <>
             {/* 顶部信息栏 */}
-            <View className="bg-white rounded-xl px-4 py-3 mb-4 flex flex-row items-center justify-between">
+            <View className="bg-white rounded-2xl shadow-soft px-4 py-3 mb-4 flex flex-row items-center justify-between">
               <View className="flex flex-row items-center">
                 {(() => {
                   const Icon = selectedChallenge.icon
@@ -580,7 +580,7 @@ const ChallengePage: FC = () => {
                           : 'border-rose-500 bg-rose-50'
                         : option.isCorrect
                           ? 'border-green-300 bg-green-50'
-                          : 'border-gray-200'
+                          : 'bg-gray-50'
                       : selectedOption === option.id
                         ? 'border-green-500 bg-green-50'
                         : 'border-gray-200 active:bg-gray-50'

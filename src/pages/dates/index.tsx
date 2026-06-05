@@ -115,11 +115,11 @@ const DatesPage: FC = () => {
       {/* 统计 */}
       <View className="px-4 py-4">
         <View className="flex gap-4">
-          <View className="flex-1 bg-white rounded-xl p-4 text-center">
+          <View className="flex-1 bg-white rounded-2xl shadow-soft p-4 text-center">
             <Text className="block text-2xl font-bold text-gray-900">{stats.totalDates}</Text>
             <Text className="block text-xs text-gray-400 mt-1">约会次数</Text>
           </View>
-          <View className="flex-1 bg-white rounded-xl p-4 text-center">
+          <View className="flex-1 bg-white rounded-2xl shadow-soft p-4 text-center">
             <Text className="block text-2xl font-bold text-gray-900">{stats.totalHours}</Text>
             <Text className="block text-xs text-gray-400 mt-1">相处时长(h)</Text>
           </View>
@@ -144,7 +144,7 @@ const DatesPage: FC = () => {
           records.map((record) => (
             <View
               key={record.id}
-              className="bg-white rounded-xl p-4 mb-4"
+              className="bg-white rounded-2xl shadow-soft p-4 mb-4"
               onClick={() => goToEdit(record.id)}
             >
               <View className="flex items-start justify-between mb-2">

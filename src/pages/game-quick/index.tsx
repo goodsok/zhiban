@@ -403,7 +403,7 @@ const QuickPage: FC = () => {
         {step === 'play' && selectedCategory && (
           <>
             {/* 顶部信息栏 */}
-            <View className="bg-white rounded-xl px-4 py-3 mb-4 flex flex-row items-center justify-between">
+            <View className="bg-white rounded-2xl shadow-soft px-4 py-3 mb-4 flex flex-row items-center justify-between">
               <View className="flex flex-row items-center">
                 {(() => {
                   const Icon = selectedCategory.icon

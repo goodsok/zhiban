@@ -38,7 +38,7 @@ const RelationshipPrediction: FC<RelationshipPredictionProps> = ({ prediction })
           label: '稳定',
           color: 'text-gray-600',
           bgColor: 'bg-gray-50',
-          borderColor: 'border-gray-200',
+          borderColor: 'bg-gray-50',
         }
     }
   }

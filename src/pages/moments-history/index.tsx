@@ -116,7 +116,7 @@ const MomentsHistoryPage: FC = () => {
           posts.map((post) => (
             <View
               key={post.id}
-              className="bg-white rounded-xl p-4 mb-4"
+              className="bg-white rounded-2xl shadow-soft p-4 mb-4"
             >
               {/* 头部标签 */}
               <View className="flex items-center justify-between mb-4">

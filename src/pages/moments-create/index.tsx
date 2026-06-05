@@ -163,7 +163,7 @@ const MomentsCreatePage: FC = () => {
 
         <ScrollView className="p-4" scrollY>
           {/* 文案建议 */}
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
               <Sparkles size={18} color="#F59E0B" />
               <Text className="block text-base font-semibold text-gray-900">文案建议</Text>
@@ -187,7 +187,7 @@ const MomentsCreatePage: FC = () => {
           </View>
 
           {/* 图片建议 */}
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
               <ImageLucide size={18} color="#3B82F6" />
               <Text className="block text-base font-semibold text-gray-900">图片建议</Text>
@@ -203,7 +203,7 @@ const MomentsCreatePage: FC = () => {
           </View>
 
           {/* 发布时机 */}
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-2">
               <Clock size={18} color="#4ECB71" />
               <Text className="block text-base font-semibold text-gray-900">发布时机</Text>
@@ -212,7 +212,7 @@ const MomentsCreatePage: FC = () => {
           </View>
 
           {/* 预期效果 */}
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <Text className="block text-base font-semibold text-gray-900 mb-2">预期效果</Text>
             <Text className="block text-sm text-gray-600">{suggestion.expectedEffect}</Text>
           </View>
@@ -281,7 +281,7 @@ const MomentsCreatePage: FC = () => {
       {/* Step 1: 选择对象 */}
       {currentStep === 1 && (
         <View className="p-4">
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
               <User size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">选择对象（可选）</Text>
@@ -355,7 +355,7 @@ const MomentsCreatePage: FC = () => {
       {/* Step 2: 选择类型和目的 */}
       {currentStep === 2 && (
         <View className="p-4">
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <Text className="block text-base font-semibold text-gray-900 mb-4">内容类型</Text>
             <View className="grid grid-cols-4 gap-3">
               {POST_TYPES.map((type) => {
@@ -378,7 +378,7 @@ const MomentsCreatePage: FC = () => {
             </View>
           </View>
 
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <Text className="block text-base font-semibold text-gray-900 mb-4">发圈目的</Text>
             <View className="flex flex-col gap-3">
               {PURPOSES.map((purpose) => {
@@ -406,7 +406,7 @@ const MomentsCreatePage: FC = () => {
             </View>
           </View>
 
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <Text className="block text-base font-semibold text-gray-900 mb-4">人设标签（可多选）</Text>
             <View className="flex flex-wrap gap-3">
               {PERSONA_TAGS.map((tag) => {
@@ -452,7 +452,7 @@ const MomentsCreatePage: FC = () => {
       {/* Step 3: 输入内容 */}
       {currentStep === 3 && (
         <View className="p-4">
-          <View className="bg-white rounded-2xl p-4 mb-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
               <Sparkles size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">描述你想发的内容</Text>

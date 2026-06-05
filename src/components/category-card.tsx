@@ -28,7 +28,7 @@ const CategoryCard: FC<CategoryCardProps> = ({
 }) => {
   return (
     <View
-      className="bg-white rounded-2xl p-4"
+      className="bg-white rounded-2xl shadow-soft p-4"
       style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}
       onClick={onClick}
     >
