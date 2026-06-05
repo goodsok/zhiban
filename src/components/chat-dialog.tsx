@@ -454,7 +454,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
     >
       {/* 自定义头部 */}
       <View 
-        className="fixed left-0 right-0 z-[101] bg-white border-b border-orange-100"
+        className="fixed left-0 right-0 z-[101] bg-white border-b"
         style={{ top: 0 }}
       >
         {/* 状态栏占位 */}
@@ -469,11 +469,11 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
             className="w-10 h-10 flex items-center justify-center -ml-2"
             onClick={handleClose}
           >
-            <ArrowLeft size={24} color="#44403C" />
+            <ArrowLeft size={24} color="#374151" />
           </View>
           <View className="flex items-center gap-2 flex-1 justify-center">
             <Sparkles size={18} color="#000" />
-            <Text className="text-base font-semibold text-stone-900">AI 助手</Text>
+            <Text className="text-base font-semibold text-gray-900">AI 助手</Text>
           </View>
           <View className="w-10 h-10" />
         </View>
@@ -481,7 +481,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         {/* 副标题 */}
         {context && (
           <View className="px-4 pb-2 -mt-1">
-            <Text className="text-xs text-stone-400 text-center">
+            <Text className="text-xs text-gray-400 text-center">
               当前：{context.matchName}
               {context.cycleInfo && ` · ${context.cycleInfo.phaseName}`}
             </Text>
@@ -491,7 +491,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
 
       {/* 消息列表区域 */}
       <ScrollView 
-        className="bg-stone-50"
+        className="bg-gray-50"
         scrollY
         scrollIntoView={messages.length > 0 ? `msg-${messages.length}` : ''}
         scrollWithAnimation
@@ -506,8 +506,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         <View className="p-4" style={{ paddingBottom: `${160 + quickQuestionsHeight}px` }}>
           {historyLoading ? (
             <View className="flex items-center justify-center py-8">
-              <Loader size={20} color="#78716C" className="animate-spin" />
-              <Text className="text-sm text-stone-400 ml-2">加载历史记录...</Text>
+              <Loader size={20} color="#6B7280" className="animate-spin" />
+              <Text className="text-sm text-gray-400 ml-2">加载历史记录...</Text>
             </View>
           ) : (
             messages.map((msg, i) => (
@@ -518,7 +518,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
               >
                 {msg.role === 'assistant' ? (
                   <View className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] shadow-sm">
-                    <Text className="text-sm text-stone-800 whitespace-pre-wrap">{msg.content}</Text>
+                    <Text className="text-sm text-gray-800 whitespace-pre-wrap">{msg.content}</Text>
                   </View>
                 ) : (
                   <View className="max-w-[85%]">
@@ -548,8 +548,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
           {loading && (
             <View className="mb-3">
               <View className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 inline-flex items-center gap-2 shadow-sm">
-                <Loader size={14} color="#78716C" className="animate-spin" />
-                <Text className="text-sm text-stone-400">思考中...</Text>
+                <Loader size={14} color="#6B7280" className="animate-spin" />
+                <Text className="text-sm text-gray-400">思考中...</Text>
               </View>
             </View>
           )}
@@ -558,7 +558,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
 
       {/* 底部输入区域 */}
       <View 
-        className="fixed left-0 right-0 z-[101] bg-white border-t border-orange-100"
+        className="fixed left-0 right-0 z-[101] bg-white border-t"
         style={{ bottom: 0 }}
       >
         {/* 快捷问题 - 始终显示 */}
@@ -566,8 +566,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
           <View className="px-4 pt-3 pb-2">
             {questionsLoading ? (
               <View className="flex items-center justify-center py-2">
-                <Loader size={14} color="#78716C" className="animate-spin" />
-                <Text className="text-xs text-stone-400 ml-2">加载推荐问题...</Text>
+                <Loader size={14} color="#6B7280" className="animate-spin" />
+                <Text className="text-xs text-gray-400 ml-2">加载推荐问题...</Text>
               </View>
             ) : (
               <View className="flex items-center gap-2">
@@ -575,20 +575,20 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
                   {visibleQuestions.map((q, i) => (
                     <View
                       key={`${q}-${i}`}
-                      className="bg-stone-100 rounded-full px-3 py-2 active:bg-stone-200"
+                      className="bg-gray-100 border border-gray-300 rounded-full px-3 py-2 active:bg-gray-200"
                       onClick={() => handleQuickQuestion(q)}
                     >
-                      <Text className="text-xs text-stone-600">{q}</Text>
+                      <Text className="text-xs text-gray-600">{q}</Text>
                     </View>
                   ))}
                 </View>
                 {/* 换一批按钮 */}
                 {questionPool.length > VISIBLE_COUNT && (
                   <View
-                    className="flex items-center justify-center w-8 h-8 rounded-full bg-stone-50 flex-shrink-0 active:bg-stone-200"
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 flex-shrink-0 active:bg-gray-200"
                     onClick={handleRefreshQuestions}
                   >
-                    <RefreshCw size={14} color="#78716C" />
+                    <RefreshCw size={14} color="#6B7280" />
                   </View>
                 )}
               </View>
@@ -624,19 +624,19 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
           <View className="flex items-center gap-2">
             {/* 图片上传按钮 */}
             <View 
-              className="w-10 h-10 rounded-full flex items-center justify-center bg-stone-100 flex-shrink-0"
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 flex-shrink-0"
               onClick={handleChooseImage}
             >
-              <ImagePlus size={20} color="#78716C" />
+              <ImagePlus size={20} color="#6B7280" />
             </View>
             
             {/* 输入框容器 */}
-            <View className="flex-1 bg-stone-100 rounded-full px-4 py-2 min-h-[40px] flex items-center">
+            <View className="flex-1 bg-gray-100 border border-gray-300 rounded-full px-4 py-2 min-h-[40px] flex items-center">
               <Input
                 value={inputValue}
                 onInput={(e) => setInputValue(e.detail.value)}
                 placeholder={selectedImages.length > 0 ? "添加说明（可选）..." : "问我任何问题..."}
-                placeholderClass="text-stone-400"
+                placeholderClass="text-gray-400"
                 className="w-full text-sm"
                 confirmType="send"
                 onConfirm={handleSend}
@@ -647,12 +647,12 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
             {/* 发送按钮 */}
             <View 
               className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                (inputValue.trim() || selectedImages.length > 0) && !loading ? 'bg-green-500' : 'bg-stone-200'
+                (inputValue.trim() || selectedImages.length > 0) && !loading ? 'bg-green-500' : 'bg-gray-200'
               }`}
               onClick={handleSend}
             >
               {loading ? (
-                <Loader size={18} color="#78716C" className="animate-spin" />
+                <Loader size={18} color="#6B7280" className="animate-spin" />
               ) : (
                 <Send size={18} color={(inputValue.trim() || selectedImages.length > 0) ? '#fff' : '#9CA3AF'} />
               )}

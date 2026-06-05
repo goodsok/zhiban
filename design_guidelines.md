@@ -9,7 +9,7 @@
 **设计风格**：清爽薄荷 — 自然日光下的鲜活感，像薄荷冰淇淋一样清爽而不冰冷
 
 **核心原则**：
-- 清爽克制：奶白为主，薄荷绿点睛，拒绝浓妆艳抹
+- 清爽克制：纯白为主，薄荷绿点睛，拒绝浓妆艳抹
 - 流程驱动：每个页面引导用户完成一个核心动作
 - 信息聚焦：突出关键信息，弱化次要信息
 - 组件优先：通用 UI 组件优先使用 `@/components/ui/*`，禁止手搓
@@ -40,7 +40,7 @@
 
 ---
 
-## 3. 配色方案（奶白+薄荷绿）
+## 3. 配色方案（纯白+薄荷绿）
 
 ### 基础色
 
@@ -49,14 +49,15 @@
 | 主色（强调/选中） | `#4ECB71` | `text-green-500` / `bg-green-500` | 薄荷绿，按钮、选中态、图标着色 |
 | 深绿（图标/标签） | `#2E9E5A` | `text-green-600` / `bg-green-600` | 深薄荷，图标着色、hover 态 |
 | 浅绿底（标签/徽章） | `#ECFDF5` | `bg-green-50` | 极淡薄荷底色 |
-| 页面背景（奶白） | `#FFF9F0` | `bg-orange-50/50` 或 `bg-[#FFF9F0]` | 暖奶白，所有页面底色 |
-| 卡片背景 | `#FFFFFF` | `bg-white` | 纯白卡片 |
-| 标题文字 | `#1C1917` | `text-stone-900` | 暖棕黑 |
-| 正文文字 | `#44403C` | `text-stone-700` | 暖棕 |
-| 辅助文字 | `#78716C` | `text-stone-500` | 暖灰 |
-| 占位文字 | `#A8A29E` | `text-stone-400` | 淡暖灰 |
-| 边框/分割 | `#E7E5E4` | `border-stone-200` | 暖调边框 |
-| 卡片边框 | `#FED7AA` | `border-orange-200` | 极淡暖橙边框 |
+| 页面背景（冷灰） | `#F7F8FA` | `style={{ backgroundColor: '#F7F8FA' }}` | 冷淡浅灰，卡片浮在背景上 |
+| 卡片背景 | `#FFFFFF` | `bg-white` | 纯白卡片，靠阴影区分层次 |
+| 卡片阴影 | `shadow` | `shadow` | 比默认稍重的阴影，卡片浮起感 |
+| 标题文字 | `#111827` | `text-gray-900` | 深黑 |
+| 正文文字 | `#374151` | `text-gray-700` | 中灰 |
+| 辅助文字 | `#6B7280` | `text-gray-500` | 浅灰 |
+| 占位文字 | `#9CA3AF` | `text-gray-400` | 淡灰 |
+| 边框/分割 | `#E5E7EB` | `border-gray-200` | 极淡边框 |
+| 头部分割线 | `rgba(0,0,0,0.06)` | inline style | 头部底部极淡分割 |
 
 ### 辅助色
 
@@ -81,11 +82,11 @@
 
 | 层级 | 字号 | 字重 | Tailwind 类名 |
 |------|------|------|---------------|
-| 页面标题 | 20px | Bold | `text-xl font-bold text-stone-900` |
-| 卡片标题 | 16px | Semibold | `text-base font-semibold text-stone-900` |
-| 正文 | 14px | Regular | `text-sm text-stone-700` |
-| 辅助文字 | 12px | Regular | `text-xs text-stone-500` |
-| 占位文字 | 12px | Regular | `text-xs text-stone-400` |
+| 页面标题 | 20px | Bold | `text-xl font-bold text-gray-900` |
+| 卡片标题 | 16px | Semibold | `text-base font-semibold text-gray-900` |
+| 正文 | 14px | Regular | `text-sm text-gray-700` |
+| 辅助文字 | 12px | Regular | `text-xs text-gray-500` |
+| 占位文字 | 12px | Regular | `text-xs text-gray-400` |
 
 ---
 
@@ -106,27 +107,28 @@
 
 ### 卡片
 ```
-bg-white rounded-2xl border border-orange-200/50 shadow-sm
+bg-white rounded-2xl shadow-sm
 ```
+无边框，靠阴影与纯白背景区分层次
 
 ### 按钮
 ```
 主按钮：bg-green-500 text-white rounded-xl
-次按钮：bg-stone-100 text-stone-700 rounded-xl
-文字按钮：text-stone-500
+次按钮：bg-gray-100 border border-gray-200 text-gray-700 rounded-xl
+文字按钮：text-gray-500
 ```
 
 ### 标签
 ```
-bg-green-50 text-green-600 text-xs rounded-lg
+bg-green-50 border border-green-200 text-green-600 text-xs rounded-lg
 ```
 
 ### 信息分组标题
 ```
 <View className="flex items-center gap-2 mb-2">
   <Icon size={14} color="#4ECB71" />
-  <Text className="block text-xs text-stone-500">分组名</Text>
-  <Text className="block text-xs text-stone-400">分组说明</Text>
+  <Text className="block text-xs text-gray-500">分组名</Text>
+  <Text className="block text-xs text-gray-400">分组说明</Text>
 </View>
 ```
 
@@ -142,7 +144,7 @@ bg-green-50 text-green-600 text-xs rounded-lg
 | 我的 | pages/profile/index | user | 我的 |
 
 ### TabBar 配色
-- 未选中：`#A8A29E`（stone-400）
+- 未选中：`#A8A29E`（gray-400）
 - 选中：`#4ECB71`（薄荷绿）
 - 背景：`#FFFFFF`
 

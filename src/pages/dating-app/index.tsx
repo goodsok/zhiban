@@ -102,8 +102,8 @@ const DatingAppPage: FC = () => {
       )
     }
     return (
-      <View className="bg-stone-100 rounded-full px-2 py-0">
-        <Text className="text-xs text-stone-500">未使用</Text>
+      <View className="bg-gray-100 border border-gray-300 rounded-full px-2 py-0">
+        <Text className="text-xs text-gray-500">未使用</Text>
       </View>
     )
   }
@@ -117,7 +117,7 @@ const DatingAppPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部标题区 */}
       <View className="bg-gradient-to-br from-rose-500 to-pink-500 px-4 py-6">
         <View className="flex flex-row items-center justify-center mb-2">
@@ -145,12 +145,12 @@ const DatingAppPage: FC = () => {
                 </View>
                 <View className="flex-1">
                   <View className="flex flex-row items-center mb-1">
-                    <Text className="text-base font-semibold text-stone-900">
+                    <Text className="text-base font-semibold text-gray-900">
                       {feature.title}
                     </Text>
                     {getStatusLabel(feature)}
                   </View>
-                  <Text className="block text-xs text-stone-500">
+                  <Text className="block text-xs text-gray-500">
                     {feature.subtitle}
                   </Text>
                 </View>
@@ -173,15 +173,15 @@ const DatingAppPage: FC = () => {
               <View className="mt-3 flex flex-row gap-2">
                 <View className="flex-1 bg-white rounded-lg p-2 flex flex-col items-center">
                   <Text className="block text-lg font-bold text-blue-500">{featureStatus.profileCount}</Text>
-                  <Text className="block text-xs text-stone-500">资料优化</Text>
+                  <Text className="block text-xs text-gray-500">资料优化</Text>
                 </View>
                 <View className="flex-1 bg-white rounded-lg p-2 flex flex-col items-center">
                   <Text className="block text-lg font-bold text-amber-500">{featureStatus.photoCount}</Text>
-                  <Text className="block text-xs text-stone-500">照片评分</Text>
+                  <Text className="block text-xs text-gray-500">照片评分</Text>
                 </View>
                 <View className="flex-1 bg-white rounded-lg p-2 flex flex-col items-center">
                   <Text className="block text-lg font-bold text-green-500">{featureStatus.openerCount}</Text>
-                  <Text className="block text-xs text-stone-500">开场白</Text>
+                  <Text className="block text-xs text-gray-500">开场白</Text>
                 </View>
               </View>
             )}

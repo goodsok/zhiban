@@ -117,24 +117,24 @@ const DateEditPage: FC = () => {
 
   if (loading) {
     return (
-      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFF9F0' }}>
-        <Loader size={24} color="#78716C" className="animate-spin" />
+      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F7F8FA' }}>
+        <Loader size={24} color="#6B7280" className="animate-spin" />
       </View>
     )
   }
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
       <CustomHeader title={isEdit ? '编辑约会' : '记录约会'} />
 
       <View className="p-4">
         {/* 基本信息 */}
         <View className="mb-6">
-          <Text className="block text-xs text-stone-400 mb-2">基本信息</Text>
-          <View className="bg-white rounded-xl border border-orange-100 p-4">
+          <Text className="block text-xs text-gray-400 mb-2">基本信息</Text>
+          <View className="bg-white rounded-xl p-4">
             <View className="mb-3">
-              <Text className="block text-xs text-stone-400 mb-1">日期</Text>
+              <Text className="block text-xs text-gray-400 mb-1">日期</Text>
               <Input
                 className="w-full"
                 placeholder="例如：2024-03-25"
@@ -143,7 +143,7 @@ const DateEditPage: FC = () => {
               />
             </View>
             <View className="mb-3">
-              <Text className="block text-xs text-stone-400 mb-1">地点</Text>
+              <Text className="block text-xs text-gray-400 mb-1">地点</Text>
               <Input
                 className="w-full"
                 placeholder="例如：星巴克（国贸店）"
@@ -152,7 +152,7 @@ const DateEditPage: FC = () => {
               />
             </View>
             <View className="mb-3">
-              <Text className="block text-xs text-stone-400 mb-1">活动</Text>
+              <Text className="block text-xs text-gray-400 mb-1">活动</Text>
               <Input
                 className="w-full"
                 placeholder="例如：喝咖啡聊天"
@@ -161,7 +161,7 @@ const DateEditPage: FC = () => {
               />
             </View>
             <View>
-              <Text className="block text-xs text-stone-400 mb-1">时长</Text>
+              <Text className="block text-xs text-gray-400 mb-1">时长</Text>
               <Input
                 className="w-full"
                 placeholder="例如：2小时"
@@ -174,13 +174,13 @@ const DateEditPage: FC = () => {
 
         {/* 感受 */}
         <View className="mb-6">
-          <Text className="block text-xs text-stone-400 mb-2">约会感受</Text>
+          <Text className="block text-xs text-gray-400 mb-2">约会感受</Text>
           <View className="flex gap-2">
             {moodOptions.map((option) => (
               <View
                 key={option.value}
                 className={`flex-1 text-center py-2 rounded-lg ${
-                  mood === option.value ? 'bg-stone-800 text-white' : 'bg-white border border-stone-200 text-stone-600'
+                  mood === option.value ? 'bg-gray-800 text-white' : 'bg-white border border-gray-200 text-gray-600'
                 }`}
                 onClick={() => setMood(option.value as typeof mood)}
               >
@@ -192,17 +192,17 @@ const DateEditPage: FC = () => {
 
         {/* 精彩瞬间 */}
         <View className="mb-6">
-          <Text className="block text-xs text-stone-400 mb-2">精彩瞬间（选填）</Text>
+          <Text className="block text-xs text-gray-400 mb-2">精彩瞬间（选填）</Text>
           {highlights.length > 0 && (
             <View className="flex flex-wrap gap-2 mb-2">
               {highlights.map((h, i) => (
-                <Badge key={i} className="bg-stone-100 text-stone-600 pr-1">
+                <Badge key={i} className="bg-gray-100 text-gray-600 pr-1">
                   <Text className="block">{h}</Text>
                   <View 
-                    className="ml-1 w-4 h-4 rounded-full bg-stone-300 flex items-center justify-center"
+                    className="ml-1 w-4 h-4 rounded-full bg-gray-300 flex items-center justify-center"
                     onClick={() => removeHighlight(i)}
                   >
-                    <X size={10} color="#78716C" />
+                    <X size={10} color="#6B7280" />
                   </View>
                 </Badge>
               ))}
@@ -219,7 +219,7 @@ const DateEditPage: FC = () => {
                 />
               </View>
               <Button size="sm" variant="outline" onClick={addHighlight}>
-                <Check size={14} color="#78716C" />
+                <Check size={14} color="#6B7280" />
               </Button>
             </View>
           )}
@@ -228,13 +228,13 @@ const DateEditPage: FC = () => {
         {/* 笔记 */}
         <View className="mb-6">
           <View className="flex items-center gap-1 mb-2">
-            <Text className="block text-xs text-stone-400">约会笔记</Text>
-            <Badge className="bg-stone-100 text-stone-500 text-xs">
-              <Sparkles size={10} color="#78716C" />
+            <Text className="block text-xs text-gray-400">约会笔记</Text>
+            <Badge className="bg-gray-100 text-gray-500 text-xs">
+              <Sparkles size={10} color="#6B7280" />
               <Text className="ml-1">AI提取</Text>
             </Badge>
           </View>
-          <View className="bg-white rounded-xl border border-orange-100 p-4">
+          <View className="bg-white rounded-xl p-4">
             <Textarea
               style={{ width: '100%', minHeight: '100px', backgroundColor: 'transparent' }}
               placeholder="记录约会内容，AI会自动提取关键信息..."
@@ -243,12 +243,12 @@ const DateEditPage: FC = () => {
               maxlength={500}
             />
           </View>
-          <Text className="block text-xs text-stone-300 text-right mt-1">{notes.length}/500</Text>
+          <Text className="block text-xs text-gray-300 text-right mt-1">{notes.length}/500</Text>
         </View>
       </View>
 
       {/* 底部 */}
-      <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-orange-100">
+      <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <View className="flex gap-3">
           <Button variant="outline" className="flex-1" onClick={goBack}>
             取消

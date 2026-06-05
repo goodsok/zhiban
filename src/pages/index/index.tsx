@@ -34,12 +34,12 @@ interface CycleInfo {
 
 // 周期阶段图标和颜色
 const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: string }> = {
-  menstrual: { icon: Moon, color: '#78716C', bgColor: 'bg-stone-100' },
+  menstrual: { icon: Moon, color: '#78716C', bgColor: 'bg-gray-100' },
   follicular: { icon: Sun, color: '#4ECB71', bgColor: 'bg-green-50' },
   ovulation: { icon: Heart, color: '#EC4899', bgColor: 'bg-pink-50' },
   luteal_early: { icon: Sun, color: '#60A5FA', bgColor: 'bg-blue-50' },
   luteal_mid: { icon: Cloud, color: '#F0C75E', bgColor: 'bg-amber-50' },
-  luteal_late: { icon: Moon, color: '#E87461', bgColor: 'bg-orange-50' },
+  luteal_late: { icon: Moon, color: '#E87461', bgColor: 'bg-white' },
 }
 
 const Index: FC = () => {
@@ -130,19 +130,19 @@ const Index: FC = () => {
     : matches.filter(m => m.status !== 'hidden')
 
   return (
-    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
-      <View className="bg-white px-4 py-4 border-b border-orange-100">
+      <View className="bg-white px-4 py-4 border-b">
         <View className="flex items-center justify-between">
           <View className="flex items-center gap-2">
-            <Text className="block text-xl font-bold text-stone-900">对象</Text>
+            <Text className="block text-xl font-bold text-gray-900">对象</Text>
             <Switch
               checked={showHidden}
               onCheckedChange={setShowHidden}
             />
           </View>
           <View
-            className="flex items-center gap-1 text-stone-500"
+            className="flex items-center gap-1 text-gray-500"
             onClick={goToCreate}
           >
             <Plus size={20} color="#4ECB71" />
@@ -155,7 +155,7 @@ const Index: FC = () => {
       <View className="p-4">
         {loading ? (
           <View className="flex items-center justify-center py-12">
-            <Text className="block text-stone-400">加载中...</Text>
+            <Text className="block text-gray-400">加载中...</Text>
           </View>
         ) : visibleMatches.length === 0 ? (
           <EmptyState
@@ -174,40 +174,40 @@ const Index: FC = () => {
             return (
               <View
                 key={match.id}
-                className={`bg-white rounded-2xl border border-orange-100 shadow-sm p-4 mb-3 ${isHidden ? 'opacity-60' : ''}`}
+                className={`bg-white rounded-2xl shadow p-4 mb-3 ${isHidden ? 'opacity-60' : ''}`}
               >
                 <View className="flex items-center justify-between" onClick={() => goToDetail(match.id)}>
                   <View className="flex-1 min-w-0">
                     <View className="flex items-center gap-2 mb-1">
-                      <Text className="block text-base font-semibold text-stone-900 flex-shrink-0">
+                      <Text className="block text-base font-semibold text-gray-900 flex-shrink-0">
                         {match.name}
                       </Text>
                       {isHidden && (
-                        <View className="px-2 py-0 bg-stone-100 rounded-md">
-                          <Text className="block text-xs text-stone-400">已隐藏</Text>
+                        <View className="px-2 py-0 bg-gray-100 rounded-md">
+                          <Text className="block text-xs text-gray-400">已隐藏</Text>
                         </View>
                       )}
                     </View>
                     {/* 推进值显示 */}
                     {match.progressScore !== undefined && (
                       <View className="flex items-center gap-1">
-                        <View className="w-24 h-2 bg-stone-100 rounded-full overflow-hidden">
+                        <View className="w-24 h-2 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
                           <View
                             className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
                             style={{ width: `${match.progressScore}%` }}
                           />
                         </View>
-                        <Text className="block text-xs text-stone-400">{match.progressScore}分</Text>
+                        <Text className="block text-xs text-gray-400">{match.progressScore}分</Text>
                       </View>
                     )}
                   </View>
-                  <ChevronRight size={20} color="#A8A29E" />
+                  <ChevronRight size={20} color="#9CA3AF" />
                 </View>
 
                 {/* 快捷操作按钮 */}
-                <View className="flex items-center gap-2 mt-3 pt-3 border-t border-orange-200">
+                <View className="flex items-center gap-2 mt-3 pt-3 border-t">
                   <View
-                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-green-50 rounded-xl"
+                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-green-50 border border-green-200 rounded-xl"
                     onClick={(e) => {
                       e.stopPropagation()
                       navigateTo({ url: `/pages/interaction-create/index?matchId=${match.id}` })
@@ -217,37 +217,37 @@ const Index: FC = () => {
                     <Text className="block text-xs font-medium text-green-600">记录互动</Text>
                   </View>
                   <View
-                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-stone-50 rounded-xl"
+                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-gray-50 border border-gray-200 rounded-xl"
                     onClick={() => goToDetail(match.id)}
                   >
-                    <Sparkles size={14} color="#78716C" />
-                    <Text className="block text-xs font-medium text-stone-600">查看档案</Text>
+                    <Sparkles size={14} color="#6B7280" />
+                    <Text className="block text-xs font-medium text-gray-600">查看档案</Text>
                   </View>
                   <View
-                    className="flex items-center justify-center py-2 px-3 bg-stone-50 rounded-xl"
+                    className="flex items-center justify-center py-2 px-3 bg-gray-50 border border-gray-200 rounded-xl"
                     onClick={(e) => {
                       e.stopPropagation()
                       toggleHide(match)
                     }}
                   >
                     {isHidden ? (
-                      <Eye size={14} color="#78716C" />
+                      <Eye size={14} color="#6B7280" />
                     ) : (
-                      <EyeOff size={14} color="#A8A29E" />
+                      <EyeOff size={14} color="#9CA3AF" />
                     )}
                   </View>
                 </View>
 
                 {/* 周期阶段显示 */}
                 {cycleInfo && phaseConf && (
-                  <View className={`mt-3 pt-3 border-t border-orange-200 ${phaseConf.bgColor} -mx-4 -mb-4 px-4 py-3 rounded-b-2xl`}>
+                  <View className={`mt-3 pt-3 border-t ${phaseConf.bgColor} -mx-4 -mb-4 px-4 py-3 rounded-b-2xl`}>
                     <View className="flex items-center gap-2 mb-1">
                       <PhaseIcon size={14} color={phaseConf.color} />
                       <Text className="block text-xs font-medium" style={{ color: phaseConf.color }}>
                         {cycleInfo.phaseName} · Day {cycleInfo.day}
                       </Text>
                     </View>
-                    <Text className="block text-xs text-stone-500">
+                    <Text className="block text-xs text-gray-500">
                       {cycleInfo.recommendations[0] || '保持关注'}
                     </Text>
                   </View>

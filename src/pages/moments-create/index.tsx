@@ -158,7 +158,7 @@ const MomentsCreatePage: FC = () => {
   // 结果展示页
   if (currentStep === 4 && suggestion) {
     return (
-      <View className="min-h-screen" style={{ backgroundColor: '#FFF9F0' }}>
+      <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
         <CustomHeader title="发圈建议" />
 
         <ScrollView className="p-4" scrollY>
@@ -166,22 +166,22 @@ const MomentsCreatePage: FC = () => {
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
               <Sparkles size={18} color="#F59E0B" />
-              <Text className="block text-base font-semibold text-stone-900">文案建议</Text>
+              <Text className="block text-base font-semibold text-gray-900">文案建议</Text>
             </View>
             
             {suggestion.contents.map((content, index) => (
               <View
                 key={index}
                 className={`p-3 rounded-xl mb-2 border-2 ${
-                  selectedContentIndex === index ? 'border-black bg-stone-50' : 'border-transparent bg-stone-50'
+                  selectedContentIndex === index ? 'border-green-500 bg-green-50' : 'border-transparent bg-gray-50'
                 }`}
                 onClick={() => setSelectedContentIndex(index)}
               >
                 <View className="flex items-center justify-between mb-2">
-                  <Text className="block text-xs text-stone-500">{content.style}</Text>
+                  <Text className="block text-xs text-gray-500">{content.style}</Text>
                   {selectedContentIndex === index && <Check size={14} color="#000" />}
                 </View>
-                <Text className="block text-sm text-stone-700 leading-relaxed">{content.text}</Text>
+                <Text className="block text-sm text-gray-700 leading-relaxed">{content.text}</Text>
               </View>
             ))}
           </View>
@@ -190,14 +190,14 @@ const MomentsCreatePage: FC = () => {
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
               <ImageLucide size={18} color="#3B82F6" />
-              <Text className="block text-base font-semibold text-stone-900">图片建议</Text>
+              <Text className="block text-base font-semibold text-gray-900">图片建议</Text>
             </View>
             {suggestion.imageSuggestions.map((img, index) => (
               <View key={index} className="flex items-start gap-2 mb-2">
                 <View className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
                   <Text className="block text-xs text-blue-600">{index + 1}</Text>
                 </View>
-                <Text className="block text-sm text-stone-600 flex-1">{img}</Text>
+                <Text className="block text-sm text-gray-600 flex-1">{img}</Text>
               </View>
             ))}
           </View>
@@ -206,27 +206,27 @@ const MomentsCreatePage: FC = () => {
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-2">
               <Clock size={18} color="#4ECB71" />
-              <Text className="block text-base font-semibold text-stone-900">发布时机</Text>
+              <Text className="block text-base font-semibold text-gray-900">发布时机</Text>
             </View>
-            <Text className="block text-sm text-stone-600">{suggestion.timing}</Text>
+            <Text className="block text-sm text-gray-600">{suggestion.timing}</Text>
           </View>
 
           {/* 预期效果 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-base font-semibold text-stone-900 mb-2">预期效果</Text>
-            <Text className="block text-sm text-stone-600">{suggestion.expectedEffect}</Text>
+            <Text className="block text-base font-semibold text-gray-900 mb-2">预期效果</Text>
+            <Text className="block text-sm text-gray-600">{suggestion.expectedEffect}</Text>
           </View>
 
           {/* 操作按钮 */}
           <View className="flex gap-3 mb-4">
             <View
-              className="flex-1 bg-stone-100 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-gray-100 border border-gray-200 rounded-xl py-3 flex items-center justify-center"
               onClick={() => {
                 setSuggestion(null)
                 setCurrentStep(3)
               }}
             >
-              <Text className="block text-stone-600">重新生成</Text>
+              <Text className="block text-gray-600">重新生成</Text>
             </View>
             <View
               className="flex-1 bg-green-500 rounded-xl py-3 flex items-center justify-center"
@@ -242,11 +242,11 @@ const MomentsCreatePage: FC = () => {
 
   // 新建流程
   return (
-    <View className="min-h-screen" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title="发圈助手" />
 
       {/* 进度指示器 */}
-      <View className="bg-white px-4 py-3 border-b border-orange-100">
+      <View className="bg-white px-4 py-3 border-b">
         <View className="flex items-center justify-between">
           {['对象', '类型', '内容', '生成'].map((label, index) => {
             const stepNum = index + 1
@@ -257,21 +257,21 @@ const MomentsCreatePage: FC = () => {
               <View key={label} className="flex items-center">
                 <View 
                   className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                    isCompleted ? 'bg-green-500' : isActive ? 'bg-green-500' : 'bg-stone-200'
+                    isCompleted ? 'bg-green-500' : isActive ? 'bg-green-500' : 'bg-gray-200'
                   }`}
                 >
                   {isCompleted ? (
                     <Check size={14} color="#fff" />
                   ) : (
-                    <Text className={`block text-xs ${isActive ? 'text-white' : 'text-stone-500'}`}>
+                    <Text className={`block text-xs ${isActive ? 'text-white' : 'text-gray-500'}`}>
                       {stepNum}
                     </Text>
                   )}
                 </View>
-                <Text className={`block text-xs ml-1 ${isActive ? 'text-stone-900 font-medium' : 'text-stone-400'}`}>
+                <Text className={`block text-xs ml-1 ${isActive ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
                   {label}
                 </Text>
-                {index < 3 && <View className="w-6 h-1 bg-stone-200 mx-2" />}
+                {index < 3 && <View className="w-6 h-1 bg-gray-200 mx-2" />}
               </View>
             )
           })}
@@ -283,22 +283,22 @@ const MomentsCreatePage: FC = () => {
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
-              <User size={18} color="#44403C" />
-              <Text className="block text-base font-semibold text-stone-900">选择对象（可选）</Text>
+              <User size={18} color="#374151" />
+              <Text className="block text-base font-semibold text-gray-900">选择对象（可选）</Text>
             </View>
             
-            <Text className="block text-sm text-stone-500 mb-3">
+            <Text className="block text-sm text-gray-500 mb-3">
               选择对象可以让建议更贴合目标
             </Text>
             
             {/* 不选择选项 */}
             <View
               className={`p-3 rounded-xl flex items-center justify-between mb-2 ${
-                selectedMatch === null ? 'bg-green-500' : 'bg-stone-50'
+                selectedMatch === null ? 'bg-green-500' : 'bg-gray-50'
               }`}
               onClick={() => setSelectedMatch(null)}
             >
-              <Text className={`block font-medium ${selectedMatch === null ? 'text-white' : 'text-stone-900'}`}>
+              <Text className={`block font-medium ${selectedMatch === null ? 'text-white' : 'text-gray-900'}`}>
                 不关联对象
               </Text>
               {selectedMatch === null && <Check size={18} color="#fff" />}
@@ -306,11 +306,11 @@ const MomentsCreatePage: FC = () => {
             
             {loading ? (
               <View className="py-8 text-center">
-                <Text className="block text-stone-400">加载中...</Text>
+                <Text className="block text-gray-400">加载中...</Text>
               </View>
             ) : matches.length === 0 ? (
               <View className="py-4 text-center">
-                <Text className="block text-stone-400 text-sm">暂无对象可选</Text>
+                <Text className="block text-gray-400 text-sm">暂无对象可选</Text>
               </View>
             ) : (
               <View className="flex flex-col gap-2">
@@ -320,17 +320,17 @@ const MomentsCreatePage: FC = () => {
                     <View
                       key={match.id}
                       className={`p-3 rounded-xl flex items-center justify-between ${
-                        isSelected ? 'bg-green-500' : 'bg-stone-50'
+                        isSelected ? 'bg-green-500' : 'bg-gray-50'
                       }`}
                       onClick={() => setSelectedMatch(match)}
                     >
                       <View className="flex items-center gap-3">
-                        <View className={`w-10 h-10 rounded-full flex items-center justify-center ${isSelected ? 'bg-white' : 'bg-stone-200'}`}>
-                          <Text className={`block text-sm font-medium ${isSelected ? 'text-green-500' : 'text-stone-600'}`}>
+                        <View className={`w-10 h-10 rounded-full flex items-center justify-center ${isSelected ? 'bg-white' : 'bg-gray-200'}`}>
+                          <Text className={`block text-sm font-medium ${isSelected ? 'text-green-500' : 'text-gray-600'}`}>
                             {match.name.charAt(0)}
                           </Text>
                         </View>
-                        <Text className={`block font-medium ${isSelected ? 'text-white' : 'text-stone-900'}`}>
+                        <Text className={`block font-medium ${isSelected ? 'text-white' : 'text-gray-900'}`}>
                           {match.name}
                         </Text>
                       </View>
@@ -356,7 +356,7 @@ const MomentsCreatePage: FC = () => {
       {currentStep === 2 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-base font-semibold text-stone-900 mb-3">内容类型</Text>
+            <Text className="block text-base font-semibold text-gray-900 mb-3">内容类型</Text>
             <View className="grid grid-cols-4 gap-2">
               {POST_TYPES.map((type) => {
                 const isSelected = selectedType === type.code
@@ -364,12 +364,12 @@ const MomentsCreatePage: FC = () => {
                   <View
                     key={type.code}
                     className={`p-2 rounded-xl text-center ${
-                      isSelected ? 'bg-green-500' : 'bg-stone-50'
+                      isSelected ? 'bg-green-500' : 'bg-gray-50'
                     }`}
                     onClick={() => setSelectedType(type.code)}
                   >
                     <Text className="block text-lg mb-1">{type.icon}</Text>
-                    <Text className={`block text-xs ${isSelected ? 'text-white' : 'text-stone-600'}`}>
+                    <Text className={`block text-xs ${isSelected ? 'text-white' : 'text-gray-600'}`}>
                       {type.name}
                     </Text>
                   </View>
@@ -379,22 +379,22 @@ const MomentsCreatePage: FC = () => {
           </View>
 
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-base font-semibold text-stone-900 mb-3">发圈目的</Text>
+            <Text className="block text-base font-semibold text-gray-900 mb-3">发圈目的</Text>
             <View className="flex flex-col gap-2">
               {PURPOSES.map((purpose) => {
                 const isSelected = selectedPurpose === purpose.code
                 return (
                   <View
                     key={purpose.code}
-                    className={`p-3 rounded-xl ${isSelected ? 'bg-green-500' : 'bg-stone-50'}`}
+                    className={`p-3 rounded-xl ${isSelected ? 'bg-green-500' : 'bg-gray-50'}`}
                     onClick={() => setSelectedPurpose(purpose.code)}
                   >
                     <View className="flex items-center justify-between">
                       <View>
-                        <Text className={`block font-medium ${isSelected ? 'text-white' : 'text-stone-900'}`}>
+                        <Text className={`block font-medium ${isSelected ? 'text-white' : 'text-gray-900'}`}>
                           {purpose.name}
                         </Text>
-                        <Text className={`block text-xs mt-1 ${isSelected ? 'text-stone-300' : 'text-stone-500'}`}>
+                        <Text className={`block text-xs mt-1 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>
                           {purpose.description}
                         </Text>
                       </View>
@@ -407,7 +407,7 @@ const MomentsCreatePage: FC = () => {
           </View>
 
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-base font-semibold text-stone-900 mb-3">人设标签（可多选）</Text>
+            <Text className="block text-base font-semibold text-gray-900 mb-3">人设标签（可多选）</Text>
             <View className="flex flex-wrap gap-2">
               {PERSONA_TAGS.map((tag) => {
                 const isSelected = selectedPersonas.includes(tag.code)
@@ -415,11 +415,11 @@ const MomentsCreatePage: FC = () => {
                   <View
                     key={tag.code}
                     className={`px-3 py-2 rounded-lg ${
-                      isSelected ? 'bg-green-500' : 'bg-stone-100'
+                      isSelected ? 'bg-green-500' : 'bg-gray-100'
                     }`}
                     onClick={() => togglePersona(tag.code)}
                   >
-                    <Text className={`block text-sm ${isSelected ? 'text-white' : 'text-stone-600'}`}>
+                    <Text className={`block text-sm ${isSelected ? 'text-white' : 'text-gray-600'}`}>
                       {tag.name}
                     </Text>
                   </View>
@@ -430,18 +430,18 @@ const MomentsCreatePage: FC = () => {
 
           <View className="flex gap-3">
             <View
-              className="flex-1 bg-stone-100 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-gray-100 border border-gray-200 rounded-xl py-3 flex items-center justify-center"
               onClick={() => setCurrentStep(1)}
             >
-              <Text className="block text-stone-600">上一步</Text>
+              <Text className="block text-gray-600">上一步</Text>
             </View>
             <View
               className={`flex-1 rounded-xl py-3 flex items-center justify-center ${
-                selectedType && selectedPurpose ? 'bg-green-500' : 'bg-stone-200'
+                selectedType && selectedPurpose ? 'bg-green-500' : 'bg-gray-200'
               }`}
               onClick={() => selectedType && selectedPurpose && setCurrentStep(3)}
             >
-              <Text className={`block font-medium ${selectedType && selectedPurpose ? 'text-white' : 'text-stone-400'}`}>
+              <Text className={`block font-medium ${selectedType && selectedPurpose ? 'text-white' : 'text-gray-400'}`}>
                 下一步
               </Text>
             </View>
@@ -454,12 +454,12 @@ const MomentsCreatePage: FC = () => {
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
-              <Sparkles size={18} color="#44403C" />
-              <Text className="block text-base font-semibold text-stone-900">描述你想发的内容</Text>
+              <Sparkles size={18} color="#374151" />
+              <Text className="block text-base font-semibold text-gray-900">描述你想发的内容</Text>
             </View>
             
             <View className="mb-4">
-              <View className="bg-stone-50 rounded-xl p-3">
+              <View className="bg-gray-50 border border-gray-200 rounded-xl p-3">
                 <Textarea
                   className="w-full"
                   style={{ minHeight: '120px' }}
@@ -470,28 +470,28 @@ const MomentsCreatePage: FC = () => {
               </View>
             </View>
 
-            <Text className="block text-xs text-stone-400">
+            <Text className="block text-xs text-gray-400">
               提示：描述越具体，AI 生成的建议越精准
             </Text>
           </View>
 
           <View className="flex gap-3">
             <View
-              className="flex-1 bg-stone-100 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-gray-100 border border-gray-200 rounded-xl py-3 flex items-center justify-center"
               onClick={() => setCurrentStep(2)}
             >
-              <Text className="block text-stone-600">上一步</Text>
+              <Text className="block text-gray-600">上一步</Text>
             </View>
             <View
               className={`flex-1 rounded-xl py-3 flex items-center justify-center ${
-                inputContent.trim() ? 'bg-green-500' : 'bg-stone-200'
+                inputContent.trim() ? 'bg-green-500' : 'bg-gray-200'
               }`}
               onClick={generateSuggestion}
             >
               {generating ? (
                 <LoaderCircle size={18} color="#fff" className="animate-spin" />
               ) : (
-                <Text className={`block font-medium ${inputContent.trim() ? 'text-white' : 'text-stone-400'}`}>
+                <Text className={`block font-medium ${inputContent.trim() ? 'text-white' : 'text-gray-400'}`}>
                   生成建议
                 </Text>
               )}

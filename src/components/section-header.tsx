@@ -20,9 +20,9 @@ const SectionHeader: FC<SectionHeaderProps> = ({ icon, title, description, actio
           {icon}
         </View>
       )}
-      <Text className="block text-sm font-semibold text-stone-900">{title}</Text>
+      <Text className="block text-sm font-semibold text-gray-900">{title}</Text>
       {description && (
-        <Text className="block text-xs text-stone-400">{description}</Text>
+        <Text className="block text-xs text-gray-400">{description}</Text>
       )}
       {action && (
         <View className="ml-auto">{action}</View>

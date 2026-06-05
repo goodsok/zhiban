@@ -49,13 +49,13 @@ interface ReviewAnalysis {
 const levelConfig: Record<string, { color: string; label: string }> = {
   high: { color: 'bg-emerald-100 text-emerald-700', label: '强' },
   medium: { color: 'bg-amber-100 text-amber-700', label: '中' },
-  low: { color: 'bg-stone-100 text-stone-600', label: '弱' },
+  low: { color: 'bg-gray-100 text-gray-600', label: '弱' },
 }
 
 // 情绪趋势颜色
 const trendConfig: Record<string, { color: string; icon: typeof TrendingUp }> = {
   '升温中': { color: 'text-green-600', icon: TrendingUp },
-  '稳定': { color: 'text-stone-600', icon: SquareChartGantt },
+  '稳定': { color: 'text-gray-600', icon: SquareChartGantt },
   '降温中': { color: 'text-red-500', icon: TrendingUp },
 }
 
@@ -130,7 +130,7 @@ const ChatReviewPage: FC = () => {
     const TrendIcon = analysis ? (trendConfig[analysis.emotionState.trend]?.icon || SquareChartGantt) : SquareChartGantt
 
     return (
-      <View className="min-h-screen" style={{ backgroundColor: '#FFF9F0' }}>
+      <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
         <CustomHeader title="聊天复盘" onBack={() => { setSelectedMatch(null); setAnalysis(null) }} />
 
         <ScrollView scrollY className="px-4 pt-4 pb-20">
@@ -139,18 +139,18 @@ const ChatReviewPage: FC = () => {
             <CardContent className="p-4">
               <View className="flex flex-row items-center justify-between">
                 <View className="flex flex-row items-center">
-                  <View className="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center mr-3">
-                    <MessageSquare size={20} color="#44403C" />
+                  <View className="w-10 h-10 bg-gray-100 border border-gray-300 rounded-full flex items-center justify-center mr-3">
+                    <MessageSquare size={20} color="#374151" />
                   </View>
                   <View>
-                    <Text className="block text-base font-semibold text-stone-900">{selectedMatch.name}</Text>
-                    <Text className="block text-xs text-stone-500">聊天复盘分析</Text>
+                    <Text className="block text-base font-semibold text-gray-900">{selectedMatch.name}</Text>
+                    <Text className="block text-xs text-gray-500">聊天复盘分析</Text>
                   </View>
                 </View>
                 {analysis && (
                   <View className="text-right">
                     <Text className={`block text-3xl font-bold ${getScoreColor(analysis.score)}`}>{analysis.score}</Text>
-                    <Text className="block text-xs text-stone-500">{getScoreLabel(analysis.score)}</Text>
+                    <Text className="block text-xs text-gray-500">{getScoreLabel(analysis.score)}</Text>
                   </View>
                 )}
               </View>
@@ -160,9 +160,9 @@ const ChatReviewPage: FC = () => {
           {analyzing && !analysis && (
             <Card className="mb-4">
               <CardContent className="p-8 flex flex-col items-center justify-center">
-                <LoaderCircle size={32} color="#44403C" className="animate-spin" />
-                <Text className="block text-sm text-stone-500 mt-3">正在分析聊天记录...</Text>
-                <Text className="block text-xs text-stone-400 mt-1">AI 正在深度复盘你们的对话</Text>
+                <LoaderCircle size={32} color="#374151" className="animate-spin" />
+                <Text className="block text-sm text-gray-500 mt-3">正在分析聊天记录...</Text>
+                <Text className="block text-xs text-gray-400 mt-1">AI 正在深度复盘你们的对话</Text>
               </CardContent>
             </Card>
           )}
@@ -173,16 +173,16 @@ const ChatReviewPage: FC = () => {
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center mb-3">
-                    <Heart size={18} color="#44403C" />
-                    <Text className="block text-base font-semibold text-stone-900 ml-2">情绪状态</Text>
+                    <Heart size={18} color="#374151" />
+                    <Text className="block text-base font-semibold text-gray-900 ml-2">情绪状态</Text>
                   </View>
                   <View className="flex flex-row items-center mb-2">
-                    <Text className="block text-sm text-stone-500 mr-2">整体：</Text>
-                    <Text className="block text-sm font-medium text-stone-900">{analysis.emotionState.overall}</Text>
+                    <Text className="block text-sm text-gray-500 mr-2">整体：</Text>
+                    <Text className="block text-sm font-medium text-gray-900">{analysis.emotionState.overall}</Text>
                     <TrendIcon size={14} color={trendConfig[analysis.emotionState.trend]?.color === 'text-green-600' ? '#10B981' : trendConfig[analysis.emotionState.trend]?.color === 'text-red-500' ? '#EF4444' : '#6B7280'} className="ml-2" />
                     <Text className="block text-sm ml-1" style={{ color: trendConfig[analysis.emotionState.trend]?.color === 'text-green-600' ? '#10B981' : trendConfig[analysis.emotionState.trend]?.color === 'text-red-500' ? '#EF4444' : '#6B7280' }}>{analysis.emotionState.trend}</Text>
                   </View>
-                  <Text className="block text-xs text-stone-500 leading-relaxed">{analysis.emotionState.details}</Text>
+                  <Text className="block text-xs text-gray-500 leading-relaxed">{analysis.emotionState.details}</Text>
                 </CardContent>
               </Card>
 
@@ -190,14 +190,14 @@ const ChatReviewPage: FC = () => {
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center mb-3">
-                    <Clock size={18} color="#44403C" />
-                    <Text className="block text-base font-semibold text-stone-900 ml-2">回复节奏</Text>
+                    <Clock size={18} color="#374151" />
+                    <Text className="block text-base font-semibold text-gray-900 ml-2">回复节奏</Text>
                   </View>
                   <View className="flex flex-row flex-wrap gap-2 mb-2">
                     <Badge variant="secondary">{analysis.replyRhythm.speed}</Badge>
                     <Badge variant="secondary">{analysis.replyRhythm.initiative}</Badge>
                   </View>
-                  <Text className="block text-xs text-stone-500 leading-relaxed">{analysis.replyRhythm.pattern}</Text>
+                  <Text className="block text-xs text-gray-500 leading-relaxed">{analysis.replyRhythm.pattern}</Text>
                 </CardContent>
               </Card>
 
@@ -205,18 +205,18 @@ const ChatReviewPage: FC = () => {
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center mb-3">
-                    <Zap size={18} color="#44403C" />
-                    <Text className="block text-base font-semibold text-stone-900 ml-2">兴趣信号</Text>
+                    <Zap size={18} color="#374151" />
+                    <Text className="block text-base font-semibold text-gray-900 ml-2">兴趣信号</Text>
                   </View>
                   {analysis.interestSignals.map((signal, idx) => (
                     <View key={idx} className="mb-3 last:mb-0">
                       <View className="flex flex-row items-center mb-1">
-                        <Text className="block text-sm font-medium text-stone-900 mr-2">{signal.signal}</Text>
-                        <Badge className={levelConfig[signal.level]?.color || 'bg-stone-100 text-stone-600'}>
+                        <Text className="block text-sm font-medium text-gray-900 mr-2">{signal.signal}</Text>
+                        <Badge className={levelConfig[signal.level]?.color || 'bg-gray-100 text-gray-600'}>
                           <Text className="text-xs">{levelConfig[signal.level]?.label || '未知'}</Text>
                         </Badge>
                       </View>
-                      <Text className="block text-xs text-stone-500">{signal.evidence}</Text>
+                      <Text className="block text-xs text-gray-500">{signal.evidence}</Text>
                     </View>
                   ))}
                 </CardContent>
@@ -226,13 +226,13 @@ const ChatReviewPage: FC = () => {
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center mb-3">
-                    <TrendingUp size={18} color="#44403C" />
-                    <Text className="block text-base font-semibold text-stone-900 ml-2">下一步建议</Text>
+                    <TrendingUp size={18} color="#374151" />
+                    <Text className="block text-base font-semibold text-gray-900 ml-2">下一步建议</Text>
                   </View>
                   {analysis.suggestions.map((suggestion, idx) => (
                     <View key={idx} className="flex flex-row mb-2 last:mb-0">
-                      <Text className="block text-sm text-stone-700 mr-2">{idx + 1}.</Text>
-                      <Text className="block text-sm text-stone-700 flex-1">{suggestion}</Text>
+                      <Text className="block text-sm text-gray-700 mr-2">{idx + 1}.</Text>
+                      <Text className="block text-sm text-gray-700 flex-1">{suggestion}</Text>
                     </View>
                   ))}
                 </CardContent>
@@ -246,11 +246,11 @@ const ChatReviewPage: FC = () => {
 
   // 对象选择视图
   return (
-    <View className="min-h-screen" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title="聊天复盘" />
 
       <ScrollView scrollY className="px-4 pt-4 pb-20">
-        <Text className="block text-sm text-stone-500 mb-4">选择对象，AI 将分析你们的聊天记录</Text>
+        <Text className="block text-sm text-gray-500 mb-4">选择对象，AI 将分析你们的聊天记录</Text>
 
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
@@ -259,8 +259,8 @@ const ChatReviewPage: FC = () => {
         ) : matches.length === 0 ? (
           <Card>
             <CardContent className="p-8 flex flex-col items-center">
-              <MessageSquare size={32} color="#A8A29E" />
-              <Text className="block text-sm text-stone-400 mt-3">暂无对象，请先在首页添加</Text>
+              <MessageSquare size={32} color="#9CA3AF" />
+              <Text className="block text-sm text-gray-400 mt-3">暂无对象，请先在首页添加</Text>
             </CardContent>
           </Card>
         ) : (
@@ -271,12 +271,12 @@ const ChatReviewPage: FC = () => {
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center justify-between">
                     <View className="flex flex-row items-center flex-1">
-                      <View className="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center mr-3">
-                        <MessageSquare size={18} color="#44403C" />
+                      <View className="w-10 h-10 bg-gray-100 border border-gray-300 rounded-full flex items-center justify-center mr-3">
+                        <MessageSquare size={18} color="#374151" />
                       </View>
                       <View className="flex-1">
-                        <Text className="block text-base font-semibold text-stone-900">{match.name}</Text>
-                        <Text className="block text-xs text-stone-500 mt-1">
+                        <Text className="block text-base font-semibold text-gray-900">{match.name}</Text>
+                        <Text className="block text-xs text-gray-500 mt-1">
                           {hasChat ? `${match.chatHistoryCount}条对话 · ${match.chatRecordCount}条记录` : '暂无聊天记录'}
                         </Text>
                       </View>

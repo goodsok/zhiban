@@ -219,8 +219,8 @@ const PortraitPage: FC = () => {
 
   if (loading) {
     return (
-      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFF9F0' }}>
-        <Loader size={24} color="#78716C" className="animate-spin" />
+      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F7F8FA' }}>
+        <Loader size={24} color="#6B7280" className="animate-spin" />
       </View>
     )
   }
@@ -228,19 +228,19 @@ const PortraitPage: FC = () => {
   const completion = getCompletionInfo()
 
   return (
-    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title={`${matchName ? matchName + '的' : ''}画像`} />
 
       {/* 数据来源提示：引导去档案维度填写 */}
       <View className="px-4 pt-4">
-        <View className="bg-white rounded-xl border border-orange-100 p-4">
+        <View className="bg-white rounded-xl p-4">
           <View className="flex items-start gap-3 mb-3">
             <View className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
               <Brain size={18} color="#3B82F6" />
             </View>
             <View className="flex-1">
-              <Text className="block text-sm font-semibold text-stone-900">画像数据来源</Text>
-              <Text className="block text-xs text-stone-500 mt-1">
+              <Text className="block text-sm font-semibold text-gray-900">画像数据来源</Text>
+              <Text className="block text-xs text-gray-500 mt-1">
                 画像基于档案维度数据自动生成，填写越完整画像越准确
               </Text>
             </View>
@@ -249,10 +249,10 @@ const PortraitPage: FC = () => {
           {/* 完成度进度条 */}
           <View className="mb-3">
             <View className="flex items-center justify-between mb-1">
-              <Text className="block text-xs text-stone-500">档案完成度</Text>
-              <Text className="block text-xs text-stone-700 font-medium">{completion.percent}%（{completion.filled}/{completion.total}项）</Text>
+              <Text className="block text-xs text-gray-500">档案完成度</Text>
+              <Text className="block text-xs text-gray-700 font-medium">{completion.percent}%（{completion.filled}/{completion.total}项）</Text>
             </View>
-            <View className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
+            <View className="w-full h-2 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
               <View 
                 className="h-full rounded-full bg-blue-500 transition-all"
                 style={{ width: `${completion.percent}%` }}
@@ -281,10 +281,10 @@ const PortraitPage: FC = () => {
 
       {/* 置信度 & 重新分析 */}
       <View className="px-4 pt-3">
-        <View className="flex items-center justify-between bg-white rounded-xl border border-orange-100 p-3">
+        <View className="flex items-center justify-between bg-white rounded-xl p-3">
           <View className="flex items-center gap-2">
-            <Brain size={16} color="#78716C" />
-            <Text className="block text-sm text-stone-600">
+            <Brain size={16} color="#6B7280" />
+            <Text className="block text-sm text-gray-600">
               画像置信度 {portrait?.confidence || 0}%
             </Text>
           </View>
@@ -296,18 +296,18 @@ const PortraitPage: FC = () => {
             disabled={analyzing}
           >
             {analyzing ? (
-              <RefreshCw size={14} color="#78716C" className="animate-spin" />
+              <RefreshCw size={14} color="#6B7280" className="animate-spin" />
             ) : (
-              <RefreshCw size={14} color="#78716C" />
+              <RefreshCw size={14} color="#6B7280" />
             )}
-            <Text className="ml-1 text-stone-600">{analyzing ? '分析中' : '重新分析'}</Text>
+            <Text className="ml-1 text-gray-600">{analyzing ? '分析中' : '重新分析'}</Text>
           </Button>
         </View>
       </View>
 
       {/* Tab 切换 */}
       <View className="px-4 pt-4">
-        <View className="flex bg-stone-100 rounded-lg p-1">
+        <View className="flex bg-gray-100 border border-gray-200 rounded-lg p-1">
           {[
             { key: 'overview', label: '概览' },
             { key: 'interaction', label: '相处' },
@@ -323,7 +323,7 @@ const PortraitPage: FC = () => {
             >
               <Text
                 className={`block text-sm ${
-                  activeTab === tab.key ? 'text-stone-900 font-medium' : 'text-stone-500'
+                  activeTab === tab.key ? 'text-gray-900 font-medium' : 'text-gray-500'
                 }`}
               >
                 {tab.label}
@@ -337,7 +337,7 @@ const PortraitPage: FC = () => {
       {activeTab === 'overview' && portrait && (
         <View className="p-4">
           {/* 雷达图 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4 flex items-center justify-center">
+          <View className="bg-white rounded-xl p-4 mb-4 flex items-center justify-center">
             <RadarChart dimensions={getRadarDimensions()} size={240} />
           </View>
 
@@ -454,8 +454,8 @@ const PortraitPage: FC = () => {
       {activeTab === 'history' && portrait && (
         <View className="p-4">
           <View className="flex items-center gap-2 mb-3">
-            <History size={14} color="#78716C" />
-            <Text className="block text-sm font-semibold text-stone-900">画像变化记录</Text>
+            <History size={14} color="#6B7280" />
+            <Text className="block text-sm font-semibold text-gray-900">画像变化记录</Text>
           </View>
           <PortraitHistory history={portrait.history} limit={20} />
         </View>

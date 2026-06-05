@@ -50,7 +50,7 @@ const CustomHeader: FC<CustomHeaderProps> = ({
       {/* 固定头部 */}
       <View 
         className="fixed top-0 left-0 right-0 z-50 bg-white"
-        style={{ borderBottom: '1px solid rgba(254,215,170,0.5)' }}
+        style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}
       >
         {/* 状态栏占位 */}
         <View style={{ height: `${statusBarHeight}px` }} />
@@ -64,9 +64,9 @@ const CustomHeader: FC<CustomHeaderProps> = ({
             className="w-8 h-8 flex items-center justify-center"
             onClick={showBack ? handleBack : undefined}
           >
-            {showBack && <ArrowLeft size={24} color="#44403C" />}
+            {showBack && <ArrowLeft size={24} color="#374151" />}
           </View>
-          <Text className="block text-base font-semibold text-stone-900">{title}</Text>
+          <Text className="block text-base font-semibold text-gray-900">{title}</Text>
           <View className="w-8 h-8 flex items-center justify-center">
             {rightAction}
           </View>

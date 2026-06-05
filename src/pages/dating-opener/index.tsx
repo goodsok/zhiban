@@ -250,11 +250,11 @@ const DatingOpenerPage: FC = () => {
       创意: { bg: 'bg-purple-100', text: 'text-purple-700' },
       直接: { bg: 'bg-red-100', text: 'text-red-700' },
     }
-    return colors[category] || { bg: 'bg-stone-100', text: 'text-stone-700' }
+    return colors[category] || { bg: 'bg-gray-100', text: 'text-gray-700' }
   }
 
   return (
-    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部说明 */}
       <View className="bg-purple-50 px-4 py-3">
         <View className="flex flex-row items-center justify-between">
@@ -285,19 +285,19 @@ const DatingOpenerPage: FC = () => {
 
       {/* 历史记录 */}
       {showHistory && (
-        <View className="bg-white border-b border-orange-100">
-          <View className="px-4 py-3 border-b border-orange-100">
-            <Text className="text-sm font-medium text-stone-900">开场白历史</Text>
+        <View className="bg-white border-b">
+          <View className="px-4 py-3 border-b">
+            <Text className="text-sm font-medium text-gray-900">开场白历史</Text>
           </View>
           {historyLoading && historyList.length === 0 ? (
             <View className="px-4 py-8 flex flex-col items-center">
               <Loader size={20} color="#9ca3af" className="animate-spin" />
-              <Text className="text-sm text-stone-400 mt-2">加载中...</Text>
+              <Text className="text-sm text-gray-400 mt-2">加载中...</Text>
             </View>
           ) : historyList.length === 0 ? (
             <View className="px-4 py-8 flex flex-col items-center">
               <Clock size={24} color="#d1d5db" />
-              <Text className="text-sm text-stone-400 mt-2">暂无历史记录</Text>
+              <Text className="text-sm text-gray-400 mt-2">暂无历史记录</Text>
             </View>
           ) : (
             <View className="max-h-80 overflow-y-auto">
@@ -306,22 +306,22 @@ const DatingOpenerPage: FC = () => {
                 return (
                   <View
                     key={history.id}
-                    className="px-4 py-3 border-b border-stone-100 flex flex-row items-center justify-between active:bg-stone-50"
+                    className="px-4 py-3 border-b border-gray-100 flex flex-row items-center justify-between active:bg-gray-50"
                     onClick={() => handleLoadHistory(history)}
                   >
                     <View className="flex-1 mr-3">
                       <View className="flex flex-row items-center mb-1">
                         <Text className="text-sm mr-1">{platformInfo?.icon}</Text>
-                        <Text className="text-sm text-stone-700 line-clamp-1">
+                        <Text className="text-sm text-gray-700 line-clamp-1">
                           {history.targetProfile.substring(0, 30)}...
                         </Text>
-                        <Text className="text-xs text-stone-400 ml-2">{formatDate(history.createdAt)}</Text>
+                        <Text className="text-xs text-gray-400 ml-2">{formatDate(history.createdAt)}</Text>
                       </View>
-                      <Text className="text-xs text-stone-400">
+                      <Text className="text-xs text-gray-400">
                         {history.result?.openers?.length || 0}条开场白
                       </Text>
                     </View>
-                    <View className="p-2 rounded-lg active:bg-stone-100" onClick={(e) => handleDeleteHistory(history.id, e)}>
+                    <View className="p-2 rounded-lg active:bg-gray-100" onClick={(e) => handleDeleteHistory(history.id, e)}>
                       <Trash2 size={16} color="#9ca3af" />
                     </View>
                   </View>
@@ -345,19 +345,19 @@ const DatingOpenerPage: FC = () => {
           </CardHeader>
           <CardContent>
             <View
-              className="bg-stone-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
+              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
               onClick={() => setShowPlatformPicker(!showPlatformPicker)}
             >
               <View className="flex flex-row items-center">
                 <Text className="text-lg mr-2">{currentPlatform.icon}</Text>
-                <Text className="text-sm text-stone-700">{currentPlatform.label}</Text>
-                <Text className="text-xs text-stone-400 ml-2">{currentPlatform.desc}</Text>
+                <Text className="text-sm text-gray-700">{currentPlatform.label}</Text>
+                <Text className="text-xs text-gray-400 ml-2">{currentPlatform.desc}</Text>
               </View>
               <ChevronDown size={18} color="#9ca3af" />
             </View>
 
             {showPlatformPicker && (
-              <View className="mt-2 bg-white rounded-xl border border-orange-100 overflow-hidden">
+              <View className="mt-2 bg-white rounded-xl overflow-hidden">
                 {platformOptions.map((option) => (
                   <View
                     key={option.value}
@@ -370,8 +370,8 @@ const DatingOpenerPage: FC = () => {
                     <View className="flex flex-row items-center">
                       <Text className="text-lg mr-2">{option.icon}</Text>
                       <View>
-                        <Text className="text-sm text-stone-700">{option.label}</Text>
-                        <Text className="text-xs text-stone-400">{option.desc}</Text>
+                        <Text className="text-sm text-gray-700">{option.label}</Text>
+                        <Text className="text-xs text-gray-400">{option.desc}</Text>
                       </View>
                     </View>
                     {platform === option.value && <Text className="text-purple-500">✓</Text>}
@@ -387,7 +387,7 @@ const DatingOpenerPage: FC = () => {
             <CardTitle className="text-base">对方资料</CardTitle>
           </CardHeader>
           <CardContent>
-            <View className="bg-stone-50 rounded-xl p-4 mb-3">
+            <View className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-3">
               <Textarea
                 style={{ width: '100%', height: '200px', backgroundColor: 'transparent' }}
                 placeholder="描述对方的资料，如：昵称、简介、兴趣标签、照片内容等..."
@@ -396,7 +396,7 @@ const DatingOpenerPage: FC = () => {
                 onInput={(e) => setTargetProfile(e.detail.value)}
               />
             </View>
-            <Text className="block text-xs text-stone-400">{targetProfile.length}/500</Text>
+            <Text className="block text-xs text-gray-400">{targetProfile.length}/500</Text>
           </CardContent>
         </Card>
 
@@ -405,7 +405,7 @@ const DatingOpenerPage: FC = () => {
           <CardHeader className="pb-3">
             <View className="flex flex-row items-center">
               <User size={18} color="#9333ea" />
-              <Text className="block text-base font-semibold text-stone-900 ml-2">我的风格（选填）</Text>
+              <Text className="block text-base font-semibold text-gray-900 ml-2">我的风格（选填）</Text>
             </View>
           </CardHeader>
           <CardContent>
@@ -418,7 +418,7 @@ const DatingOpenerPage: FC = () => {
                 onInput={(e) => setSelfProfile(e.detail.value)}
               />
             </View>
-            <Text className="block text-xs text-stone-400">{selfProfile.length}/200</Text>
+            <Text className="block text-xs text-gray-400">{selfProfile.length}/200</Text>
             <Text className="block text-xs text-purple-400 mt-1">填写后 AI 会根据你的风格偏好生成更贴合的开场白</Text>
           </CardContent>
         </Card>
@@ -441,8 +441,8 @@ const DatingOpenerPage: FC = () => {
         {!result && !loading && !targetProfile.trim() && (
           <View className="py-6 flex flex-col items-center">
             <MessageCircle size={32} color="#d1d5db" />
-            <Text className="text-sm text-stone-400 mt-3">输入对方资料后即可生成开场白</Text>
-            <Text className="text-xs text-stone-300 mt-1">越详细的描述，生成的开场白越精准</Text>
+            <Text className="text-sm text-gray-400 mt-3">输入对方资料后即可生成开场白</Text>
+            <Text className="text-xs text-gray-300 mt-1">越详细的描述，生成的开场白越精准</Text>
           </View>
         )}
 
@@ -488,27 +488,27 @@ const DatingOpenerPage: FC = () => {
                       <View className={`${categoryColor.bg} rounded-full px-3 py-1 mr-2`}>
                         <Text className={`text-xs ${categoryColor.text}`}>{opener.category}</Text>
                       </View>
-                      <View className="bg-stone-100 rounded-full px-3 py-1">
-                        <Text className="text-xs text-stone-600">{opener.style}</Text>
+                      <View className="bg-gray-100 border border-gray-300 rounded-full px-3 py-1">
+                        <Text className="text-xs text-gray-600">{opener.style}</Text>
                       </View>
                     </View>
 
                     {/* 开场白内容 */}
                     <View className="bg-purple-50 rounded-xl px-4 py-3 mb-3">
-                      <Text className="block text-base text-stone-900 leading-relaxed">{opener.content}</Text>
+                      <Text className="block text-base text-gray-900 leading-relaxed">{opener.content}</Text>
                     </View>
 
                     {/* 理由 */}
-                    <Text className="block text-xs text-stone-500 mb-3">{opener.reason}</Text>
+                    <Text className="block text-xs text-gray-500 mb-3">{opener.reason}</Text>
 
                     {/* 复制按钮 */}
                     <View className="flex flex-row justify-end">
                       <View
-                        className={`rounded-full px-4 py-2 flex flex-row items-center ${isCopied ? 'bg-green-100' : 'bg-stone-100'}`}
+                        className={`rounded-full px-4 py-2 flex flex-row items-center ${isCopied ? 'bg-green-100' : 'bg-gray-100'}`}
                         onClick={() => handleCopy(opener.content, copyKey)}
                       >
                         {isCopied ? <Check size={14} color="#22c55e" /> : <Copy size={14} color="#6b7280" />}
-                        <Text className={`text-xs ml-1 ${isCopied ? 'text-green-600' : 'text-stone-600'}`}>
+                        <Text className={`text-xs ml-1 ${isCopied ? 'text-green-600' : 'text-gray-600'}`}>
                           {isCopied ? '已复制' : '复制'}
                         </Text>
                       </View>

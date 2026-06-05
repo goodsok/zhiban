@@ -102,10 +102,10 @@ const ProfilePage: FC = () => {
   const isWeapp = Taro.getEnv() === Taro.ENV_TYPE.WEAPP
 
   return (
-    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 用户信息卡片 */}
       <View className="p-4">
-        <Card className="shadow-sm border-0 bg-green-600">
+        <Card className="shadow border-0 bg-green-600">
           <CardContent className="p-6">
             <View className="flex items-center gap-4">
               {/* 头像选择 */}
@@ -124,14 +124,14 @@ const ProfilePage: FC = () => {
                       mode="aspectFill"
                     />
                   ) : (
-                    <View className="w-16 h-16 rounded-full bg-stone-600 flex items-center justify-center">
+                    <View className="w-16 h-16 rounded-full bg-gray-600 flex items-center justify-center">
                       <User size={32} color="#fff" />
                     </View>
                   )}
                 </Button>
               ) : (
                 <View 
-                  className="w-16 h-16 rounded-full bg-stone-600 flex items-center justify-center overflow-hidden"
+                  className="w-16 h-16 rounded-full bg-gray-600 flex items-center justify-center overflow-hidden"
                   onClick={() => {
                     Taro.showToast({ title: '请在小程序中设置头像', icon: 'none' })
                   }}
@@ -174,7 +174,7 @@ const ProfilePage: FC = () => {
       {/* 提示 */}
       {!profile.nickname && (
         <View className="px-4 -mt-2">
-          <Text className="block text-xs text-stone-400 text-center">
+          <Text className="block text-xs text-gray-400 text-center">
             点击头像和昵称可设置你的个人信息
           </Text>
         </View>
@@ -183,28 +183,28 @@ const ProfilePage: FC = () => {
       {/* 数据统计 */}
       <View className="p-4 mt-2">
         <View className="grid grid-cols-3 gap-3">
-          <Card className="shadow-sm border-0">
+          <Card className="shadow border-0">
             <CardContent className="p-3 text-center">
               <View className="flex items-center justify-center gap-1">
-                <Users size={16} color="#1C1917" />
-                <Text className="block text-2xl font-bold text-stone-900">{stats.matches}</Text>
+                <Users size={16} color="#111827" />
+                <Text className="block text-2xl font-bold text-gray-900">{stats.matches}</Text>
               </View>
-              <Text className="block text-xs text-stone-500">接触对象</Text>
+              <Text className="block text-xs text-gray-500">接触对象</Text>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-0">
+          <Card className="shadow border-0">
             <CardContent className="p-3 text-center">
               <View className="flex items-center justify-center gap-1">
                 <Heart size={16} color="#EC4899" />
                 <Text className="block text-2xl font-bold text-pink-500">{stats.interactions}</Text>
               </View>
-              <Text className="block text-xs text-stone-500">完成互动</Text>
+              <Text className="block text-xs text-gray-500">完成互动</Text>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-0">
+          <Card className="shadow border-0">
             <CardContent className="p-3 text-center">
               <Text className="block text-2xl font-bold text-green-500">{stats.compatibility}%</Text>
-              <Text className="block text-xs text-stone-500">平均契合度</Text>
+              <Text className="block text-xs text-gray-500">平均契合度</Text>
             </CardContent>
           </Card>
         </View>
@@ -212,36 +212,36 @@ const ProfilePage: FC = () => {
 
       {/* 成就 */}
       <View className="p-4">
-        <Card className="shadow-sm border-0">
+        <Card className="shadow border-0">
           <CardContent className="p-4">
             <View className="flex items-center justify-between mb-3">
-              <Text className="block font-semibold text-stone-800">我的成就</Text>
-              <Text className="block text-sm text-stone-500">查看全部</Text>
+              <Text className="block font-semibold text-gray-800">我的成就</Text>
+              <Text className="block text-sm text-gray-500">查看全部</Text>
             </View>
             <View className="flex gap-4">
               <View className="text-center">
                 <View className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-1">
                   <Text className="block text-2xl">🎯</Text>
                 </View>
-                <Text className="block text-xs text-stone-500">破冰达人</Text>
+                <Text className="block text-xs text-gray-500">破冰达人</Text>
               </View>
               <View className="text-center">
                 <View className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center mb-1">
                   <Text className="block text-2xl">💕</Text>
                 </View>
-                <Text className="block text-xs text-stone-500">心动记录</Text>
+                <Text className="block text-xs text-gray-500">心动记录</Text>
               </View>
               <View className="text-center">
-                <View className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center mb-1">
+                <View className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-1">
                   <Text className="block text-2xl">🏆</Text>
                 </View>
-                <Text className="block text-xs text-stone-500">默契大师</Text>
+                <Text className="block text-xs text-gray-500">默契大师</Text>
               </View>
               <View className="text-center">
-                <View className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center mb-1">
-                  <Text className="block text-2xl text-stone-400">🔒</Text>
+                <View className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-1">
+                  <Text className="block text-2xl text-gray-400">🔒</Text>
                 </View>
-                <Text className="block text-xs text-stone-400">待解锁</Text>
+                <Text className="block text-xs text-gray-400">待解锁</Text>
               </View>
             </View>
           </CardContent>
@@ -250,7 +250,7 @@ const ProfilePage: FC = () => {
 
       {/* 我的档案入口 */}
       <View className="p-4">
-        <Card className="shadow-sm border-0">
+        <Card className="shadow border-0">
           <CardContent className="p-4">
             <View 
               className="flex items-center gap-3"
@@ -260,10 +260,10 @@ const ProfilePage: FC = () => {
                 <FileText size={24} color="#fff" />
               </View>
               <View className="flex-1">
-                <Text className="block font-semibold text-stone-800">我的档案</Text>
-                <Text className="block text-sm text-stone-500">完善个人画像，获得更精准的AI建议</Text>
+                <Text className="block font-semibold text-gray-800">我的档案</Text>
+                <Text className="block text-sm text-gray-500">完善个人画像，获得更精准的AI建议</Text>
               </View>
-              <ChevronRight size={20} color="#A8A29E" />
+              <ChevronRight size={20} color="#9CA3AF" />
             </View>
           </CardContent>
         </Card>
@@ -271,19 +271,19 @@ const ProfilePage: FC = () => {
 
       {/* 功能菜单 */}
       <View className="p-4">
-        <Card className="shadow-sm border-0">
+        <Card className="shadow border-0">
           <CardContent className="p-0">
             {menuItems.map((item, index) => (
               <View key={index}>
                 <View className="flex items-center gap-3 p-4">
-                  <View className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center">
-                    <item.icon size={20} color="#44403C" />
+                  <View className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+                    <item.icon size={20} color="#374151" />
                   </View>
                   <View className="flex-1">
-                    <Text className="block font-medium text-stone-800">{item.title}</Text>
-                    <Text className="block text-sm text-stone-500">{item.desc}</Text>
+                    <Text className="block font-medium text-gray-800">{item.title}</Text>
+                    <Text className="block text-sm text-gray-500">{item.desc}</Text>
                   </View>
-                  <ChevronRight size={20} color="#A8A29E" />
+                  <ChevronRight size={20} color="#9CA3AF" />
                 </View>
                 {index < menuItems.length - 1 && (
                   <View className="ml-16">
@@ -298,7 +298,7 @@ const ProfilePage: FC = () => {
 
       {/* 版本信息 */}
       <View className="p-4 text-center">
-        <Text className="block text-xs text-stone-400">心动助手 v1.0.0</Text>
+        <Text className="block text-xs text-gray-400">心动助手 v1.0.0</Text>
       </View>
     </View>
   )

@@ -97,8 +97,8 @@ const KnowledgeScenarioPage: FC = () => {
 
       <ScrollView scrollY style={{ flex: 1 }}>
         {/* 搜索栏 + 进度 */}
-        <View className="px-4 pt-3 pb-2 bg-white border-b border-orange-100">
-          <View className="bg-stone-50 rounded-xl px-3 py-2">
+        <View className="px-4 pt-3 pb-2 bg-white border-b">
+          <View className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
             <Input
               placeholder="搜索场景、案例..."
               value={searchQuery}
@@ -108,14 +108,14 @@ const KnowledgeScenarioPage: FC = () => {
           </View>
           {!searchQuery && (
             <View className="flex items-center gap-2 mt-3">
-              <BookOpen size={14} color="#78716C" />
-              <Text className="block text-xs text-stone-500">
+              <BookOpen size={14} color="#6B7280" />
+              <Text className="block text-xs text-gray-500">
                 已阅读 {readCount}/{totalCases} 个案例
               </Text>
               <View className="flex-1">
                 <Progress value={readProgress} className="h-1" />
               </View>
-              <Text className="block text-xs text-stone-400">{readProgress}%</Text>
+              <Text className="block text-xs text-gray-400">{readProgress}%</Text>
             </View>
           )}
         </View>
@@ -124,8 +124,8 @@ const KnowledgeScenarioPage: FC = () => {
         <View className="p-4">
           {filteredScenarios.length === 0 && (
             <View className="flex items-center justify-center py-20">
-              <Search size={32} color="#A8A29E" />
-              <Text className="block text-sm text-stone-400 mt-3">
+              <Search size={32} color="#9CA3AF" />
+              <Text className="block text-sm text-gray-400 mt-3">
                 没有找到匹配的场景
               </Text>
             </View>
@@ -139,7 +139,7 @@ const KnowledgeScenarioPage: FC = () => {
             const isScenarioComplete = scenarioReadCount === scenarioTotal
 
             return (
-              <Card key={scenario.id} className="mb-3 overflow-hidden border-orange-100">
+              <Card key={scenario.id} className="mb-3 overflow-hidden">
                 {/* 场景标题 */}
                 <Collapsible
                   open={isExpanded}
@@ -153,7 +153,7 @@ const KnowledgeScenarioPage: FC = () => {
                         </View>
                         <View>
                           <View className="flex items-center gap-2">
-                            <Text className="block text-base font-semibold text-stone-900">
+                            <Text className="block text-base font-semibold text-gray-900">
                               {scenario.title}
                             </Text>
                             {isScenarioComplete && (
@@ -162,19 +162,19 @@ const KnowledgeScenarioPage: FC = () => {
                               </Badge>
                             )}
                           </View>
-                          <Text className="block text-xs text-stone-500 mt-1">
+                          <Text className="block text-xs text-gray-500 mt-1">
                             {scenario.description}
                           </Text>
                         </View>
                       </View>
                       <View className="flex items-center gap-2">
-                        <Badge variant="secondary" className="bg-stone-100 text-stone-600 text-xs px-2 py-0 border-0">
+                        <Badge variant="secondary" className="bg-gray-100 text-gray-600 text-xs px-2 py-0 border-0">
                           {scenarioReadCount}/{scenarioTotal}
                         </Badge>
                         {isExpanded ? (
-                          <ChevronUp size={18} color="#A8A29E" />
+                          <ChevronUp size={18} color="#9CA3AF" />
                         ) : (
-                          <ChevronDown size={18} color="#A8A29E" />
+                          <ChevronDown size={18} color="#9CA3AF" />
                         )}
                       </View>
                     </View>
@@ -194,28 +194,28 @@ const KnowledgeScenarioPage: FC = () => {
                             >
                               {/* 案例标题 */}
                               <CollapsibleTrigger>
-                                <View className="bg-stone-50 rounded-xl p-3">
+                                <View className="bg-gray-50 border border-gray-200 rounded-xl p-3">
                                   <View className="flex items-center justify-between">
                                     <View className="flex items-center gap-2">
                                       <View className={`w-6 h-6 rounded-full flex items-center justify-center ${isRead ? 'bg-emerald-100' : 'bg-white'}`}>
                                         {isRead ? (
                                           <Check size={12} color="#4ECB71" />
                                         ) : (
-                                          <Text className="block text-xs text-stone-500">{index + 1}</Text>
+                                          <Text className="block text-xs text-gray-500">{index + 1}</Text>
                                         )}
                                       </View>
-                                      <Text className={`block text-sm font-medium ${isRead ? 'text-stone-600' : 'text-stone-800'}`}>
+                                      <Text className={`block text-sm font-medium ${isRead ? 'text-gray-600' : 'text-gray-800'}`}>
                                         {dialogueCase.scene}
                                       </Text>
                                     </View>
                                     {isCaseExpanded ? (
-                                      <ChevronUp size={14} color="#A8A29E" />
+                                      <ChevronUp size={14} color="#9CA3AF" />
                                     ) : (
-                                      <ChevronDown size={14} color="#A8A29E" />
+                                      <ChevronDown size={14} color="#9CA3AF" />
                                     )}
                                   </View>
                                   {!isCaseExpanded && (
-                                    <Text className="block text-xs text-stone-500 mt-2 ml-8">
+                                    <Text className="block text-xs text-gray-500 mt-2 ml-8">
                                       {dialogueCase.context}
                                     </Text>
                                   )}
@@ -224,11 +224,11 @@ const KnowledgeScenarioPage: FC = () => {
 
                               {/* 展开的案例详情 */}
                               <CollapsibleContent>
-                                <View className="bg-stone-50 rounded-xl p-4 mt-2">
+                                <View className="bg-gray-50 border border-gray-200 rounded-xl p-4 mt-2">
                                   {/* 场景背景 */}
                                   <View className="flex items-center gap-1 mb-3">
-                                    <View className="w-1 h-1 rounded-full bg-stone-400" />
-                                    <Text className="block text-xs text-stone-500">
+                                    <View className="w-1 h-1 rounded-full bg-gray-400" />
+                                    <Text className="block text-xs text-gray-500">
                                       {dialogueCase.context}
                                     </Text>
                                   </View>
@@ -236,11 +236,11 @@ const KnowledgeScenarioPage: FC = () => {
                                   {/* TA说的话 */}
                                   <View className="mb-4">
                                     <View className="flex items-start gap-2 mb-1">
-                                      <View className="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0">
-                                        <Text className="block text-xs text-stone-600 font-medium">TA</Text>
+                                      <View className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                        <Text className="block text-xs text-gray-600 font-medium">TA</Text>
                                       </View>
                                       <View className="flex-1 bg-white rounded-xl rounded-tl-sm p-3">
-                                        <Text className="block text-sm text-stone-800">{dialogueCase.taSays}</Text>
+                                        <Text className="block text-sm text-gray-800">{dialogueCase.taSays}</Text>
                                       </View>
                                     </View>
                                   </View>
@@ -252,7 +252,7 @@ const KnowledgeScenarioPage: FC = () => {
                                       <Text className="block text-xs font-medium text-red-500">错误回复</Text>
                                     </View>
                                     <View className="bg-red-50 rounded-xl p-3 border border-red-100">
-                                      <Text className="block text-sm text-stone-700">{dialogueCase.wrongReply}</Text>
+                                      <Text className="block text-sm text-gray-700">{dialogueCase.wrongReply}</Text>
                                     </View>
                                   </View>
 
@@ -262,15 +262,15 @@ const KnowledgeScenarioPage: FC = () => {
                                       <Check size={14} color="#4ECB71" />
                                       <Text className="block text-xs font-medium text-green-600">正确回复</Text>
                                     </View>
-                                    <View className="bg-green-50 rounded-xl p-3 border border-emerald-100">
-                                      <Text className="block text-sm text-stone-700">{dialogueCase.rightReply}</Text>
+                                    <View className="bg-green-50 border border-green-200 rounded-xl p-3 border border-emerald-100">
+                                      <Text className="block text-sm text-gray-700">{dialogueCase.rightReply}</Text>
                                     </View>
                                   </View>
 
                                   {/* 解析 */}
                                   <View className="bg-white rounded-xl p-3">
-                                    <Text className="block text-xs font-medium text-stone-500 mb-1">解析</Text>
-                                    <Text className="block text-sm text-stone-700">{dialogueCase.analysis}</Text>
+                                    <Text className="block text-xs font-medium text-gray-500 mb-1">解析</Text>
+                                    <Text className="block text-sm text-gray-700">{dialogueCase.analysis}</Text>
                                   </View>
                                 </View>
                               </CollapsibleContent>
@@ -288,7 +288,7 @@ const KnowledgeScenarioPage: FC = () => {
 
         {/* 底部提示 */}
         <View className="px-4 pb-8">
-          <Text className="block text-xs text-stone-400 text-center">
+          <Text className="block text-xs text-gray-400 text-center">
             更多场景演练内容持续更新中...
           </Text>
         </View>

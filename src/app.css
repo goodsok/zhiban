@@ -11,34 +11,34 @@ page {
 :root,
 page,
 root-portal {
-  --background: #FFF9F0;
-  --foreground: #1C1917;
+  --background: #F7F8FA;
+  --foreground: #111827;
   --card: #ffffff;
-  --card-foreground: #1C1917;
+  --card-foreground: #111827;
   --popover: #ffffff;
-  --popover-foreground: #1C1917;
+  --popover-foreground: #111827;
   --primary: #4ECB71;
   --primary-foreground: #ffffff;
-  --secondary: #F5F5F4;
-  --secondary-foreground: #44403C;
-  --muted: #F5F5F4;
-  --muted-foreground: #78716C;
+  --secondary: #F1F2F5;
+  --secondary-foreground: #374151;
+  --muted: #F1F2F5;
+  --muted-foreground: #6B7280;
   --accent: #ECFDF5;
   --accent-foreground: #2E9E5A;
   --destructive: #E87461;
   --destructive-foreground: #ffffff;
-  --border: #E7E5E4;
-  --input: #E7E5E4;
+  --border: #EBEDF0;
+  --input: #EBEDF0;
   --ring: #4ECB71;
   --sidebar: #ffffff;
-  --sidebar-foreground: #1C1917;
+  --sidebar-foreground: #111827;
   --sidebar-primary: #4ECB71;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #ECFDF5;
   --sidebar-accent-foreground: #2E9E5A;
-  --sidebar-border: #E7E5E4;
+  --sidebar-border: #EBEDF0;
   --sidebar-ring: #4ECB71;
-  --surface: #FFF9F0;
+  --surface: #ffffff;
   --code: var(--surface);
   --code-highlight: #F5F5F4;
   --code-number: #A8A29E;

@@ -40,11 +40,11 @@ const MomentsPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
-      <View className="bg-white px-4 py-6 border-b border-orange-100">
-        <Text className="block text-xl font-bold text-stone-900">朋友圈助手</Text>
-        <Text className="block text-sm text-stone-500 mt-1">
+      <View className="bg-white px-4 py-6 border-b">
+        <Text className="block text-xl font-bold text-gray-900">朋友圈助手</Text>
+        <Text className="block text-sm text-gray-500 mt-1">
           打造有吸引力的朋友圈形象
         </Text>
       </View>

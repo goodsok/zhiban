@@ -126,24 +126,24 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
   const hasAnyInput = responseSpeed || activeTimeSlots.length > 0 || topicPreferences.length > 0 || communicationStyleOnline || communicationStyleOffline || emotionalExpression || socialInitiative
 
   return (
-    <View className="bg-white rounded-xl border border-orange-100">
+    <View className="bg-white rounded-xl">
       {/* 回复速度 */}
-      <View className="p-4 border-b border-orange-100">
-        <Text className="block text-sm font-semibold text-stone-900 mb-3">Ta通常多久回复你？</Text>
+      <View className="p-4 border-b">
+        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta通常多久回复你？</Text>
         <View className="space-y-2">
           {responseSpeedOptions.map((option) => (
             <View
               key={option.value}
               className={`flex items-center justify-between p-3 rounded-lg border ${
                 responseSpeed === option.value 
-                  ? 'border-black bg-stone-50' 
-                  : 'border-orange-100'
+                  ? 'border-green-500 bg-green-50' 
+                  : 'border-gray-200'
               }`}
               onClick={() => setResponseSpeed(option.value)}
             >
               <View>
-                <Text className="block text-sm text-stone-800">{option.label}</Text>
-                <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                <Text className="block text-sm text-gray-800">{option.label}</Text>
+                <Text className="block text-xs text-gray-400">{option.desc}</Text>
               </View>
               {responseSpeed === option.value && (
                 <Check size={16} color="#000" />
@@ -154,56 +154,56 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
       </View>
 
       {/* 活跃时段 */}
-      <View className="p-4 border-b border-orange-100">
-        <Text className="block text-sm font-semibold text-stone-900 mb-3">Ta通常什么时候活跃？（可多选）</Text>
+      <View className="p-4 border-b">
+        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta通常什么时候活跃？（可多选）</Text>
         <View className="flex flex-wrap gap-2">
           {timeSlotOptions.map((option) => (
             <View
               key={option.value}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
                 activeTimeSlots.includes(option.value)
-                  ? 'border-black bg-stone-50'
-                  : 'border-orange-100'
+                  ? 'border-green-500 bg-green-50'
+                  : 'border-gray-200'
               }`}
               onClick={() => toggleTimeSlot(option.value)}
             >
               <Text className="block text-base">{option.icon}</Text>
-              <Text className="block text-sm text-stone-700">{option.label}</Text>
+              <Text className="block text-sm text-gray-700">{option.label}</Text>
             </View>
           ))}
         </View>
       </View>
 
       {/* 话题偏好 */}
-      <View className="p-4 border-b border-orange-100">
-        <Text className="block text-sm font-semibold text-stone-900 mb-3">Ta喜欢聊什么话题？（可多选）</Text>
+      <View className="p-4 border-b">
+        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta喜欢聊什么话题？（可多选）</Text>
         <View className="flex flex-wrap gap-2">
           {topicOptions.map((option) => (
             <View
               key={option.value}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
                 topicPreferences.includes(option.value)
-                  ? 'border-black bg-stone-50'
-                  : 'border-orange-100'
+                  ? 'border-green-500 bg-green-50'
+                  : 'border-gray-200'
               }`}
               onClick={() => toggleTopic(option.value)}
             >
               <Text className="block text-base">{option.icon}</Text>
-              <Text className="block text-sm text-stone-700">{option.label}</Text>
+              <Text className="block text-sm text-gray-700">{option.label}</Text>
             </View>
           ))}
         </View>
       </View>
 
       {/* 线上沟通风格 */}
-      <View className="p-4 border-b border-orange-100">
+      <View className="p-4 border-b">
         <View className="flex items-center gap-2 mb-1">
-          <Text className="block text-sm font-semibold text-stone-900">线上沟通风格</Text>
+          <Text className="block text-sm font-semibold text-gray-900">线上沟通风格</Text>
           <View className="px-2 py-1 bg-blue-50 rounded">
             <Text className="block text-xs text-blue-600">微信/电话</Text>
           </View>
         </View>
-        <Text className="block text-xs text-stone-400 mb-3">Ta在线上（打字聊天/语音）时说话风格是怎样的？</Text>
+        <Text className="block text-xs text-gray-400 mb-3">Ta在线上（打字聊天/语音）时说话风格是怎样的？</Text>
         <View className="space-y-2">
           {communicationStyleOptions.map((option) => (
             <View
@@ -211,13 +211,13 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
               className={`flex items-center justify-between p-3 rounded-lg border ${
                 communicationStyleOnline === option.value
                   ? 'border-blue-500 bg-blue-50'
-                  : 'border-orange-100'
+                  : 'border-gray-200'
               }`}
               onClick={() => setCommunicationStyleOnline(option.value)}
             >
               <View>
-                <Text className="block text-sm text-stone-800">{option.label}</Text>
-                <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                <Text className="block text-sm text-gray-800">{option.label}</Text>
+                <Text className="block text-xs text-gray-400">{option.desc}</Text>
               </View>
               {communicationStyleOnline === option.value && (
                 <Check size={16} color="#3b82f6" />
@@ -228,28 +228,28 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
       </View>
 
       {/* 线下沟通风格 */}
-      <View className="p-4 border-b border-orange-100">
+      <View className="p-4 border-b">
         <View className="flex items-center gap-2 mb-1">
-          <Text className="block text-sm font-semibold text-stone-900">线下沟通风格</Text>
-          <View className="px-2 py-1 bg-orange-50 rounded">
+          <Text className="block text-sm font-semibold text-gray-900">线下沟通风格</Text>
+          <View className="px-2 py-1 bg-white rounded">
             <Text className="block text-xs text-orange-600">见面时</Text>
           </View>
         </View>
-        <Text className="block text-xs text-stone-400 mb-3">Ta在线下（面对面）时说话风格是怎样的？</Text>
+        <Text className="block text-xs text-gray-400 mb-3">Ta在线下（面对面）时说话风格是怎样的？</Text>
         <View className="space-y-2">
           {communicationStyleOptions.map((option) => (
             <View
               key={option.value}
               className={`flex items-center justify-between p-3 rounded-lg border ${
                 communicationStyleOffline === option.value
-                  ? 'border-orange-500 bg-orange-50'
-                  : 'border-orange-100'
+                  ? 'border-green-500 bg-white'
+                  : 'border-gray-200'
               }`}
               onClick={() => setCommunicationStyleOffline(option.value)}
             >
               <View>
-                <Text className="block text-sm text-stone-800">{option.label}</Text>
-                <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                <Text className="block text-sm text-gray-800">{option.label}</Text>
+                <Text className="block text-xs text-gray-400">{option.desc}</Text>
               </View>
               {communicationStyleOffline === option.value && (
                 <Check size={16} color="#f97316" />
@@ -269,22 +269,22 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
       )}
 
       {/* 情感表达 */}
-      <View className="p-4 border-b border-orange-100">
-        <Text className="block text-sm font-semibold text-stone-900 mb-3">Ta的情感表达程度如何？</Text>
+      <View className="p-4 border-b">
+        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta的情感表达程度如何？</Text>
         <View className="space-y-2">
           {emotionalExpressionOptions.map((option) => (
             <View
               key={option.value}
               className={`flex items-center justify-between p-3 rounded-lg border ${
                 emotionalExpression === option.value
-                  ? 'border-black bg-stone-50'
-                  : 'border-orange-100'
+                  ? 'border-green-500 bg-green-50'
+                  : 'border-gray-200'
               }`}
               onClick={() => setEmotionalExpression(option.value)}
             >
               <View>
-                <Text className="block text-sm text-stone-800">{option.label}</Text>
-                <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                <Text className="block text-sm text-gray-800">{option.label}</Text>
+                <Text className="block text-xs text-gray-400">{option.desc}</Text>
               </View>
               {emotionalExpression === option.value && (
                 <Check size={16} color="#000" />
@@ -295,22 +295,22 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
       </View>
 
       {/* 社交主动性 */}
-      <View className="p-4 border-b border-orange-100">
-        <Text className="block text-sm font-semibold text-stone-900 mb-3">Ta在社交中主动性如何？</Text>
+      <View className="p-4 border-b">
+        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta在社交中主动性如何？</Text>
         <View className="space-y-2">
           {socialInitiativeOptions.map((option) => (
             <View
               key={option.value}
               className={`flex items-center justify-between p-3 rounded-lg border ${
                 socialInitiative === option.value
-                  ? 'border-black bg-stone-50'
-                  : 'border-orange-100'
+                  ? 'border-green-500 bg-green-50'
+                  : 'border-gray-200'
               }`}
               onClick={() => setSocialInitiative(option.value)}
             >
               <View>
-                <Text className="block text-sm text-stone-800">{option.label}</Text>
-                <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                <Text className="block text-sm text-gray-800">{option.label}</Text>
+                <Text className="block text-xs text-gray-400">{option.desc}</Text>
               </View>
               {socialInitiative === option.value && (
                 <Check size={16} color="#000" />

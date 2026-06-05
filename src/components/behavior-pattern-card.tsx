@@ -80,7 +80,7 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
   const getInteractionStyle = () => {
     if (pattern.initiativeRate > 60) return { label: '主动型', color: 'text-green-600' }
     if (pattern.initiativeRate < 40) return { label: '被动型', color: 'text-amber-600' }
-    return { label: '平衡型', color: 'text-stone-600' }
+    return { label: '平衡型', color: 'text-gray-600' }
   }
 
   // 线上线下是否有差异
@@ -90,34 +90,34 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
   const style = getInteractionStyle()
 
   return (
-    <View className="bg-white rounded-xl border border-orange-100 p-4">
+    <View className="bg-white rounded-xl p-4">
       <View className="flex items-center justify-between mb-4">
-        <Text className="block text-sm font-semibold text-stone-900">行为模式</Text>
+        <Text className="block text-sm font-semibold text-gray-900">行为模式</Text>
         <View className="flex items-center gap-1">
-          <TrendingUp size={12} color="#78716C" />
-          <Text className="block text-xs text-stone-500">{pattern.totalInteractions}次互动</Text>
+          <TrendingUp size={12} color="#6B7280" />
+          <Text className="block text-xs text-gray-500">{pattern.totalInteractions}次互动</Text>
         </View>
       </View>
 
       <View className="grid grid-cols-2 gap-3 mb-4">
         {/* 回复时间 */}
-        <View className="bg-stone-50 rounded-lg p-3">
+        <View className="bg-gray-50 border border-gray-200 rounded-lg p-3">
           <View className="flex items-center gap-1.5 mb-1">
-            <Clock size={14} color="#78716C" />
-            <Text className="block text-xs text-stone-500">平均回复</Text>
+            <Clock size={14} color="#6B7280" />
+            <Text className="block text-xs text-gray-500">平均回复</Text>
           </View>
-          <Text className="block text-lg font-semibold text-stone-800">
+          <Text className="block text-lg font-semibold text-gray-800">
             {formatResponseTime(pattern.avgResponseTime)}
           </Text>
         </View>
 
         {/* 消息长度 */}
-        <View className="bg-stone-50 rounded-lg p-3">
+        <View className="bg-gray-50 border border-gray-200 rounded-lg p-3">
           <View className="flex items-center gap-1.5 mb-1">
-            <MessageCircle size={14} color="#78716C" />
-            <Text className="block text-xs text-stone-500">平均字数</Text>
+            <MessageCircle size={14} color="#6B7280" />
+            <Text className="block text-xs text-gray-500">平均字数</Text>
           </View>
-          <Text className="block text-lg font-semibold text-stone-800">
+          <Text className="block text-lg font-semibold text-gray-800">
             {pattern.messageLengthAvg || '--'}
           </Text>
         </View>
@@ -125,8 +125,8 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
 
       {/* 线上/线下沟通风格 */}
       {hasAnyStyle && (
-        <View className="mb-4 bg-stone-50 rounded-lg p-3">
-          <Text className="block text-xs text-stone-500 mb-2">沟通风格</Text>
+        <View className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
+          <Text className="block text-xs text-gray-500 mb-2">沟通风格</Text>
           <View className="flex items-start gap-3">
             {/* 线上 */}
             <View className="flex-1 bg-white rounded-lg p-3 border border-blue-100">
@@ -134,17 +134,17 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
                 <Wifi size={12} color="#3b82f6" />
                 <Text className="block text-xs text-blue-600 font-medium">线上</Text>
               </View>
-              <Text className="block text-sm font-semibold text-stone-800">
+              <Text className="block text-sm font-semibold text-gray-800">
                 {pattern.communicationStyleOnline ? styleLabels[pattern.communicationStyleOnline] || pattern.communicationStyleOnline : '未填写'}
               </Text>
             </View>
             {/* 线下 */}
-            <View className="flex-1 bg-white rounded-lg p-3 border border-orange-100">
+            <View className="flex-1 bg-white rounded-lg p-3">
               <View className="flex items-center gap-1 mb-1">
                 <MapPin size={12} color="#f97316" />
                 <Text className="block text-xs text-orange-600 font-medium">线下</Text>
               </View>
-              <Text className="block text-sm font-semibold text-stone-800">
+              <Text className="block text-sm font-semibold text-gray-800">
                 {pattern.communicationStyleOffline ? styleLabels[pattern.communicationStyleOffline] || pattern.communicationStyleOffline : '未填写'}
               </Text>
             </View>
@@ -159,33 +159,33 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
 
       {/* 行为指标 */}
       <View className="flex flex-wrap gap-2 mb-4">
-        <View className="flex items-center gap-2 bg-stone-50 rounded-full px-3 py-1">
-          <Smile size={12} color="#78716C" />
-          <Text className="block text-xs text-stone-600">表情 {pattern.emojiUsageRate}%</Text>
+        <View className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-3 py-1">
+          <Smile size={12} color="#6B7280" />
+          <Text className="block text-xs text-gray-600">表情 {pattern.emojiUsageRate}%</Text>
         </View>
-        <View className="flex items-center gap-2 bg-stone-50 rounded-full px-3 py-1">
-          <MessageCircle size={12} color="#78716C" />
-          <Text className="block text-xs text-stone-600">提问 {pattern.questionRate}%</Text>
+        <View className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-3 py-1">
+          <MessageCircle size={12} color="#6B7280" />
+          <Text className="block text-xs text-gray-600">提问 {pattern.questionRate}%</Text>
         </View>
-        <View className="flex items-center gap-2 bg-stone-50 rounded-full px-3 py-1">
-          <Send size={12} color="#78716C" />
-          <Text className="block text-xs text-stone-600">主动 {pattern.initiativeRate}%</Text>
+        <View className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-3 py-1">
+          <Send size={12} color="#6B7280" />
+          <Text className="block text-xs text-gray-600">主动 {pattern.initiativeRate}%</Text>
         </View>
       </View>
 
       {/* 互动风格 */}
-      <View className="flex items-center justify-between py-2 border-t border-orange-100">
-        <Text className="block text-xs text-stone-500">互动风格</Text>
+      <View className="flex items-center justify-between py-2 border-t">
+        <Text className="block text-xs text-gray-500">互动风格</Text>
         <Text className={`block text-sm font-semibold ${style.color}`}>{style.label}</Text>
       </View>
 
       {/* 活跃时段 */}
       {getActiveHours().length > 0 && (
-        <View className="flex items-center justify-between py-2 border-t border-orange-100">
-          <Text className="block text-xs text-stone-500">活跃时段</Text>
+        <View className="flex items-center justify-between py-2 border-t">
+          <Text className="block text-xs text-gray-500">活跃时段</Text>
           <View className="flex gap-1">
             {getActiveHours().map((h, i) => (
-              <Badge key={i} className="bg-stone-100 text-stone-600 text-xs">{h}</Badge>
+              <Badge key={i} className="bg-gray-100 text-gray-600 text-xs">{h}</Badge>
             ))}
           </View>
         </View>
@@ -193,11 +193,11 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
 
       {/* 话题偏好 */}
       {getTopTopics().length > 0 && (
-        <View className="flex items-center justify-between py-2 border-t border-orange-100">
-          <Text className="block text-xs text-stone-500">话题偏好</Text>
+        <View className="flex items-center justify-between py-2 border-t">
+          <Text className="block text-xs text-gray-500">话题偏好</Text>
           <View className="flex gap-1">
             {getTopTopics().map((t, i) => (
-              <Badge key={i} className="bg-stone-100 text-stone-600 text-xs">{t}</Badge>
+              <Badge key={i} className="bg-gray-100 text-gray-600 text-xs">{t}</Badge>
             ))}
           </View>
         </View>
@@ -205,13 +205,13 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
 
       {/* 情绪关键词 */}
       {pattern.emotionalKeywords.length > 0 && (
-        <View className="pt-3 mt-2 border-t border-orange-100">
-          <Text className="block text-xs text-stone-500 mb-2">情绪关键词</Text>
+        <View className="pt-3 mt-2 border-t">
+          <Text className="block text-xs text-gray-500 mb-2">情绪关键词</Text>
           <View className="flex flex-wrap gap-2">
             {pattern.emotionalKeywords.slice(0, 6).map((keyword, i) => (
               <View 
                 key={i} 
-                className="px-2 py-1 bg-stone-50 rounded text-xs text-stone-600"
+                className="px-2 py-1 bg-gray-50 rounded text-xs text-gray-600"
               >
                 {keyword}
               </View>

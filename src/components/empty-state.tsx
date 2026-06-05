@@ -20,9 +20,9 @@ const EmptyState: FC<EmptyStateProps> = ({ message, description, actionLabel, on
       {icon && (
         <View className="mb-4 opacity-40">{icon}</View>
       )}
-      <Text className="block text-stone-500 text-center mb-2">{message}</Text>
+      <Text className="block text-gray-500 text-center mb-2">{message}</Text>
       {description && (
-        <Text className="block text-xs text-stone-400 text-center mb-6">{description}</Text>
+        <Text className="block text-xs text-gray-400 text-center mb-6">{description}</Text>
       )}
       {actionLabel && onAction && (
         <Button

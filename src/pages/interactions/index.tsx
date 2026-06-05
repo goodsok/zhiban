@@ -166,7 +166,7 @@ export default function InteractionsPage() {
   }
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title="互动记录" />
 
       {/* 能量概览卡片 */}
@@ -181,11 +181,11 @@ export default function InteractionsPage() {
                 <View className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FEF3C7' }}>
                   <Sparkles size={16} color="#F59E0B" />
                 </View>
-                <Text className="block text-sm font-medium text-stone-900">关系能量</Text>
+                <Text className="block text-sm font-medium text-gray-900">关系能量</Text>
               </View>
               <View className="flex items-center gap-1">
                 {energy.trend === 'rising' && <TrendingUp size={14} color="#4ECB71" />}
-                <Text className="block text-xs text-stone-500">
+                <Text className="block text-xs text-gray-500">
                   {energy.trend === 'rising' ? '上升中' : energy.trend === 'declining' ? '下降中' : '稳定'}
                 </Text>
               </View>
@@ -194,12 +194,12 @@ export default function InteractionsPage() {
             <View className="flex items-end justify-between">
               <View className="flex items-end gap-2">
                 <Text className="block text-4xl font-bold text-amber-600">{energy.current}</Text>
-                <Text className="block text-sm text-stone-400 pb-1">/ 100</Text>
+                <Text className="block text-sm text-gray-400 pb-1">/ 100</Text>
               </View>
               <View className="text-right">
-                <Text className="block text-xs text-stone-400">累计互动</Text>
-                <Text className="block text-lg font-semibold text-stone-900">{energy.totalInteractions}</Text>
-                <Text className="block text-xs text-stone-400">次</Text>
+                <Text className="block text-xs text-gray-400">累计互动</Text>
+                <Text className="block text-lg font-semibold text-gray-900">{energy.totalInteractions}</Text>
+                <Text className="block text-xs text-gray-400">次</Text>
               </View>
             </View>
           </View>
@@ -207,7 +207,7 @@ export default function InteractionsPage() {
       )}
 
       {/* 类型筛选 - ScrollView 横向滚动 */}
-      <View className="bg-white border-b border-orange-100">
+      <View className="bg-white border-b">
         <ScrollView scrollX className="flex flex-row px-4 py-3 gap-2" style={{ whiteSpace: 'nowrap' }}>
           <View
             className="flex-shrink-0 px-4 py-2 rounded-full"
@@ -238,24 +238,24 @@ export default function InteractionsPage() {
       <View className="p-4">
         {loading ? (
           <View className="flex items-center justify-center py-20">
-            <Text className="block text-stone-400">加载中...</Text>
+            <Text className="block text-gray-400">加载中...</Text>
           </View>
         ) : filteredEvents.length === 0 ? (
           <View className="flex flex-col items-center justify-center py-20">
-            <View className="w-20 h-20 rounded-full bg-stone-100 flex items-center justify-center mb-4">
+            <View className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
               <Calendar size={32} color="#D1D5DB" />
             </View>
-            <Text className="block text-base text-stone-500 mb-2">暂无互动记录</Text>
-            <Text className="block text-sm text-stone-400 mb-6">点击下方按钮记录你们的互动</Text>
+            <Text className="block text-base text-gray-500 mb-2">暂无互动记录</Text>
+            <Text className="block text-sm text-gray-400 mb-6">点击下方按钮记录你们的互动</Text>
           </View>
         ) : (
           Object.entries(groupedEvents).map(([date, dateEvents]) => (
             <View key={date} className="mb-6">
               {/* 日期标题 */}
               <View className="flex items-center gap-2 mb-3 px-1">
-                <Text className="block text-sm font-medium text-stone-500">{date}</Text>
-                <View className="flex-1 h-px bg-stone-200" />
-                <Text className="block text-xs text-stone-400">{dateEvents.length}次</Text>
+                <Text className="block text-sm font-medium text-gray-500">{date}</Text>
+                <View className="flex-1 h-px bg-gray-200" />
+                <Text className="block text-xs text-gray-400">{dateEvents.length}次</Text>
               </View>
 
               {/* 该日期的事件列表 */}
@@ -267,7 +267,7 @@ export default function InteractionsPage() {
                 return (
                   <Card
                     key={event.id}
-                    className="mb-3 border border-orange-100 overflow-hidden"
+                    className="mb-3 overflow-hidden"
                     onClick={() => goEventDetail(event.id)}
                   >
                     <CardContent className="p-0">
@@ -292,13 +292,13 @@ export default function InteractionsPage() {
                                 {typeConfig.label}
                               </Text>
                             </View>
-                            <Text className="block text-xs text-stone-400">
+                            <Text className="block text-xs text-gray-400">
                               {formatTime(event.startedAt)}
                             </Text>
                           </View>
 
                           {/* 标题 */}
-                          <Text className="block text-base font-medium text-stone-900 mb-2">
+                          <Text className="block text-base font-medium text-gray-900 mb-2">
                             {event.title || '互动记录'}
                           </Text>
 
@@ -306,26 +306,26 @@ export default function InteractionsPage() {
                           <View className="flex flex-row flex-wrap gap-3 mb-2">
                             {event.durationMinutes ? (
                               <View className="flex items-center gap-1">
-                                <Clock size={12} color="#A8A29E" />
-                                <Text className="block text-xs text-stone-500">{formatDuration(event.durationMinutes)}</Text>
+                                <Clock size={12} color="#9CA3AF" />
+                                <Text className="block text-xs text-gray-500">{formatDuration(event.durationMinutes)}</Text>
                               </View>
                             ) : null}
                             {event.location ? (
                               <View className="flex items-center gap-1">
-                                <MapPin size={12} color="#A8A29E" />
-                                <Text className="block text-xs text-stone-500">{event.location}</Text>
+                                <MapPin size={12} color="#9CA3AF" />
+                                <Text className="block text-xs text-gray-500">{event.location}</Text>
                               </View>
                             ) : null}
                             {moodConfig ? (
                               <View className="flex items-center gap-1">
                                 <Text className="block text-xs">{moodConfig.emoji}</Text>
-                                <Text className="block text-xs text-stone-500">{moodConfig.label}</Text>
+                                <Text className="block text-xs text-gray-500">{moodConfig.label}</Text>
                               </View>
                             ) : null}
                             {event.chatRecordIds && event.chatRecordIds.length > 0 ? (
                               <View className="flex items-center gap-1">
-                                <Image size={12} color="#A8A29E" />
-                                <Text className="block text-xs text-stone-500">{event.chatRecordIds.length}条聊天记录</Text>
+                                <Image size={12} color="#9CA3AF" />
+                                <Text className="block text-xs text-gray-500">{event.chatRecordIds.length}条聊天记录</Text>
                               </View>
                             ) : null}
                           </View>
@@ -335,14 +335,14 @@ export default function InteractionsPage() {
                             <View className="flex flex-row flex-wrap gap-1 mb-2">
                               {event.activities.map((activity, idx) => (
                                 <View key={idx} className="px-2 py-1 rounded-full" style={{ backgroundColor: '#f3f4f6' }}>
-                                  <Text className="block text-xs text-stone-600">{activity}</Text>
+                                  <Text className="block text-xs text-gray-600">{activity}</Text>
                                 </View>
                               ))}
                             </View>
                           )}
 
                           {/* 底部：能量 + 突破 */}
-                          <View className="flex items-center justify-between pt-2 border-t border-stone-100">
+                          <View className="flex items-center justify-between pt-2 border-t border-gray-100">
                             <View className="flex items-center gap-2">
                               {event.energyChange > 0 ? (
                                 <View className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ backgroundColor: '#FFFBEB' }}>

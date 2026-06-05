@@ -206,22 +206,22 @@ const MirrorPage: FC = () => {
 
   const getTouchLevelColor = (level: string) => {
     switch (level) {
-      case 'none': return 'bg-stone-100 text-stone-500'
+      case 'none': return 'bg-gray-100 text-gray-500'
       case 'light': return 'bg-rose-50 text-rose-500'
       case 'close': return 'bg-pink-50 text-pink-600'
-      default: return 'bg-stone-100 text-stone-500'
+      default: return 'bg-gray-100 text-gray-500'
     }
   }
 
   return (
-    <View className="min-h-screen pb-8" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-8" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部进度 */}
-      <View className="bg-white px-4 pt-2 pb-3 border-b border-orange-100">
+      <View className="bg-white px-4 pt-2 pb-3 border-b">
         <View className="flex flex-row items-center justify-between mb-1">
-          <Text className="text-xs text-stone-500">
+          <Text className="text-xs text-gray-500">
             {step === 'intro' ? '准备开始' : `第${currentRound + 1}轮 / 共${actionSets.length}轮`}
           </Text>
-          <Text className="text-xs text-stone-500">
+          <Text className="text-xs text-gray-500">
             {step !== 'intro' && step !== 'result' ? getRoundName(currentRound) : ''}
           </Text>
         </View>
@@ -238,32 +238,32 @@ const MirrorPage: FC = () => {
             <View className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center mb-4">
               <Text className="text-3xl">🪞</Text>
             </View>
-            <Text className="block text-2xl font-bold text-stone-900 mb-2">双人镜像</Text>
-            <Text className="block text-sm text-stone-500 mb-4 text-center leading-relaxed">
+            <Text className="block text-2xl font-bold text-gray-900 mb-2">双人镜像</Text>
+            <Text className="block text-sm text-gray-500 mb-4 text-center leading-relaxed">
               你做我模仿，角色交替{'\n'}从表情到动作，在模仿中自然靠近
             </Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-stone-700 mb-3">游戏规则</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-3">游戏规则</Text>
                 <View className="space-y-2">
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-violet-600">1</Text>
                     </View>
-                    <Text className="text-sm text-stone-600">每轮4个动作，一人领动、一人模仿，交替进行</Text>
+                    <Text className="text-sm text-gray-600">每轮4个动作，一人领动、一人模仿，交替进行</Text>
                   </View>
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-violet-600">2</Text>
                     </View>
-                    <Text className="text-sm text-stone-600">模仿者根据相似度评分（1-3分），越像越高分</Text>
+                    <Text className="text-sm text-gray-600">模仿者根据相似度评分（1-3分），越像越高分</Text>
                   </View>
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-violet-600">3</Text>
                     </View>
-                    <Text className="text-sm text-stone-600">4轮由浅入深：表情 → 手势 → 上半身 → 互动接触</Text>
+                    <Text className="text-sm text-gray-600">4轮由浅入深：表情 → 手势 → 上半身 → 互动接触</Text>
                   </View>
                 </View>
               </CardContent>
@@ -298,14 +298,14 @@ const MirrorPage: FC = () => {
             <View className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center mb-4">
               <Sparkles size={32} color="#7c3aed" />
             </View>
-            <Text className="block text-lg font-bold text-stone-900 mb-2">把手机递给TA</Text>
-            <Text className="block text-sm text-stone-500 mb-6 text-center leading-relaxed">
+            <Text className="block text-lg font-bold text-gray-900 mb-2">把手机递给TA</Text>
+            <Text className="block text-sm text-gray-500 mb-6 text-center leading-relaxed">
               让TA看到这段话，如果愿意就点「好呀」
             </Text>
 
             <Card className="mb-6 w-full bg-gradient-to-br from-violet-50 to-purple-50 border-violet-100">
               <CardContent className="py-5">
-                <Text className="block text-base text-stone-800 leading-loose text-center font-medium">
+                <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
                   “我们来玩镜像游戏吧！{'\n'}你做什么我就跟着做，{'\n'}我做什么你也跟着做。{'\n'}{'\n'}必须一直看着对方的眼睛哦，{'\n'}看谁先笑出来。{'\n'}{'\n'}敢不敢？”
                 </Text>
               </CardContent>
@@ -326,7 +326,7 @@ const MirrorPage: FC = () => {
                 className="rounded-xl py-2 w-full"
                 onClick={() => setStep('intro')}
               >
-                <Text className="text-stone-400 text-sm">返回</Text>
+                <Text className="text-gray-400 text-sm">返回</Text>
               </Button>
             </View>
           </View>
@@ -345,7 +345,7 @@ const MirrorPage: FC = () => {
                   {isLeaderA ? 'A 领动' : 'B 领动'}
                 </Text>
               </View>
-              <Text className="text-xs text-stone-400 mx-2">|</Text>
+              <Text className="text-xs text-gray-400 mx-2">|</Text>
               <View className={`px-2 py-1 rounded-full ${getTouchLevelColor(currentAction.touchLevel)}`}>
                 <Text className="text-xs">{getTouchLevelLabel(currentAction.touchLevel)}</Text>
               </View>
@@ -355,15 +355,15 @@ const MirrorPage: FC = () => {
             <Card className="mb-4 w-full">
               <CardContent className="py-6">
                 <View className="flex flex-col items-center">
-                  <Text className="text-xs text-stone-500 mb-3">
+                  <Text className="text-xs text-gray-500 mb-3">
                     {isLeaderA ? 'A 做动作，B 来模仿' : 'B 做动作，A 来模仿'}
                   </Text>
-                  <Text className="block text-lg text-stone-800 text-center leading-relaxed font-semibold">
+                  <Text className="block text-lg text-gray-800 text-center leading-relaxed font-semibold">
                     {currentAction.text}
                   </Text>
                   <View className="flex flex-row items-center mt-3">
                     <Timer size={14} color="#9ca3af" />
-                    <Text className="text-xs text-stone-400 ml-1">{actionTimer}s</Text>
+                    <Text className="text-xs text-gray-400 ml-1">{actionTimer}s</Text>
                   </View>
                 </View>
               </CardContent>
@@ -395,7 +395,7 @@ const MirrorPage: FC = () => {
               </Button>
             ) : (
               <View className="w-full">
-                <Text className="block text-sm text-stone-500 text-center mb-3">模仿得怎么样？</Text>
+                <Text className="block text-sm text-gray-500 text-center mb-3">模仿得怎么样？</Text>
                 <View className="flex flex-row gap-3">
                   <View className="flex-1">
                     <Button
@@ -441,7 +441,7 @@ const MirrorPage: FC = () => {
                   key={idx}
                   className={`h-2 rounded-full ${
                     idx < currentActionIndex ? 'bg-violet-400' :
-                    idx === currentActionIndex ? 'bg-violet-600' : 'bg-stone-200'
+                    idx === currentActionIndex ? 'bg-violet-600' : 'bg-gray-200'
                   }`}
                   style={{ width: `${100 / currentActionSet.length}%` }}
                 />
@@ -454,16 +454,16 @@ const MirrorPage: FC = () => {
         {step === 'scoring' && (
           <View className="flex flex-col items-center">
             <Text className="block text-3xl mb-3">{getRoundEmoji(currentRound)}</Text>
-            <Text className="block text-xl font-bold text-stone-900 mb-1">
+            <Text className="block text-xl font-bold text-gray-900 mb-1">
               {getRoundName(currentRound)} 完成！
             </Text>
-            <Text className="block text-sm text-stone-500 mb-4">
+            <Text className="block text-sm text-gray-500 mb-4">
               本轮得分：{scores[scores.length - 1]?.total || 0}/{currentActionSet.length * 3}
             </Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm text-stone-700 text-center leading-relaxed">
+                <Text className="block text-sm text-gray-700 text-center leading-relaxed">
                   {currentRound < actionSets.length - 1
                     ? '接下来难度会升级，动作涉及更多身体接触。准备好了吗？'
                     : '你已经完成了所有挑战！来看看最终成绩吧。'}
@@ -491,14 +491,14 @@ const MirrorPage: FC = () => {
         {step === 'result' && (
           <View className="flex flex-col items-center">
             <Text className="block text-5xl mb-3">🪞</Text>
-            <Text className="block text-2xl font-bold text-stone-900 mb-1">{getResultTitle()}</Text>
-            <Text className="block text-sm text-stone-500 mb-6">
+            <Text className="block text-2xl font-bold text-gray-900 mb-1">{getResultTitle()}</Text>
+            <Text className="block text-sm text-gray-500 mb-6">
               总分 {getTotalScore()}/{getMaxScore()}
             </Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm text-stone-700 text-center leading-relaxed">
+                <Text className="block text-sm text-gray-700 text-center leading-relaxed">
                   {getResultText()}
                 </Text>
               </CardContent>
@@ -506,24 +506,24 @@ const MirrorPage: FC = () => {
 
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-stone-700 mb-3">各轮表现</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-3">各轮表现</Text>
                 {actionSets.map((set, idx) => (
                   <View key={idx} className="flex flex-row items-center justify-between py-2">
                     <View className="flex flex-row items-center">
                       <Text className="mr-2">{getRoundEmoji(idx)}</Text>
-                      <Text className="text-sm text-stone-700">{getRoundName(idx)}</Text>
+                      <Text className="text-sm text-gray-700">{getRoundName(idx)}</Text>
                     </View>
                     <Text className="text-sm text-violet-600 font-medium">
                       {scores[idx]?.total || 0}/{set.length * 3}
                     </Text>
                   </View>
                 ))}
-                <View className="mt-3 pt-3 border-t border-orange-100">
-                  <Text className="block text-sm font-medium text-stone-700 mb-2">谁模仿得更好？</Text>
+                <View className="mt-3 pt-3 border-t">
+                  <Text className="block text-sm font-medium text-gray-700 mb-2">谁模仿得更好？</Text>
                   <View className="flex flex-row items-center justify-between">
                     <View className="flex flex-row items-center">
                       <View className="w-3 h-3 rounded-full bg-blue-400 mr-2" />
-                      <Text className="text-sm text-stone-700">A 领动时得分</Text>
+                      <Text className="text-sm text-gray-700">A 领动时得分</Text>
                     </View>
                     <Text className="text-sm font-medium text-blue-600">
                       {scores.reduce((a, s) => a + s.aScore, 0)} 分
@@ -532,7 +532,7 @@ const MirrorPage: FC = () => {
                   <View className="flex flex-row items-center justify-between mt-1">
                     <View className="flex flex-row items-center">
                       <View className="w-3 h-3 rounded-full bg-pink-400 mr-2" />
-                      <Text className="text-sm text-stone-700">B 领动时得分</Text>
+                      <Text className="text-sm text-gray-700">B 领动时得分</Text>
                     </View>
                     <Text className="text-sm font-medium text-pink-600">
                       {scores.reduce((a, s) => a + s.bScore, 0)} 分

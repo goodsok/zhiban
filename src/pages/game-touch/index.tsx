@@ -194,12 +194,12 @@ const TouchPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-8" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-8" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部进度条 */}
-      <View className="bg-white px-4 pt-2 pb-3 border-b border-orange-100">
+      <View className="bg-white px-4 pt-2 pb-3 border-b">
         <View className="flex flex-row items-center justify-between mb-1">
-          <Text className="text-xs text-stone-500">进挪进度</Text>
-          <Text className="text-xs text-stone-500">{completedLevels.length}/{touchLevels.length}</Text>
+          <Text className="text-xs text-gray-500">进挪进度</Text>
+          <Text className="text-xs text-gray-500">{completedLevels.length}/{touchLevels.length}</Text>
         </View>
         <Progress value={getProgressPercent()} className="h-2" />
       </View>
@@ -211,32 +211,32 @@ const TouchPage: FC = () => {
             <View className="w-20 h-20 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center mb-4">
               <Hand size={40} color="white" />
             </View>
-            <Text className="block text-2xl font-bold text-stone-900 mb-2">手心温度</Text>
-            <Text className="block text-sm text-stone-500 mb-4 text-center leading-relaxed">
+            <Text className="block text-2xl font-bold text-gray-900 mb-2">手心温度</Text>
+            <Text className="block text-sm text-gray-500 mb-4 text-center leading-relaxed">
               渐进式肢体接触游戏{'\n'}从指尖到心灵，一步步拉近彼此的距离
             </Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-stone-700 mb-3">游戏规则</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-3">游戏规则</Text>
                 <View className="space-y-2">
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-rose-600">1</Text>
                     </View>
-                    <Text className="text-sm text-stone-600">共7个等级，从轻触指尖到额头相抵</Text>
+                    <Text className="text-sm text-gray-600">共7个等级，从轻触指尖到额头相抵</Text>
                   </View>
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-rose-600">2</Text>
                     </View>
-                    <Text className="text-sm text-stone-600">每个等级有倒计时，完成后解锁下一级</Text>
+                    <Text className="text-sm text-gray-600">每个等级有倒计时，完成后解锁下一级</Text>
                   </View>
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-rose-600">3</Text>
                     </View>
-                    <Text className="text-sm text-stone-600">可以随时跳过不舒适的等级，尊重彼此的节奏</Text>
+                    <Text className="text-sm text-gray-600">可以随时跳过不舒适的等级，尊重彼此的节奏</Text>
                   </View>
                 </View>
               </CardContent>
@@ -271,14 +271,14 @@ const TouchPage: FC = () => {
             <View className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center mb-4">
               <Sparkles size={32} color="#f43f5e" />
             </View>
-            <Text className="block text-lg font-bold text-stone-900 mb-2">把手机递给TA</Text>
-            <Text className="block text-sm text-stone-500 mb-6 text-center leading-relaxed">
+            <Text className="block text-lg font-bold text-gray-900 mb-2">把手机递给TA</Text>
+            <Text className="block text-sm text-gray-500 mb-6 text-center leading-relaxed">
               让TA看到这段话，如果愿意就点「好呀」
             </Text>
 
             <Card className="mb-6 w-full bg-gradient-to-br from-rose-50 to-pink-50 border-rose-100">
               <CardContent className="py-5">
-                <Text className="block text-base text-stone-800 leading-loose text-center font-medium">
+                <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
                   “我想和你玩一个游戏，{'\n'}从指尖开始，{'\n'}慢慢感受彼此的温度。{'\n'}{'\n'}如果任何一步你觉得不舒服，{'\n'}我们可以随时停下来。{'\n'}{'\n'}愿意吗？”
                 </Text>
               </CardContent>
@@ -299,7 +299,7 @@ const TouchPage: FC = () => {
                 className="rounded-xl py-2 w-full"
                 onClick={() => setStep('intro')}
               >
-                <Text className="text-stone-400 text-sm">返回</Text>
+                <Text className="text-gray-400 text-sm">返回</Text>
               </Button>
             </View>
           </View>
@@ -317,14 +317,14 @@ const TouchPage: FC = () => {
                 <Text className="text-xs text-rose-600">+{currentLevel.intimacyScore} 亲密度</Text>
               </View>
             </View>
-            <Text className="block text-xl font-bold text-stone-900 mb-1">{currentLevel.name}</Text>
-            <Text className="block text-sm text-stone-400 mb-6">{currentLevel.description}</Text>
+            <Text className="block text-xl font-bold text-gray-900 mb-1">{currentLevel.name}</Text>
+            <Text className="block text-sm text-gray-400 mb-6">{currentLevel.description}</Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-5">
                 <View className="flex flex-col items-center">
-                  <Text className="text-xs text-stone-500 mb-3">怎么做</Text>
-                  <Text className="block text-base text-stone-800 text-center leading-relaxed font-medium">
+                  <Text className="text-xs text-gray-500 mb-3">怎么做</Text>
+                  <Text className="block text-base text-gray-800 text-center leading-relaxed font-medium">
                     {currentLevel.instruction}
                   </Text>
                 </View>
@@ -355,7 +355,7 @@ const TouchPage: FC = () => {
                 className="rounded-xl py-2 w-full"
                 onClick={handleSkip}
               >
-                <Text className="text-stone-400 text-sm">跳过这一级</Text>
+                <Text className="text-gray-400 text-sm">跳过这一级</Text>
               </Button>
             </View>
           </View>
@@ -368,7 +368,7 @@ const TouchPage: FC = () => {
             <View className="w-32 h-32 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center mb-4">
               <Text className="block text-4xl font-bold text-white">{countdown}</Text>
             </View>
-            <Text className="block text-sm text-stone-500 mb-2">保持触碰，享受这一刻</Text>
+            <Text className="block text-sm text-gray-500 mb-2">保持触碰，享受这一刻</Text>
             <Text className="block text-sm text-pink-500 italic text-center px-8">{currentLevel.tip}</Text>
           </View>
         )}
@@ -380,8 +380,8 @@ const TouchPage: FC = () => {
               <Check size={32} color="white" />
             </View>
             <Text className="block text-lg font-semibold text-green-600 mb-1">完成！</Text>
-            <Text className="block text-sm text-stone-500 mb-1">+{currentLevel.intimacyScore} 亲密度</Text>
-            <Text className="block text-sm text-stone-400 mb-6">
+            <Text className="block text-sm text-gray-500 mb-1">+{currentLevel.intimacyScore} 亲密度</Text>
+            <Text className="block text-sm text-gray-400 mb-6">
               已完成 {completedLevels.length}/{touchLevels.length} 级
             </Text>
 
@@ -413,12 +413,12 @@ const TouchPage: FC = () => {
         {step === 'summary' && (
           <View className="flex flex-col items-center">
             <Text className="block text-5xl mb-3">{getSummaryEmoji()}</Text>
-            <Text className="block text-2xl font-bold text-stone-900 mb-1">{getSummaryTitle()}</Text>
-            <Text className="block text-sm text-stone-500 mb-6">亲密度 {totalScore} 分</Text>
+            <Text className="block text-2xl font-bold text-gray-900 mb-1">{getSummaryTitle()}</Text>
+            <Text className="block text-sm text-gray-500 mb-6">亲密度 {totalScore} 分</Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm text-stone-700 leading-relaxed text-center">
+                <Text className="block text-sm text-gray-700 leading-relaxed text-center">
                   {getSummaryText()}
                 </Text>
               </CardContent>
@@ -426,7 +426,7 @@ const TouchPage: FC = () => {
 
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-stone-700 mb-3">完成记录</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-3">完成记录</Text>
                 {touchLevels.map(level => {
                   const isCompleted = completedLevels.includes(level.id)
                   const isSkipped = skippedLevels.includes(level.id)
@@ -438,11 +438,11 @@ const TouchPage: FC = () => {
                             <Check size={12} color="#16a34a" />
                           </View>
                         ) : (
-                          <View className="w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center mr-2">
-                            <Text className="text-xs text-stone-400">-</Text>
+                          <View className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mr-2">
+                            <Text className="text-xs text-gray-400">-</Text>
                           </View>
                         )}
-                        <Text className={`text-sm ${isCompleted ? 'text-stone-700' : isSkipped ? 'text-amber-500' : 'text-stone-400'}`}>
+                        <Text className={`text-sm ${isCompleted ? 'text-gray-700' : isSkipped ? 'text-amber-500' : 'text-gray-400'}`}>
                           Lv.{level.id} {level.name}
                         </Text>
                         {isSkipped && !isCompleted && (
@@ -456,8 +456,8 @@ const TouchPage: FC = () => {
                   )
                 })}
                 {skippedLevels.some(id => !completedLevels.includes(id)) && (
-                  <View className="mt-3 pt-3 border-t border-orange-100">
-                    <Text className="block text-xs text-stone-500 mb-2">补玩跳过的等级</Text>
+                  <View className="mt-3 pt-3 border-t">
+                    <Text className="block text-xs text-gray-500 mb-2">补玩跳过的等级</Text>
                     <View className="flex flex-row flex-wrap gap-2">
                       {skippedLevels.filter(id => !completedLevels.includes(id)).map(id => {
                         const level = touchLevels.find(l => l.id === id)

@@ -310,26 +310,26 @@ const UserProfilePage: FC = () => {
 
   if (loading) {
     return (
-      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFF9F0' }}>
-        <Loader size={24} color="#78716C" className="animate-spin" />
+      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F7F8FA' }}>
+        <Loader size={24} color="#6B7280" className="animate-spin" />
       </View>
     )
   }
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title="我的档案" />
 
       {/* 置信度提示 */}
       <View className="px-4 pt-4">
-        <View className="flex items-center justify-between bg-white rounded-xl border border-orange-100 p-3">
+        <View className="flex items-center justify-between bg-white rounded-xl p-3">
           <View className="flex items-center gap-2">
-            <User size={16} color="#78716C" />
-            <Text className="block text-sm text-stone-600">
+            <User size={16} color="#6B7280" />
+            <Text className="block text-sm text-gray-600">
               档案完整度 {profile.confidence}%
             </Text>
           </View>
-          <Text className="block text-xs text-stone-400">
+          <Text className="block text-xs text-gray-400">
             完善档案可获得更精准的建议
           </Text>
         </View>
@@ -338,7 +338,7 @@ const UserProfilePage: FC = () => {
       {/* Tab 切换 */}
       <View className="px-4 pt-4">
         <ScrollView scrollX className="whitespace-nowrap">
-          <View className="flex bg-stone-100 rounded-lg p-1 inline-flex min-w-full">
+          <View className="flex bg-gray-100 border border-gray-200 rounded-lg p-1 inline-flex min-w-full">
             {[
               { key: 'basic', label: '基本信息' },
               { key: 'personality', label: '性格情感' },
@@ -356,7 +356,7 @@ const UserProfilePage: FC = () => {
               >
                 <Text
                   className={`block text-sm ${
-                    activeSection === tab.key ? 'text-stone-900 font-medium' : 'text-stone-500'
+                    activeSection === tab.key ? 'text-gray-900 font-medium' : 'text-gray-500'
                   }`}
                 >
                   {tab.label}
@@ -370,13 +370,13 @@ const UserProfilePage: FC = () => {
       {/* 基本信息 */}
       {activeSection === 'basic' && (
         <View className="p-4">
-          <View className="bg-white rounded-xl border border-orange-100 p-4">
-            <Text className="block text-sm font-semibold text-stone-900 mb-4">基本信息</Text>
+          <View className="bg-white rounded-xl p-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-4">基本信息</Text>
 
             {/* 昵称 */}
             <View className="mb-4">
-              <Text className="block text-xs text-stone-500 mb-2">昵称</Text>
-              <View className="bg-stone-50 rounded-lg px-4 py-3">
+              <Text className="block text-xs text-gray-500 mb-2">昵称</Text>
+              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="请输入昵称"
@@ -389,17 +389,17 @@ const UserProfilePage: FC = () => {
 
             {/* 性别 */}
             <View className="mb-4">
-              <Text className="block text-xs text-stone-500 mb-2">性别</Text>
+              <Text className="block text-xs text-gray-500 mb-2">性别</Text>
               <View className="flex gap-3">
                 {genderOptions.map((option) => (
                   <View
                     key={option.value}
                     className={`flex-1 py-3 rounded-lg text-center ${
-                      profile.gender === option.value ? 'bg-green-500' : 'bg-stone-50'
+                      profile.gender === option.value ? 'bg-green-500' : 'bg-gray-50'
                     }`}
                     onClick={() => updateProfile({ gender: option.value as 'male' | 'female' })}
                   >
-                    <Text className={`block text-sm ${profile.gender === option.value ? 'text-white' : 'text-stone-700'}`}>
+                    <Text className={`block text-sm ${profile.gender === option.value ? 'text-white' : 'text-gray-700'}`}>
                       {option.label}
                     </Text>
                   </View>
@@ -409,8 +409,8 @@ const UserProfilePage: FC = () => {
 
             {/* 出生年份 */}
             <View className="mb-4">
-              <Text className="block text-xs text-stone-500 mb-2">出生年份</Text>
-              <View className="bg-stone-50 rounded-lg px-4 py-3">
+              <Text className="block text-xs text-gray-500 mb-2">出生年份</Text>
+              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：1995"
@@ -424,8 +424,8 @@ const UserProfilePage: FC = () => {
 
             {/* 身高 */}
             <View className="mb-4">
-              <Text className="block text-xs text-stone-500 mb-2">身高 (cm)</Text>
-              <View className="bg-stone-50 rounded-lg px-4 py-3">
+              <Text className="block text-xs text-gray-500 mb-2">身高 (cm)</Text>
+              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：175"
@@ -439,17 +439,17 @@ const UserProfilePage: FC = () => {
 
             {/* 学历 */}
             <View className="mb-4">
-              <Text className="block text-xs text-stone-500 mb-2">学历</Text>
+              <Text className="block text-xs text-gray-500 mb-2">学历</Text>
               <View className="flex flex-wrap gap-2">
                 {educationOptions.map((option) => (
                   <View
                     key={option.value}
                     className={`px-3 py-2 rounded-lg border ${
-                      profile.education === option.value ? 'border-black bg-stone-50' : 'border-orange-100'
+                      profile.education === option.value ? 'border-green-500 bg-green-50' : 'border-gray-200'
                     }`}
                     onClick={() => updateProfile({ education: option.value })}
                   >
-                    <Text className="block text-sm text-stone-700">{option.label}</Text>
+                    <Text className="block text-sm text-gray-700">{option.label}</Text>
                   </View>
                 ))}
               </View>
@@ -457,8 +457,8 @@ const UserProfilePage: FC = () => {
 
             {/* 职业 */}
             <View className="mb-4">
-              <Text className="block text-xs text-stone-500 mb-2">职业</Text>
-              <View className="bg-stone-50 rounded-lg px-4 py-3">
+              <Text className="block text-xs text-gray-500 mb-2">职业</Text>
+              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：产品经理"
@@ -471,8 +471,8 @@ const UserProfilePage: FC = () => {
 
             {/* 所在地 */}
             <View className="mb-4">
-              <Text className="block text-xs text-stone-500 mb-2">所在地</Text>
-              <View className="bg-stone-50 rounded-lg px-4 py-3">
+              <Text className="block text-xs text-gray-500 mb-2">所在地</Text>
+              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：北京"
@@ -485,8 +485,8 @@ const UserProfilePage: FC = () => {
 
             {/* 自我介绍 */}
             <View className="mb-4">
-              <Text className="block text-xs text-stone-500 mb-2">自我介绍</Text>
-              <View className="bg-stone-50 rounded-lg px-4 py-3">
+              <Text className="block text-xs text-gray-500 mb-2">自我介绍</Text>
+              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
                 <Textarea
                   className="w-full bg-transparent text-sm"
                   placeholder="写几句话介绍自己..."
@@ -504,19 +504,19 @@ const UserProfilePage: FC = () => {
       {activeSection === 'personality' && (
         <View className="p-4">
           {/* 性格自评说明 */}
-          <View className="bg-stone-50 rounded-xl p-3 mb-4">
-            <Text className="block text-sm text-stone-600">
+          <View className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4">
+            <Text className="block text-sm text-gray-600">
               💡 拖动滑块评估自己在每个维度上的倾向。这些信息会帮助AI更好地理解你，提供更贴合你性格的建议。
             </Text>
           </View>
 
           {/* MBTI 选择 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
+          <View className="bg-white rounded-xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
-              <Text className="block text-sm font-semibold text-stone-900">MBTI 人格类型</Text>
-              <Text className="block text-xs text-stone-400 ml-auto">选填</Text>
+              <Text className="block text-sm font-semibold text-gray-900">MBTI 人格类型</Text>
+              <Text className="block text-xs text-gray-400 ml-auto">选填</Text>
             </View>
-            <Text className="block text-xs text-stone-400 mb-3">选择你的 MBTI 类型，帮助 AI 更精准地理解你的性格</Text>
+            <Text className="block text-xs text-gray-400 mb-3">选择你的 MBTI 类型，帮助 AI 更精准地理解你的性格</Text>
             <View className="grid grid-cols-4 gap-2">
               {mbtiOptions.map((option) => (
                 <View
@@ -524,13 +524,13 @@ const UserProfilePage: FC = () => {
                   className={`rounded-lg p-2 text-center ${
                     profile.mbti === option.value
                       ? 'bg-blue-500 border-2 border-blue-500'
-                      : 'bg-stone-50 border border-stone-200'
+                      : 'bg-gray-50 border border-gray-200'
                   }`}
                   onClick={() => updateProfile({ mbti: profile.mbti === option.value ? null : option.value })}
                 >
                   <Text
                     className={`block text-sm font-medium ${
-                      profile.mbti === option.value ? 'text-white' : 'text-stone-700'
+                      profile.mbti === option.value ? 'text-white' : 'text-gray-700'
                     }`}
                   >
                     {option.label}
@@ -547,23 +547,23 @@ const UserProfilePage: FC = () => {
             )}
           </View>
 
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
+          <View className="bg-white rounded-xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-4">
-              <Sparkles size={16} color="#78716C" />
-              <Text className="block text-sm font-semibold text-stone-900">性格自评</Text>
-              <Text className="block text-xs text-stone-400 ml-auto">基于五大人格理论</Text>
+              <Sparkles size={16} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">性格自评</Text>
+              <Text className="block text-xs text-gray-400 ml-auto">基于五大人格理论</Text>
             </View>
 
             {/* 开放性 */}
             <View className="mb-6">
               <View className="mb-2">
-                <Text className="block text-sm font-medium text-stone-800">开放性</Text>
-                <Text className="block text-xs text-stone-400 mt-1">你对新事物、新想法的接受程度</Text>
+                <Text className="block text-sm font-medium text-gray-800">开放性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你对新事物、新想法的接受程度</Text>
               </View>
               <View className="flex items-center justify-between mb-1">
-                <Text className="block text-xs text-stone-500">保守传统</Text>
-                <Text className="block text-xs font-medium text-stone-700">{profile.personality.openness}</Text>
-                <Text className="block text-xs text-stone-500">开放创新</Text>
+                <Text className="block text-xs text-gray-500">保守传统</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.personality.openness}</Text>
+                <Text className="block text-xs text-gray-500">开放创新</Text>
               </View>
               <Slider
                 className="w-full"
@@ -580,13 +580,13 @@ const UserProfilePage: FC = () => {
             {/* 尽责性 */}
             <View className="mb-6">
               <View className="mb-2">
-                <Text className="block text-sm font-medium text-stone-800">尽责性</Text>
-                <Text className="block text-xs text-stone-400 mt-1">你的自律程度、目标感和执行力</Text>
+                <Text className="block text-sm font-medium text-gray-800">尽责性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你的自律程度、目标感和执行力</Text>
               </View>
               <View className="flex items-center justify-between mb-1">
-                <Text className="block text-xs text-stone-500">随性自由</Text>
-                <Text className="block text-xs font-medium text-stone-700">{profile.personality.conscientiousness}</Text>
-                <Text className="block text-xs text-stone-500">自律尽责</Text>
+                <Text className="block text-xs text-gray-500">随性自由</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.personality.conscientiousness}</Text>
+                <Text className="block text-xs text-gray-500">自律尽责</Text>
               </View>
               <Slider
                 className="w-full"
@@ -603,13 +603,13 @@ const UserProfilePage: FC = () => {
             {/* 外向性 */}
             <View className="mb-6">
               <View className="mb-2">
-                <Text className="block text-sm font-medium text-stone-800">外向性</Text>
-                <Text className="block text-xs text-stone-400 mt-1">你在社交场合的能量来源和表现</Text>
+                <Text className="block text-sm font-medium text-gray-800">外向性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你在社交场合的能量来源和表现</Text>
               </View>
               <View className="flex items-center justify-between mb-1">
-                <Text className="block text-xs text-stone-500">内向沉稳</Text>
-                <Text className="block text-xs font-medium text-stone-700">{profile.personality.extraversion}</Text>
-                <Text className="block text-xs text-stone-500">外向活跃</Text>
+                <Text className="block text-xs text-gray-500">内向沉稳</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.personality.extraversion}</Text>
+                <Text className="block text-xs text-gray-500">外向活跃</Text>
               </View>
               <Slider
                 className="w-full"
@@ -626,13 +626,13 @@ const UserProfilePage: FC = () => {
             {/* 宜人性 */}
             <View className="mb-6">
               <View className="mb-2">
-                <Text className="block text-sm font-medium text-stone-800">宜人性</Text>
-                <Text className="block text-xs text-stone-400 mt-1">你与他人相处时的态度和方式</Text>
+                <Text className="block text-sm font-medium text-gray-800">宜人性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你与他人相处时的态度和方式</Text>
               </View>
               <View className="flex items-center justify-between mb-1">
-                <Text className="block text-xs text-stone-500">直接有主见</Text>
-                <Text className="block text-xs font-medium text-stone-700">{profile.personality.agreeableness}</Text>
-                <Text className="block text-xs text-stone-500">温和友善</Text>
+                <Text className="block text-xs text-gray-500">直接有主见</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.personality.agreeableness}</Text>
+                <Text className="block text-xs text-gray-500">温和友善</Text>
               </View>
               <Slider
                 className="w-full"
@@ -649,13 +649,13 @@ const UserProfilePage: FC = () => {
             {/* 神经质 */}
             <View className="mb-2">
               <View className="mb-2">
-                <Text className="block text-sm font-medium text-stone-800">情绪敏感性</Text>
-                <Text className="block text-xs text-stone-400 mt-1">你对压力和负面情绪的敏感程度</Text>
+                <Text className="block text-sm font-medium text-gray-800">情绪敏感性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你对压力和负面情绪的敏感程度</Text>
               </View>
               <View className="flex items-center justify-between mb-1">
-                <Text className="block text-xs text-stone-500">情绪稳定</Text>
-                <Text className="block text-xs font-medium text-stone-700">{profile.personality.neuroticism}</Text>
-                <Text className="block text-xs text-stone-500">情绪敏感</Text>
+                <Text className="block text-xs text-gray-500">情绪稳定</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.personality.neuroticism}</Text>
+                <Text className="block text-xs text-gray-500">情绪敏感</Text>
               </View>
               <Slider
                 className="w-full"
@@ -670,22 +670,22 @@ const UserProfilePage: FC = () => {
             </View>
           </View>
 
-          <View className="bg-white rounded-xl border border-orange-100 p-4">
+          <View className="bg-white rounded-xl p-4">
             <View className="flex items-center gap-2 mb-4">
-              <Heart size={16} color="#78716C" />
-              <Text className="block text-sm font-semibold text-stone-900">情感特点</Text>
+              <Heart size={16} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">情感特点</Text>
             </View>
 
             {/* 情绪稳定性 */}
             <View className="mb-6">
               <View className="mb-2">
-                <Text className="block text-sm font-medium text-stone-800">情绪稳定性</Text>
-                <Text className="block text-xs text-stone-400 mt-1">情绪波动的频率和幅度</Text>
+                <Text className="block text-sm font-medium text-gray-800">情绪稳定性</Text>
+                <Text className="block text-xs text-gray-400 mt-1">情绪波动的频率和幅度</Text>
               </View>
               <View className="flex items-center justify-between mb-1">
-                <Text className="block text-xs text-stone-500">波动较大</Text>
-                <Text className="block text-xs font-medium text-stone-700">{profile.emotional.stability}</Text>
-                <Text className="block text-xs text-stone-500">稳定平和</Text>
+                <Text className="block text-xs text-gray-500">波动较大</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.emotional.stability}</Text>
+                <Text className="block text-xs text-gray-500">稳定平和</Text>
               </View>
               <Slider
                 className="w-full"
@@ -702,13 +702,13 @@ const UserProfilePage: FC = () => {
             {/* 情感表达 */}
             <View className="mb-6">
               <View className="mb-2">
-                <Text className="block text-sm font-medium text-stone-800">情感表达</Text>
-                <Text className="block text-xs text-stone-400 mt-1">你表达情感的方式和频率</Text>
+                <Text className="block text-sm font-medium text-gray-800">情感表达</Text>
+                <Text className="block text-xs text-gray-400 mt-1">你表达情感的方式和频率</Text>
               </View>
               <View className="flex items-center justify-between mb-1">
-                <Text className="block text-xs text-stone-500">含蓄内敛</Text>
-                <Text className="block text-xs font-medium text-stone-700">{profile.emotional.expression}</Text>
-                <Text className="block text-xs text-stone-500">善于表达</Text>
+                <Text className="block text-xs text-gray-500">含蓄内敛</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.emotional.expression}</Text>
+                <Text className="block text-xs text-gray-500">善于表达</Text>
               </View>
               <Slider
                 className="w-full"
@@ -725,13 +725,13 @@ const UserProfilePage: FC = () => {
             {/* 共情能力 */}
             <View className="mb-2">
               <View className="mb-2">
-                <Text className="block text-sm font-medium text-stone-800">共情能力</Text>
-                <Text className="block text-xs text-stone-400 mt-1">理解和感受他人情绪的能力</Text>
+                <Text className="block text-sm font-medium text-gray-800">共情能力</Text>
+                <Text className="block text-xs text-gray-400 mt-1">理解和感受他人情绪的能力</Text>
               </View>
               <View className="flex items-center justify-between mb-1">
-                <Text className="block text-xs text-stone-500">理性客观</Text>
-                <Text className="block text-xs font-medium text-stone-700">{profile.emotional.empathy}</Text>
-                <Text className="block text-xs text-stone-500">共情细腻</Text>
+                <Text className="block text-xs text-gray-500">理性客观</Text>
+                <Text className="block text-xs font-medium text-gray-700">{profile.emotional.empathy}</Text>
+                <Text className="block text-xs text-gray-500">共情细腻</Text>
               </View>
               <Slider
                 className="w-full"
@@ -752,20 +752,20 @@ const UserProfilePage: FC = () => {
       {activeSection === 'relationship' && (
         <View className="p-4">
           {/* 恋爱目标 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
-            <Text className="block text-sm font-semibold text-stone-900 mb-3">恋爱目标</Text>
+          <View className="bg-white rounded-xl p-4 mb-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">恋爱目标</Text>
             <View className="space-y-2">
               {relationshipGoalOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
-                    profile.relationshipGoal === option.value ? 'border-black bg-stone-50' : 'border-orange-100'
+                    profile.relationshipGoal === option.value ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => updateProfile({ relationshipGoal: option.value as any })}
                 >
                   <View>
-                    <Text className="block text-sm text-stone-800">{option.label}</Text>
-                    <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                    <Text className="block text-sm text-gray-800">{option.label}</Text>
+                    <Text className="block text-xs text-gray-400">{option.desc}</Text>
                   </View>
                 </View>
               ))}
@@ -773,20 +773,20 @@ const UserProfilePage: FC = () => {
           </View>
 
           {/* 依恋类型 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
-            <Text className="block text-sm font-semibold text-stone-900 mb-3">依恋类型</Text>
+          <View className="bg-white rounded-xl p-4 mb-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">依恋类型</Text>
             <View className="space-y-2">
               {attachmentStyleOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
-                    profile.attachmentStyle === option.value ? 'border-black bg-stone-50' : 'border-orange-100'
+                    profile.attachmentStyle === option.value ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => updateProfile({ attachmentStyle: option.value as any })}
                 >
                   <View>
-                    <Text className="block text-sm text-stone-800">{option.label}</Text>
-                    <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                    <Text className="block text-sm text-gray-800">{option.label}</Text>
+                    <Text className="block text-xs text-gray-400">{option.desc}</Text>
                   </View>
                 </View>
               ))}
@@ -794,19 +794,19 @@ const UserProfilePage: FC = () => {
           </View>
 
           {/* 爱的语言 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4">
-            <Text className="block text-sm font-semibold text-stone-900 mb-3">爱的语言（可多选）</Text>
+          <View className="bg-white rounded-xl p-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">爱的语言（可多选）</Text>
             <View className="flex flex-wrap gap-2">
               {loveLanguageOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
-                    profile.loveLanguage.includes(option.value) ? 'border-black bg-stone-50' : 'border-orange-100'
+                    profile.loveLanguage.includes(option.value) ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => toggleArrayItem('loveLanguage', option.value)}
                 >
                   <Text className="block text-base">{option.icon}</Text>
-                  <Text className="block text-sm text-stone-700">{option.label}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
                 </View>
               ))}
             </View>
@@ -818,44 +818,44 @@ const UserProfilePage: FC = () => {
       {activeSection === 'interests' && (
         <View className="p-4">
           {/* 爱好 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
+          <View className="bg-white rounded-xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
-              <Heart size={14} color="#78716C" />
-              <Text className="block text-sm font-semibold text-stone-900">爱好（可多选）</Text>
+              <Heart size={14} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">爱好（可多选）</Text>
             </View>
             <View className="flex flex-wrap gap-2">
               {hobbyOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
-                    profile.hobbies.includes(option.value) ? 'border-black bg-stone-50' : 'border-orange-100'
+                    profile.hobbies.includes(option.value) ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => toggleArrayItem('hobbies', option.value)}
                 >
                   <Text className="block text-base">{option.icon}</Text>
-                  <Text className="block text-sm text-stone-700">{option.label}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
                 </View>
               ))}
             </View>
           </View>
 
           {/* 兴趣领域 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4">
+          <View className="bg-white rounded-xl p-4">
             <View className="flex items-center gap-2 mb-3">
-              <Sparkles size={14} color="#78716C" />
-              <Text className="block text-sm font-semibold text-stone-900">兴趣领域（可多选）</Text>
+              <Sparkles size={14} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">兴趣领域（可多选）</Text>
             </View>
             <View className="flex flex-wrap gap-2">
               {interestOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
-                    profile.interests.includes(option.value) ? 'border-black bg-stone-50' : 'border-orange-100'
+                    profile.interests.includes(option.value) ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => toggleArrayItem('interests', option.value)}
                 >
                   <Text className="block text-base">{option.icon}</Text>
-                  <Text className="block text-sm text-stone-700">{option.label}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
                 </View>
               ))}
             </View>
@@ -867,42 +867,42 @@ const UserProfilePage: FC = () => {
       {activeSection === 'expectation' && (
         <View className="p-4">
           {/* 期望特质 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
+          <View className="bg-white rounded-xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
-              <Target size={14} color="#78716C" />
-              <Text className="block text-sm font-semibold text-stone-900">期望的特质（可多选）</Text>
+              <Target size={14} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">期望的特质（可多选）</Text>
             </View>
             <View className="flex flex-wrap gap-2">
               {preferredTraitOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`px-3 py-2 rounded-lg border ${
-                    profile.preferredTraits.includes(option.value) ? 'border-black bg-stone-50' : 'border-orange-100'
+                    profile.preferredTraits.includes(option.value) ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => toggleArrayItem('preferredTraits', option.value)}
                 >
-                  <Text className="block text-sm text-stone-700">{option.label}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
                 </View>
               ))}
             </View>
           </View>
 
           {/* 不能接受的点 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4">
+          <View className="bg-white rounded-xl p-4">
             <View className="flex items-center gap-2 mb-3">
-              <X size={14} color="#78716C" />
-              <Text className="block text-sm font-semibold text-stone-900">不能接受的点（可多选）</Text>
+              <X size={14} color="#6B7280" />
+              <Text className="block text-sm font-semibold text-gray-900">不能接受的点（可多选）</Text>
             </View>
             <View className="flex flex-wrap gap-2">
               {dealBreakerOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`px-3 py-2 rounded-lg border ${
-                    profile.dealBreakers.includes(option.value) ? 'border-black bg-stone-50' : 'border-orange-100'
+                    profile.dealBreakers.includes(option.value) ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => toggleArrayItem('dealBreakers', option.value)}
                 >
-                  <Text className="block text-sm text-stone-700">{option.label}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
                 </View>
               ))}
             </View>
@@ -914,18 +914,18 @@ const UserProfilePage: FC = () => {
       {activeSection === 'behavior' && (
         <View className="p-4">
           {/* 线上沟通风格 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
+          <View className="bg-white rounded-xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-1">
               <MessageCircle size={14} color="#3B82F6" />
-              <Text className="block text-sm font-semibold text-stone-900">线上沟通风格</Text>
+              <Text className="block text-sm font-semibold text-gray-900">线上沟通风格</Text>
             </View>
-            <Text className="block text-xs text-stone-400 mb-3">微信/电话等线上场景</Text>
+            <Text className="block text-xs text-gray-400 mb-3">微信/电话等线上场景</Text>
             <View className="space-y-2">
               {communicationStyleOnlineOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
-                    profile.behavior?.communicationStyleOnline === option.value ? 'border-blue-500 bg-blue-50' : 'border-orange-100'
+                    profile.behavior?.communicationStyleOnline === option.value ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                   }`}
                   onClick={() => setProfile(prev => ({
                     ...prev,
@@ -933,8 +933,8 @@ const UserProfilePage: FC = () => {
                   }))}
                 >
                   <View>
-                    <Text className="block text-sm text-stone-800">{option.label}</Text>
-                    <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                    <Text className="block text-sm text-gray-800">{option.label}</Text>
+                    <Text className="block text-xs text-gray-400">{option.desc}</Text>
                   </View>
                 </View>
               ))}
@@ -942,18 +942,18 @@ const UserProfilePage: FC = () => {
           </View>
 
           {/* 线下沟通风格 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
+          <View className="bg-white rounded-xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-1">
               <MessageCircle size={14} color="#F97316" />
-              <Text className="block text-sm font-semibold text-stone-900">线下沟通风格</Text>
+              <Text className="block text-sm font-semibold text-gray-900">线下沟通风格</Text>
             </View>
-            <Text className="block text-xs text-stone-400 mb-3">见面时的沟通方式</Text>
+            <Text className="block text-xs text-gray-400 mb-3">见面时的沟通方式</Text>
             <View className="space-y-2">
               {communicationStyleOfflineOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
-                    profile.behavior?.communicationStyleOffline === option.value ? 'border-orange-500 bg-orange-50' : 'border-orange-100'
+                    profile.behavior?.communicationStyleOffline === option.value ? 'border-green-500 bg-white' : 'border-gray-200'
                   }`}
                   onClick={() => setProfile(prev => ({
                     ...prev,
@@ -961,8 +961,8 @@ const UserProfilePage: FC = () => {
                   }))}
                 >
                   <View>
-                    <Text className="block text-sm text-stone-800">{option.label}</Text>
-                    <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                    <Text className="block text-sm text-gray-800">{option.label}</Text>
+                    <Text className="block text-xs text-gray-400">{option.desc}</Text>
                   </View>
                 </View>
               ))}
@@ -976,14 +976,14 @@ const UserProfilePage: FC = () => {
           </View>
 
           {/* 回复速度 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
-            <Text className="block text-sm font-semibold text-stone-900 mb-3">你通常多久回复消息？</Text>
+          <View className="bg-white rounded-xl p-4 mb-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">你通常多久回复消息？</Text>
             <View className="space-y-2">
               {responseSpeedOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
-                    profile.behavior?.responseSpeed === option.value ? 'border-black bg-stone-50' : 'border-orange-100'
+                    profile.behavior?.responseSpeed === option.value ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => setProfile(prev => ({
                     ...prev,
@@ -991,8 +991,8 @@ const UserProfilePage: FC = () => {
                   }))}
                 >
                   <View>
-                    <Text className="block text-sm text-stone-800">{option.label}</Text>
-                    <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                    <Text className="block text-sm text-gray-800">{option.label}</Text>
+                    <Text className="block text-xs text-gray-400">{option.desc}</Text>
                   </View>
                 </View>
               ))}
@@ -1000,14 +1000,14 @@ const UserProfilePage: FC = () => {
           </View>
 
           {/* 社交能量 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
-            <Text className="block text-sm font-semibold text-stone-900 mb-3">社交能量</Text>
+          <View className="bg-white rounded-xl p-4 mb-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">社交能量</Text>
             <View className="space-y-2">
               {socialEnergyOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
-                    profile.behavior?.socialEnergy === option.value ? 'border-black bg-stone-50' : 'border-orange-100'
+                    profile.behavior?.socialEnergy === option.value ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => setProfile(prev => ({
                     ...prev,
@@ -1015,8 +1015,8 @@ const UserProfilePage: FC = () => {
                   }))}
                 >
                   <View>
-                    <Text className="block text-sm text-stone-800">{option.label}</Text>
-                    <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                    <Text className="block text-sm text-gray-800">{option.label}</Text>
+                    <Text className="block text-xs text-gray-400">{option.desc}</Text>
                   </View>
                 </View>
               ))}
@@ -1024,33 +1024,33 @@ const UserProfilePage: FC = () => {
           </View>
 
           {/* 活跃时段 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
-            <Text className="block text-sm font-semibold text-stone-900 mb-3">活跃时段（可多选）</Text>
+          <View className="bg-white rounded-xl p-4 mb-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">活跃时段（可多选）</Text>
             <View className="flex flex-wrap gap-2">
               {timeSlotOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
-                    (profile.behavior?.activeTimeSlots || []).includes(option.value) ? 'border-black bg-stone-50' : 'border-orange-100'
+                    (profile.behavior?.activeTimeSlots || []).includes(option.value) ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => toggleBehaviorArray('activeTimeSlots', option.value)}
                 >
                   <Text className="block text-base">{option.icon}</Text>
-                  <Text className="block text-sm text-stone-700">{option.label}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
                 </View>
               ))}
             </View>
           </View>
 
           {/* 表达风格 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
-            <Text className="block text-sm font-semibold text-stone-900 mb-3">表达风格</Text>
+          <View className="bg-white rounded-xl p-4 mb-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">表达风格</Text>
             <View className="space-y-2">
               {expressionStyleOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
-                    profile.behavior?.expressionStyle === option.value ? 'border-black bg-stone-50' : 'border-orange-100'
+                    profile.behavior?.expressionStyle === option.value ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => setProfile(prev => ({
                     ...prev,
@@ -1058,8 +1058,8 @@ const UserProfilePage: FC = () => {
                   }))}
                 >
                   <View>
-                    <Text className="block text-sm text-stone-800">{option.label}</Text>
-                    <Text className="block text-xs text-stone-400">{option.desc}</Text>
+                    <Text className="block text-sm text-gray-800">{option.label}</Text>
+                    <Text className="block text-xs text-gray-400">{option.desc}</Text>
                   </View>
                 </View>
               ))}
@@ -1067,33 +1067,33 @@ const UserProfilePage: FC = () => {
           </View>
 
           {/* 偏爱话题 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4 mb-4">
-            <Text className="block text-sm font-semibold text-stone-900 mb-3">偏爱话题（可多选）</Text>
+          <View className="bg-white rounded-xl p-4 mb-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">偏爱话题（可多选）</Text>
             <View className="flex flex-wrap gap-2">
               {topicOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
-                    (profile.behavior?.preferredTopics || []).includes(option.value) ? 'border-black bg-stone-50' : 'border-orange-100'
+                    (profile.behavior?.preferredTopics || []).includes(option.value) ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => toggleBehaviorArray('preferredTopics', option.value)}
                 >
                   <Text className="block text-base">{option.icon}</Text>
-                  <Text className="block text-sm text-stone-700">{option.label}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
                 </View>
               ))}
             </View>
           </View>
 
           {/* 回避话题 */}
-          <View className="bg-white rounded-xl border border-orange-100 p-4">
-            <Text className="block text-sm font-semibold text-stone-900 mb-3">回避话题（可多选）</Text>
+          <View className="bg-white rounded-xl p-4">
+            <Text className="block text-sm font-semibold text-gray-900 mb-3">回避话题（可多选）</Text>
             <View className="flex flex-wrap gap-2">
               {topicOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
-                    (profile.behavior?.topicAvoid || []).includes(option.value) ? 'border-black bg-stone-50' : 'border-orange-100'
+                    (profile.behavior?.topicAvoid || []).includes(option.value) ? 'border-green-500 bg-green-50' : 'border-gray-200'
                   }`}
                   onClick={() => {
                     const arr = profile.behavior?.topicAvoid || []
@@ -1105,7 +1105,7 @@ const UserProfilePage: FC = () => {
                   }}
                 >
                   <Text className="block text-base">{option.icon}</Text>
-                  <Text className="block text-sm text-stone-700">{option.label}</Text>
+                  <Text className="block text-sm text-gray-700">{option.label}</Text>
                 </View>
               ))}
             </View>
@@ -1114,7 +1114,7 @@ const UserProfilePage: FC = () => {
       )}
 
       {/* 保存按钮 */}
-      <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-orange-100">
+      <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button className="w-full bg-green-500" onClick={handleSave} disabled={saving}>
           {saving ? <Loader size={16} color="#fff" className="animate-spin" /> : <Save size={16} color="#fff" />}
           <Text className="text-white ml-2">{saving ? '保存中' : '保存档案'}</Text>

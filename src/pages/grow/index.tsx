@@ -449,19 +449,19 @@ const GrowPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
       <View className="bg-green-500 px-4 py-6">
         <Text className="block text-xl font-bold text-white mb-1">共同成长</Text>
-        <Text className="block text-xs text-stone-400">
+        <Text className="block text-xs text-gray-400">
           一起变得更好的每一天
         </Text>
       </View>
 
       {/* Tab切换 */}
-      <View className="bg-white px-4 pt-3 border-b border-orange-100">
+      <View className="bg-white px-4 pt-3 border-b">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-stone-100 rounded-lg h-10">
+          <TabsList className="w-full bg-gray-100 border border-gray-200 rounded-lg h-10">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
@@ -489,15 +489,15 @@ const GrowPage: FC = () => {
       {/* 无效matchId提示 */}
       {!matchId && (
         <View className="flex flex-col items-center py-16">
-          <Text className="block text-sm text-stone-400">无效的页面参数</Text>
-          <Text className="block text-xs text-stone-300 mt-1">请从正确的入口进入</Text>
+          <Text className="block text-sm text-gray-400">无效的页面参数</Text>
+          <Text className="block text-xs text-gray-300 mt-1">请从正确的入口进入</Text>
         </View>
       )}
 
       {/* 加载态 */}
       {matchId && loading && (
         <View className="flex flex-col items-center py-16">
-          <Text className="block text-sm text-stone-400">加载中...</Text>
+          <Text className="block text-sm text-gray-400">加载中...</Text>
         </View>
       )}
 
@@ -505,7 +505,7 @@ const GrowPage: FC = () => {
       {matchId && !loading && (
         <View className="p-4">
           <TabsContent value="anniversary">
-            <Text className="block text-xs text-stone-400">重要时刻</Text>
+            <Text className="block text-xs text-gray-400">重要时刻</Text>
 
             {anniversaries.map((item) => {
               const nextDate = getNextAnniversary(item.date)
@@ -514,20 +514,20 @@ const GrowPage: FC = () => {
 
               return (
                 <Card key={item.id} className="mb-3 overflow-hidden">
-                  <View className="bg-stone-700 px-4 py-4">
+                  <View className="bg-gray-700 px-4 py-4">
                     <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                       <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                         <Text className="text-2xl mr-3">{item.icon}</Text>
                         <View>
                           <Text className="block text-base font-semibold text-white">{item.title}</Text>
-                          <Text className="block text-xs text-stone-300">
+                          <Text className="block text-xs text-gray-300">
                             在一起 {years} 年
                           </Text>
                         </View>
                       </View>
                       <View>
                         <Text className="block text-2xl font-bold text-white text-right">{daysUntil}</Text>
-                        <Text className="block text-xs text-stone-300 text-right">天后</Text>
+                        <Text className="block text-xs text-gray-300 text-right">天后</Text>
                       </View>
                     </View>
                   </View>
@@ -535,7 +535,7 @@ const GrowPage: FC = () => {
                     <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                       <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                         <Clock size={12} color="#9ca3af" />
-                        <Text className="block text-xs text-stone-500 ml-1">{item.date}</Text>
+                        <Text className="block text-xs text-gray-500 ml-1">{item.date}</Text>
                       </View>
                       <View onClick={() => handleDeleteClick('anniversary', item.id)} className="p-1">
                         <Trash2 size={14} color="#ef4444" />
@@ -550,18 +550,18 @@ const GrowPage: FC = () => {
               <Card className="p-8">
                 <View className="flex flex-col items-center">
                   <Calendar size={40} color="#d1d5db" />
-                  <Text className="block text-sm text-stone-400 mt-3">还没有纪念日</Text>
-                  <Text className="block text-xs text-stone-300 mt-1">点击右上角添加你们的第一个纪念日</Text>
+                  <Text className="block text-sm text-gray-400 mt-3">还没有纪念日</Text>
+                  <Text className="block text-xs text-gray-300 mt-1">点击右上角添加你们的第一个纪念日</Text>
                 </View>
               </Card>
             )}
           </TabsContent>
 
           <TabsContent value="goal">
-            <Text className="block text-xs text-stone-400">努力方向</Text>
+            <Text className="block text-xs text-gray-400">努力方向</Text>
 
             {/* 推荐目标 */}
-            <Card className="mb-4 p-4 bg-stone-50">
+            <Card className="mb-4 p-4 bg-gray-50">
               <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                   <Sparkles size={16} color="#000000" />
@@ -573,7 +573,7 @@ const GrowPage: FC = () => {
                   onClick={handleRegenerateGoals}
                 >
                   <RotateCw size={12} color="#6b7280" />
-                  <Text className="text-xs text-stone-500 ml-1">换一批</Text>
+                  <Text className="text-xs text-gray-500 ml-1">换一批</Text>
                 </Button>
               </View>
               <View className="mt-3">
@@ -593,13 +593,13 @@ const GrowPage: FC = () => {
                       }}
                     >
                       <View className="flex-1">
-                        <Text className={`block text-xs ${addedGoals.has(goal.title) ? 'text-stone-400' : 'text-stone-700'}`}>{goal.title}</Text>
-                        <Text className="block text-xs text-stone-400 mt-1">
+                        <Text className={`block text-xs ${addedGoals.has(goal.title) ? 'text-gray-400' : 'text-gray-700'}`}>{goal.title}</Text>
+                        <Text className="block text-xs text-gray-400 mt-1">
                           目标: {goal.total}{goal.total >= 1000 ? '元' : '次'}
                         </Text>
                       </View>
                       {addedGoals.has(goal.title) ? (
-                        <Text className="block text-xs text-stone-400">已添加</Text>
+                        <Text className="block text-xs text-gray-400">已添加</Text>
                       ) : (
                         <Plus size={16} color="#000000" />
                       )}
@@ -614,10 +614,10 @@ const GrowPage: FC = () => {
                 <CardContent className="py-4">
                   <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <View className="flex-1">
-                      <Text className={`block text-sm font-medium ${item.completed ? 'text-stone-400 line-through' : 'text-stone-900'}`}>
+                      <Text className={`block text-sm font-medium ${item.completed ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                         {item.title}
                       </Text>
-                      <Text className="block text-xs text-stone-500 mt-1">
+                      <Text className="block text-xs text-gray-500 mt-1">
                         {item.progress} / {item.total}{item.total >= 1000 ? '元' : ' 次'}
                       </Text>
                     </View>
@@ -629,7 +629,7 @@ const GrowPage: FC = () => {
                     <Progress value={(item.progress / item.total) * 100} className="h-2" />
                   </View>
                   <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Text className="block text-xs text-stone-500">
+                    <Text className="block text-xs text-gray-500">
                       {Math.round((item.progress / item.total) * 100)}% 完成
                     </Text>
                     {!item.completed && (
@@ -638,7 +638,7 @@ const GrowPage: FC = () => {
                           onClick={() => handleUpdateGoal(item.id, -1)}
                           style={{ width: '28px', height: '28px', borderRadius: '14px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
-                          <Text className="block text-sm text-stone-600">-</Text>
+                          <Text className="block text-sm text-gray-600">-</Text>
                         </View>
                         <View
                           onClick={() => handleUpdateGoal(item.id, 1)}
@@ -675,25 +675,25 @@ const GrowPage: FC = () => {
               <Card className="p-8">
                 <View className="flex flex-col items-center">
                   <Target size={40} color="#d1d5db" />
-                  <Text className="block text-sm text-stone-400 mt-3">还没有共同目标</Text>
-                  <Text className="block text-xs text-stone-300 mt-1">设定一个一起努力的目标吧</Text>
+                  <Text className="block text-sm text-gray-400 mt-3">还没有共同目标</Text>
+                  <Text className="block text-xs text-gray-300 mt-1">设定一个一起努力的目标吧</Text>
                 </View>
               </Card>
             )}
           </TabsContent>
 
           <TabsContent value="memory">
-            <Text className="block text-xs text-stone-400">美好回忆</Text>
+            <Text className="block text-xs text-gray-400">美好回忆</Text>
 
             {memories.map((item) => (
               <Card key={item.id} className="mb-3">
                 <CardContent className="py-4">
                   <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <View className="flex-1">
-                      <Text className="block text-sm text-stone-800 leading-relaxed">{item.content}</Text>
+                      <Text className="block text-sm text-gray-800 leading-relaxed">{item.content}</Text>
                       <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }} className="mt-2">
                         <Calendar size={12} color="#9ca3af" />
-                        <Text className="block text-xs text-stone-500 ml-1">{item.date}</Text>
+                        <Text className="block text-xs text-gray-500 ml-1">{item.date}</Text>
                       </View>
                     </View>
                     <View onClick={() => handleDeleteClick('memory', item.id)} className="p-1 ml-2">
@@ -708,18 +708,18 @@ const GrowPage: FC = () => {
               <Card className="p-8">
                 <View className="flex flex-col items-center">
                   <BookHeart size={40} color="#d1d5db" />
-                  <Text className="block text-sm text-stone-400 mt-3">还没有记录</Text>
-                  <Text className="block text-xs text-stone-300 mt-1">记录你们的第一个美好时刻</Text>
+                  <Text className="block text-sm text-gray-400 mt-3">还没有记录</Text>
+                  <Text className="block text-xs text-gray-300 mt-1">记录你们的第一个美好时刻</Text>
                 </View>
               </Card>
             )}
           </TabsContent>
 
           <TabsContent value="promise">
-            <Text className="block text-xs text-stone-400">我们的承诺</Text>
+            <Text className="block text-xs text-gray-400">我们的承诺</Text>
 
             {/* 推荐约定 */}
-            <Card className="mb-4 p-4 bg-stone-50">
+            <Card className="mb-4 p-4 bg-gray-50">
               <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                   <Sparkles size={16} color="#000000" />
@@ -731,7 +731,7 @@ const GrowPage: FC = () => {
                   onClick={handleRegeneratePromises}
                 >
                   <RotateCw size={12} color="#6b7280" />
-                  <Text className="text-xs text-stone-500 ml-1">换一批</Text>
+                  <Text className="text-xs text-gray-500 ml-1">换一批</Text>
                 </Button>
               </View>
               <View className="mt-3">
@@ -751,10 +751,10 @@ const GrowPage: FC = () => {
                       }}
                     >
                       <View className="flex-1">
-                        <Text className={`block text-xs ${addedPromises.has(promise) ? 'text-stone-400' : 'text-stone-700'}`}>{promise}</Text>
+                        <Text className={`block text-xs ${addedPromises.has(promise) ? 'text-gray-400' : 'text-gray-700'}`}>{promise}</Text>
                       </View>
                       {addedPromises.has(promise) ? (
-                        <Text className="block text-xs text-stone-400">已添加</Text>
+                        <Text className="block text-xs text-gray-400">已添加</Text>
                       ) : (
                         <Plus size={16} color="#000000" />
                       )}
@@ -766,10 +766,10 @@ const GrowPage: FC = () => {
 
             {/* 完成进度 */}
             {promises.length > 0 && (
-              <Card className="mb-3 p-4 bg-stone-50">
+              <Card className="mb-3 p-4 bg-gray-50">
                 <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                   <Heart size={16} color="#000000" />
-                  <Text className="block text-xs text-stone-700 ml-2">
+                  <Text className="block text-xs text-gray-700 ml-2">
                     已完成 {promises.filter(p => p.completed).length} / {promises.length} 个约定
                   </Text>
                 </View>
@@ -789,7 +789,7 @@ const GrowPage: FC = () => {
                           onCheckedChange={() => handleTogglePromise(item.id)}
                         />
                       </View>
-                      <Text className={`block text-sm flex-1 ${item.completed ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
+                      <Text className={`block text-sm flex-1 ${item.completed ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
                         {item.content}
                       </Text>
                     </View>
@@ -805,8 +805,8 @@ const GrowPage: FC = () => {
               <Card className="p-8">
                 <View className="flex flex-col items-center">
                   <Heart size={40} color="#d1d5db" />
-                  <Text className="block text-sm text-stone-400 mt-3">还没有约定</Text>
-                  <Text className="block text-xs text-stone-300 mt-1">添加你们的第一个约定吧</Text>
+                  <Text className="block text-sm text-gray-400 mt-3">还没有约定</Text>
+                  <Text className="block text-xs text-gray-300 mt-1">添加你们的第一个约定吧</Text>
                 </View>
               </Card>
             )}
@@ -830,7 +830,7 @@ const GrowPage: FC = () => {
         >
           <Button
             onClick={() => openAddDialog(activeTab as 'anniversary' | 'goal' | 'memory' | 'promise')}
-            className="w-full bg-green-500 hover:bg-stone-700 rounded-xl py-5 shadow-lg"
+            className="w-full bg-green-500 hover:bg-gray-700 rounded-xl py-5 shadow-lg"
           >
             <Plus size={20} color="#ffffff" />
             <Text className="block text-base font-semibold text-white ml-2">
@@ -851,7 +851,7 @@ const GrowPage: FC = () => {
               <Text className="block text-lg font-semibold">确认删除</Text>
             </AlertDialogTitle>
             <AlertDialogDescription>
-              <Text className="block text-sm text-stone-500">确定要删除吗？删除后无法恢复。</Text>
+              <Text className="block text-sm text-gray-500">确定要删除吗？删除后无法恢复。</Text>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -878,8 +878,8 @@ const GrowPage: FC = () => {
             {addType === 'anniversary' && (
               <View>
                 <View className="mb-4">
-                  <Text className="block text-xs text-stone-500 mb-1">名称</Text>
-                  <View className="bg-stone-50 rounded-xl px-4 py-3">
+                  <Text className="block text-xs text-gray-500 mb-1">名称</Text>
+                  <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
                     <Input
                       value={newTitle}
                       onInput={(e) => setNewTitle(e.detail.value)}
@@ -888,10 +888,10 @@ const GrowPage: FC = () => {
                   </View>
                 </View>
                 <View className="mb-4">
-                  <Text className="block text-xs text-stone-500 mb-1">日期</Text>
+                  <Text className="block text-xs text-gray-500 mb-1">日期</Text>
                   <Picker mode="date" onChange={handleDateChange} value={newDate || ''}>
-                    <View className="bg-stone-50 rounded-xl px-4 py-3">
-                      <Text className={`block ${newDate ? 'text-stone-900' : 'text-stone-400'}`}>
+                    <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                      <Text className={`block ${newDate ? 'text-gray-900' : 'text-gray-400'}`}>
                         {newDate || '请选择日期'}
                       </Text>
                     </View>
@@ -903,8 +903,8 @@ const GrowPage: FC = () => {
             {addType === 'goal' && (
               <View>
                 <View className="mb-4">
-                  <Text className="block text-xs text-stone-500 mb-1">目标</Text>
-                  <View className="bg-stone-50 rounded-xl px-4 py-3">
+                  <Text className="block text-xs text-gray-500 mb-1">目标</Text>
+                  <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
                     <Input
                       value={newTitle}
                       onInput={(e) => setNewTitle(e.detail.value)}
@@ -913,8 +913,8 @@ const GrowPage: FC = () => {
                   </View>
                 </View>
                 <View className="mb-4">
-                  <Text className="block text-xs text-stone-500 mb-1">目标数量</Text>
-                  <View className="bg-stone-50 rounded-xl px-4 py-3">
+                  <Text className="block text-xs text-gray-500 mb-1">目标数量</Text>
+                  <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
                     <Input
                       value={newGoalTotal}
                       onInput={(e) => setNewGoalTotal(e.detail.value)}
@@ -928,7 +928,7 @@ const GrowPage: FC = () => {
 
             {addType === 'memory' && (
               <View className="mb-4">
-                <Text className="block text-xs text-stone-500 mb-1">记录这一刻</Text>
+                <Text className="block text-xs text-gray-500 mb-1">记录这一刻</Text>
                 <Textarea
                   value={newContent}
                   onInput={(e) => setNewContent(e.detail.value)}
@@ -940,8 +940,8 @@ const GrowPage: FC = () => {
 
             {addType === 'promise' && (
               <View className="mb-4">
-                <Text className="block text-xs text-stone-500 mb-1">约定内容</Text>
-                <View className="bg-stone-50 rounded-xl px-4 py-3">
+                <Text className="block text-xs text-gray-500 mb-1">约定内容</Text>
+                <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
                   <Input
                     value={newContent}
                     onInput={(e) => setNewContent(e.detail.value)}

@@ -45,14 +45,14 @@ const StrategyCard: FC<StrategyCardProps> = ({ strategies }) => {
       case '关怀':
         return 'bg-red-50'
       default:
-        return 'bg-stone-50'
+        return 'bg-gray-50'
     }
   }
 
   if (strategies.length === 0) {
     return (
-      <View className="bg-white rounded-xl border border-orange-100 p-4">
-        <Text className="block text-sm text-stone-400 text-center">暂无互动策略推荐</Text>
+      <View className="bg-white rounded-xl p-4">
+        <Text className="block text-sm text-gray-400 text-center">暂无互动策略推荐</Text>
       </View>
     )
   }
@@ -62,7 +62,7 @@ const StrategyCard: FC<StrategyCardProps> = ({ strategies }) => {
       {strategies.map((strategy, index) => (
         <View
           key={index}
-          className="bg-white rounded-xl border border-orange-100 p-4"
+          className="bg-white rounded-xl p-4"
         >
           <View className="flex items-start gap-3">
             <View className={`w-8 h-8 rounded-lg flex items-center justify-center ${getCategoryBg(strategy.category)}`}>
@@ -70,17 +70,17 @@ const StrategyCard: FC<StrategyCardProps> = ({ strategies }) => {
             </View>
             <View className="flex-1">
               <View className="flex items-center gap-2 mb-1">
-                <Text className="block text-xs text-stone-400">{strategy.category}</Text>
+                <Text className="block text-xs text-gray-400">{strategy.category}</Text>
               </View>
-              <Text className="block text-sm font-medium text-stone-800 mb-2">
+              <Text className="block text-sm font-medium text-gray-800 mb-2">
                 {strategy.action}
               </Text>
-              <Text className="block text-xs text-stone-500 mb-2">
+              <Text className="block text-xs text-gray-500 mb-2">
                 {strategy.reason}
               </Text>
               <View className="flex items-center gap-1.5">
-                <Text className="block text-xs text-stone-400">最佳时机:</Text>
-                <Text className="block text-xs font-medium text-stone-600">{strategy.timing}</Text>
+                <Text className="block text-xs text-gray-400">最佳时机:</Text>
+                <Text className="block text-xs font-medium text-gray-600">{strategy.timing}</Text>
               </View>
             </View>
           </View>

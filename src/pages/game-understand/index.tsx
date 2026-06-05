@@ -160,11 +160,11 @@ const UnderstandPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
       <View className="bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-6">
         <Text className="block text-2xl font-bold text-white mb-2">深入了解问答</Text>
-        <Text className="block text-sm text-stone-200">
+        <Text className="block text-sm text-gray-200">
           精心设计的问题，快速了解对方
         </Text>
       </View>
@@ -174,7 +174,7 @@ const UnderstandPage: FC = () => {
         {!selectedCategory ? (
           <>
             {/* 类别选择 */}
-            <Text className="block text-sm font-medium text-stone-500 mb-3">选择一个话题</Text>
+            <Text className="block text-sm font-medium text-gray-500 mb-3">选择一个话题</Text>
             <ScrollView scrollY className="max-h-[calc(100vh-280px)]">
               <View className="space-y-3">
                 {categories.map((category) => (
@@ -191,7 +191,7 @@ const UnderstandPage: FC = () => {
                             <Text className="block text-base font-semibold text-white">
                               {category.name}
                             </Text>
-                            <Text className="block text-xs text-stone-200">
+                            <Text className="block text-xs text-gray-200">
                               {category.questions.length} 个问题
                             </Text>
                           </View>
@@ -215,18 +215,18 @@ const UnderstandPage: FC = () => {
           <>
             {/* 进度 */}
             <View className="bg-white rounded-xl px-4 py-3 mb-4 flex flex-row items-center justify-between">
-              <Text className="text-sm text-stone-500">{selectedCategory.name}</Text>
+              <Text className="text-sm text-gray-500">{selectedCategory.name}</Text>
               <Text className="text-sm text-orange-600 font-medium">
                 {questionIndex + 1} / {selectedCategory.questions.length}
               </Text>
             </View>
 
             {/* 问题卡片 */}
-            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-orange-100 mb-4">
+            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 mb-4">
               <CardContent className="py-8">
                 <View className="flex flex-col items-center">
                   <Text className="text-3xl mb-4">{selectedCategory.icon}</Text>
-                  <Text className="block text-lg text-stone-900 text-center leading-relaxed px-4">
+                  <Text className="block text-lg text-gray-900 text-center leading-relaxed px-4">
                     {currentQuestion}
                   </Text>
                 </View>
@@ -264,8 +264,8 @@ const UnderstandPage: FC = () => {
                 <View className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
                   <Heart size={32} color="#22c55e" />
                 </View>
-                <Text className="block text-lg font-semibold text-stone-900 mb-2">已完成所有问题</Text>
-                <Text className="block text-sm text-stone-500 text-center mb-6 leading-relaxed">
+                <Text className="block text-lg font-semibold text-gray-900 mb-2">已完成所有问题</Text>
+                <Text className="block text-sm text-gray-500 text-center mb-6 leading-relaxed">
                   恭喜！你已经完成了这个话题的所有问题。选择其他话题继续了解对方吧！
                 </Text>
                 <Button
@@ -281,10 +281,10 @@ const UnderstandPage: FC = () => {
         )}
       </View>
 
-      <View className="bg-white border-t border-orange-100 px-4 py-3 mt-4">
+      <View className="bg-white border-t px-4 py-3 mt-4">
         <View className="flex flex-row items-center">
           <Sparkles size={16} color="#f97316" />
-          <Text className="block text-xs text-stone-500 ml-2">
+          <Text className="block text-xs text-gray-500 ml-2">
             提示：真诚分享会让对方更了解你，也可以主动向对方提问
           </Text>
         </View>

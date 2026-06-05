@@ -167,14 +167,14 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
   return (
     <View className="space-y-3">
       {/* 总览进度 */}
-      <View className="bg-white rounded-xl border border-orange-100 p-4">
+      <View className="bg-white rounded-xl p-4">
         <View className="flex items-center justify-between mb-3">
-          <Text className="block text-sm font-semibold text-stone-900">维度完成度</Text>
+          <Text className="block text-sm font-semibold text-gray-900">维度完成度</Text>
           <Text className="block text-sm font-medium text-blue-600">
             {totalStats.filled}/{totalStats.total}
           </Text>
         </View>
-        <View className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
+        <View className="w-full h-2 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
           <View
             className="h-full rounded-full bg-blue-500 transition-all"
             style={{ width: `${totalStats.total > 0 ? Math.round((totalStats.filled / totalStats.total) * 100) : 0}%` }}
@@ -194,8 +194,8 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
             return (
               <View key={layer} className="flex items-center gap-1">
                 <Text className="block text-xs">{config.icon}</Text>
-                <Text className="block text-xs text-stone-600">{config.name}</Text>
-                <Text className="block text-xs text-stone-400">{filled}/{total}</Text>
+                <Text className="block text-xs text-gray-600">{config.name}</Text>
+                <Text className="block text-xs text-gray-400">{filled}/{total}</Text>
               </View>
             )
           })}
@@ -215,7 +215,7 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
         return (
           <View
             key={groupKey}
-            className="bg-white rounded-xl border border-orange-100 overflow-hidden"
+            className="bg-white rounded-xl overflow-hidden"
             onClick={() => onCategoryClick?.(group.layer, group.category)}
           >
             {/* 分类标题 */}
@@ -225,8 +225,8 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
                   <Text className="block text-xs">{config.icon}</Text>
                 </View>
                 <View>
-                  <Text className="block text-sm font-semibold text-stone-900">{catLabel}</Text>
-                  <Text className="block text-xs text-stone-400">
+                  <Text className="block text-sm font-semibold text-gray-900">{catLabel}</Text>
+                  <Text className="block text-xs text-gray-400">
                     L{group.layer} · {filledCount}/{totalCount}项
                   </Text>
                 </View>
@@ -236,17 +236,17 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
                   <Badge className="bg-green-50 text-green-700 text-xs">已完整</Badge>
                 )}
                 {fillPercent === 0 && (
-                  <Badge className="bg-stone-50 text-stone-500 text-xs">待填写</Badge>
+                  <Badge className="bg-gray-50 text-gray-500 text-xs">待填写</Badge>
                 )}
-                <ChevronRight size={16} color="#A8A29E" />
+                <ChevronRight size={16} color="#9CA3AF" />
               </View>
             </View>
 
             {/* 完成度条 */}
             <View className="px-4 pb-2">
-              <View className="w-full h-1 bg-stone-100 rounded-full overflow-hidden">
+              <View className="w-full h-1 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
                 <View
-                  className={`h-full rounded-full transition-all ${fillPercent >= 80 ? 'bg-green-400' : fillPercent >= 40 ? 'bg-blue-400' : 'bg-stone-300'}`}
+                  className={`h-full rounded-full transition-all ${fillPercent >= 80 ? 'bg-green-400' : fillPercent >= 40 ? 'bg-blue-400' : 'bg-gray-300'}`}
                   style={{ width: `${fillPercent}%` }}
                 />
               </View>
@@ -262,27 +262,27 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
                 return (
                   <View
                     key={item.key}
-                    className="flex items-center justify-between py-2 border-t border-stone-100"
+                    className="flex items-center justify-between py-2 border-t border-gray-100"
                   >
-                    <Text className="block text-xs text-stone-500">{item.definition.display_name}</Text>
+                    <Text className="block text-xs text-gray-500">{item.definition.display_name}</Text>
 
                     {isScore ? (
                       /* 分数型维度 */
                       <View className="flex items-center gap-2">
-                        <View className="w-16 h-1 bg-stone-100 rounded-full overflow-hidden">
+                        <View className="w-16 h-1 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
                           <View
                             className={`h-full rounded-full ${getScoreColor(scoreVal)}`}
                             style={{ width: `${scoreVal}%` }}
                           />
                         </View>
-                        <Text className="block text-xs font-medium text-stone-700 w-6 text-right">
+                        <Text className="block text-xs font-medium text-gray-700 w-6 text-right">
                           {scoreVal}
                         </Text>
                       </View>
                     ) : (
                       /* 文本型维度 */
                       <Text
-                        className={`block text-xs max-w-[60%] text-right ${isFilled ? 'text-stone-800 font-medium' : 'text-stone-300'}`}
+                        className={`block text-xs max-w-[60%] text-right ${isFilled ? 'text-gray-800 font-medium' : 'text-gray-300'}`}
                       >
                         {formatValue(item.value, item.definition)}
                       </Text>

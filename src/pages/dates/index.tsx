@@ -104,24 +104,24 @@ const DatesPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
       <CustomHeader 
         title="约会记录" 
-        rightAction={<Plus size={20} color="#78716C" />}
+        rightAction={<Plus size={20} color="#6B7280" />}
         onBack={goBack}
       />
 
       {/* 统计 */}
       <View className="px-4 py-4">
         <View className="flex gap-4">
-          <View className="flex-1 bg-white rounded-xl border border-orange-100 p-4 text-center">
-            <Text className="block text-2xl font-bold text-stone-900">{stats.totalDates}</Text>
-            <Text className="block text-xs text-stone-400 mt-1">约会次数</Text>
+          <View className="flex-1 bg-white rounded-xl p-4 text-center">
+            <Text className="block text-2xl font-bold text-gray-900">{stats.totalDates}</Text>
+            <Text className="block text-xs text-gray-400 mt-1">约会次数</Text>
           </View>
-          <View className="flex-1 bg-white rounded-xl border border-orange-100 p-4 text-center">
-            <Text className="block text-2xl font-bold text-stone-900">{stats.totalHours}</Text>
-            <Text className="block text-xs text-stone-400 mt-1">相处时长(h)</Text>
+          <View className="flex-1 bg-white rounded-xl p-4 text-center">
+            <Text className="block text-2xl font-bold text-gray-900">{stats.totalHours}</Text>
+            <Text className="block text-xs text-gray-400 mt-1">相处时长(h)</Text>
           </View>
         </View>
       </View>
@@ -130,11 +130,11 @@ const DatesPage: FC = () => {
       <View className="px-4">
         {loading ? (
           <View className="text-center py-12">
-            <Loader size={24} color="#78716C" className="animate-spin" />
+            <Loader size={24} color="#6B7280" className="animate-spin" />
           </View>
         ) : records.length === 0 ? (
           <View className="text-center py-12">
-            <Text className="block text-stone-400 mb-4">还没有约会记录</Text>
+            <Text className="block text-gray-400 mb-4">还没有约会记录</Text>
             <Button className="bg-green-500" onClick={goToCreate}>
               <Plus size={16} color="#fff" />
               <Text className="ml-1 text-white">记录第一次约会</Text>
@@ -144,52 +144,52 @@ const DatesPage: FC = () => {
           records.map((record) => (
             <View
               key={record.id}
-              className="bg-white rounded-xl border border-orange-100 p-4 mb-3"
+              className="bg-white rounded-xl p-4 mb-3"
               onClick={() => goToEdit(record.id)}
             >
               <View className="flex items-start justify-between mb-2">
                 <View className="flex-1">
-                  <Text className="block text-base font-semibold text-stone-900 mb-1">
+                  <Text className="block text-base font-semibold text-gray-900 mb-1">
                     {record.activity}
                   </Text>
-                  <View className="flex items-center gap-2 text-xs text-stone-400">
+                  <View className="flex items-center gap-2 text-xs text-gray-400">
                     <View className="flex items-center gap-1">
-                      <Calendar size={12} color="#A8A29E" />
+                      <Calendar size={12} color="#9CA3AF" />
                       <Text>{formatDate(record.date)}</Text>
                     </View>
                     <View className="flex items-center gap-1">
-                      <MapPin size={12} color="#A8A29E" />
+                      <MapPin size={12} color="#9CA3AF" />
                       <Text>{record.location}</Text>
                     </View>
                     <View className="flex items-center gap-1">
-                      <Clock size={12} color="#A8A29E" />
+                      <Clock size={12} color="#9CA3AF" />
                       <Text>{record.duration}</Text>
                     </View>
                   </View>
                 </View>
-                <Badge className="bg-stone-100 text-stone-600">{moodLabels[record.mood]}</Badge>
+                <Badge className="bg-gray-100 text-gray-600">{moodLabels[record.mood]}</Badge>
               </View>
 
               {/* 精彩瞬间 */}
               {record.highlights?.length > 0 && (
                 <View className="flex flex-wrap gap-1 mb-2">
                   {record.highlights.map((h, i) => (
-                    <Badge key={i} className="bg-stone-50 text-stone-500 text-xs">{h}</Badge>
+                    <Badge key={i} className="bg-gray-50 text-gray-500 text-xs">{h}</Badge>
                   ))}
                 </View>
               )}
 
               {/* AI提取信息 */}
               {record.keyInfoExtracted?.length > 0 && (
-                <View className="mt-2 pt-2 border-t border-orange-100">
+                <View className="mt-2 pt-2 border-t">
                   <View className="flex items-center gap-1 mb-1">
                     <Sparkles size={12} color="#4ECB71" />
-                    <Text className="block text-xs text-stone-400">提取的关键信息</Text>
+                    <Text className="block text-xs text-gray-400">提取的关键信息</Text>
                   </View>
                   {record.keyInfoExtracted.map((info, i) => (
                     <View key={i} className="flex items-center gap-2">
-                      <Text className="block text-xs text-stone-500">{info.label}:</Text>
-                      <Text className="block text-xs text-stone-600">{info.value}</Text>
+                      <Text className="block text-xs text-gray-500">{info.label}:</Text>
+                      <Text className="block text-xs text-gray-600">{info.value}</Text>
                     </View>
                   ))}
                 </View>
@@ -204,7 +204,7 @@ const DatesPage: FC = () => {
       </View>
 
       {/* 底部 */}
-      <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-orange-100">
+      <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button className="w-full bg-green-500" onClick={goToCreate}>
           <Plus size={16} color="#fff" />
           <Text className="ml-1 text-white">记录新约会</Text>

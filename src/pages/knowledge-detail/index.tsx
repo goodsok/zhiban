@@ -9,7 +9,7 @@ import { Moon, Sun, Heart, Cloud, Check, X, Lightbulb, Users } from 'lucide-reac
 
 // 周期阶段图标和颜色配置
 const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: string; textColor: string }> = {
-  menstrual: { icon: Moon, color: '#6B7280', bgColor: 'bg-stone-100', textColor: 'text-stone-600' },
+  menstrual: { icon: Moon, color: '#6B7280', bgColor: 'bg-gray-100', textColor: 'text-gray-600' },
   follicular: { icon: Sun, color: '#10B981', bgColor: 'bg-green-50', textColor: 'text-green-600' },
   ovulation: { icon: Heart, color: '#EC4899', bgColor: 'bg-pink-50', textColor: 'text-pink-600' },
   luteal_early: { icon: Sun, color: '#3B82F6', bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
@@ -80,16 +80,16 @@ const KnowledgeDetailPage: FC = () => {
 
   if (loading) {
     return (
-      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFF9F0' }}>
-        <Text className="text-stone-400">加载中...</Text>
+      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F7F8FA' }}>
+        <Text className="text-gray-400">加载中...</Text>
       </View>
     )
   }
 
   if (!knowledge) {
     return (
-      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFF9F0' }}>
-        <Text className="text-stone-400">未找到相关知识</Text>
+      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F7F8FA' }}>
+        <Text className="text-gray-400">未找到相关知识</Text>
       </View>
     )
   }
@@ -98,7 +98,7 @@ const KnowledgeDetailPage: FC = () => {
   const PhaseIcon = config.icon
 
   return (
-    <View className="min-h-screen pb-6" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-6" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title={knowledge.phase_name} />
 
       {/* 顶部概览卡片 */}
@@ -108,19 +108,19 @@ const KnowledgeDetailPage: FC = () => {
             <PhaseIcon size={20} color={config.color} />
           </View>
           <View>
-            <Text className="block text-lg font-semibold text-stone-900">{knowledge.phase_name}</Text>
-            <Text className="block text-xs text-stone-500">周期 Day {knowledge.day_range}</Text>
+            <Text className="block text-lg font-semibold text-gray-900">{knowledge.phase_name}</Text>
+            <Text className="block text-xs text-gray-500">周期 Day {knowledge.day_range}</Text>
           </View>
         </View>
         {knowledge.description && (
-          <Text className="block text-sm text-stone-700">{knowledge.description}</Text>
+          <Text className="block text-sm text-gray-700">{knowledge.description}</Text>
         )}
       </View>
 
       {/* 激素状态 */}
       <View className="mx-4 mt-4">
-        <Text className="block text-sm font-semibold text-stone-900 mb-2">激素状态</Text>
-        <View className="bg-white rounded-xl border border-orange-100 p-4">
+        <Text className="block text-sm font-semibold text-gray-900 mb-2">激素状态</Text>
+        <View className="bg-white rounded-xl p-4">
           <View className="flex flex-wrap gap-2">
             {Object.entries(knowledge.hormone_status || {}).map(([key, value]) => (
               <Badge key={key} variant="outline" className="text-xs">
@@ -133,16 +133,16 @@ const KnowledgeDetailPage: FC = () => {
 
       {/* 阶段特点 */}
       <View className="mx-4 mt-4">
-        <Text className="block text-sm font-semibold text-stone-900 mb-2">阶段特点</Text>
-        <View className="bg-white rounded-xl border border-orange-100 p-4 space-y-3">
+        <Text className="block text-sm font-semibold text-gray-900 mb-2">阶段特点</Text>
+        <View className="bg-white rounded-xl p-4 space-y-3">
           {knowledge.characteristics?.emotion && (
             <View className="flex items-start gap-3">
               <View className="w-6 h-6 rounded-full bg-pink-50 flex items-center justify-center shrink-0 mt-1">
                 <Heart size={12} color="#EC4899" />
               </View>
               <View>
-                <Text className="block text-xs font-medium text-stone-700 mb-1">情绪状态</Text>
-                <Text className="block text-sm text-stone-600">{knowledge.characteristics.emotion}</Text>
+                <Text className="block text-xs font-medium text-gray-700 mb-1">情绪状态</Text>
+                <Text className="block text-sm text-gray-600">{knowledge.characteristics.emotion}</Text>
               </View>
             </View>
           )}
@@ -152,8 +152,8 @@ const KnowledgeDetailPage: FC = () => {
                 <Lightbulb size={12} color="#3B82F6" />
               </View>
               <View>
-                <Text className="block text-xs font-medium text-stone-700 mb-1">思维特点</Text>
-                <Text className="block text-sm text-stone-600">{knowledge.characteristics.thinking}</Text>
+                <Text className="block text-xs font-medium text-gray-700 mb-1">思维特点</Text>
+                <Text className="block text-sm text-gray-600">{knowledge.characteristics.thinking}</Text>
               </View>
             </View>
           )}
@@ -163,8 +163,8 @@ const KnowledgeDetailPage: FC = () => {
                 <Users size={12} color="#4ECB71" />
               </View>
               <View>
-                <Text className="block text-xs font-medium text-stone-700 mb-1">社交状态</Text>
-                <Text className="block text-sm text-stone-600">{knowledge.characteristics.social}</Text>
+                <Text className="block text-xs font-medium text-gray-700 mb-1">社交状态</Text>
+                <Text className="block text-sm text-gray-600">{knowledge.characteristics.social}</Text>
               </View>
             </View>
           )}
@@ -174,8 +174,8 @@ const KnowledgeDetailPage: FC = () => {
                 <Sun size={12} color="#F59E0B" />
               </View>
               <View>
-                <Text className="block text-xs font-medium text-stone-700 mb-1">身体状况</Text>
-                <Text className="block text-sm text-stone-600">{knowledge.characteristics.body}</Text>
+                <Text className="block text-xs font-medium text-gray-700 mb-1">身体状况</Text>
+                <Text className="block text-sm text-gray-600">{knowledge.characteristics.body}</Text>
               </View>
             </View>
           )}
@@ -185,8 +185,8 @@ const KnowledgeDetailPage: FC = () => {
                 <Heart size={12} color="#8B5CF6" />
               </View>
               <View>
-                <Text className="block text-xs font-medium text-stone-700 mb-1">亲密需求</Text>
-                <Text className="block text-sm text-stone-600">{knowledge.characteristics.libido}</Text>
+                <Text className="block text-xs font-medium text-gray-700 mb-1">亲密需求</Text>
+                <Text className="block text-sm text-gray-600">{knowledge.characteristics.libido}</Text>
               </View>
             </View>
           )}
@@ -196,20 +196,20 @@ const KnowledgeDetailPage: FC = () => {
       {/* 建议行动 */}
       {knowledge.recommendations && (
         <View className="mx-4 mt-4">
-          <Text className="block text-sm font-semibold text-stone-900 mb-2">建议行动</Text>
+          <Text className="block text-sm font-semibold text-gray-900 mb-2">建议行动</Text>
           
           {/* 推荐做的事 */}
           {knowledge.recommendations.best_actions && knowledge.recommendations.best_actions.length > 0 && (
-            <View className="bg-white rounded-xl border border-orange-100 p-4 mb-2">
+            <View className="bg-white rounded-xl p-4 mb-2">
               <View className="flex items-center gap-2 mb-2">
                 <Check size={14} color="#4ECB71" />
-                <Text className="block text-xs font-medium text-stone-700">推荐做的事</Text>
+                <Text className="block text-xs font-medium text-gray-700">推荐做的事</Text>
               </View>
               <View className="space-y-2">
                 {knowledge.recommendations.best_actions.map((action, index) => (
                   <View key={index} className="flex items-start gap-2">
                     <View className="w-2 h-2 rounded-full bg-green-500 mt-2 shrink-0" />
-                    <Text className="block text-sm text-stone-600">{action}</Text>
+                    <Text className="block text-sm text-gray-600">{action}</Text>
                   </View>
                 ))}
               </View>
@@ -218,16 +218,16 @@ const KnowledgeDetailPage: FC = () => {
 
           {/* 避免做的事 */}
           {knowledge.recommendations.avoid_actions && knowledge.recommendations.avoid_actions.length > 0 && (
-            <View className="bg-white rounded-xl border border-orange-100 p-4 mb-2">
+            <View className="bg-white rounded-xl p-4 mb-2">
               <View className="flex items-center gap-2 mb-2">
                 <X size={14} color="#EF4444" />
-                <Text className="block text-xs font-medium text-stone-700">避免做的事</Text>
+                <Text className="block text-xs font-medium text-gray-700">避免做的事</Text>
               </View>
               <View className="space-y-2">
                 {knowledge.recommendations.avoid_actions.map((action, index) => (
                   <View key={index} className="flex items-start gap-2">
                     <View className="w-2 h-2 rounded-full bg-red-500 mt-2 shrink-0" />
-                    <Text className="block text-sm text-stone-600">{action}</Text>
+                    <Text className="block text-sm text-gray-600">{action}</Text>
                   </View>
                 ))}
               </View>
@@ -236,16 +236,16 @@ const KnowledgeDetailPage: FC = () => {
 
           {/* 自我照顾 */}
           {knowledge.recommendations.self_care && knowledge.recommendations.self_care.length > 0 && (
-            <View className="bg-white rounded-xl border border-orange-100 p-4">
+            <View className="bg-white rounded-xl p-4">
               <View className="flex items-center gap-2 mb-2">
                 <Heart size={14} color="#EC4899" />
-                <Text className="block text-xs font-medium text-stone-700">自我照顾</Text>
+                <Text className="block text-xs font-medium text-gray-700">自我照顾</Text>
               </View>
               <View className="space-y-2">
                 {knowledge.recommendations.self_care.map((action, index) => (
                   <View key={index} className="flex items-start gap-2">
                     <View className="w-2 h-2 rounded-full bg-pink-500 mt-2 shrink-0" />
-                    <Text className="block text-sm text-stone-600">{action}</Text>
+                    <Text className="block text-sm text-gray-600">{action}</Text>
                   </View>
                 ))}
               </View>
@@ -257,7 +257,7 @@ const KnowledgeDetailPage: FC = () => {
       {/* 给伴侣的建议 */}
       {knowledge.partner_tips && (
         <View className="mx-4 mt-4">
-          <Text className="block text-sm font-semibold text-stone-900 mb-2">给TA的建议</Text>
+          <Text className="block text-sm font-semibold text-gray-900 mb-2">给TA的建议</Text>
           <View className="bg-green-500 rounded-xl p-4">
             <Text className="block text-sm text-white leading-relaxed">{knowledge.partner_tips}</Text>
           </View>

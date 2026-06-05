@@ -54,10 +54,10 @@ const ProgressPage: FC = () => {
   const progressPercentage = (completedMilestones / totalMilestones) * 100
 
   return (
-    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 关系阶段卡片 */}
       <View className="p-4">
-        <Card className="shadow-sm border-0 bg-gradient-to-r from-pink-500 to-orange-400">
+        <Card className="shadow border-0 bg-gradient-to-r from-pink-500 to-orange-400">
           <CardContent className="p-4">
             <View className="flex items-center justify-between mb-3">
               <View>
@@ -79,24 +79,24 @@ const ProgressPage: FC = () => {
       {/* 里程碑时间线 */}
       <View className="p-4">
         <View className="flex items-center justify-between mb-3">
-          <Text className="block text-lg font-semibold text-stone-800">里程碑</Text>
+          <Text className="block text-lg font-semibold text-gray-800">里程碑</Text>
           <Button size="sm" variant="ghost" className="text-pink-500">
             <Plus size={16} color="#FF6B9D" />
             <Text>添加</Text>
           </Button>
         </View>
 
-        <Card className="shadow-sm border-0">
+        <Card className="shadow border-0">
           <CardContent className="p-4">
             {milestones.map((milestone, index) => (
               <View 
                 key={milestone.id}
                 className={`flex items-start gap-3 ${
-                  index < milestones.length - 1 ? 'pb-4 border-b border-orange-100 mb-4' : ''
+                  index < milestones.length - 1 ? 'pb-4 border-b mb-4' : ''
                 }`}
               >
                 <View className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  milestone.completed ? 'bg-pink-500' : 'bg-stone-200'
+                  milestone.completed ? 'bg-pink-500' : 'bg-gray-200'
                 }`}
                 >
                   <Text className="block text-lg">{milestone.icon}</Text>
@@ -104,7 +104,7 @@ const ProgressPage: FC = () => {
                 <View className="flex-1">
                   <View className="flex items-center gap-2 mb-1">
                     <Text className={`block font-semibold ${
-                      milestone.completed ? 'text-stone-800' : 'text-stone-400'
+                      milestone.completed ? 'text-gray-800' : 'text-gray-400'
                     }`}
                     >
                       {milestone.title}
@@ -115,15 +115,15 @@ const ProgressPage: FC = () => {
                   </View>
                   {milestone.date && (
                     <View className="flex items-center gap-1">
-                      <Calendar size={12} color="#A8A29E" />
-                      <Text className="block text-sm text-stone-500">{milestone.date}</Text>
+                      <Calendar size={12} color="#9CA3AF" />
+                      <Text className="block text-sm text-gray-500">{milestone.date}</Text>
                     </View>
                   )}
                 </View>
                 {milestone.completed ? (
                   <Heart size={20} color="#FF6B9D" />
                 ) : (
-                  <View className="w-5 h-5 rounded-full border-2 border-stone-300" />
+                  <View className="w-5 h-5 rounded-full border-2 border-gray-300" />
                 )}
               </View>
             ))}
@@ -134,7 +134,7 @@ const ProgressPage: FC = () => {
       {/* 美好时刻照片墙 */}
       <View className="p-4">
         <View className="flex items-center justify-between mb-3">
-          <Text className="block text-lg font-semibold text-stone-800">美好时刻</Text>
+          <Text className="block text-lg font-semibold text-gray-800">美好时刻</Text>
           <Button size="sm" variant="ghost" className="text-pink-500">
             <Camera size={16} color="#FF6B9D" />
             <Text>上传</Text>
@@ -155,10 +155,10 @@ const ProgressPage: FC = () => {
             </View>
           ))}
           {/* 添加更多 */}
-          <View className="aspect-square rounded-xl bg-stone-100 flex items-center justify-center border-2 border-dashed border-stone-300">
+          <View className="aspect-square rounded-xl bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300">
             <View className="text-center">
-              <Plus size={24} color="#A8A29E" />
-              <Text className="block text-xs text-stone-400 mt-1">添加</Text>
+              <Plus size={24} color="#9CA3AF" />
+              <Text className="block text-xs text-gray-400 mt-1">添加</Text>
             </View>
           </View>
         </View>
@@ -166,30 +166,30 @@ const ProgressPage: FC = () => {
 
       {/* 统计数据 */}
       <View className="p-4">
-        <Text className="block text-lg font-semibold text-stone-800 mb-3">恋爱统计</Text>
+        <Text className="block text-lg font-semibold text-gray-800 mb-3">恋爱统计</Text>
         <View className="grid grid-cols-2 gap-3">
-          <Card className="shadow-sm border-0">
+          <Card className="shadow border-0">
             <CardContent className="p-4 text-center">
               <Text className="block text-3xl font-bold text-pink-500 mb-1">15</Text>
-              <Text className="block text-sm text-stone-500">相识天数</Text>
+              <Text className="block text-sm text-gray-500">相识天数</Text>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-0">
+          <Card className="shadow border-0">
             <CardContent className="p-4 text-center">
               <Text className="block text-3xl font-bold text-orange-500 mb-1">3</Text>
-              <Text className="block text-sm text-stone-500">约会次数</Text>
+              <Text className="block text-sm text-gray-500">约会次数</Text>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-0">
+          <Card className="shadow border-0">
             <CardContent className="p-4 text-center">
               <Text className="block text-3xl font-bold text-blue-500 mb-1">5</Text>
-              <Text className="block text-sm text-stone-500">完成任务</Text>
+              <Text className="block text-sm text-gray-500">完成任务</Text>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-0">
+          <Card className="shadow border-0">
             <CardContent className="p-4 text-center">
               <Text className="block text-3xl font-bold text-green-500 mb-1">85%</Text>
-              <Text className="block text-sm text-stone-500">默契度</Text>
+              <Text className="block text-sm text-gray-500">默契度</Text>
             </CardContent>
           </Card>
         </View>

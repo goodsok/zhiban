@@ -12,7 +12,7 @@ interface SkeletonProps {
 
 // 基础骨架块
 export const Skeleton: FC<SkeletonProps> = ({ className = '' }) => (
-  <View className={`bg-stone-200 animate-pulse rounded ${className}`} />
+  <View className={`bg-gray-200 animate-pulse rounded ${className}`} />
 )
 
 // 文本骨架
@@ -25,7 +25,7 @@ export const SkeletonText: FC<{ width?: string; lines?: number; className?: stri
     {Array.from({ length: lines }).map((_, i) => (
       <View 
         key={i}
-        className={`bg-stone-200 animate-pulse rounded h-4 ${i === lines - 1 && lines > 1 ? width : 'w-full'}`}
+        className={`bg-gray-200 animate-pulse rounded h-4 ${i === lines - 1 && lines > 1 ? width : 'w-full'}`}
       />
     ))}
   </View>
@@ -33,7 +33,7 @@ export const SkeletonText: FC<{ width?: string; lines?: number; className?: stri
 
 // 卡片骨架
 export const SkeletonCard: FC<{ className?: string }> = ({ className = '' }) => (
-  <View className={`bg-white rounded-xl border border-orange-100 p-4 ${className}`}>
+  <View className={`bg-white rounded-xl p-4 ${className}`}>
     <View className="flex items-center justify-between mb-3">
       <Skeleton className="h-5 w-24" />
       <Skeleton className="h-4 w-16" />
@@ -47,7 +47,7 @@ export const SkeletonCard: FC<{ className?: string }> = ({ className = '' }) => 
 export const SkeletonDimension: FC<{ count?: number }> = ({ count = 5 }) => (
   <View className="space-y-2">
     {Array.from({ length: count }).map((_, i) => (
-      <View key={i} className="flex items-center justify-between py-3 px-3 bg-white border-b border-stone-100">
+      <View key={i} className="flex items-center justify-between py-3 px-3 bg-white border-b border-gray-100">
         <View className="flex items-center gap-2">
           <Skeleton className="h-1 w-1 rounded-full" />
           <Skeleton className="h-4 w-20" />
@@ -65,7 +65,7 @@ export const SkeletonDimension: FC<{ count?: number }> = ({ count = 5 }) => (
 export const SkeletonDimensionLayer: FC = () => (
   <View className="mb-3">
     {/* 层级标题 */}
-    <View className="bg-white rounded-xl border border-orange-100 p-3 mb-2">
+    <View className="bg-white rounded-xl p-3 mb-2">
       <View className="flex items-center justify-between">
         <View className="flex items-center gap-2">
           <Skeleton className="h-5 w-20" />
@@ -77,7 +77,7 @@ export const SkeletonDimensionLayer: FC = () => (
     </View>
     
     {/* 分类 */}
-    <View className="bg-stone-50 rounded-lg p-3 mb-2">
+    <View className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-2">
       <View className="flex items-center justify-between">
         <Skeleton className="h-4 w-16" />
         <Skeleton className="h-3 w-8" />
@@ -85,7 +85,7 @@ export const SkeletonDimensionLayer: FC = () => (
     </View>
     
     {/* 维度列表 */}
-    <View className="bg-white rounded-lg border border-orange-100 overflow-hidden">
+    <View className="bg-white rounded-lg overflow-hidden">
       <SkeletonDimension count={4} />
     </View>
   </View>
@@ -93,10 +93,10 @@ export const SkeletonDimensionLayer: FC = () => (
 
 // 档案页面骨架
 export const SkeletonProfile: FC = () => (
-  <View className="min-h-screen bg-stone-50 pb-24">
+  <View className="min-h-screen bg-gray-50 pb-24">
     {/* 头部信息 */}
     <View className="p-4">
-      <View className="bg-white rounded-xl border border-orange-100 p-4">
+      <View className="bg-white rounded-xl p-4">
         <View className="flex items-center gap-2 mb-3">
           <Skeleton className="h-6 w-24" />
           <Skeleton className="h-4 w-12 rounded-full" />
@@ -109,7 +109,7 @@ export const SkeletonProfile: FC = () => (
     <View className="px-4 pb-4">
       <View className="grid grid-cols-4 gap-2">
         {Array.from({ length: 4 }).map((_, i) => (
-          <View key={i} className="flex flex-col items-center p-3 bg-white rounded-xl border border-orange-100">
+          <View key={i} className="flex flex-col items-center p-3 bg-white rounded-xl">
             <Skeleton className="h-10 w-10 rounded-full" />
             <Skeleton className="h-3 w-12 mt-2" />
           </View>
@@ -130,7 +130,7 @@ export const SkeletonProfile: FC = () => (
       </View>
       
       {/* 维度统计 */}
-      <View className="mb-4 p-3 bg-white rounded-xl border border-orange-100">
+      <View className="mb-4 p-3 bg-white rounded-xl">
         <View className="flex items-center justify-between">
           <Skeleton className="h-3 w-20" />
           <View className="flex items-center gap-1">

@@ -76,7 +76,7 @@ const categories: KnowledgeCategory[] = [
     icon: Heart,
     pagePath: '/pages/dating-app/index',
     iconColor: '#E87461',
-    iconBg: 'bg-orange-50',
+    iconBg: 'bg-white',
   },
   {
     id: 'games',
@@ -121,7 +121,7 @@ const categories: KnowledgeCategory[] = [
     icon: Flame,
     pagePath: '/pages/sweet-talk/index',
     iconColor: '#E87461',
-    iconBg: 'bg-orange-50',
+    iconBg: 'bg-white',
   },
 ]
 
@@ -135,10 +135,10 @@ const DiscoverPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
-      <View className="bg-white px-4 py-4 border-b border-orange-100">
-        <Text className="block text-xl font-bold text-stone-900">发现</Text>
+      <View className="bg-white px-4 py-4 border-b">
+        <Text className="block text-xl font-bold text-gray-900">发现</Text>
       </View>
 
       {/* 知识分类入口 - 两列网格 */}
@@ -166,7 +166,7 @@ const DiscoverPage: FC = () => {
 
       {/* 提示文字 */}
       <View className="px-4 mt-4">
-        <Text className="block text-xs text-stone-400 text-center">
+        <Text className="block text-xs text-gray-400 text-center">
           更多知识内容持续更新中...
         </Text>
       </View>

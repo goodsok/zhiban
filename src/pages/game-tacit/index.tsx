@@ -244,11 +244,11 @@ const TacitPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
       <View className="bg-gradient-to-r from-blue-500 to-cyan-500 px-4 py-6">
         <Text className="block text-2xl font-bold text-white mb-2">默契测试</Text>
-        <Text className="block text-sm text-stone-200">
+        <Text className="block text-sm text-gray-200">
           测试你们的默契程度，发现彼此的契合点
         </Text>
       </View>
@@ -257,7 +257,7 @@ const TacitPage: FC = () => {
       <View className="p-4">
         {step === 'select' && (
           <>
-            <Text className="block text-sm font-medium text-stone-500 mb-3">选择测试类型</Text>
+            <Text className="block text-sm font-medium text-gray-500 mb-3">选择测试类型</Text>
             {categories.map((category) => (
               <Card 
                 key={category.id} 
@@ -271,7 +271,7 @@ const TacitPage: FC = () => {
                       <Text className="block text-base font-semibold text-white">
                         {category.name}
                       </Text>
-                      <Text className="block text-xs text-stone-200">
+                      <Text className="block text-xs text-gray-200">
                         {category.description}
                       </Text>
                     </View>
@@ -290,19 +290,19 @@ const TacitPage: FC = () => {
                 <View className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
                   <Brain size={32} color="#3b82f6" />
                 </View>
-                <Text className="block text-lg font-semibold text-stone-900 mb-2">
+                <Text className="block text-lg font-semibold text-gray-900 mb-2">
                   {selectedCategory.name}
                 </Text>
-                <Text className="block text-sm text-stone-500 text-center mb-4 leading-relaxed">
+                <Text className="block text-sm text-gray-500 text-center mb-4 leading-relaxed">
                   {selectedCategory.description}
                 </Text>
                 <View className="flex flex-row items-center mb-6">
                   <Users size={16} color="#6b7280" />
-                  <Text className="text-sm text-stone-500 ml-2">
+                  <Text className="text-sm text-gray-500 ml-2">
                     共 {selectedCategory.questions.length} 道题
                   </Text>
                 </View>
-                <Text className="block text-xs text-stone-400 text-center mb-6">
+                <Text className="block text-xs text-gray-400 text-center mb-6">
                   两人分别回答相同的问题，系统会自动计算你们的默契度
                 </Text>
                 <Button
@@ -323,13 +323,13 @@ const TacitPage: FC = () => {
                 <View className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
                   <Users size={40} color="#6366f1" />
                 </View>
-                <Text className="block text-xl font-bold text-stone-900 mb-3">
+                <Text className="block text-xl font-bold text-gray-900 mb-3">
                   请将设备交给 B
                 </Text>
-                <Text className="block text-sm text-stone-500 text-center mb-2 leading-relaxed">
+                <Text className="block text-sm text-gray-500 text-center mb-2 leading-relaxed">
                   A 已完成所有回答
                 </Text>
-                <Text className="block text-sm text-stone-500 text-center mb-8 leading-relaxed">
+                <Text className="block text-sm text-gray-500 text-center mb-8 leading-relaxed">
                   请将手机交给 B，由 B 独立回答相同的问题。{'\n'}B 准备好后点击下方按钮开始。
                 </Text>
                 <Button
@@ -349,7 +349,7 @@ const TacitPage: FC = () => {
             <View className="bg-white rounded-xl px-4 py-3 mb-4 flex flex-row items-center justify-between">
               <View className="flex flex-row items-center">
                 <Users size={16} color="#3b82f6" />
-                <Text className="text-sm font-medium text-stone-700 ml-2">
+                <Text className="text-sm font-medium text-gray-700 ml-2">
                   {step === 'player-a' ? 'A 回答中' : 'B 回答中'}
                 </Text>
               </View>
@@ -361,7 +361,7 @@ const TacitPage: FC = () => {
             {/* 问题卡片 */}
             <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100 mb-4">
               <CardContent className="py-6">
-                <Text className="block text-base font-semibold text-stone-900 text-center leading-relaxed px-2">
+                <Text className="block text-base font-semibold text-gray-900 text-center leading-relaxed px-2">
                   {selectedCategory.questions[currentQuestionIndex].question}
                 </Text>
               </CardContent>
@@ -372,7 +372,7 @@ const TacitPage: FC = () => {
               {selectedCategory.questions[currentQuestionIndex].options.map((option, index) => (
                 <Card
                   key={index}
-                  className="border-stone-200 active:bg-stone-50"
+                  className="border-gray-200 active:bg-gray-50"
                   onClick={() => handleAnswer(index)}
                 >
                   <CardContent className="py-4">
@@ -382,7 +382,7 @@ const TacitPage: FC = () => {
                           {String.fromCharCode(65 + index)}
                         </Text>
                       </View>
-                      <Text className="text-sm text-stone-700 flex-1">{option}</Text>
+                      <Text className="text-sm text-gray-700 flex-1">{option}</Text>
                       <Check size={16} color="#d1d5db" />
                     </View>
                   </CardContent>
@@ -401,8 +401,8 @@ const TacitPage: FC = () => {
                   <View className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
                     <Heart size={36} color="#a855f7" />
                   </View>
-                  <Text className="block text-sm text-stone-500 mb-1">默契度</Text>
-                  <Text className="block text-5xl font-bold text-stone-900 mb-2">
+                  <Text className="block text-sm text-gray-500 mb-1">默契度</Text>
+                  <Text className="block text-5xl font-bold text-gray-900 mb-2">
                     {calculateScore().score}%
                   </Text>
                   <View className="flex flex-row items-center mb-2">
@@ -411,7 +411,7 @@ const TacitPage: FC = () => {
                       {getRating(calculateScore().score).text}
                     </Text>
                   </View>
-                  <Text className="block text-sm text-stone-500 text-center leading-relaxed mt-4">
+                  <Text className="block text-sm text-gray-500 text-center leading-relaxed mt-4">
                     你们在 {calculateScore().matchCount} 道题目上选择了相同的答案
                   </Text>
                 </View>
@@ -423,29 +423,29 @@ const TacitPage: FC = () => {
               <CardContent className="py-4">
                 <View className="flex flex-row items-center mb-3">
                   <Sparkles size={16} color="#a855f7" />
-                  <Text className="text-sm font-semibold text-stone-900 ml-2">答案对比</Text>
+                  <Text className="text-sm font-semibold text-gray-900 ml-2">答案对比</Text>
                 </View>
                 <View className="space-y-2">
                   {selectedCategory.questions.map((q, index) => {
                     const isMatch = playerAAnswers[index] === playerBAnswers[index]
                     return (
-                      <View key={q.id} className="border border-orange-100 rounded-lg p-3">
-                        <Text className="text-sm text-stone-500 mb-2">{q.question}</Text>
+                      <View key={q.id} className="border rounded-lg p-3">
+                        <Text className="text-sm text-gray-500 mb-2">{q.question}</Text>
                         <View className="flex flex-row">
                           <View className="flex-1 mr-2">
-                            <Text className="text-xs text-stone-400 mb-1">A</Text>
-                            <Text className="text-sm text-stone-700">{q.options[playerAAnswers[index]]}</Text>
+                            <Text className="text-xs text-gray-400 mb-1">A</Text>
+                            <Text className="text-sm text-gray-700">{q.options[playerAAnswers[index]]}</Text>
                           </View>
-                          <View className="w-px bg-stone-200 mr-2" />
+                          <View className="w-px bg-gray-200 mr-2" />
                           <View className="flex-1 mr-2">
-                            <Text className="text-xs text-stone-400 mb-1">B</Text>
-                            <Text className="text-sm text-stone-700">{q.options[playerBAnswers[index]]}</Text>
+                            <Text className="text-xs text-gray-400 mb-1">B</Text>
+                            <Text className="text-sm text-gray-700">{q.options[playerBAnswers[index]]}</Text>
                           </View>
                           <View className="flex items-center">
                             {isMatch ? (
                               <Check size={18} color="#22c55e" />
                             ) : (
-                              <Text className="text-xs text-stone-400">✗</Text>
+                              <Text className="text-xs text-gray-400">✗</Text>
                             )}
                           </View>
                         </View>
@@ -472,10 +472,10 @@ const TacitPage: FC = () => {
       </View>
 
       {/* 底部提示 */}
-      <View className="bg-white border-t border-orange-100 px-4 py-3 mt-4">
+      <View className="bg-white border-t px-4 py-3 mt-4">
         <View className="flex flex-row items-center">
           <Sparkles size={16} color="#3b82f6" />
-          <Text className="block text-xs text-stone-500 ml-2">
+          <Text className="block text-xs text-gray-500 ml-2">
             提示：两人独立回答，不要看对方的答案，结果更准确
           </Text>
         </View>

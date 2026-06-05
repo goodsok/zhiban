@@ -28,14 +28,14 @@ const CategoryCard: FC<CategoryCardProps> = ({
 }) => {
   return (
     <View
-      className="bg-white rounded-2xl border border-orange-100 shadow-sm p-4"
+      className="bg-white rounded-2xl shadow p-4"
       onClick={onClick}
     >
       <View className={`w-11 h-11 ${iconBg} rounded-xl flex items-center justify-center mb-3`}>
         <Icon size={22} color={iconColor} />
       </View>
-      <Text className="block text-base font-semibold text-stone-900">{title}</Text>
-      <Text className="block text-xs mt-1 leading-tight text-stone-500">{subtitle}</Text>
+      <Text className="block text-base font-semibold text-gray-900">{title}</Text>
+      <Text className="block text-xs mt-1 leading-tight text-gray-500">{subtitle}</Text>
     </View>
   )
 }
