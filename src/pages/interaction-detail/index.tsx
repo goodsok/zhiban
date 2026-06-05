@@ -240,16 +240,16 @@ export default function InteractionDetailPage() {
 
   if (loading) {
     return (
-      <View className="min-h-screen bg-gray-50 flex items-center justify-center pt-24">
-        <Text className="block text-gray-400">加载中...</Text>
+      <View className="min-h-screen flex items-center justify-center pt-24" style={{ backgroundColor: '#FFF9F0' }}>
+        <Text className="block text-stone-400">加载中...</Text>
       </View>
     )
   }
 
   if (!detail) {
     return (
-      <View className="min-h-screen bg-gray-50 flex items-center justify-center pt-24">
-        <Text className="block text-gray-500">记录不存在</Text>
+      <View className="min-h-screen flex items-center justify-center pt-24" style={{ backgroundColor: '#FFF9F0' }}>
+        <Text className="block text-stone-500">记录不存在</Text>
       </View>
     )
   }
@@ -260,7 +260,7 @@ export default function InteractionDetailPage() {
   const moodInfo = detail.mood ? MOOD_CONFIG[detail.mood] : null
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-24">
+    <View className="min-h-screen pb-24" style={{ backgroundColor: '#FFF9F0' }}>
       <CustomHeader title="互动详情" />
 
       {/* 头部卡片 - 类型标识 */}
@@ -270,7 +270,7 @@ export default function InteractionDetailPage() {
             <TypeIcon size={24} color={typeColor} />
           </View>
           <View className="flex-1">
-            <Text className="block text-lg font-semibold text-gray-900">
+            <Text className="block text-lg font-semibold text-stone-900">
               {detail.title || typeLabel}
             </Text>
             <View className="flex items-center gap-2 mt-1">
@@ -278,7 +278,7 @@ export default function InteractionDetailPage() {
                 {typeLabel}
               </Text>
               {detail.interactionCategory ? (
-                <Text className="block text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-500">
+                <Text className="block text-xs px-2 py-1 rounded-full bg-stone-100 text-stone-500">
                   {CATEGORY_LABELS[detail.interactionCategory] || detail.interactionCategory}
                 </Text>
               ) : null}
@@ -290,12 +290,12 @@ export default function InteractionDetailPage() {
         <View className="flex flex-row gap-4">
           <View className="flex items-center gap-1">
             <Calendar size={14} color="#6b7280" />
-            <Text className="block text-xs text-gray-500">{formatTime(detail.startedAt)}</Text>
+            <Text className="block text-xs text-stone-500">{formatTime(detail.startedAt)}</Text>
           </View>
           {detail.durationMinutes ? (
             <View className="flex items-center gap-1">
               <Clock size={14} color="#6b7280" />
-              <Text className="block text-xs text-gray-500">{formatDuration(detail.durationMinutes)}</Text>
+              <Text className="block text-xs text-stone-500">{formatDuration(detail.durationMinutes)}</Text>
             </View>
           ) : null}
         </View>
@@ -310,13 +310,13 @@ export default function InteractionDetailPage() {
                 <Sparkles size={20} color="#F59E0B" />
               </View>
               <View className="flex-1">
-                <Text className="block text-xs text-gray-500">关系能量贡献</Text>
+                <Text className="block text-xs text-stone-500">关系能量贡献</Text>
                 <Text className="block text-xl font-bold text-amber-600">+{detail.energyChange}</Text>
               </View>
               {detail.qualityScore ? (
                 <View className="text-right">
-                  <Text className="block text-xs text-gray-400">质量评分</Text>
-                  <Text className="block text-lg font-semibold text-gray-700">{detail.qualityScore}</Text>
+                  <Text className="block text-xs text-stone-400">质量评分</Text>
+                  <Text className="block text-lg font-semibold text-stone-700">{detail.qualityScore}</Text>
                 </View>
               ) : null}
             </View>
@@ -329,22 +329,22 @@ export default function InteractionDetailPage() {
         <Card>
           <CardContent className="p-4">
             {detail.initiator ? (
-              <View className="flex items-center justify-between py-3 border-b border-gray-50">
+              <View className="flex items-center justify-between py-3 border-b border-stone-100">
                 <View className="flex items-center gap-2">
                   <User size={16} color="#6b7280" />
-                  <Text className="block text-sm text-gray-500">发起方</Text>
+                  <Text className="block text-sm text-stone-500">发起方</Text>
                 </View>
-                <Text className="block text-sm text-gray-900">{INITIATOR_LABELS[detail.initiator] || detail.initiator}</Text>
+                <Text className="block text-sm text-stone-900">{INITIATOR_LABELS[detail.initiator] || detail.initiator}</Text>
               </View>
             ) : null}
 
             {detail.location ? (
-              <View className="flex items-center justify-between py-3 border-b border-gray-50">
+              <View className="flex items-center justify-between py-3 border-b border-stone-100">
                 <View className="flex items-center gap-2">
                   <MapPin size={16} color="#6b7280" />
-                  <Text className="block text-sm text-gray-500">地点</Text>
+                  <Text className="block text-sm text-stone-500">地点</Text>
                 </View>
-                <Text className="block text-sm text-gray-900">{detail.location}</Text>
+                <Text className="block text-sm text-stone-900">{detail.location}</Text>
               </View>
             ) : null}
 
@@ -352,9 +352,9 @@ export default function InteractionDetailPage() {
               <View className="flex items-center justify-between py-3">
                 <View className="flex items-center gap-2">
                   <Heart size={16} color="#6b7280" />
-                  <Text className="block text-sm text-gray-500">心情</Text>
+                  <Text className="block text-sm text-stone-500">心情</Text>
                 </View>
-                <Text className="block text-sm text-gray-900">{moodInfo.emoji} {moodInfo.label}</Text>
+                <Text className="block text-sm text-stone-900">{moodInfo.emoji} {moodInfo.label}</Text>
               </View>
             ) : null}
           </CardContent>
@@ -366,7 +366,7 @@ export default function InteractionDetailPage() {
         <View className="mx-4 mt-3">
           <Card>
             <CardContent className="p-4">
-              <Text className="block text-sm font-medium text-gray-500 mb-3">活动</Text>
+              <Text className="block text-sm font-medium text-stone-500 mb-3">活动</Text>
               <View className="flex flex-row flex-wrap gap-2">
                 {detail.activities.map((activity, idx) => (
                   <View key={idx} className="px-3 py-2 rounded-full" style={{ backgroundColor: `${typeColor}10` }}>
@@ -384,8 +384,8 @@ export default function InteractionDetailPage() {
         <View className="mx-4 mt-3">
           <Card>
             <CardContent className="p-4">
-              <Text className="block text-sm font-medium text-gray-500 mb-2">详细描述</Text>
-              <Text className="block text-sm text-gray-900 leading-relaxed">{detail.description}</Text>
+              <Text className="block text-sm font-medium text-stone-500 mb-2">详细描述</Text>
+              <Text className="block text-sm text-stone-900 leading-relaxed">{detail.description}</Text>
             </CardContent>
           </Card>
         </View>
@@ -420,11 +420,11 @@ export default function InteractionDetailPage() {
         <View className="mx-4 mt-3">
           <Card>
             <CardContent className="p-4">
-              <Text className="block text-sm font-medium text-gray-500 mb-2">💡 新发现</Text>
+              <Text className="block text-sm font-medium text-stone-500 mb-2">💡 新发现</Text>
               {detail.newInsights.map((insight, idx) => (
                 <View key={idx} className="flex items-start gap-2 mb-1">
-                  <Text className="block text-xs text-gray-400 mt-1">•</Text>
-                  <Text className="block text-sm text-gray-900">{insight}</Text>
+                  <Text className="block text-xs text-stone-400 mt-1">•</Text>
+                  <Text className="block text-sm text-stone-900">{insight}</Text>
                 </View>
               ))}
             </CardContent>
@@ -437,28 +437,28 @@ export default function InteractionDetailPage() {
         <View className="mx-4 mt-3">
           <Card>
             <CardContent className="p-4">
-              <Text className="block text-sm font-medium text-gray-500 mb-3">📎 关联聊天记录</Text>
+              <Text className="block text-sm font-medium text-stone-500 mb-3">📎 关联聊天记录</Text>
               {chatRecords.map(record => {
                 const RecordIcon = record.contentType === 'image' ? Image : FileText
                 return (
-                  <View key={record.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-b-0">
+                  <View key={record.id} className="flex items-center gap-3 py-2 border-b border-stone-100 last:border-b-0">
                     <View className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#EFF6FF' }}>
                       <RecordIcon size={16} color="#3B82F6" />
                     </View>
                     <View className="flex-1">
                       <View className="flex items-center gap-2">
-                        <Text className="block text-sm text-gray-900">
+                        <Text className="block text-sm text-stone-900">
                           {record.contentType === 'image' ? '聊天截图' : '聊天文字'}
                         </Text>
-                        <Text className="block text-xs px-2 py-1 rounded bg-gray-100 text-gray-500">
+                        <Text className="block text-xs px-2 py-1 rounded bg-stone-100 text-stone-500">
                           {SOURCE_LABELS[record.source] || record.source}
                         </Text>
                       </View>
                       {record.summary ? (
-                        <Text className="block text-xs text-gray-500 mt-1">{record.summary}</Text>
+                        <Text className="block text-xs text-stone-500 mt-1">{record.summary}</Text>
                       ) : null}
                       {record.messageCount > 0 ? (
-                        <Text className="block text-xs text-gray-400 mt-1">{record.messageCount}条消息</Text>
+                        <Text className="block text-xs text-stone-400 mt-1">{record.messageCount}条消息</Text>
                       ) : null}
                     </View>
                   </View>

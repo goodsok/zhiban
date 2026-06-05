@@ -8,8 +8,8 @@ import { ChevronDown, ChevronUp, ChevronRight, Moon, Sun, Heart, Cloud } from 'l
 
 // 周期阶段图标和颜色配置
 const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: string }> = {
-  menstrual: { icon: Moon, color: '#6B7280', bgColor: 'bg-gray-100' },
-  follicular: { icon: Sun, color: '#10B981', bgColor: 'bg-emerald-50' },
+  menstrual: { icon: Moon, color: '#6B7280', bgColor: 'bg-stone-100' },
+  follicular: { icon: Sun, color: '#10B981', bgColor: 'bg-green-50' },
   ovulation: { icon: Heart, color: '#EC4899', bgColor: 'bg-pink-50' },
   luteal_early: { icon: Sun, color: '#3B82F6', bgColor: 'bg-blue-50' },
   luteal_mid: { icon: Cloud, color: '#F59E0B', bgColor: 'bg-amber-50' },
@@ -77,12 +77,12 @@ const KnowledgeCyclePage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-6">
+    <View className="min-h-screen pb-6" style={{ backgroundColor: '#FFF9F0' }}>
       <CustomHeader title="周期科学" />
 
       {/* 简介 */}
       <View className="px-4 py-4">
-        <Text className="block text-sm text-gray-600 leading-relaxed">
+        <Text className="block text-sm text-stone-600 leading-relaxed">
           了解女性激素周期规律，帮助你更好地理解她的情绪变化和身体状态，选择最佳时机相处。
         </Text>
       </View>
@@ -91,7 +91,7 @@ const KnowledgeCyclePage: FC = () => {
       <View className="px-4">
         {loading ? (
           <View className="text-center py-12">
-            <Text className="block text-gray-400">加载中...</Text>
+            <Text className="block text-stone-400">加载中...</Text>
           </View>
         ) : (
           <View className="space-y-2">
@@ -103,7 +103,7 @@ const KnowledgeCyclePage: FC = () => {
               return (
                 <View
                   key={phase.phase_key}
-                  className="bg-white rounded-xl border border-gray-100 overflow-hidden"
+                  className="bg-white rounded-xl border border-orange-100 overflow-hidden"
                 >
                   {/* 折叠标题栏 */}
                   <View
@@ -116,44 +116,44 @@ const KnowledgeCyclePage: FC = () => {
                       </View>
                       <View>
                         <View className="flex items-center gap-2">
-                          <Text className="block text-sm font-semibold text-gray-900">{phase.phase_name}</Text>
-                          <Text className="block text-xs text-gray-400">Day {phase.day_range}</Text>
+                          <Text className="block text-sm font-semibold text-stone-900">{phase.phase_name}</Text>
+                          <Text className="block text-xs text-stone-400">Day {phase.day_range}</Text>
                         </View>
-                        <Text className="block text-xs text-gray-500 mt-1 line-clamp-1">
+                        <Text className="block text-xs text-stone-500 mt-1 line-clamp-1">
                           {phase.description || ''}
                         </Text>
                       </View>
                     </View>
                     {isExpanded ? (
-                      <ChevronUp size={20} color="#9CA3AF" />
+                      <ChevronUp size={20} color="#A8A29E" />
                     ) : (
-                      <ChevronDown size={20} color="#9CA3AF" />
+                      <ChevronDown size={20} color="#A8A29E" />
                     )}
                   </View>
 
                   {/* 展开内容 */}
                   {isExpanded && (
-                    <View className="px-4 pb-4 border-t border-gray-50">
+                    <View className="px-4 pb-4 border-t border-stone-100">
                       {/* 阶段特点 */}
                       <View className="mt-3">
-                        <Text className="block text-xs font-medium text-gray-700 mb-2">阶段特点</Text>
+                        <Text className="block text-xs font-medium text-stone-700 mb-2">阶段特点</Text>
                         <View className="space-y-2">
                           {phase.characteristics?.emotion && (
                             <View className="flex items-start gap-2">
-                              <Text className="block text-xs text-gray-400 w-12 shrink-0">情绪</Text>
-                              <Text className="block text-xs text-gray-600">{phase.characteristics.emotion}</Text>
+                              <Text className="block text-xs text-stone-400 w-12 shrink-0">情绪</Text>
+                              <Text className="block text-xs text-stone-600">{phase.characteristics.emotion}</Text>
                             </View>
                           )}
                           {phase.characteristics?.social && (
                             <View className="flex items-start gap-2">
-                              <Text className="block text-xs text-gray-400 w-12 shrink-0">社交</Text>
-                              <Text className="block text-xs text-gray-600">{phase.characteristics.social}</Text>
+                              <Text className="block text-xs text-stone-400 w-12 shrink-0">社交</Text>
+                              <Text className="block text-xs text-stone-600">{phase.characteristics.social}</Text>
                             </View>
                           )}
                           {phase.characteristics?.body && (
                             <View className="flex items-start gap-2">
-                              <Text className="block text-xs text-gray-400 w-12 shrink-0">身体</Text>
-                              <Text className="block text-xs text-gray-600">{phase.characteristics.body}</Text>
+                              <Text className="block text-xs text-stone-400 w-12 shrink-0">身体</Text>
+                              <Text className="block text-xs text-stone-600">{phase.characteristics.body}</Text>
                             </View>
                           )}
                         </View>
@@ -161,9 +161,9 @@ const KnowledgeCyclePage: FC = () => {
 
                       {/* 伴侣建议 */}
                       {phase.partner_tips && (
-                        <View className="mt-3 p-3 bg-gray-50 rounded-lg">
-                          <Text className="block text-xs font-medium text-gray-700 mb-1">给TA的建议</Text>
-                          <Text className="block text-xs text-gray-600">{phase.partner_tips}</Text>
+                        <View className="mt-3 p-3 bg-stone-50 rounded-lg">
+                          <Text className="block text-xs font-medium text-stone-700 mb-1">给TA的建议</Text>
+                          <Text className="block text-xs text-stone-600">{phase.partner_tips}</Text>
                         </View>
                       )}
 
@@ -172,8 +172,8 @@ const KnowledgeCyclePage: FC = () => {
                         className="mt-3 flex items-center justify-end gap-1"
                         onClick={() => goToPhaseDetail(phase.phase_key)}
                       >
-                        <Text className="block text-xs text-gray-500">查看完整知识</Text>
-                        <ChevronRight size={14} color="#9CA3AF" />
+                        <Text className="block text-xs text-stone-500">查看完整知识</Text>
+                        <ChevronRight size={14} color="#A8A29E" />
                       </View>
                     </View>
                   )}

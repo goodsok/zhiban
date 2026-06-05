@@ -78,7 +78,7 @@ const categories: Category[] = [
     id: 'values',
     name: '价值观',
     icon: Target,
-    color: 'from-indigo-400 to-blue-500',
+    color: 'from-green-400 to-emerald-500',
     description: '了解TA的人生观',
     difficulty: '⭐⭐⭐⭐⭐',
     questions: [
@@ -337,11 +337,11 @@ const QuickPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-20">
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
       {/* 顶部 */}
       <View className="bg-gradient-to-r from-purple-500 to-violet-500 px-4 py-6">
         <Text className="block text-2xl font-bold text-white mb-2">快速问答</Text>
-        <Text className="block text-sm text-gray-200">
+        <Text className="block text-sm text-stone-200">
           猜猜TA的想法，测试你们的默契
         </Text>
       </View>
@@ -350,7 +350,7 @@ const QuickPage: FC = () => {
       <View className="p-4">
         {step === 'select' && (
           <>
-            <Text className="block text-sm font-medium text-gray-500 mb-3">选择问题类别</Text>
+            <Text className="block text-sm font-medium text-stone-500 mb-3">选择问题类别</Text>
             {categories.map((category) => {
               const Icon = category.icon
               return (
@@ -369,16 +369,16 @@ const QuickPage: FC = () => {
                           <Text className="block text-base font-semibold text-white">
                             {category.name}
                           </Text>
-                          <Text className="block text-xs text-gray-200">
+                          <Text className="block text-xs text-stone-200">
                             {category.description}
                           </Text>
                         </View>
                       </View>
                       <View className="flex flex-col items-end">
-                        <Text className="text-xs text-gray-200">
+                        <Text className="text-xs text-stone-200">
                           {category.questions.length} 题
                         </Text>
-                        <Text className="text-xs text-gray-300 mt-1">
+                        <Text className="text-xs text-stone-300 mt-1">
                           {category.difficulty}
                         </Text>
                       </View>
@@ -409,20 +409,20 @@ const QuickPage: FC = () => {
                   const Icon = selectedCategory.icon
                   return <Icon size={16} color="#a855f7" />
                 })()}
-                <Text className="text-sm font-medium text-gray-700 ml-2">
+                <Text className="text-sm font-medium text-stone-700 ml-2">
                   {selectedCategory.name}
                 </Text>
               </View>
               <View className="flex flex-row items-center">
                 <Clock size={16} color={timeLeft > 4 ? '#6b7280' : timeLeft > 2 ? '#f59e0b' : '#ef4444'} />
-                <Text className={`text-sm font-bold ml-2 ${timeLeft > 4 ? 'text-gray-700' : timeLeft > 2 ? 'text-amber-500' : 'text-red-500'}`}>
+                <Text className={`text-sm font-bold ml-2 ${timeLeft > 4 ? 'text-stone-700' : timeLeft > 2 ? 'text-amber-500' : 'text-red-500'}`}>
                   {timeLeft}s
                 </Text>
               </View>
             </View>
 
             {/* 进度 */}
-            <View className="bg-gray-200 rounded-full h-2 mb-4">
+            <View className="bg-stone-200 rounded-full h-2 mb-4">
               <View
                 className={`bg-gradient-to-r ${selectedCategory.color} h-2 rounded-full transition-all`}
                 style={{ width: `${((currentQuestionIndex + 1) / selectedCategory.questions.length) * 100}%` }}
@@ -439,7 +439,7 @@ const QuickPage: FC = () => {
                     </Text>
                   </View>
                   <View className="flex-1">
-                    <Text className="text-base font-medium text-gray-900 leading-relaxed">
+                    <Text className="text-base font-medium text-stone-900 leading-relaxed">
                       {selectedCategory.questions[currentQuestionIndex].text}
                     </Text>
                   </View>
@@ -455,14 +455,14 @@ const QuickPage: FC = () => {
                   className={`border-2 cursor-pointer ${
                     selectedOption === index
                       ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 active:bg-gray-50'
+                      : 'border-stone-200 active:bg-stone-50'
                   }`}
                   onClick={() => handleSelectOption(index)}
                 >
                   <CardContent className="py-5">
                     <Text
                       className={`text-base font-medium text-center ${
-                        selectedOption === index ? 'text-purple-700' : 'text-gray-700'
+                        selectedOption === index ? 'text-purple-700' : 'text-stone-700'
                       }`}
                     >
                       {option}
@@ -495,7 +495,7 @@ const QuickPage: FC = () => {
                   <View className="w-20 h-20 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm">
                     <Zap size={40} color="#a855f7" />
                   </View>
-                  <Text className="block text-lg font-semibold text-gray-900 mb-2">
+                  <Text className="block text-lg font-semibold text-stone-900 mb-2">
                     挑战完成！
                   </Text>
                   <View className="flex flex-row items-center mb-3">
@@ -514,7 +514,7 @@ const QuickPage: FC = () => {
             <View className="grid grid-cols-2 gap-3 mb-4">
               <Card>
                 <CardContent className="py-4">
-                  <Text className="block text-xs text-gray-500 mb-1">答对题数</Text>
+                  <Text className="block text-xs text-stone-500 mb-1">答对题数</Text>
                   <Text className="block text-2xl font-bold text-purple-600">
                     {totalCorrect} / {selectedCategory.questions.length}
                   </Text>
@@ -522,19 +522,19 @@ const QuickPage: FC = () => {
               </Card>
               <Card>
                 <CardContent className="py-4">
-                  <Text className="block text-xs text-gray-500 mb-1">默契度</Text>
+                  <Text className="block text-xs text-stone-500 mb-1">默契度</Text>
                   <Text className="block text-2xl font-bold text-purple-600">{getMatchRate()}%</Text>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="py-4">
-                  <Text className="block text-xs text-gray-500 mb-1">总得分</Text>
+                  <Text className="block text-xs text-stone-500 mb-1">总得分</Text>
                   <Text className="block text-2xl font-bold text-purple-600">{score}</Text>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="py-4">
-                  <Text className="block text-xs text-gray-500 mb-1">平均反应时间</Text>
+                  <Text className="block text-xs text-stone-500 mb-1">平均反应时间</Text>
                   <Text className="block text-2xl font-bold text-purple-600">
                     {answeredCount > 0 ? (totalTimeUsed / answeredCount).toFixed(1) : '0'}s
                   </Text>
@@ -548,8 +548,8 @@ const QuickPage: FC = () => {
                 <View className="flex flex-row items-start">
                   <Star size={16} color="#f59e0b" className="mr-2 mt-1 flex-shrink-0" />
                   <View className="flex-1">
-                    <Text className="text-xs text-gray-500 mb-1">小贴士</Text>
-                    <Text className="text-sm text-gray-700 leading-relaxed">
+                    <Text className="text-xs text-stone-500 mb-1">小贴士</Text>
+                    <Text className="text-sm text-stone-700 leading-relaxed">
                       {getMatchRate() >= 80
                         ? '你们的默契度超棒！很多想法都不谋而合，继续珍惜这份心有灵犀。'
                         : getMatchRate() >= 60
@@ -579,10 +579,10 @@ const QuickPage: FC = () => {
       </View>
 
       {/* 底部提示 */}
-      <View className="bg-white border-t border-gray-100 px-4 py-3 mt-4">
+      <View className="bg-white border-t border-orange-100 px-4 py-3 mt-4">
         <View className="flex flex-row items-center">
           <Zap size={16} color="#a855f7" />
-          <Text className="block text-xs text-gray-500 ml-2">
+          <Text className="block text-xs text-stone-500 ml-2">
             提示：每题限时8秒，快速选择获额外加分，看看你们有多默契
           </Text>
         </View>

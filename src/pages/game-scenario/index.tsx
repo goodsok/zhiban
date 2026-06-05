@@ -452,11 +452,11 @@ const ScenarioPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-20">
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
       {/* 顶部 */}
       <View className="bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-6">
         <Text className="block text-2xl font-bold text-white mb-2">情景模拟</Text>
-        <Text className="block text-sm text-gray-200">
+        <Text className="block text-sm text-stone-200">
           模拟真实约会场景，提升应变能力
         </Text>
       </View>
@@ -465,7 +465,7 @@ const ScenarioPage: FC = () => {
       <View className="p-4">
         {step === 'select' && (
           <>
-            <Text className="block text-sm font-medium text-gray-500 mb-3">选择场景类型</Text>
+            <Text className="block text-sm font-medium text-stone-500 mb-3">选择场景类型</Text>
             {scenarios.map((scenario) => (
               <Card
                 key={scenario.id}
@@ -480,13 +480,13 @@ const ScenarioPage: FC = () => {
                         <Text className="block text-base font-semibold text-white">
                           {scenario.title}
                         </Text>
-                        <Text className="block text-xs text-gray-200">
+                        <Text className="block text-xs text-stone-200">
                           {scenario.description}
                         </Text>
                       </View>
                     </View>
                     <View className="flex flex-row items-center">
-                      <Text className="text-xs text-gray-200 mr-2">
+                      <Text className="text-xs text-stone-200 mr-2">
                         {scenario.situations.length} 个场景
                       </Text>
                       <ArrowRight size={20} color="white" />
@@ -504,7 +504,7 @@ const ScenarioPage: FC = () => {
             <View className="bg-white rounded-xl px-4 py-3 mb-4 flex flex-row items-center justify-between">
               <View className="flex flex-row items-center">
                 <MessageCircle size={16} color="#22c55e" />
-                <Text className="text-sm font-medium text-gray-700 ml-2">
+                <Text className="text-sm font-medium text-stone-700 ml-2">
                   {selectedScenario.title}
                 </Text>
               </View>
@@ -518,12 +518,12 @@ const ScenarioPage: FC = () => {
               <CardContent className="py-5">
                 <View className="flex flex-row items-start mb-3">
                   <Play size={16} color="#22c55e" className="mr-2 mt-1 flex-shrink-0" />
-                  <Text className="text-sm text-gray-600 flex-1 leading-relaxed">
+                  <Text className="text-sm text-stone-600 flex-1 leading-relaxed">
                     {selectedScenario.situations[currentSituationIndex].context}
                   </Text>
                 </View>
                 <View className="bg-white rounded-lg px-3 py-2 mt-3">
-                  <Text className="text-sm font-medium text-gray-900">
+                  <Text className="text-sm font-medium text-stone-900">
                     {selectedScenario.situations[currentSituationIndex].question}
                   </Text>
                 </View>
@@ -535,7 +535,7 @@ const ScenarioPage: FC = () => {
               {selectedScenario.situations[currentSituationIndex].options.map((option) => (
                 <Card
                   key={option.id}
-                  className="border-gray-200 active:bg-gray-50"
+                  className="border-stone-200 active:bg-stone-50"
                   onClick={() => handleSelectOption(option)}
                 >
                   <CardContent className="py-4">
@@ -545,7 +545,7 @@ const ScenarioPage: FC = () => {
                           {option.id.toUpperCase()}
                         </Text>
                       </View>
-                      <Text className="text-sm text-gray-700 flex-1">{option.text}</Text>
+                      <Text className="text-sm text-stone-700 flex-1">{option.text}</Text>
                       <ArrowRight size={16} color="#9ca3af" />
                     </View>
                   </CardContent>
@@ -586,7 +586,7 @@ const ScenarioPage: FC = () => {
                     {selectedOption.isBest ? '最佳选择！' : '还可以更好'}
                   </Text>
                   <View className="flex flex-row items-center mt-2">
-                    <Text className="text-sm text-gray-500">本次得分：</Text>
+                    <Text className="text-sm text-stone-500">本次得分：</Text>
                     <Text
                       className={`text-sm font-bold ml-1 ${
                         selectedOption.score >= 80
@@ -609,8 +609,8 @@ const ScenarioPage: FC = () => {
                 <View className="flex flex-row items-start">
                   <Lightbulb size={16} color="#f59e0b" className="mr-2 mt-1 flex-shrink-0" />
                   <View className="flex-1">
-                    <Text className="text-xs text-gray-500 mb-1">反馈</Text>
-                    <Text className="text-sm text-gray-700 leading-relaxed">
+                    <Text className="text-xs text-stone-500 mb-1">反馈</Text>
+                    <Text className="text-sm text-stone-700 leading-relaxed">
                       {selectedOption.feedback}
                     </Text>
                   </View>
@@ -629,7 +629,7 @@ const ScenarioPage: FC = () => {
                       {selectedScenario.situations[currentSituationIndex].options
                         .filter(opt => opt.isBest)
                         .map(opt => (
-                          <Text key={opt.id} className="text-sm text-gray-700 leading-relaxed">
+                          <Text key={opt.id} className="text-sm text-stone-700 leading-relaxed">
                             {opt.text}
                           </Text>
                         ))}
@@ -683,7 +683,7 @@ const ScenarioPage: FC = () => {
                     {selectedOption.isBest ? '最佳选择！' : '还可以更好'}
                   </Text>
                   <View className="flex flex-row items-center mt-2">
-                    <Text className="text-sm text-gray-500">本次得分：</Text>
+                    <Text className="text-sm text-stone-500">本次得分：</Text>
                     <Text
                       className={`text-sm font-bold ml-1 ${
                         selectedOption.score >= 80
@@ -706,8 +706,8 @@ const ScenarioPage: FC = () => {
                 <View className="flex flex-row items-start">
                   <Lightbulb size={16} color="#f59e0b" className="mr-2 mt-1 flex-shrink-0" />
                   <View className="flex-1">
-                    <Text className="text-xs text-gray-500 mb-1">反馈</Text>
-                    <Text className="text-sm text-gray-700 leading-relaxed">
+                    <Text className="text-xs text-stone-500 mb-1">反馈</Text>
+                    <Text className="text-sm text-stone-700 leading-relaxed">
                       {selectedOption.feedback}
                     </Text>
                   </View>
@@ -726,7 +726,7 @@ const ScenarioPage: FC = () => {
                       {selectedScenario.situations[currentSituationIndex].options
                         .filter(opt => opt.isBest)
                         .map(opt => (
-                          <Text key={opt.id} className="text-sm text-gray-700 leading-relaxed">
+                          <Text key={opt.id} className="text-sm text-stone-700 leading-relaxed">
                             {opt.text}
                           </Text>
                         ))}
@@ -740,8 +740,8 @@ const ScenarioPage: FC = () => {
             <Card className="mb-4">
               <CardContent className="py-4">
                 <View className="flex flex-col items-center">
-                  <Text className="text-sm text-gray-500 mb-2">综合评分</Text>
-                  <Text className="block text-4xl font-bold text-gray-900 mb-1">
+                  <Text className="text-sm text-stone-500 mb-2">综合评分</Text>
+                  <Text className="block text-4xl font-bold text-stone-900 mb-1">
                     {getAverageScore()}分
                   </Text>
                   <View className="flex flex-row items-center">
@@ -770,10 +770,10 @@ const ScenarioPage: FC = () => {
       </View>
 
       {/* 底部提示 */}
-      <View className="bg-white border-t border-gray-100 px-4 py-3 mt-4">
+      <View className="bg-white border-t border-orange-100 px-4 py-3 mt-4">
         <View className="flex flex-row items-center">
           <Lightbulb size={16} color="#22c55e" />
-          <Text className="block text-xs text-gray-500 ml-2">
+          <Text className="block text-xs text-stone-500 ml-2">
             提示：选择你认为最合适的应对方式，学习最佳实践
           </Text>
         </View>

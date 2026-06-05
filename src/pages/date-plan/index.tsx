@@ -147,16 +147,16 @@ const DatePlanPage: FC = () => {
   // 生成结果视图
   if (generating || plan) {
     return (
-      <View className="min-h-screen bg-gray-50">
+      <View className="min-h-screen" style={{ backgroundColor: '#FFF9F0' }}>
         <CustomHeader title="约会计划" onBack={() => setPlan(null)} />
 
         <ScrollView scrollY className="px-4 pt-4 pb-20">
           {generating && !plan && (
             <Card className="mb-4">
               <CardContent className="p-8 flex flex-col items-center justify-center">
-                <LoaderCircle size={32} color="#374151" className="animate-spin" />
-                <Text className="block text-sm text-gray-500 mt-3">正在生成约会计划...</Text>
-                <Text className="block text-xs text-gray-400 mt-1">AI 正在根据对象偏好定制方案</Text>
+                <LoaderCircle size={32} color="#44403C" className="animate-spin" />
+                <Text className="block text-sm text-stone-500 mt-3">正在生成约会计划...</Text>
+                <Text className="block text-xs text-stone-400 mt-1">AI 正在根据对象偏好定制方案</Text>
               </CardContent>
             </Card>
           )}
@@ -167,13 +167,13 @@ const DatePlanPage: FC = () => {
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center mb-2">
-                    <Heart size={20} color="#374151" />
-                    <Text className="block text-lg font-bold text-gray-900 ml-2">{plan.title}</Text>
+                    <Heart size={20} color="#44403C" />
+                    <Text className="block text-lg font-bold text-stone-900 ml-2">{plan.title}</Text>
                   </View>
-                  <Text className="block text-sm text-gray-600">{plan.description}</Text>
+                  <Text className="block text-sm text-stone-600">{plan.description}</Text>
                   <View className="flex flex-row items-center mt-2">
-                    <DollarSign size={14} color="#6B7280" />
-                    <Text className="block text-xs text-gray-500 ml-1">预估花费：{plan.totalBudget}</Text>
+                    <DollarSign size={14} color="#78716C" />
+                    <Text className="block text-xs text-stone-500 ml-1">预估花费：{plan.totalBudget}</Text>
                   </View>
                 </CardContent>
               </Card>
@@ -182,8 +182,8 @@ const DatePlanPage: FC = () => {
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center mb-3">
-                    <Clock size={18} color="#374151" />
-                    <Text className="block text-base font-semibold text-gray-900 ml-2">行程安排</Text>
+                    <Clock size={18} color="#44403C" />
+                    <Text className="block text-base font-semibold text-stone-900 ml-2">行程安排</Text>
                   </View>
                   {plan.schedule.map((item, idx) => (
                     <View key={idx} className="mb-4 last:mb-0">
@@ -194,16 +194,16 @@ const DatePlanPage: FC = () => {
                           </Badge>
                         </View>
                         <View className="flex-1 ml-2">
-                          <Text className="block text-sm font-semibold text-gray-900">{item.activity}</Text>
+                          <Text className="block text-sm font-semibold text-stone-900">{item.activity}</Text>
                           <View className="flex flex-row items-center mt-1">
-                            <MapPin size={12} color="#9CA3AF" />
-                            <Text className="block text-xs text-gray-500 ml-1">{item.location}</Text>
+                            <MapPin size={12} color="#A8A29E" />
+                            <Text className="block text-xs text-stone-500 ml-1">{item.location}</Text>
                           </View>
-                          <Text className="block text-xs text-gray-400 mt-1">{item.tips}</Text>
+                          <Text className="block text-xs text-stone-400 mt-1">{item.tips}</Text>
                         </View>
                       </View>
                       {idx < plan.schedule.length - 1 && (
-                        <View className="ml-6 my-2 border-l-2 border-gray-100 h-3" />
+                        <View className="ml-6 my-2 border-l-2 border-orange-100 h-3" />
                       )}
                     </View>
                   ))}
@@ -214,8 +214,8 @@ const DatePlanPage: FC = () => {
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center mb-3">
-                    <Lightbulb size={18} color="#374151" />
-                    <Text className="block text-base font-semibold text-gray-900 ml-2">话题推荐</Text>
+                    <Lightbulb size={18} color="#44403C" />
+                    <Text className="block text-base font-semibold text-stone-900 ml-2">话题推荐</Text>
                   </View>
                   <View className="flex flex-row flex-wrap gap-2">
                     {plan.conversationTopics.map((topic, idx) => (
@@ -231,10 +231,10 @@ const DatePlanPage: FC = () => {
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center mb-2">
-                    <Shirt size={18} color="#374151" />
-                    <Text className="block text-base font-semibold text-gray-900 ml-2">穿搭建议</Text>
+                    <Shirt size={18} color="#44403C" />
+                    <Text className="block text-base font-semibold text-stone-900 ml-2">穿搭建议</Text>
                   </View>
-                  <Text className="block text-sm text-gray-600">{plan.outfitSuggestion}</Text>
+                  <Text className="block text-sm text-stone-600">{plan.outfitSuggestion}</Text>
                 </CardContent>
               </Card>
 
@@ -242,10 +242,10 @@ const DatePlanPage: FC = () => {
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center mb-2">
-                    <Sparkles size={18} color="#374151" />
-                    <Text className="block text-base font-semibold text-gray-900 ml-2">备选方案</Text>
+                    <Sparkles size={18} color="#44403C" />
+                    <Text className="block text-base font-semibold text-stone-900 ml-2">备选方案</Text>
                   </View>
-                  <Text className="block text-sm text-gray-600">{plan.backupPlan}</Text>
+                  <Text className="block text-sm text-stone-600">{plan.backupPlan}</Text>
                 </CardContent>
               </Card>
             </>
@@ -257,22 +257,22 @@ const DatePlanPage: FC = () => {
 
   // 主视图：输入表单 + 历史记录
   return (
-    <View className="min-h-screen bg-gray-50">
+    <View className="min-h-screen" style={{ backgroundColor: '#FFF9F0' }}>
       <CustomHeader title="约会计划" />
 
       <ScrollView scrollY className="px-4 pt-4 pb-20">
         {/* 对象选择 */}
         <Card className="mb-4">
           <CardContent className="p-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">选择对象</Text>
+            <Text className="block text-sm font-semibold text-stone-900 mb-3">选择对象</Text>
             <View
-              className="bg-gray-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
+              className="bg-stone-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
               onClick={() => setShowMatchPicker(true)}
             >
-              <Text className={`block text-sm ${selectedMatchName ? 'text-gray-900' : 'text-gray-400'}`}>
+              <Text className={`block text-sm ${selectedMatchName ? 'text-stone-900' : 'text-stone-400'}`}>
                 {selectedMatchName || '点击选择对象'}
               </Text>
-              <ChevronRight size={16} color="#9CA3AF" />
+              <ChevronRight size={16} color="#A8A29E" />
             </View>
           </CardContent>
         </Card>
@@ -287,10 +287,10 @@ const DatePlanPage: FC = () => {
                 matches.map((match) => (
                   <View
                     key={match.id}
-                    className="py-3 border-b border-gray-100 last:border-b-0"
+                    className="py-3 border-b border-orange-100 last:border-b-0"
                     onClick={() => selectMatch(match)}
                   >
-                    <Text className={`block text-sm ${selectedMatchId === match.id ? 'text-black font-semibold' : 'text-gray-700'}`}>
+                    <Text className={`block text-sm ${selectedMatchId === match.id ? 'text-green-500 font-semibold' : 'text-stone-700'}`}>
                       {match.name}
                     </Text>
                   </View>
@@ -303,15 +303,15 @@ const DatePlanPage: FC = () => {
         {/* 约会条件 */}
         <Card className="mb-4">
           <CardContent className="p-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">约会条件</Text>
+            <Text className="block text-sm font-semibold text-stone-900 mb-3">约会条件</Text>
 
             {/* 季节 */}
-            <Text className="block text-xs text-gray-500 mb-2">季节</Text>
+            <Text className="block text-xs text-stone-500 mb-2">季节</Text>
             <View className="flex flex-row flex-wrap gap-2 mb-4">
               {SEASONS.map((s) => (
                 <Badge
                   key={s}
-                  className={selectedSeason === s ? 'bg-black text-white' : 'bg-gray-100 text-gray-700'}
+                  className={selectedSeason === s ? 'bg-green-500 text-white' : 'bg-stone-100 text-stone-700'}
                   onClick={() => setSelectedSeason(s === selectedSeason ? '' : s)}
                 >
                   <Text className="text-xs">{s}</Text>
@@ -320,12 +320,12 @@ const DatePlanPage: FC = () => {
             </View>
 
             {/* 时长 */}
-            <Text className="block text-xs text-gray-500 mb-2">时长</Text>
+            <Text className="block text-xs text-stone-500 mb-2">时长</Text>
             <View className="flex flex-row flex-wrap gap-2 mb-4">
               {DURATIONS.map((d) => (
                 <Badge
                   key={d}
-                  className={selectedDuration === d ? 'bg-black text-white' : 'bg-gray-100 text-gray-700'}
+                  className={selectedDuration === d ? 'bg-green-500 text-white' : 'bg-stone-100 text-stone-700'}
                   onClick={() => setSelectedDuration(d === selectedDuration ? '' : d)}
                 >
                   <Text className="text-xs">{d}</Text>
@@ -334,12 +334,12 @@ const DatePlanPage: FC = () => {
             </View>
 
             {/* 预算 */}
-            <Text className="block text-xs text-gray-500 mb-2">预算</Text>
+            <Text className="block text-xs text-stone-500 mb-2">预算</Text>
             <View className="flex flex-row flex-wrap gap-2 mb-4">
               {BUDGETS.map((b) => (
                 <Badge
                   key={b}
-                  className={selectedBudget === b ? 'bg-black text-white' : 'bg-gray-100 text-gray-700'}
+                  className={selectedBudget === b ? 'bg-green-500 text-white' : 'bg-stone-100 text-stone-700'}
                   onClick={() => setSelectedBudget(b === selectedBudget ? '' : b)}
                 >
                   <Text className="text-xs">{b}</Text>
@@ -348,8 +348,8 @@ const DatePlanPage: FC = () => {
             </View>
 
             {/* 地点偏好 */}
-            <Text className="block text-xs text-gray-500 mb-2">地点偏好</Text>
-            <View className="bg-gray-50 rounded-xl px-4 py-3 mb-4">
+            <Text className="block text-xs text-stone-500 mb-2">地点偏好</Text>
+            <View className="bg-stone-50 rounded-xl px-4 py-3 mb-4">
               <Input
                 className="w-full bg-transparent"
                 placeholder="如：市中心、大学城附近..."
@@ -359,8 +359,8 @@ const DatePlanPage: FC = () => {
             </View>
 
             {/* 特殊要求 */}
-            <Text className="block text-xs text-gray-500 mb-2">特殊要求</Text>
-            <View className="bg-gray-50 rounded-2xl p-4">
+            <Text className="block text-xs text-stone-500 mb-2">特殊要求</Text>
+            <View className="bg-stone-50 rounded-2xl p-4">
               <Textarea
                 style={{ width: '100%', minHeight: '60px', backgroundColor: 'transparent' }}
                 placeholder="如：想要浪漫一点的、第一次约会、想多聊天..."
@@ -385,16 +385,16 @@ const DatePlanPage: FC = () => {
         {/* 历史计划 */}
         {historyPlans.length > 0 && (
           <View>
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">历史计划</Text>
+            <Text className="block text-sm font-semibold text-stone-900 mb-3">历史计划</Text>
             {historyPlans.map((p) => (
               <Card key={p.id} className="mb-3" onClick={() => goToHistoryDetail(p.id)}>
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center justify-between">
                     <View className="flex-1">
-                      <Text className="block text-sm font-semibold text-gray-900">{p.title}</Text>
-                      <Text className="block text-xs text-gray-500 mt-1">{p.matchName} · {p.totalBudget}</Text>
+                      <Text className="block text-sm font-semibold text-stone-900">{p.title}</Text>
+                      <Text className="block text-xs text-stone-500 mt-1">{p.matchName} · {p.totalBudget}</Text>
                     </View>
-                    <ChevronRight size={16} color="#9CA3AF" />
+                    <ChevronRight size={16} color="#A8A29E" />
                   </View>
                 </CardContent>
               </Card>

@@ -152,7 +152,7 @@ const MomentsAnalyzePage: FC = () => {
   // 结果展示
   if (analysis) {
     return (
-      <View className="min-h-screen bg-gray-50">
+      <View className="min-h-screen" style={{ backgroundColor: '#FFF9F0' }}>
         <CustomHeader title="分析结果" />
 
         <ScrollView className="p-4" scrollY>
@@ -160,14 +160,14 @@ const MomentsAnalyzePage: FC = () => {
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-2">
               <Heart size={18} color="#EC4899" />
-              <Text className="block text-base font-semibold text-gray-900">情绪状态</Text>
+              <Text className="block text-base font-semibold text-stone-900">情绪状态</Text>
             </View>
-            <Text className="block text-sm text-gray-600">{analysis.result.emotionalState}</Text>
+            <Text className="block text-sm text-stone-600">{analysis.result.emotionalState}</Text>
           </View>
 
           {/* 兴趣爱好 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-base font-semibold text-gray-900 mb-2">推断的兴趣</Text>
+            <Text className="block text-base font-semibold text-stone-900 mb-2">推断的兴趣</Text>
             <View className="flex flex-wrap gap-2">
               {analysis.result.interests.map((interest, index) => (
                 <View key={index} className="px-3 py-1 bg-purple-50 rounded-lg">
@@ -179,25 +179,25 @@ const MomentsAnalyzePage: FC = () => {
 
           {/* 生活重心 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-base font-semibold text-gray-900 mb-2">当前生活重心</Text>
-            <Text className="block text-sm text-gray-600">{analysis.result.lifeFocus}</Text>
+            <Text className="block text-base font-semibold text-stone-900 mb-2">当前生活重心</Text>
+            <Text className="block text-sm text-stone-600">{analysis.result.lifeFocus}</Text>
           </View>
 
           {/* 可切入话题 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-base font-semibold text-gray-900 mb-2">可切入话题</Text>
+            <Text className="block text-base font-semibold text-stone-900 mb-2">可切入话题</Text>
             {analysis.result.topics.map((topic, index) => (
               <View key={index} className="flex items-start gap-2 mb-2">
                 <View className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-1">
                   <Text className="block text-xs text-green-600">{index + 1}</Text>
                 </View>
-                <Text className="block text-sm text-gray-600">{topic}</Text>
+                <Text className="block text-sm text-stone-600">{topic}</Text>
               </View>
             ))}
           </View>
 
           {/* 互动建议 */}
-          <View className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 mb-4">
+          <View className="bg-gradient-to-br from-green-500 to-teal-500 rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
               <MessageCircle size={18} color="#fff" />
               <Text className="block text-base font-semibold text-white">互动建议</Text>
@@ -231,7 +231,7 @@ const MomentsAnalyzePage: FC = () => {
 
           {/* 重新分析 */}
           <View
-            className="bg-black rounded-xl py-3 flex items-center justify-center"
+            className="bg-green-500 rounded-xl py-3 flex items-center justify-center"
             onClick={() => {
               setAnalysis(null)
               setInputContent('')
@@ -247,24 +247,24 @@ const MomentsAnalyzePage: FC = () => {
 
   // 输入页面
   return (
-    <View className="min-h-screen bg-gray-50">
+    <View className="min-h-screen" style={{ backgroundColor: '#FFF9F0' }}>
       <CustomHeader title="朋友圈分析" />
 
       <ScrollView className="p-4" scrollY>
         {/* 选择对象 */}
         <View className="bg-white rounded-2xl p-4 mb-4">
           <View className="flex items-center gap-2 mb-3">
-            <User size={18} color="#374151" />
-            <Text className="block text-base font-semibold text-gray-900">选择对象（可选）</Text>
+            <User size={18} color="#44403C" />
+            <Text className="block text-base font-semibold text-stone-900">选择对象（可选）</Text>
           </View>
           
           <View
             className={`p-3 rounded-xl flex items-center justify-between mb-2 ${
-              selectedMatch === null ? 'bg-black' : 'bg-gray-50'
+              selectedMatch === null ? 'bg-green-500' : 'bg-stone-50'
             }`}
             onClick={() => setSelectedMatch(null)}
           >
-            <Text className={`block font-medium ${selectedMatch === null ? 'text-white' : 'text-gray-900'}`}>
+            <Text className={`block font-medium ${selectedMatch === null ? 'text-white' : 'text-stone-900'}`}>
               不关联对象
             </Text>
           </View>
@@ -277,11 +277,11 @@ const MomentsAnalyzePage: FC = () => {
                   <View
                     key={match.id}
                     className={`px-3 py-2 rounded-lg ${
-                      isSelected ? 'bg-black' : 'bg-gray-100'
+                      isSelected ? 'bg-green-500' : 'bg-stone-100'
                     }`}
                     onClick={() => setSelectedMatch(match)}
                   >
-                    <Text className={`block text-sm ${isSelected ? 'text-white' : 'text-gray-600'}`}>
+                    <Text className={`block text-sm ${isSelected ? 'text-white' : 'text-stone-600'}`}>
                       {match.name}
                     </Text>
                   </View>
@@ -294,8 +294,8 @@ const MomentsAnalyzePage: FC = () => {
         {/* 上传截图 */}
         <View className="bg-white rounded-2xl p-4 mb-4">
           <View className="flex items-center gap-2 mb-3">
-            <Camera size={18} color="#374151" />
-            <Text className="block text-base font-semibold text-gray-900">上传朋友圈截图</Text>
+            <Camera size={18} color="#44403C" />
+            <Text className="block text-base font-semibold text-stone-900">上传朋友圈截图</Text>
           </View>
           
           <View className="flex flex-wrap gap-3">
@@ -308,7 +308,7 @@ const MomentsAnalyzePage: FC = () => {
                   mode="aspectFill"
                 />
                 <View
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-black rounded-full flex items-center justify-center"
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
                   style={{ position: 'absolute', top: '-4px', right: '-4px' }}
                   onClick={() => removeImage(index)}
                 >
@@ -319,22 +319,22 @@ const MomentsAnalyzePage: FC = () => {
             
             {uploadedImages.length < 3 && (
               <View
-                className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center"
+                className="w-20 h-20 rounded-xl border-2 border-dashed border-stone-200 flex flex-col items-center justify-center"
                 onClick={handleChooseImage}
               >
                 {uploading ? (
-                  <LoaderCircle size={20} color="#9CA3AF" className="animate-spin" />
+                  <LoaderCircle size={20} color="#A8A29E" className="animate-spin" />
                 ) : (
                   <>
-                    <ImagePlus size={20} color="#9CA3AF" />
-                    <Text className="block text-xs text-gray-400 mt-1">添加图片</Text>
+                    <ImagePlus size={20} color="#A8A29E" />
+                    <Text className="block text-xs text-stone-400 mt-1">添加图片</Text>
                   </>
                 )}
               </View>
             )}
           </View>
           
-          <Text className="block text-xs text-gray-400 mt-2">
+          <Text className="block text-xs text-stone-400 mt-2">
             最多上传3张截图，支持从相册选择或拍照
           </Text>
         </View>
@@ -342,11 +342,11 @@ const MomentsAnalyzePage: FC = () => {
         {/* 输入内容 */}
         <View className="bg-white rounded-2xl p-4 mb-4">
           <View className="flex items-center gap-2 mb-3">
-            <Search size={18} color="#374151" />
-            <Text className="block text-base font-semibold text-gray-900">补充文字内容（可选）</Text>
+            <Search size={18} color="#44403C" />
+            <Text className="block text-base font-semibold text-stone-900">补充文字内容（可选）</Text>
           </View>
           
-          <View className="bg-gray-50 rounded-xl p-3 mb-3">
+          <View className="bg-stone-50 rounded-xl p-3 mb-3">
             <Textarea
               className="w-full"
               style={{ minHeight: '100px' }}
@@ -356,7 +356,7 @@ const MomentsAnalyzePage: FC = () => {
             />
           </View>
 
-          <Text className="block text-xs text-gray-400">
+          <Text className="block text-xs text-stone-400">
             示例：今天终于把那个项目搞定了，加班到半夜但很值得
           </Text>
         </View>
@@ -364,7 +364,7 @@ const MomentsAnalyzePage: FC = () => {
         {/* 分析按钮 */}
         <View
           className={`rounded-xl py-3 flex items-center justify-center gap-2 mb-8 ${
-            (inputContent.trim() || uploadedImages.length > 0) ? 'bg-black' : 'bg-gray-200'
+            (inputContent.trim() || uploadedImages.length > 0) ? 'bg-green-500' : 'bg-stone-200'
           }`}
           onClick={analyze}
         >
@@ -373,7 +373,7 @@ const MomentsAnalyzePage: FC = () => {
           ) : (
             <>
               <Sparkles size={18} color={(inputContent.trim() || uploadedImages.length > 0) ? '#fff' : '#9CA3AF'} />
-              <Text className={`block font-medium ${(inputContent.trim() || uploadedImages.length > 0) ? 'text-white' : 'text-gray-400'}`}>
+              <Text className={`block font-medium ${(inputContent.trim() || uploadedImages.length > 0) ? 'text-white' : 'text-stone-400'}`}>
                 开始分析
               </Text>
             </>

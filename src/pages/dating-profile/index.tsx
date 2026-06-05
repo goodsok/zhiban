@@ -323,7 +323,7 @@ const DatingProfilePage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-20">
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
       {/* 顶部说明 */}
       <View className="bg-blue-50 px-4 py-3">
         <View className="flex flex-row items-center justify-between">
@@ -354,20 +354,20 @@ const DatingProfilePage: FC = () => {
 
       {/* 历史记录列表 */}
       {showHistory && (
-        <View className="bg-white border-b border-gray-100">
-          <View className="px-4 py-3 border-b border-gray-100">
-            <Text className="text-sm font-medium text-gray-900">历史记录</Text>
+        <View className="bg-white border-b border-orange-100">
+          <View className="px-4 py-3 border-b border-orange-100">
+            <Text className="text-sm font-medium text-stone-900">历史记录</Text>
           </View>
 
           {historyLoading && historyList.length === 0 ? (
             <View className="px-4 py-8 flex flex-col items-center">
               <Loader size={20} color="#9ca3af" className="animate-spin" />
-              <Text className="text-sm text-gray-400 mt-2">加载中...</Text>
+              <Text className="text-sm text-stone-400 mt-2">加载中...</Text>
             </View>
           ) : historyList.length === 0 ? (
             <View className="px-4 py-8 flex flex-col items-center">
               <Clock size={24} color="#d1d5db" />
-              <Text className="text-sm text-gray-400 mt-2">暂无历史记录</Text>
+              <Text className="text-sm text-stone-400 mt-2">暂无历史记录</Text>
             </View>
           ) : (
             <ScrollView scrollY className="max-h-80">
@@ -376,27 +376,27 @@ const DatingProfilePage: FC = () => {
                 return (
                   <View
                     key={history.id}
-                    className="px-4 py-3 border-b border-gray-50 flex flex-row items-center justify-between active:bg-gray-50"
+                    className="px-4 py-3 border-b border-stone-100 flex flex-row items-center justify-between active:bg-stone-50"
                     onClick={() => handleLoadHistory(history)}
                   >
                     <View className="flex-1 mr-3">
                       <View className="flex flex-row items-center mb-1">
                         <Text className="text-sm mr-1">{platformInfo?.icon}</Text>
-                        <Text className="text-sm font-medium text-gray-900">
+                        <Text className="text-sm font-medium text-stone-900">
                           {history.bio ? history.bio.substring(0, 20) + '...' : '无简介'}
                         </Text>
-                        <Text className="text-xs text-gray-400 ml-2">{formatDate(history.createdAt)}</Text>
+                        <Text className="text-xs text-stone-400 ml-2">{formatDate(history.createdAt)}</Text>
                       </View>
                       <View className="flex flex-row items-center">
                         <View className="bg-blue-100 rounded-full px-2 py-1 mr-2">
                           <Text className="text-xs text-blue-600">{history.analysisResult.overallScore}分</Text>
                         </View>
                         {history.interests && (
-                          <Text className="text-xs text-gray-400 line-clamp-1 flex-1">{history.interests}</Text>
+                          <Text className="text-xs text-stone-400 line-clamp-1 flex-1">{history.interests}</Text>
                         )}
                       </View>
                     </View>
-                    <View className="p-2 rounded-lg active:bg-gray-100" onClick={(e) => handleDeleteHistory(history.id, e)}>
+                    <View className="p-2 rounded-lg active:bg-stone-100" onClick={(e) => handleDeleteHistory(history.id, e)}>
                       <Trash2 size={16} color="#9ca3af" />
                     </View>
                   </View>
@@ -421,19 +421,19 @@ const DatingProfilePage: FC = () => {
           </CardHeader>
           <CardContent>
             <View
-              className="bg-gray-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
+              className="bg-stone-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
               onClick={() => setShowPlatformPicker(!showPlatformPicker)}
             >
               <View className="flex flex-row items-center">
                 <Text className="text-lg mr-2">{currentPlatform.icon}</Text>
-                <Text className="text-sm text-gray-700">{currentPlatform.label}</Text>
-                <Text className="text-xs text-gray-400 ml-2">{currentPlatform.desc}</Text>
+                <Text className="text-sm text-stone-700">{currentPlatform.label}</Text>
+                <Text className="text-xs text-stone-400 ml-2">{currentPlatform.desc}</Text>
               </View>
               <ChevronDown size={18} color="#9ca3af" />
             </View>
 
             {showPlatformPicker && (
-              <View className="mt-2 bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <View className="mt-2 bg-white rounded-xl border border-orange-100 overflow-hidden">
                 {platformOptions.map((option) => (
                   <View
                     key={option.value}
@@ -446,8 +446,8 @@ const DatingProfilePage: FC = () => {
                     <View className="flex flex-row items-center">
                       <Text className="text-lg mr-2">{option.icon}</Text>
                       <View>
-                        <Text className="text-sm text-gray-700">{option.label}</Text>
-                        <Text className="text-xs text-gray-400">{option.desc}</Text>
+                        <Text className="text-sm text-stone-700">{option.label}</Text>
+                        <Text className="text-xs text-stone-400">{option.desc}</Text>
                       </View>
                     </View>
                     {platform === option.value && <Text className="text-blue-500">✓</Text>}
@@ -465,8 +465,8 @@ const DatingProfilePage: FC = () => {
           <CardContent>
             {/* 昵称输入 */}
             <View className="mb-4">
-              <Text className="block text-sm font-medium text-gray-700 mb-2">昵称</Text>
-              <View className="bg-gray-50 rounded-xl px-4 py-3">
+              <Text className="block text-sm font-medium text-stone-700 mb-2">昵称</Text>
+              <View className="bg-stone-50 rounded-xl px-4 py-3">
                 <Input
                   style={{ width: '100%', backgroundColor: 'transparent' }}
                   placeholder="输入你在交友软件上的昵称..."
@@ -475,13 +475,13 @@ const DatingProfilePage: FC = () => {
                   onInput={(e) => setNickname(e.detail.value)}
                 />
               </View>
-              <Text className="block text-xs text-gray-400 mt-1">{nickname.length}/30</Text>
+              <Text className="block text-xs text-stone-400 mt-1">{nickname.length}/30</Text>
             </View>
 
             {/* 个人简介 */}
             <View className="mb-4">
-              <Text className="block text-sm font-medium text-gray-700 mb-2">个人简介</Text>
-              <View className="bg-gray-50 rounded-xl p-4">
+              <Text className="block text-sm font-medium text-stone-700 mb-2">个人简介</Text>
+              <View className="bg-stone-50 rounded-xl p-4">
                 <Textarea
                   style={{ width: '100%', height: '256px', backgroundColor: 'transparent' }}
                   placeholder="粘贴你的个人简介..."
@@ -490,29 +490,29 @@ const DatingProfilePage: FC = () => {
                   onInput={(e) => setBio(e.detail.value)}
                 />
               </View>
-              <Text className="block text-xs text-gray-400 mt-1">{bio.length}/500</Text>
+              <Text className="block text-xs text-stone-400 mt-1">{bio.length}/500</Text>
             </View>
 
             {/* 兴趣标签 */}
             <View>
-              <Text className="block text-sm font-medium text-gray-700 mb-2">兴趣标签</Text>
+              <Text className="block text-sm font-medium text-stone-700 mb-2">兴趣标签</Text>
               <View className="flex flex-row flex-wrap gap-2">
                 {interestOptions.map((option) => {
                   const isSelected = selectedInterests.includes(option.value)
                   return (
                     <View
                       key={option.value}
-                      className={`rounded-full px-3 py-2 flex flex-row items-center ${isSelected ? 'bg-blue-500' : 'bg-gray-100'}`}
+                      className={`rounded-full px-3 py-2 flex flex-row items-center ${isSelected ? 'bg-blue-500' : 'bg-stone-100'}`}
                       onClick={() => toggleInterest(option.value)}
                     >
                       <Text className="text-sm mr-1">{option.emoji}</Text>
-                      <Text className={`text-sm ${isSelected ? 'text-white' : 'text-gray-700'}`}>{option.label}</Text>
+                      <Text className={`text-sm ${isSelected ? 'text-white' : 'text-stone-700'}`}>{option.label}</Text>
                     </View>
                   )
                 })}
               </View>
               {selectedInterests.length > 0 && (
-                <Text className="block text-xs text-gray-400 mt-2">已选择 {selectedInterests.length} 个标签</Text>
+                <Text className="block text-xs text-stone-400 mt-2">已选择 {selectedInterests.length} 个标签</Text>
               )}
             </View>
           </CardContent>
@@ -536,8 +536,8 @@ const DatingProfilePage: FC = () => {
         {!analysis && !loading && !nickname.trim() && !bio.trim() && selectedInterests.length === 0 && (
           <View className="py-6 flex flex-col items-center">
             <Sparkles size={32} color="#d1d5db" />
-            <Text className="text-sm text-gray-400 mt-3">填写昵称、简介或选择兴趣标签后开始分析</Text>
-            <Text className="text-xs text-gray-300 mt-1">至少填写一项即可获取 AI 优化建议</Text>
+            <Text className="text-sm text-stone-400 mt-3">填写昵称、简介或选择兴趣标签后开始分析</Text>
+            <Text className="text-xs text-stone-300 mt-1">至少填写一项即可获取 AI 优化建议</Text>
           </View>
         )}
 
@@ -576,14 +576,14 @@ const DatingProfilePage: FC = () => {
               <CardHeader className="pb-3">
                 <View className="flex flex-row items-center">
                   <CircleCheck size={18} color="#22c55e" />
-                  <Text className="block text-base font-semibold text-gray-900 ml-2">当前优势</Text>
+                  <Text className="block text-base font-semibold text-stone-900 ml-2">当前优势</Text>
                 </View>
               </CardHeader>
               <CardContent>
                 {analysis.strengths.map((strength, index) => (
                   <View key={index} className="flex flex-row items-start mb-2">
                     <Text className="block text-green-500 mr-2">✓</Text>
-                    <Text className="block text-sm text-gray-700 flex-1">{strength}</Text>
+                    <Text className="block text-sm text-stone-700 flex-1">{strength}</Text>
                   </View>
                 ))}
               </CardContent>
@@ -594,14 +594,14 @@ const DatingProfilePage: FC = () => {
               <CardHeader className="pb-3">
                 <View className="flex flex-row items-center">
                   <CircleAlert size={18} color="#f59e0b" />
-                  <Text className="block text-base font-semibold text-gray-900 ml-2">改进建议</Text>
+                  <Text className="block text-base font-semibold text-stone-900 ml-2">改进建议</Text>
                 </View>
               </CardHeader>
               <CardContent>
                 {analysis.improvements.map((improvement, index) => (
                   <View key={index} className="flex flex-row items-start mb-2">
                     <Text className="block text-amber-500 mr-2">!</Text>
-                    <Text className="block text-sm text-gray-700 flex-1">{improvement}</Text>
+                    <Text className="block text-sm text-stone-700 flex-1">{improvement}</Text>
                   </View>
                 ))}
               </CardContent>
@@ -610,28 +610,28 @@ const DatingProfilePage: FC = () => {
             {/* 具体优化建议 */}
             <Card className="mb-4">
               <CardHeader className="pb-3">
-                <Text className="block text-base font-semibold text-gray-900">优化方案</Text>
+                <Text className="block text-base font-semibold text-stone-900">优化方案</Text>
               </CardHeader>
               <CardContent>
                 {analysis.suggestions.length > 0 ? (
                   analysis.suggestions.map((suggestion, index) => (
-                    <View key={index} className="mb-4 pb-4 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0">
-                      <Text className="block text-sm font-medium text-gray-900 mb-2">{suggestion.field}</Text>
-                      <View className="bg-gray-50 rounded-lg p-3 mb-2">
-                        <Text className="block text-xs text-gray-500 mb-1">原文：</Text>
-                        <Text className="block text-sm text-gray-600">{suggestion.original || '（未填写）'}</Text>
+                    <View key={index} className="mb-4 pb-4 border-b border-orange-100 last:border-0 last:mb-0 last:pb-0">
+                      <Text className="block text-sm font-medium text-stone-900 mb-2">{suggestion.field}</Text>
+                      <View className="bg-stone-50 rounded-lg p-3 mb-2">
+                        <Text className="block text-xs text-stone-500 mb-1">原文：</Text>
+                        <Text className="block text-sm text-stone-600">{suggestion.original || '（未填写）'}</Text>
                       </View>
                       <View className="bg-green-50 rounded-lg p-3 mb-2">
                         <Text className="block text-xs text-green-600 mb-1">建议修改为：</Text>
                         <Text className="block text-sm text-green-700">{suggestion.suggested}</Text>
                       </View>
-                      <Text className="block text-xs text-gray-500 italic">{suggestion.reason}</Text>
+                      <Text className="block text-xs text-stone-500 italic">{suggestion.reason}</Text>
                     </View>
                   ))
                 ) : (
                   <View className="py-4 flex flex-col items-center">
-                    <Text className="text-sm text-gray-400">暂无具体优化建议</Text>
-                    <Text className="text-xs text-gray-300 mt-1">资料整体表现不错，继续保持～</Text>
+                    <Text className="text-sm text-stone-400">暂无具体优化建议</Text>
+                    <Text className="text-xs text-stone-300 mt-1">资料整体表现不错，继续保持～</Text>
                   </View>
                 )}
               </CardContent>
@@ -660,7 +660,7 @@ const DatingProfilePage: FC = () => {
                 <CardHeader className="pb-3">
                   <View className="flex flex-row items-center">
                     <MessageCircle size={18} color="#3b82f6" />
-                    <Text className="block text-base font-semibold text-gray-900 ml-2">AI 顾问对话</Text>
+                    <Text className="block text-base font-semibold text-stone-900 ml-2">AI 顾问对话</Text>
                     <View className="ml-auto bg-blue-100 rounded-full px-2 py-1">
                       <Text className="text-xs text-blue-600">{currentPlatform.label}</Text>
                     </View>
@@ -675,8 +675,8 @@ const DatingProfilePage: FC = () => {
                         id={`chat-msg-${index}`}
                         className={`mb-3 ${msg.role === 'user' ? 'flex flex-row justify-end' : ''}`}
                       >
-                        <View className={`rounded-xl px-4 py-2 max-w-[85%] ${msg.role === 'user' ? 'bg-blue-500' : 'bg-gray-100'}`}>
-                          <Text className={`text-sm leading-relaxed ${msg.role === 'user' ? 'text-white' : 'text-gray-700'}`}>
+                        <View className={`rounded-xl px-4 py-2 max-w-[85%] ${msg.role === 'user' ? 'bg-blue-500' : 'bg-stone-100'}`}>
+                          <Text className={`text-sm leading-relaxed ${msg.role === 'user' ? 'text-white' : 'text-stone-700'}`}>
                             {msg.content}
                           </Text>
                         </View>
@@ -684,10 +684,10 @@ const DatingProfilePage: FC = () => {
                     ))}
                     {chatLoading && (
                       <View className="flex flex-row items-center mb-3">
-                        <View className="bg-gray-100 rounded-xl px-4 py-2">
+                        <View className="bg-stone-100 rounded-xl px-4 py-2">
                           <View className="flex flex-row items-center">
                             <Loader size={14} color="#6b7280" className="animate-spin" />
-                            <Text className="text-sm text-gray-500 ml-2">思考中...</Text>
+                            <Text className="text-sm text-stone-500 ml-2">思考中...</Text>
                           </View>
                         </View>
                       </View>
@@ -696,7 +696,7 @@ const DatingProfilePage: FC = () => {
 
                   {/* 输入框 */}
                   <View className="flex flex-row gap-2 items-end">
-                    <View className="flex-1 bg-gray-50 rounded-xl px-4 py-2">
+                    <View className="flex-1 bg-stone-50 rounded-xl px-4 py-2">
                       <Textarea
                         style={{ width: '100%', minHeight: '36px', maxHeight: '80px', backgroundColor: 'transparent' }}
                         placeholder="输入你的问题..."
@@ -706,7 +706,7 @@ const DatingProfilePage: FC = () => {
                       />
                     </View>
                     <View
-                      className={`rounded-xl p-2 ${chatInput.trim() && !chatLoading ? 'bg-blue-500' : 'bg-gray-200'}`}
+                      className={`rounded-xl p-2 ${chatInput.trim() && !chatLoading ? 'bg-blue-500' : 'bg-stone-200'}`}
                       onClick={handleSendMessage}
                     >
                       <Send size={20} color={chatInput.trim() && !chatLoading ? '#fff' : '#9ca3af'} />

@@ -58,26 +58,26 @@ type RelationshipType = 'long_term' | 'short_term' | 'both' | 'undefined'
 const RELATIONSHIP_TYPE_CONFIG: Record<RelationshipType, { label: string; color: string; bgColor: string; description: string }> = {
   long_term: { 
     label: '长期关系', 
-    color: '#10B981', 
-    bgColor: 'bg-emerald-50',
+    color: '#4ECB71', 
+    bgColor: 'bg-green-50',
     description: '小火慢炖，稳扎稳打'
   },
   short_term: { 
     label: '短期关系', 
-    color: '#F59E0B', 
+    color: '#F0C75E', 
     bgColor: 'bg-amber-50',
     description: '下猛药，快速推进'
   },
   both: { 
     label: '灵活关系', 
-    color: '#8B5CF6', 
+    color: '#A78BFA', 
     bgColor: 'bg-violet-50',
     description: '看情况，随机应变'
   },
   undefined: { 
     label: '未设置', 
-    color: '#9CA3AF', 
-    bgColor: 'bg-gray-50',
+    color: '#A8A29E', 
+    bgColor: 'bg-stone-50',
     description: '点击设置关系类型'
   },
 }
@@ -138,12 +138,12 @@ interface CycleInfo {
 
 // 周期阶段配置
 const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: string }> = {
-  menstrual: { icon: Moon, color: '#6B7280', bgColor: 'bg-gray-100' },
-  follicular: { icon: Sun, color: '#10B981', bgColor: 'bg-emerald-50' },
+  menstrual: { icon: Moon, color: '#78716C', bgColor: 'bg-stone-100' },
+  follicular: { icon: Sun, color: '#4ECB71', bgColor: 'bg-green-50' },
   ovulation: { icon: Heart, color: '#EC4899', bgColor: 'bg-pink-50' },
-  luteal_early: { icon: Sun, color: '#3B82F6', bgColor: 'bg-blue-50' },
-  luteal_mid: { icon: Cloud, color: '#F59E0B', bgColor: 'bg-amber-50' },
-  luteal_late: { icon: Moon, color: '#EF4444', bgColor: 'bg-red-50' },
+  luteal_early: { icon: Sun, color: '#60A5FA', bgColor: 'bg-blue-50' },
+  luteal_mid: { icon: Cloud, color: '#F0C75E', bgColor: 'bg-amber-50' },
+  luteal_late: { icon: Moon, color: '#E87461', bgColor: 'bg-orange-50' },
 }
 
 const DetailPage: FC = () => {
@@ -372,8 +372,8 @@ const DetailPage: FC = () => {
 
   if (!detail) {
     return (
-      <View className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Text className="block text-gray-400">未找到对象信息</Text>
+      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFF9F0' }}>
+        <Text className="block text-stone-400">未找到对象信息</Text>
       </View>
     )
   }
@@ -381,7 +381,7 @@ const DetailPage: FC = () => {
   const relationTypeConfig = RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined']
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-24">
+    <View className="min-h-screen pb-24" style={{ backgroundColor: '#FFF9F0' }}>
       <CustomHeader 
         title="档案" 
         rightAction={
@@ -393,12 +393,12 @@ const DetailPage: FC = () => {
       
       {/* 基本信息卡片：姓名 + 关系类型 */}
       <View className="p-4">
-        <Card className="border border-gray-100">
+        <Card className="border border-orange-100">
           <CardContent className="p-4">
             {/* 姓名可编辑 */}
             {editingName ? (
               <View className="flex items-center gap-2 mb-3">
-                <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                <View className="flex-1 bg-stone-50 rounded-lg px-3 py-2">
                   <Input
                     className="w-full text-xl font-bold"
                     value={nameValue}
@@ -408,13 +408,13 @@ const DetailPage: FC = () => {
                 </View>
                 <View className="flex gap-1">
                   <View 
-                    className="p-2 bg-black rounded-lg"
+                    className="p-2 bg-green-500 rounded-lg"
                     onClick={saveName}
                   >
                     {saving ? <Loader size={14} color="#fff" className="animate-spin" /> : <Check size={14} color="#fff" />}
                   </View>
                   <View 
-                    className="p-2 bg-gray-200 rounded-lg"
+                    className="p-2 bg-stone-200 rounded-lg"
                     onClick={() => { setEditingName(false); setNameValue(detail.name) }}
                   >
                     <X size={14} color="#666" />
@@ -423,15 +423,15 @@ const DetailPage: FC = () => {
               </View>
             ) : (
               <View className="flex items-center gap-2 mb-3" onClick={() => setEditingName(true)}>
-                <Text className="block text-xl font-bold text-gray-900">{detail.name}</Text>
-                <Pencil size={14} color="#9CA3AF" />
+                <Text className="block text-xl font-bold text-stone-900">{detail.name}</Text>
+                <Pencil size={14} color="#A8A29E" />
               </View>
             )}
             
             {/* 关系类型标签 */}
             {selectingRelationshipType ? (
               <View className="mt-2">
-                <Text className="block text-xs text-gray-500 mb-2">选择关系类型</Text>
+                <Text className="block text-xs text-stone-500 mb-2">选择关系类型</Text>
                 <View className="flex flex-wrap gap-2">
                   {(['long_term', 'short_term', 'both'] as RelationshipType[]).map(type => {
                     const config = RELATIONSHIP_TYPE_CONFIG[type]
@@ -440,7 +440,7 @@ const DetailPage: FC = () => {
                       <View
                         key={type}
                         className={`px-3 py-2 rounded-full border-2 ${
-                          isSelected ? 'border-black' : 'border-gray-200'
+                          isSelected ? 'border-green-500' : 'border-orange-200'
                         }`}
                         style={{ backgroundColor: isSelected ? config.bgColor.replace('bg-', '') : 'transparent' }}
                         onClick={() => saveRelationshipType(type)}
@@ -455,10 +455,10 @@ const DetailPage: FC = () => {
                     )
                   })}
                   <View 
-                    className="px-3 py-2 rounded-full border border-gray-200"
+                    className="px-3 py-2 rounded-full border border-orange-200"
                     onClick={() => setSelectingRelationshipType(false)}
                   >
-                    <Text className="block text-xs text-gray-400">取消</Text>
+                    <Text className="block text-xs text-stone-400">取消</Text>
                   </View>
                 </View>
               </View>
@@ -478,7 +478,7 @@ const DetailPage: FC = () => {
                     {relationTypeConfig.label}
                   </Text>
                 </View>
-                <Pencil size={12} color="#9CA3AF" />
+                <Pencil size={12} color="#A8A29E" />
               </View>
             )}
           </CardContent>
@@ -490,26 +490,26 @@ const DetailPage: FC = () => {
         <View className="grid grid-cols-4 gap-2">
           {/* 记录互动 */}
           <View 
-            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-gray-100"
+            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-orange-100"
             onClick={() => navigateTo({ url: `/pages/interaction-create/index?matchId=${detail.id}` })}
           >
-            <View className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center mb-1">
-              <MessageCirclePlus size={20} color="#6366F1" />
+            <View className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-1">
+              <MessageCirclePlus size={20} color="#4ECB71" />
             </View>
-            <Text className="block text-xs text-gray-700">记录互动</Text>
+            <Text className="block text-xs text-stone-700">记录互动</Text>
           </View>
           
           {/* 互动任务 */}
           <View 
-            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-gray-100"
+            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-orange-100"
             onClick={goToTasks}
           >
-            <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1">
-              <ClipboardList size={20} color="#374151" />
+            <View className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center mb-1">
+              <ClipboardList size={20} color="#44403C" />
             </View>
-            <Text className="block text-xs text-gray-700">任务</Text>
+            <Text className="block text-xs text-stone-700">任务</Text>
             {detail.stats.tasks > 0 && (
-              <Text className="block text-xs text-gray-400">
+              <Text className="block text-xs text-stone-400">
                 {detail.stats.completedTasks}/{detail.stats.tasks}
               </Text>
             )}
@@ -517,36 +517,36 @@ const DetailPage: FC = () => {
           
           {/* 人物画像 */}
           <View 
-            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-gray-100"
+            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-orange-100"
             onClick={goToPortrait}
           >
-            <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1">
-              <Brain size={20} color="#374151" />
+            <View className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center mb-1">
+              <Brain size={20} color="#44403C" />
             </View>
-            <Text className="block text-xs text-gray-700">画像</Text>
+            <Text className="block text-xs text-stone-700">画像</Text>
           </View>
           
           {/* 周期追踪 */}
           {cycleInfo ? (
             <View 
-              className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-gray-100"
+              className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-orange-100"
               onClick={() => navigateTo({ url: `/pages/cycle/index?matchId=${detail.id}` })}
             >
               <View className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center mb-1">
                 <Activity size={20} color="#EC4899" />
               </View>
-              <Text className="block text-xs text-gray-700">周期</Text>
-              <Text className="block text-xs text-gray-400">Day {cycleInfo.day}</Text>
+              <Text className="block text-xs text-stone-700">周期</Text>
+              <Text className="block text-xs text-stone-400">Day {cycleInfo.day}</Text>
             </View>
           ) : (
             <View 
-              className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-gray-100"
+              className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-orange-100"
               onClick={() => navigateTo({ url: `/pages/cycle/index?matchId=${detail.id}` })}
             >
-              <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1">
-                <Activity size={20} color="#9CA3AF" />
+              <View className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center mb-1">
+                <Activity size={20} color="#A8A29E" />
               </View>
-              <Text className="block text-xs text-gray-700">周期</Text>
+              <Text className="block text-xs text-stone-700">周期</Text>
             </View>
           )}
         </View>
@@ -555,11 +555,11 @@ const DetailPage: FC = () => {
       {/* 智能助手：关联发现页功能的快捷入口 */}
       <View className="px-4 pb-4">
         <View className="flex items-center gap-2 mb-3">
-          <Sparkles size={14} color="#6366F1" />
-          <Text className="block text-sm font-semibold text-gray-900">智能助手</Text>
-          <Text className="block text-xs text-gray-400">基于 TA 的档案，为你推荐</Text>
+          <Sparkles size={14} color="#4ECB71" />
+          <Text className="block text-sm font-semibold text-stone-900">智能助手</Text>
+          <Text className="block text-xs text-stone-400">基于 TA 的档案，为你推荐</Text>
         </View>
-        <View className="bg-white rounded-xl border border-gray-100 p-4">
+        <View className="bg-white rounded-xl border border-orange-100 p-4">
           <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', marginLeft: '-8px' }}>
             {/* 速推方案 */}
             <View
@@ -570,7 +570,7 @@ const DetailPage: FC = () => {
                 <View className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center mb-1">
                   <Zap size={18} color="#F59E0B" />
                 </View>
-                <Text className="block text-xs text-gray-700">速推方案</Text>
+                <Text className="block text-xs text-stone-700">速推方案</Text>
               </View>
             </View>
             {/* 朋友圈分析 */}
@@ -579,10 +579,10 @@ const DetailPage: FC = () => {
               onClick={() => navigateTo({ url: `/pages/moments-analyze/index?matchId=${detail.id}` })}
             >
               <View className="flex flex-col items-center">
-                <View className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center mb-1">
-                  <Search size={18} color="#6366F1" />
+                <View className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-1">
+                  <Search size={18} color="#4ECB71" />
                 </View>
-                <Text className="block text-xs text-gray-700">朋友圈</Text>
+                <Text className="block text-xs text-stone-700">朋友圈</Text>
               </View>
             </View>
             {/* 破冰话题 */}
@@ -591,10 +591,10 @@ const DetailPage: FC = () => {
               onClick={() => navigateTo({ url: `/pages/knowledge-icebreaker/index?matchId=${detail.id}` })}
             >
               <View className="flex flex-col items-center">
-                <View className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center mb-1">
-                  <MessageCircle size={18} color="#10B981" />
+                <View className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-1">
+                  <MessageCircle size={18} color="#4ECB71" />
                 </View>
-                <Text className="block text-xs text-gray-700">破冰话题</Text>
+                <Text className="block text-xs text-stone-700">破冰话题</Text>
               </View>
             </View>
             {/* 开场白生成 */}
@@ -606,7 +606,7 @@ const DetailPage: FC = () => {
                 <View className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-1">
                   <BookOpen size={18} color="#22C55E" />
                 </View>
-                <Text className="block text-xs text-gray-700">开场白</Text>
+                <Text className="block text-xs text-stone-700">开场白</Text>
               </View>
             </View>
             {/* 共同成长 */}
@@ -618,7 +618,7 @@ const DetailPage: FC = () => {
                 <View className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center mb-1">
                   <TrendingUp size={18} color="#F43F5E" />
                 </View>
-                <Text className="block text-xs text-gray-700">共同成长</Text>
+                <Text className="block text-xs text-stone-700">共同成长</Text>
               </View>
             </View>
             {/* 互动游戏 */}
@@ -630,7 +630,7 @@ const DetailPage: FC = () => {
                 <View className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center mb-1">
                   <Gamepad2 size={18} color="#8B5CF6" />
                 </View>
-                <Text className="block text-xs text-gray-700">互动游戏</Text>
+                <Text className="block text-xs text-stone-700">互动游戏</Text>
               </View>
             </View>
             {/* 场景演练 */}
@@ -642,7 +642,7 @@ const DetailPage: FC = () => {
                 <View className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mb-1">
                   <Theater size={18} color="#3B82F6" />
                 </View>
-                <Text className="block text-xs text-gray-700">场景演练</Text>
+                <Text className="block text-xs text-stone-700">场景演练</Text>
               </View>
             </View>
             {/* 周期科学 */}
@@ -654,7 +654,7 @@ const DetailPage: FC = () => {
                 <View className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center mb-1">
                   <Moon size={18} color="#EC4899" />
                 </View>
-                <Text className="block text-xs text-gray-700">周期科学</Text>
+                <Text className="block text-xs text-stone-700">周期科学</Text>
               </View>
             </View>
           </View>
@@ -663,51 +663,51 @@ const DetailPage: FC = () => {
 
       {/* 关键数据概览 */}
       <View className="px-4 pb-4">
-        <View className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <View className="bg-white rounded-xl border border-orange-100 overflow-hidden">
           {/* 概览标题栏 - 可点击展开 */}
           <View 
             className="flex items-center justify-between p-4 cursor-pointer"
             onClick={() => setShowDataOverview(!showDataOverview)}
           >
             <View className="flex items-center gap-2">
-              <ChartPie size={16} color="#6B7280" />
-              <Text className="block text-sm font-semibold text-gray-900">数据概览</Text>
+              <ChartPie size={16} color="#2E9E5A" />
+              <Text className="block text-sm font-semibold text-stone-900">数据概览</Text>
             </View>
             <View className="flex items-center gap-2">
               {/* 简要数据 */}
               <View className="flex items-center gap-3">
                 {detail.progressScore && (
                   <View className="flex items-center gap-1">
-                    <TrendingUp size={12} color="#10B981" />
-                    <Text className="block text-xs font-medium text-gray-600">{detail.progressScore.total}</Text>
+                    <TrendingUp size={12} color="#4ECB71" />
+                    <Text className="block text-xs font-medium text-stone-600">{detail.progressScore.total}</Text>
                   </View>
                 )}
                 {detail.energy && (
                   <View className="flex items-center gap-1">
                     <Zap size={12} color="#F59E0B" />
-                    <Text className="block text-xs font-medium text-gray-600">{detail.energy.current}</Text>
+                    <Text className="block text-xs font-medium text-stone-600">{detail.energy.current}</Text>
                   </View>
                 )}
               </View>
-              {showDataOverview ? <ChevronUp size={16} color="#9CA3AF" /> : <ChevronDown size={16} color="#9CA3AF" />}
+              {showDataOverview ? <ChevronUp size={16} color="#A8A29E" /> : <ChevronDown size={16} color="#A8A29E" />}
             </View>
           </View>
           
           {/* 展开的详细数据 */}
           {showDataOverview && (
-            <View className="px-4 pb-4 border-t border-gray-100">
+            <View className="px-4 pb-4 border-t border-orange-100">
               {/* 推进值 */}
               {detail.progressScore && (
                 <View className="mt-3">
                   <View className="flex items-center justify-between mb-2">
-                    <Text className="block text-xs text-gray-500">关系推进</Text>
+                    <Text className="block text-xs text-stone-500">关系推进</Text>
                     <View className="flex items-center gap-1">
-                      <Text className="block text-lg font-bold text-gray-900">{detail.progressScore.total}</Text>
-                      <Text className="block text-xs text-gray-400">/100</Text>
+                      <Text className="block text-lg font-bold text-stone-900">{detail.progressScore.total}</Text>
+                      <Text className="block text-xs text-stone-400">/100</Text>
                     </View>
                   </View>
-                  <Progress value={detail.progressScore.total} className="h-1 bg-gray-100" />
-                  <Text className="block text-xs text-gray-500 mt-1">{detail.progressScore.stage.name}</Text>
+                  <Progress value={detail.progressScore.total} className="h-1 bg-stone-100" />
+                  <Text className="block text-xs text-stone-500 mt-1">{detail.progressScore.stage.name}</Text>
                 </View>
               )}
               
@@ -720,11 +720,11 @@ const DetailPage: FC = () => {
                   <View className="flex items-center justify-between">
                     <View className="flex items-center gap-2">
                       <Sun size={14} color="#F59E0B" />
-                      <Text className="block text-xs text-gray-600">关系能量</Text>
+                      <Text className="block text-xs text-stone-600">关系能量</Text>
                     </View>
                     <View className="flex items-center gap-2">
                       <Text className="block text-lg font-bold text-amber-600">{detail.energy.current}</Text>
-                      <Text className="block text-xs text-gray-400">本周 {detail.energy.thisWeek} 次</Text>
+                      <Text className="block text-xs text-stone-400">本周 {detail.energy.thisWeek} 次</Text>
                       <ChevronRight size={14} color="#D1D5DB" />
                     </View>
                   </View>
@@ -746,9 +746,9 @@ const DetailPage: FC = () => {
                               {cycleInfo.phaseName}
                             </Text>
                           </View>
-                          <Text className="block text-xs text-gray-500">Day {cycleInfo.day}</Text>
+                          <Text className="block text-xs text-stone-500">Day {cycleInfo.day}</Text>
                         </View>
-                        <Text className="block text-xs text-gray-600 mt-1">{cycleInfo.description}</Text>
+                        <Text className="block text-xs text-stone-600 mt-1">{cycleInfo.description}</Text>
                       </View>
                     )
                   })()}
@@ -763,9 +763,9 @@ const DetailPage: FC = () => {
       
       <View className="px-4 pb-4">
         <View className="flex items-center gap-2 mb-2">
-          <Database size={14} color="#6B7280" />
-          <Text className="block text-sm font-semibold text-gray-900">档案维度</Text>
-          <Text className="block text-xs text-gray-400">点击编辑</Text>
+          <Database size={14} color="#2E9E5A" />
+          <Text className="block text-sm font-semibold text-stone-900">档案维度</Text>
+          <Text className="block text-xs text-stone-400">点击编辑</Text>
         </View>
         <DimensionViewer matchId={detail.id} relationshipType={detail.relationshipType} refreshKey={dimensionRefreshKey} onEdit={handleDimensionEdit} />
       </View>
@@ -773,10 +773,10 @@ const DetailPage: FC = () => {
       {/* ==================== 第三屏：备注 ==================== */}
       
       <View className="px-4 pb-4">
-        <Text className="block text-sm font-semibold text-gray-900 mb-2">备注</Text>
+        <Text className="block text-sm font-semibold text-stone-900 mb-2">备注</Text>
         {editingNotes ? (
-          <View className="bg-white rounded-xl border border-gray-100 p-4">
-            <View className="bg-gray-50 rounded-lg p-3 mb-3">
+          <View className="bg-white rounded-xl border border-orange-100 p-4">
+            <View className="bg-stone-50 rounded-lg p-3 mb-3">
               <Input
                 className="w-full text-sm"
                 value={notesValue}
@@ -787,13 +787,13 @@ const DetailPage: FC = () => {
             </View>
             <View className="flex justify-end gap-2">
               <View 
-                className="px-4 py-2 bg-gray-200 rounded-lg"
+                className="px-4 py-2 bg-stone-200 rounded-lg"
                 onClick={() => { setEditingNotes(false); setNotesValue(detail.notes || '') }}
               >
-                <Text className="block text-sm text-gray-600">取消</Text>
+                <Text className="block text-sm text-stone-600">取消</Text>
               </View>
               <View 
-                className="px-4 py-2 bg-black rounded-lg flex items-center gap-1"
+                className="px-4 py-2 bg-green-500 rounded-lg flex items-center gap-1"
                 onClick={saveNotes}
               >
                 {saving ? <Loader size={14} color="#fff" className="animate-spin" /> : <Check size={14} color="#fff" />}
@@ -803,17 +803,17 @@ const DetailPage: FC = () => {
           </View>
         ) : (
           <View 
-            className="bg-white rounded-xl border border-gray-100 p-4"
+            className="bg-white rounded-xl border border-orange-100 p-4"
             onClick={() => setEditingNotes(true)}
           >
             {detail.notes ? (
               <View className="flex items-start gap-2">
-                <Text className="block text-sm text-gray-600 flex-1">{detail.notes}</Text>
+                <Text className="block text-sm text-stone-600 flex-1">{detail.notes}</Text>
                 <Pencil size={14} color="#D1D5DB" />
               </View>
             ) : (
               <View className="flex items-center gap-2">
-                <Text className="block text-sm text-gray-400">点击添加备注...</Text>
+                <Text className="block text-sm text-stone-400">点击添加备注...</Text>
                 <Pencil size={14} color="#D1D5DB" />
               </View>
             )}
@@ -823,11 +823,11 @@ const DetailPage: FC = () => {
 
       {/* 底部操作 */}
       <View 
-        className="fixed left-0 right-0 bg-white border-t border-gray-100"
+        className="fixed left-0 right-0 bg-white border-t border-orange-100"
         style={{ bottom: 0, paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <View className="p-4">
-          <Button className="w-full bg-black" onClick={() => setChatOpen(true)}>
+          <Button className="w-full bg-green-500" onClick={() => setChatOpen(true)}>
             <MessageCircle size={16} color="#fff" />
             <Text className="ml-2 text-white">AI 助手</Text>
           </Button>
@@ -849,7 +849,7 @@ const DetailPage: FC = () => {
               <Text className="block text-lg font-semibold">确认删除</Text>
             </AlertDialogTitle>
             <AlertDialogDescription>
-              <Text className="block text-sm text-gray-500">确定要删除「{detail?.name}」的档案吗？删除后无法恢复。</Text>
+              <Text className="block text-sm text-stone-500">确定要删除「{detail?.name}」的档案吗？删除后无法恢复。</Text>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

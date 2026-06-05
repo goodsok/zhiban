@@ -100,26 +100,26 @@ const ChatRecordUploader: FC<ChatRecordUploaderProps> = ({
   }
 
   return (
-    <View className="bg-white rounded-xl border border-gray-100 p-4">
-      <Text className="block text-sm font-semibold text-gray-900 mb-2">上传聊天记录截图</Text>
-      <Text className="block text-xs text-gray-400 mb-4">
+    <View className="bg-white rounded-xl border border-orange-100 p-4">
+      <Text className="block text-sm font-semibold text-stone-900 mb-2">上传聊天记录截图</Text>
+      <Text className="block text-xs text-stone-400 mb-4">
         上传你和Ta的聊天截图，AI会自动分析Ta的行为特征
       </Text>
 
       {/* 上传按钮 */}
       <View
-        className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-200 rounded-lg"
+        className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-stone-200 rounded-lg"
         onClick={uploading ? undefined : handleChooseImage}
       >
         {uploading ? (
           <>
             <Loader size={24} color="#666" className="animate-spin" />
-            <Text className="block text-sm text-gray-500 mt-2">分析中...</Text>
+            <Text className="block text-sm text-stone-500 mt-2">分析中...</Text>
           </>
         ) : (
           <>
             <Upload size={24} color="#999" />
-            <Text className="block text-sm text-gray-500 mt-2">点击上传截图</Text>
+            <Text className="block text-sm text-stone-500 mt-2">点击上传截图</Text>
           </>
         )}
       </View>
@@ -135,7 +135,7 @@ const ChatRecordUploader: FC<ChatRecordUploaderProps> = ({
         >
           <View className="flex items-start gap-2">
             {result.success && result.isChatRecord ? (
-              <CircleCheck size={16} color="#10B981" />
+              <CircleCheck size={16} color="#4ECB71" />
             ) : (
               <CircleAlert size={16} color="#EF4444" />
             )}
@@ -162,31 +162,31 @@ const ChatRecordUploader: FC<ChatRecordUploaderProps> = ({
               {/* 显示分析结果 */}
               {result.success && result.isChatRecord && result.analysis && (
                 <View className="mt-3 p-2 bg-white rounded">
-                  <Text className="block text-xs text-gray-500 mb-2">识别到的特征：</Text>
+                  <Text className="block text-xs text-stone-500 mb-2">识别到的特征：</Text>
                   <View className="flex flex-wrap gap-1">
                     {result.analysis.responseSpeed && (
-                      <View className="px-2 py-1 bg-gray-100 rounded">
-                        <Text className="block text-xs text-gray-600">
+                      <View className="px-2 py-1 bg-stone-100 rounded">
+                        <Text className="block text-xs text-stone-600">
                           回复：{result.analysis.responseSpeed}
                         </Text>
                       </View>
                     )}
                     {result.analysis.activeTimeSlots?.length > 0 && (
-                      <View className="px-2 py-1 bg-gray-100 rounded">
-                        <Text className="block text-xs text-gray-600">
+                      <View className="px-2 py-1 bg-stone-100 rounded">
+                        <Text className="block text-xs text-stone-600">
                           活跃：{result.analysis.activeTimeSlots.join('、')}
                         </Text>
                       </View>
                     )}
                     {result.analysis.topicPreferences?.length > 0 && (
-                      <View className="px-2 py-1 bg-gray-100 rounded">
-                        <Text className="block text-xs text-gray-600">
+                      <View className="px-2 py-1 bg-stone-100 rounded">
+                        <Text className="block text-xs text-stone-600">
                           话题：{result.analysis.topicPreferences.join('、')}
                         </Text>
                       </View>
                     )}
                   </View>
-                  <Text className="block text-xs text-gray-400 mt-2">
+                  <Text className="block text-xs text-stone-400 mt-2">
                     置信度：{Math.round(result.analysis.confidence * 100)}%
                   </Text>
                 </View>
@@ -199,7 +199,7 @@ const ChatRecordUploader: FC<ChatRecordUploaderProps> = ({
       {/* 提示信息 */}
       <View className="mt-3 flex items-start gap-2">
         <CircleAlert size={14} color="#999" />
-        <Text className="block text-xs text-gray-400">
+        <Text className="block text-xs text-stone-400">
           请上传真实的聊天记录截图，AI会自动识别对话内容并提取行为特征
         </Text>
       </View>

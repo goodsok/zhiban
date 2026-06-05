@@ -148,11 +148,11 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
         <View className="mb-3">
           <Sparkles size={44} color="#9090B0" />
         </View>
-        <Text className="block text-base font-medium text-gray-700 mb-2">相处模式分析</Text>
-        <Text className="block text-sm text-gray-500 text-center leading-relaxed mb-1">
+        <Text className="block text-base font-medium text-stone-700 mb-2">相处模式分析</Text>
+        <Text className="block text-sm text-stone-500 text-center leading-relaxed mb-1">
           从维度数据中合成7个行为侧写
         </Text>
-        <Text className="block text-xs text-gray-400 text-center leading-relaxed mb-6">
+        <Text className="block text-xs text-stone-400 text-center leading-relaxed mb-6">
           沟通节奏 · 情感表达 · 冲突模式 · 社交画像{"\n"}
           生活节奏 · 恋爱风格 · 亲密边界
         </Text>
@@ -170,8 +170,8 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
         <View className="mb-3 animate-pulse">
           <Sparkles size={44} color="#9090B0" />
         </View>
-        <Text className="block text-sm font-medium text-gray-600 mb-2">正在扫描维度数据...</Text>
-        <Text className="block text-sm text-gray-400">合成行为侧写中，请稍候</Text>
+        <Text className="block text-sm font-medium text-stone-600 mb-2">正在扫描维度数据...</Text>
+        <Text className="block text-sm text-stone-400">合成行为侧写中，请稍候</Text>
       </View>
     )
   }
@@ -180,7 +180,7 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
   if (!profile) {
     return (
       <View className="flex flex-col items-center justify-center py-10 px-4">
-        <Text className="block text-sm text-gray-400">暂无相处模式数据</Text>
+        <Text className="block text-sm text-stone-400">暂无相处模式数据</Text>
       </View>
     )
   }
@@ -223,7 +223,7 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
 
             {/* 描述 */}
             <View className="px-3 pb-2">
-              <Text className="block text-sm text-gray-600 leading-relaxed">
+              <Text className="block text-sm text-stone-600 leading-relaxed">
                 {isEmpty ? '维度数据不足，请先填写更多维度' : section.description}
               </Text>
             </View>
@@ -286,8 +286,8 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
           disabled={loading}
           className="flex flex-row items-center gap-1"
         >
-          <RefreshCw size={14} color="#9CA3AF" />
-          <Text className="text-xs text-gray-400">{loading ? '分析中...' : '重新分析'}</Text>
+          <RefreshCw size={14} color="#A8A29E" />
+          <Text className="text-xs text-stone-400">{loading ? '分析中...' : '重新分析'}</Text>
         </Button>
       </View>
     </View>

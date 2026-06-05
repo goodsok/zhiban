@@ -182,8 +182,8 @@ const DimensionEditPage: FC = () => {
           <View className="space-y-2">
             {/* 搜索框 */}
             {showSearch && (
-              <View className="bg-gray-50 rounded-lg px-4 py-3 mb-3 flex items-center gap-2">
-                <Search size={16} color="#9CA3AF" />
+              <View className="bg-stone-50 rounded-lg px-4 py-3 mb-3 flex items-center gap-2">
+                <Search size={16} color="#A8A29E" />
                 <View className="flex-1">
                   <Input
                     value={searchQuery}
@@ -196,16 +196,16 @@ const DimensionEditPage: FC = () => {
             )}
             
             {/* 选项列表 */}
-            <View className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <View className="bg-white rounded-xl border border-orange-100 overflow-hidden">
               {filteredOptions.map((option, index) => (
                 <View
                   key={option.value}
                   className={`flex items-center justify-between px-4 py-3 ${
-                    index !== filteredOptions.length - 1 ? 'border-b border-gray-50' : ''
-                  } ${!isCustomSelected && inputValue === option.value ? 'bg-gray-50' : ''}`}
+                    index !== filteredOptions.length - 1 ? 'border-b border-stone-100' : ''
+                  } ${!isCustomSelected && inputValue === option.value ? 'bg-stone-50' : ''}`}
                   onClick={() => handleEnumSelect(option.value)}
                 >
-                  <Text className="text-sm text-gray-900">{option.label}</Text>
+                  <Text className="text-sm text-stone-900">{option.label}</Text>
                   {!isCustomSelected && inputValue === option.value && (
                     <Check size={16} color="#000" />
                   )}
@@ -216,8 +216,8 @@ const DimensionEditPage: FC = () => {
               {!showCustomInput ? (
                 <View
                   className={`flex items-center gap-2 px-4 py-3 ${
-                    filteredOptions.length > 0 ? 'border-t border-gray-50' : ''
-                  } ${isCustomSelected ? 'bg-gray-50' : ''}`}
+                    filteredOptions.length > 0 ? 'border-t border-stone-100' : ''
+                  } ${isCustomSelected ? 'bg-stone-50' : ''}`}
                   onClick={() => {
                     setShowCustomInput(true)
                     if (isCustomSelected) {
@@ -225,8 +225,8 @@ const DimensionEditPage: FC = () => {
                     }
                   }}
                 >
-                  <Plus size={16} color="#9CA3AF" />
-                  <Text className={`text-sm ${isCustomSelected ? 'text-gray-900' : 'text-gray-500'}`}>
+                  <Plus size={16} color="#A8A29E" />
+                  <Text className={`text-sm ${isCustomSelected ? 'text-stone-900' : 'text-stone-500'}`}>
                     {isCustomSelected ? inputValue : '自定义'}
                   </Text>
                   {isCustomSelected && (
@@ -238,8 +238,8 @@ const DimensionEditPage: FC = () => {
               ) : (
                 <View
                   className={`flex items-center gap-2 px-4 py-3 ${
-                    filteredOptions.length > 0 ? 'border-t border-gray-50' : ''
-                  } bg-gray-50`}
+                    filteredOptions.length > 0 ? 'border-t border-stone-100' : ''
+                  } bg-stone-50`}
                 >
                   <View className="flex-1">
                     <Input
@@ -252,21 +252,21 @@ const DimensionEditPage: FC = () => {
                   </View>
                   <Button
                     size="sm"
-                    className="bg-black"
+                    className="bg-green-500"
                     onClick={handleCustomConfirm}
                     disabled={!customInputValue.trim()}
                   >
                     <Text className="text-white text-xs">确定</Text>
                   </Button>
                   <View onClick={() => { setShowCustomInput(false); setCustomInputValue('') }}>
-                    <X size={20} color="#9CA3AF" />
+                    <X size={20} color="#A8A29E" />
                   </View>
                 </View>
               )}
 
               {filteredOptions.length === 0 && !showCustomInput && (
                 <View className="px-4 py-8 flex items-center justify-center">
-                  <Text className="text-sm text-gray-400">没有找到匹配项，试试自定义</Text>
+                  <Text className="text-sm text-stone-400">没有找到匹配项，试试自定义</Text>
                 </View>
               )}
             </View>
@@ -279,8 +279,8 @@ const DimensionEditPage: FC = () => {
           <View>
             {/* 搜索框 */}
             {showSearch && hasEnumOptions && (
-              <View className="bg-gray-50 rounded-lg px-4 py-3 mb-3 flex items-center gap-2">
-                <Search size={16} color="#9CA3AF" />
+              <View className="bg-stone-50 rounded-lg px-4 py-3 mb-3 flex items-center gap-2">
+                <Search size={16} color="#A8A29E" />
                 <View className="flex-1">
                   <Input
                     value={searchQuery}
@@ -295,14 +295,14 @@ const DimensionEditPage: FC = () => {
             {/* 已选择的标签 */}
             {multiSelectValues.length > 0 && (
               <View className="mb-4">
-                <Text className="block text-xs text-gray-500 mb-2">已选择 ({multiSelectValues.length})</Text>
+                <Text className="block text-xs text-stone-500 mb-2">已选择 ({multiSelectValues.length})</Text>
                 <View className="flex flex-wrap gap-2">
                   {multiSelectValues.map(value => {
                     const option = definition.enum_options?.find(o => o.value === value)
                     return (
                       <View
                         key={value}
-                        className="flex items-center gap-1 bg-black rounded-full px-3 py-2"
+                        className="flex items-center gap-1 bg-green-500 rounded-full px-3 py-2"
                       >
                         <Text className="text-sm text-white">{option?.label || value}</Text>
                         <View onClick={() => handleRemoveValue(value)}>
@@ -318,43 +318,43 @@ const DimensionEditPage: FC = () => {
             {/* 预设可选标签（仅在有预设选项时显示） */}
             {hasEnumOptions && (
               <View className="mb-2">
-                <Text className="block text-xs text-gray-500 mb-2">可选项</Text>
+                <Text className="block text-xs text-stone-500 mb-2">可选项</Text>
                 <View className="flex flex-wrap gap-2">
                   {filteredOptions
                     .filter(option => !multiSelectValues.includes(option.value))
                     .map(option => (
                       <Badge
                         key={option.value}
-                        className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        className="bg-stone-100 text-stone-700 hover:bg-stone-200"
                         onClick={() => handleMultiSelect(option.value)}
                       >
                         {option.label}
                       </Badge>
                     ))}
                   {filteredOptions.filter(option => !multiSelectValues.includes(option.value)).length === 0 && (
-                    <Text className="text-sm text-gray-400">暂无可选项</Text>
+                    <Text className="text-sm text-stone-400">暂无可选项</Text>
                   )}
                 </View>
               </View>
             )}
             
             {/* 自定义输入（无预设选项时直接展开输入框） */}
-            <View className={hasEnumOptions ? 'mt-4 pt-4 border-t border-gray-100' : ''}>
+            <View className={hasEnumOptions ? 'mt-4 pt-4 border-t border-orange-100' : ''}>
               {!showCustomInput && hasEnumOptions ? (
                 <View 
-                  className="flex items-center gap-2 text-gray-500"
+                  className="flex items-center gap-2 text-stone-500"
                   onClick={() => setShowCustomInput(true)}
                 >
-                  <Plus size={16} color="#9CA3AF" />
+                  <Plus size={16} color="#A8A29E" />
                   <Text className="text-sm">添加自定义选项</Text>
                 </View>
               ) : (
                 <View>
                   {!hasEnumOptions && multiSelectValues.length === 0 && (
-                    <Text className="block text-xs text-gray-500 mb-2">输入后按回车或点击添加</Text>
+                    <Text className="block text-xs text-stone-500 mb-2">输入后按回车或点击添加</Text>
                   )}
                   <View className="flex items-center gap-2">
-                    <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                    <View className="flex-1 bg-stone-50 rounded-lg px-3 py-2">
                       <Input
                         value={customInputValue}
                         onInput={(e) => setCustomInputValue(e.detail.value)}
@@ -366,7 +366,7 @@ const DimensionEditPage: FC = () => {
                     </View>
                     <Button
                       size="sm"
-                      className="bg-black"
+                      className="bg-green-500"
                       onClick={handleAddCustomValue}
                       disabled={!customInputValue.trim()}
                     >
@@ -374,7 +374,7 @@ const DimensionEditPage: FC = () => {
                     </Button>
                     {hasEnumOptions && showCustomInput && (
                       <View onClick={() => { setShowCustomInput(false); setCustomInputValue('') }}>
-                        <X size={20} color="#9CA3AF" />
+                        <X size={20} color="#A8A29E" />
                       </View>
                     )}
                   </View>
@@ -391,17 +391,17 @@ const DimensionEditPage: FC = () => {
         const step = definition.data_type === 'float' ? 0.1 : 1
         const sliderValue = inputValue ? parseFloat(inputValue) : min
         return (
-          <View className="bg-white rounded-xl border border-gray-100 p-4">
+          <View className="bg-white rounded-xl border border-orange-100 p-4">
             {/* 当前值显示 */}
             <View className="flex items-center justify-between mb-4">
-              <Text className="text-sm text-gray-500">{min}</Text>
+              <Text className="text-sm text-stone-500">{min}</Text>
               <View className="flex items-baseline gap-1">
-                <Text className="text-3xl font-bold text-gray-900">
+                <Text className="text-3xl font-bold text-stone-900">
                   {inputValue || min}
                 </Text>
-                <Text className="text-xs text-gray-400">/ {max}</Text>
+                <Text className="text-xs text-stone-400">/ {max}</Text>
               </View>
-              <Text className="text-sm text-gray-500">{max}</Text>
+              <Text className="text-sm text-stone-500">{max}</Text>
             </View>
             
             {/* 滑块 */}
@@ -419,15 +419,15 @@ const DimensionEditPage: FC = () => {
             
             {/* 帮助文本（滑块两端的含义说明） */}
             {definition.help_text && (
-              <View className="mt-4 pt-3 border-t border-gray-100">
-                <Text className="block text-xs text-gray-400">{definition.help_text}</Text>
+              <View className="mt-4 pt-3 border-t border-orange-100">
+                <Text className="block text-xs text-stone-400">{definition.help_text}</Text>
               </View>
             )}
             
             {/* 快捷按钮：常见数值 */}
             {max - min >= 50 && (
-              <View className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                <Text className="text-xs text-gray-400">快捷选择</Text>
+              <View className="flex items-center justify-between mt-4 pt-3 border-t border-orange-100">
+                <Text className="text-xs text-stone-400">快捷选择</Text>
                 <View className="flex gap-2">
                   {[25, 50, 75].map(v => {
                     const inRange = v >= min && v <= max
@@ -435,11 +435,11 @@ const DimensionEditPage: FC = () => {
                       <View
                         key={v}
                         className={`px-3 py-1 rounded-full ${
-                          parseInt(inputValue) === v ? 'bg-black' : 'bg-gray-100'
+                          parseInt(inputValue) === v ? 'bg-green-500' : 'bg-stone-100'
                         }`}
                         onClick={() => setInputValue(String(v))}
                       >
-                        <Text className={`text-xs ${parseInt(inputValue) === v ? 'text-white' : 'text-gray-600'}`}>
+                        <Text className={`text-xs ${parseInt(inputValue) === v ? 'text-white' : 'text-stone-600'}`}>
                           {v}
                         </Text>
                       </View>
@@ -454,7 +454,7 @@ const DimensionEditPage: FC = () => {
       
       case 'number':
         return (
-          <View className="bg-gray-50 rounded-lg px-4 py-3">
+          <View className="bg-stone-50 rounded-lg px-4 py-3">
             <Input
               type="number"
               value={inputValue}
@@ -467,7 +467,7 @@ const DimensionEditPage: FC = () => {
       
       case 'textarea':
         return (
-          <View className="bg-gray-50 rounded-lg p-3">
+          <View className="bg-stone-50 rounded-lg p-3">
             <Input
               value={inputValue}
               onInput={(e) => setInputValue(e.detail.value)}
@@ -479,7 +479,7 @@ const DimensionEditPage: FC = () => {
       
       default:
         return (
-          <View className="bg-gray-50 rounded-lg px-4 py-3">
+          <View className="bg-stone-50 rounded-lg px-4 py-3">
             <Input
               value={inputValue}
               onInput={(e) => setInputValue(e.detail.value)}
@@ -493,28 +493,28 @@ const DimensionEditPage: FC = () => {
 
   if (loading) {
     return (
-      <View className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader size={24} color="#9CA3AF" className="animate-spin" />
+      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFF9F0' }}>
+        <Loader size={24} color="#A8A29E" className="animate-spin" />
       </View>
     )
   }
 
   if (!definition) {
     return (
-      <View className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Text className="text-gray-400">维度定义不存在</Text>
+      <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFF9F0' }}>
+        <Text className="text-stone-400">维度定义不存在</Text>
       </View>
     )
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-24">
+    <View className="min-h-screen pb-24" style={{ backgroundColor: '#FFF9F0' }}>
       <CustomHeader title={definition.display_name} />
       
       {/* 顶部信息 */}
-      <View className="p-4 bg-white border-b border-gray-100">
+      <View className="p-4 bg-white border-b border-orange-100">
         <View className="flex items-center gap-2 mb-2">
-          <Text className="text-lg font-semibold text-gray-900">{definition.display_name}</Text>
+          <Text className="text-lg font-semibold text-stone-900">{definition.display_name}</Text>
           {definition.importance === 'critical' && (
             <Badge className="bg-red-100 text-red-600 text-xs">必填</Badge>
           )}
@@ -524,11 +524,11 @@ const DimensionEditPage: FC = () => {
         </View>
         
         {definition.description && (
-          <Text className="text-sm text-gray-500 mb-2">{definition.description}</Text>
+          <Text className="text-sm text-stone-500 mb-2">{definition.description}</Text>
         )}
         
         {definition.help_text && (
-          <Text className="text-xs text-gray-400">{definition.help_text}</Text>
+          <Text className="text-xs text-stone-400">{definition.help_text}</Text>
         )}
       </View>
       
@@ -540,8 +540,8 @@ const DimensionEditPage: FC = () => {
       {/* 历史值 */}
       {currentValue !== null && currentValue !== undefined && (
         <View className="px-4 mt-4">
-          <Text className="text-xs text-gray-400 mb-1">上次保存的值</Text>
-          <Text className="text-sm text-gray-600">
+          <Text className="text-xs text-stone-400 mb-1">上次保存的值</Text>
+          <Text className="text-sm text-stone-600">
             {formatDimensionValue(definition, currentValue)}
           </Text>
         </View>
@@ -549,7 +549,7 @@ const DimensionEditPage: FC = () => {
       
       {/* 底部操作 */}
       <View
-        className="fixed left-0 right-0 bg-white border-t border-gray-100"
+        className="fixed left-0 right-0 bg-white border-t border-orange-100"
         style={{ bottom: 0, paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <View className="p-4 flex gap-3">
@@ -561,7 +561,7 @@ const DimensionEditPage: FC = () => {
             取消
           </Button>
           <Button
-            className="flex-1 bg-black"
+            className="flex-1 bg-green-500"
             onClick={handleSave}
             disabled={saving}
           >

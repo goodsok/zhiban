@@ -169,12 +169,12 @@ const BlindPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-8">
+    <View className="min-h-screen pb-8" style={{ backgroundColor: '#FFF9F0' }}>
       {/* 顶部进度条 */}
-      <View className="bg-white px-4 pt-2 pb-3 border-b border-gray-100">
+      <View className="bg-white px-4 pt-2 pb-3 border-b border-orange-100">
         <View className="flex flex-row items-center justify-between mb-1">
-          <Text className="text-xs text-gray-500">感知进度</Text>
-          <Text className="text-xs text-gray-500">
+          <Text className="text-xs text-stone-500">感知进度</Text>
+          <Text className="text-xs text-stone-500">
             {step === 'intro' || step === 'invite' ? '准备' : `${Math.min(currentRoundIndex + 1, blindRounds.length)}/${blindRounds.length}`}
           </Text>
         </View>
@@ -188,32 +188,32 @@ const BlindPage: FC = () => {
             <View className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center mb-4">
               <EyeOff size={40} color="white" />
             </View>
-            <Text className="block text-2xl font-bold text-gray-900 mb-2">盲触感知</Text>
-            <Text className="block text-sm text-gray-500 mb-4 text-center leading-relaxed">
+            <Text className="block text-2xl font-bold text-stone-900 mb-2">盲触感知</Text>
+            <Text className="block text-sm text-stone-500 mb-4 text-center leading-relaxed">
               闭眼感知游戏{'\n'}当视觉消失，触觉会放大100倍
             </Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">游戏规则</Text>
+                <Text className="block text-sm font-medium text-stone-700 mb-3">游戏规则</Text>
                 <View className="space-y-2">
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-teal-600">1</Text>
                     </View>
-                    <Text className="text-sm text-gray-600">一方闭眼，另一方按指示触碰TA</Text>
+                    <Text className="text-sm text-stone-600">一方闭眼，另一方按指示触碰TA</Text>
                   </View>
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-teal-600">2</Text>
                     </View>
-                    <Text className="text-sm text-gray-600">闭眼方根据触感猜测对方做了什么</Text>
+                    <Text className="text-sm text-stone-600">闭眼方根据触感猜测对方做了什么</Text>
                   </View>
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-teal-600">3</Text>
                     </View>
-                    <Text className="text-sm text-gray-600">共6轮，难度递增，猜对得分</Text>
+                    <Text className="text-sm text-stone-600">共6轮，难度递增，猜对得分</Text>
                   </View>
                 </View>
               </CardContent>
@@ -253,14 +253,14 @@ const BlindPage: FC = () => {
             <View className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center mb-4">
               <Sparkles size={32} color="#0d9488" />
             </View>
-            <Text className="block text-lg font-bold text-gray-900 mb-2">把手机递给TA</Text>
-            <Text className="block text-sm text-gray-500 mb-6 text-center leading-relaxed">
+            <Text className="block text-lg font-bold text-stone-900 mb-2">把手机递给TA</Text>
+            <Text className="block text-sm text-stone-500 mb-6 text-center leading-relaxed">
               让TA看到这段话，如果愿意就点「好呀」
             </Text>
 
             <Card className="mb-6 w-full bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-100">
               <CardContent className="py-5">
-                <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
+                <Text className="block text-base text-stone-800 leading-loose text-center font-medium">
                   “你相信吗？{'\n'}闭上眼睛之后，{'\n'}触碰会变得完全不同。{'\n'}{'\n'}我碰你，你来猜，{'\n'}猜对了有奖励哦。{'\n'}{'\n'}敢不敢闭眼试试？”
                 </Text>
               </CardContent>
@@ -281,7 +281,7 @@ const BlindPage: FC = () => {
                 className="rounded-xl py-2 w-full"
                 onClick={() => setStep('intro')}
               >
-                <Text className="text-gray-400 text-sm">返回</Text>
+                <Text className="text-stone-400 text-sm">返回</Text>
               </Button>
             </View>
           </View>
@@ -294,8 +294,8 @@ const BlindPage: FC = () => {
               <Text className="text-2xl">🙈</Text>
             </View>
             <Text className="block text-xs text-teal-500 font-medium mb-1">第 {currentRound.id} 轮 / 共 {blindRounds.length} 轮</Text>
-            <Text className="block text-xl font-bold text-gray-900 mb-1">{currentRound.name}</Text>
-            <Text className="block text-sm text-gray-400 mb-6">+{currentRound.intimacyScore} 亲密度</Text>
+            <Text className="block text-xl font-bold text-stone-900 mb-1">{currentRound.name}</Text>
+            <Text className="block text-sm text-stone-400 mb-6">+{currentRound.intimacyScore} 亲密度</Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-5">
@@ -304,7 +304,7 @@ const BlindPage: FC = () => {
                     <EyeOff size={16} color="#0d9488" />
                     <Text className="text-xs text-teal-600 font-medium ml-1">触碰者请看（让对方闭眼）</Text>
                   </View>
-                  <Text className="block text-base text-gray-800 text-center leading-relaxed font-medium">
+                  <Text className="block text-base text-stone-800 text-center leading-relaxed font-medium">
                     {currentRound.touchInstruction}
                   </Text>
                 </View>
@@ -335,7 +335,7 @@ const BlindPage: FC = () => {
                 className="rounded-xl py-2 w-full mt-2"
                 onClick={handleNextRound}
               >
-                <Text className="text-gray-400 text-sm">没有糖果，跳过这轮</Text>
+                <Text className="text-stone-400 text-sm">没有糖果，跳过这轮</Text>
               </Button>
             )}
           </View>
@@ -347,8 +347,8 @@ const BlindPage: FC = () => {
             <View className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center mb-3">
               <CircleQuestionMark size={32} color="white" />
             </View>
-            <Text className="block text-lg font-bold text-gray-900 mb-2">睁开眼睛，开始猜测</Text>
-            <Text className="block text-sm text-gray-500 mb-6 text-center leading-relaxed">
+            <Text className="block text-lg font-bold text-stone-900 mb-2">睁开眼睛，开始猜测</Text>
+            <Text className="block text-sm text-stone-500 mb-6 text-center leading-relaxed">
               {currentRound.guessHint}
             </Text>
 
@@ -360,7 +360,7 @@ const BlindPage: FC = () => {
                   onClick={() => handleGuess(option)}
                 >
                   <CardContent className="py-4">
-                    <Text className="block text-base text-gray-800 text-center font-medium">
+                    <Text className="block text-base text-stone-800 text-center font-medium">
                       {option}
                     </Text>
                   </CardContent>
@@ -377,8 +377,8 @@ const BlindPage: FC = () => {
               <Check size={40} color="white" />
             </View>
             <Text className="block text-xl font-bold text-green-600 mb-1">猜对了！</Text>
-            <Text className="block text-sm text-gray-500 mb-1">+{currentRound.intimacyScore} 亲密度</Text>
-            <Text className="block text-sm text-gray-400 mb-6">
+            <Text className="block text-sm text-stone-500 mb-1">+{currentRound.intimacyScore} 亲密度</Text>
+            <Text className="block text-sm text-stone-400 mb-6">
               正确答案：{currentRound.bodyPart}
             </Text>
 
@@ -412,7 +412,7 @@ const BlindPage: FC = () => {
               <Text className="block text-3xl">🤔</Text>
             </View>
             <Text className="block text-xl font-bold text-amber-600 mb-1">差一点点！</Text>
-            <Text className="block text-sm text-gray-500 mb-1">你选了：{selectedOption}</Text>
+            <Text className="block text-sm text-stone-500 mb-1">你选了：{selectedOption}</Text>
             <Text className="block text-sm text-green-600 font-medium mb-6">
               正确答案：{currentRound.bodyPart}
             </Text>
@@ -444,14 +444,14 @@ const BlindPage: FC = () => {
         {step === 'summary' && (
           <View className="flex flex-col items-center">
             <Text className="block text-5xl mb-3">{correctCount >= 3 ? '🫶' : '🤗'}</Text>
-            <Text className="block text-2xl font-bold text-gray-900 mb-1">{getSummaryTitle()}</Text>
-            <Text className="block text-sm text-gray-500 mb-2">
+            <Text className="block text-2xl font-bold text-stone-900 mb-1">{getSummaryTitle()}</Text>
+            <Text className="block text-sm text-stone-500 mb-2">
               猜对 {correctCount}/{blindRounds.length} · 亲密度 {totalScore} 分
             </Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm text-gray-700 leading-relaxed text-center">
+                <Text className="block text-sm text-stone-700 leading-relaxed text-center">
                   {getSummaryText()}
                 </Text>
               </CardContent>
@@ -459,17 +459,17 @@ const BlindPage: FC = () => {
 
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">挑战记录</Text>
+                <Text className="block text-sm font-medium text-stone-700 mb-3">挑战记录</Text>
                 {blindRounds.map((round, idx) => (
                   <View key={round.id} className="flex flex-row items-center justify-between py-2">
                     <View className="flex flex-row items-center">
-                      <Text className="text-sm text-gray-600 mr-2">第{round.id}轮</Text>
-                      <Text className="text-sm text-gray-800">{round.name}</Text>
+                      <Text className="text-sm text-stone-600 mr-2">第{round.id}轮</Text>
+                      <Text className="text-sm text-stone-800">{round.name}</Text>
                     </View>
                     {roundResults[idx] ? (
                       <Text className="text-xs text-green-600 font-medium">+{round.intimacyScore} 猜对</Text>
                     ) : (
-                      <Text className="text-xs text-gray-400">未猜对</Text>
+                      <Text className="text-xs text-stone-400">未猜对</Text>
                     )}
                   </View>
                 ))}

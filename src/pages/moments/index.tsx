@@ -15,7 +15,7 @@ const MomentsPage: FC = () => {
       subtitle: 'AI生成有吸引力的朋友圈文案',
       icon: Pencil,
       pagePath: '/pages/moments-create/index',
-      bgColor: 'bg-gradient-to-br from-indigo-500 to-purple-600',
+      bgColor: 'bg-gradient-to-br from-green-500 to-teal-500',
     },
     {
       id: 'analyze',
@@ -40,11 +40,11 @@ const MomentsPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-20">
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
       {/* 顶部 */}
-      <View className="bg-white px-4 py-6 border-b border-gray-100">
-        <Text className="block text-xl font-bold text-gray-900">朋友圈助手</Text>
-        <Text className="block text-sm text-gray-500 mt-1">
+      <View className="bg-white px-4 py-6 border-b border-orange-100">
+        <Text className="block text-xl font-bold text-stone-900">朋友圈助手</Text>
+        <Text className="block text-sm text-stone-500 mt-1">
           打造有吸引力的朋友圈形象
         </Text>
       </View>

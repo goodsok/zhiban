@@ -5,6 +5,8 @@ import { useState } from 'react'
 import { Network } from '@/network'
 import { Plus, ChevronRight, Sparkles, Heart, Sun, Moon, Cloud, MessageCirclePlus, EyeOff, Eye } from 'lucide-react-taro'
 import { Switch } from '@/components/ui/switch'
+import EmptyState from '@/components/empty-state'
+
 
 interface Match {
   id: number
@@ -32,12 +34,12 @@ interface CycleInfo {
 
 // 周期阶段图标和颜色
 const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: string }> = {
-  menstrual: { icon: Moon, color: '#6B7280', bgColor: 'bg-gray-100' },
-  follicular: { icon: Sun, color: '#10B981', bgColor: 'bg-emerald-50' },
+  menstrual: { icon: Moon, color: '#78716C', bgColor: 'bg-stone-100' },
+  follicular: { icon: Sun, color: '#4ECB71', bgColor: 'bg-green-50' },
   ovulation: { icon: Heart, color: '#EC4899', bgColor: 'bg-pink-50' },
-  luteal_early: { icon: Sun, color: '#3B82F6', bgColor: 'bg-blue-50' },
-  luteal_mid: { icon: Cloud, color: '#F59E0B', bgColor: 'bg-amber-50' },
-  luteal_late: { icon: Moon, color: '#EF4444', bgColor: 'bg-red-50' },
+  luteal_early: { icon: Sun, color: '#60A5FA', bgColor: 'bg-blue-50' },
+  luteal_mid: { icon: Cloud, color: '#F0C75E', bgColor: 'bg-amber-50' },
+  luteal_late: { icon: Moon, color: '#E87461', bgColor: 'bg-orange-50' },
 }
 
 const Index: FC = () => {
@@ -59,8 +61,6 @@ const Index: FC = () => {
       setLoading(true)
       const res = await Network.request({ url: '/api/match/list' })
       console.log('Match list response:', JSON.stringify(res?.data)?.substring(0, 200))
-      // Network.request 返回 Taro.request 的结果，数据在 res.data 中
-      // 后端返回 { code: 200, msg: '...', data: { list: [...] } }
       const responseData = res?.data
       if (responseData?.code === 200 && responseData?.data?.list) {
         setMatches(responseData.data.list)
@@ -78,7 +78,6 @@ const Index: FC = () => {
           }
         })
       } else if (retryCount < 3) {
-        // 响应数据异常时自动重试（最多3次，递增延迟）
         const delay = (retryCount + 1) * 1000
         console.warn('Matches response invalid, retrying in', delay, 'ms...', retryCount + 1)
         await new Promise(r => setTimeout(r, delay))
@@ -131,23 +130,23 @@ const Index: FC = () => {
     : matches.filter(m => m.status !== 'hidden')
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-20">
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
       {/* 顶部 */}
-      <View className="bg-white px-4 py-4 border-b border-gray-100">
+      <View className="bg-white px-4 py-4 border-b border-orange-100">
         <View className="flex items-center justify-between">
           <View className="flex items-center gap-2">
-            <Text className="block text-xl font-bold text-gray-900">对象</Text>
+            <Text className="block text-xl font-bold text-stone-900">对象</Text>
             <Switch
               checked={showHidden}
               onCheckedChange={setShowHidden}
             />
           </View>
-          <View 
-            className="flex items-center gap-1 text-gray-500"
+          <View
+            className="flex items-center gap-1 text-stone-500"
             onClick={goToCreate}
           >
-            <Plus size={20} color="#6B7280" />
-            <Text className="block text-sm">新建</Text>
+            <Plus size={20} color="#4ECB71" />
+            <Text className="block text-sm text-green-600">新建</Text>
           </View>
         </View>
       </View>
@@ -155,110 +154,100 @@ const Index: FC = () => {
       {/* 列表 */}
       <View className="p-4">
         {loading ? (
-          <View className="text-center py-12">
-            <Text className="block text-gray-400">加载中...</Text>
+          <View className="flex items-center justify-center py-12">
+            <Text className="block text-stone-400">加载中...</Text>
           </View>
         ) : visibleMatches.length === 0 ? (
-          <View className="text-center py-12">
-            <Text className="block text-gray-400 mb-4">
-              {showHidden ? '还没有记录任何对象' : '没有可见的对象'}
-            </Text>
-            {!showHidden && matches.length > 0 ? (
-              <Text className="block text-sm text-gray-300">打开开关查看已隐藏的对象</Text>
-            ) : (
-              <View 
-                className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
-                onClick={goToCreate}
-              >
-                <Plus size={16} color="#fff" />
-                <Text className="block text-sm">添加第一个对象</Text>
-              </View>
-            )}
-          </View>
+          <EmptyState
+            message={showHidden ? '还没有记录任何对象' : '没有可见的对象'}
+            description={!showHidden && matches.length > 0 ? '打开开关查看已隐藏的对象' : undefined}
+            actionLabel={(!showHidden && matches.length === 0) ? '添加第一个对象' : undefined}
+            onAction={(!showHidden && matches.length === 0) ? goToCreate : undefined}
+          />
         ) : (
           visibleMatches.map((match) => {
             const cycleInfo = cycleInfos[match.id]
             const phaseConf = cycleInfo ? phaseConfig[cycleInfo.phase] : null
             const PhaseIcon = phaseConf?.icon || Heart
             const isHidden = match.status === 'hidden'
-            
+
             return (
               <View
                 key={match.id}
-                className={`bg-white rounded-xl border border-gray-100 p-4 mb-3 ${isHidden ? 'opacity-60' : ''}`}
+                className={`bg-white rounded-2xl border border-orange-100 shadow-sm p-4 mb-3 ${isHidden ? 'opacity-60' : ''}`}
               >
                 <View className="flex items-center justify-between" onClick={() => goToDetail(match.id)}>
                   <View className="flex-1 min-w-0">
                     <View className="flex items-center gap-2 mb-1">
-                      <Text className="block text-base font-semibold text-gray-900 flex-shrink-0">
+                      <Text className="block text-base font-semibold text-stone-900 flex-shrink-0">
                         {match.name}
                       </Text>
                       {isHidden && (
-                        <View className="px-1 py-1 bg-gray-100 rounded">
-                          <Text className="block text-xs text-gray-400">已隐藏</Text>
+                        <View className="px-2 py-0 bg-stone-100 rounded-md">
+                          <Text className="block text-xs text-stone-400">已隐藏</Text>
                         </View>
                       )}
                     </View>
                     {/* 推进值显示 */}
                     {match.progressScore !== undefined && (
                       <View className="flex items-center gap-1">
-                        <View className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <View 
-                            className="h-full bg-gradient-to-r from-indigo-500 to-pink-500 rounded-full"
+                        <View className="w-24 h-2 bg-stone-100 rounded-full overflow-hidden">
+                          <View
+                            className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
                             style={{ width: `${match.progressScore}%` }}
                           />
                         </View>
-                        <Text className="block text-xs text-gray-400">{match.progressScore}分</Text>
+                        <Text className="block text-xs text-stone-400">{match.progressScore}分</Text>
                       </View>
                     )}
                   </View>
-                  <ChevronRight size={20} color="#D1D5DB" />
+                  <ChevronRight size={20} color="#A8A29E" />
                 </View>
-                
+
                 {/* 快捷操作按钮 */}
-                <View className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-                  <View 
-                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-indigo-50 rounded-lg"
+                <View className="flex items-center gap-2 mt-3 pt-3 border-t border-orange-200">
+                  <View
+                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-green-50 rounded-xl"
                     onClick={(e) => {
                       e.stopPropagation()
                       navigateTo({ url: `/pages/interaction-create/index?matchId=${match.id}` })
                     }}
                   >
-                    <MessageCirclePlus size={14} color="#6366F1" />
-                    <Text className="block text-xs font-medium text-indigo-600">记录互动</Text>
+                    <MessageCirclePlus size={14} color="#4ECB71" />
+                    <Text className="block text-xs font-medium text-green-600">记录互动</Text>
                   </View>
-                  <View 
-                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-gray-50 rounded-lg"
+                  <View
+                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-stone-50 rounded-xl"
                     onClick={() => goToDetail(match.id)}
                   >
-                    <Sparkles size={14} color="#6B7280" />
-                    <Text className="block text-xs font-medium text-gray-600">查看档案</Text>
+                    <Sparkles size={14} color="#78716C" />
+                    <Text className="block text-xs font-medium text-stone-600">查看档案</Text>
                   </View>
-                  <View 
-                    className="flex items-center justify-center py-2 px-3 bg-gray-50 rounded-lg"
+                  <View
+                    className="flex items-center justify-center py-2 px-3 bg-stone-50 rounded-xl"
                     onClick={(e) => {
                       e.stopPropagation()
                       toggleHide(match)
                     }}
                   >
                     {isHidden ? (
-                      <Eye size={14} color="#6B7280" />
+                      <Eye size={14} color="#78716C" />
                     ) : (
-                      <EyeOff size={14} color="#9CA3AF" />
+                      <EyeOff size={14} color="#A8A29E" />
                     )}
                   </View>
                 </View>
-                
+
                 {/* 周期阶段显示 */}
                 {cycleInfo && phaseConf && (
-                  <View className={`mt-3 pt-3 border-t border-gray-100 ${phaseConf.bgColor} -mx-4 -mb-4 px-4 py-3 rounded-b-xl`}>
+                  <View className={`mt-3 pt-3 border-t border-orange-200 ${phaseConf.bgColor} -mx-4 -mb-4 px-4 py-3 rounded-b-2xl`}>
                     <View className="flex items-center gap-2 mb-1">
                       <PhaseIcon size={14} color={phaseConf.color} />
                       <Text className="block text-xs font-medium" style={{ color: phaseConf.color }}>
                         {cycleInfo.phaseName} · Day {cycleInfo.day}
                       </Text>
                     </View>
-                    <Text className="block text-xs text-gray-500">
+                    <Text className="block text-xs text-stone-500">
                       {cycleInfo.recommendations[0] || '保持关注'}
                     </Text>
                   </View>

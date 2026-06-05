@@ -104,24 +104,24 @@ const StoryListPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-20">
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
       <CustomHeader title="故事生成器" />
 
       {/* 列表 */}
       <View className="p-4">
         {loading ? (
           <View className="text-center py-12">
-            <Text className="block text-gray-400">加载中...</Text>
+            <Text className="block text-stone-400">加载中...</Text>
           </View>
         ) : stories.length === 0 ? (
           <View className="text-center py-12">
-            <View className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen size={32} color="#9CA3AF" />
+            <View className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BookOpen size={32} color="#A8A29E" />
             </View>
-            <Text className="block text-gray-400 mb-2">还没有故事</Text>
-            <Text className="block text-gray-400 text-sm mb-4">把你的故事变成高能量内容</Text>
+            <Text className="block text-stone-400 mb-2">还没有故事</Text>
+            <Text className="block text-stone-400 text-sm mb-4">把你的故事变成高能量内容</Text>
             <View
-              className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
+              className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg"
               onClick={goToCreate}
             >
               <Plus size={16} color="#fff" />
@@ -132,7 +132,7 @@ const StoryListPage: FC = () => {
           <>
             {/* 新建按钮 */}
             <View
-              className="bg-black rounded-xl py-3 flex items-center justify-center gap-2 mb-4"
+              className="bg-green-500 rounded-xl py-3 flex items-center justify-center gap-2 mb-4"
               onClick={goToCreate}
             >
               <Plus size={18} color="#fff" />
@@ -142,20 +142,20 @@ const StoryListPage: FC = () => {
             {stories.map((story) => (
             <View
               key={story.id}
-              className="bg-white rounded-xl border border-gray-100 p-4 mb-3"
+              className="bg-white rounded-xl border border-orange-100 p-4 mb-3"
               onClick={() => goToDetail(story.id)}
             >
               {/* 头部 */}
               <View className="flex items-center justify-between mb-2">
                 <View className="flex items-center gap-2">
-                  <View className="px-2 py-1 bg-gray-100 rounded">
-                    <Text className="block text-xs text-gray-600">
+                  <View className="px-2 py-1 bg-stone-100 rounded">
+                    <Text className="block text-xs text-stone-600">
                       {STORY_TYPE_LABELS[story.story_type] || story.story_type}
                     </Text>
                   </View>
                   {story.relationship_stage && (
-                    <View className="px-2 py-1 bg-indigo-50 rounded">
-                      <Text className="block text-xs text-indigo-600">
+                    <View className="px-2 py-1 bg-green-50 rounded">
+                      <Text className="block text-xs text-green-600">
                         {STAGE_LABELS[story.relationship_stage] || story.relationship_stage}
                       </Text>
                     </View>
@@ -170,7 +170,7 @@ const StoryListPage: FC = () => {
               </View>
 
               {/* 预览 */}
-              <Text className="block text-sm text-gray-700 mb-2">
+              <Text className="block text-sm text-stone-700 mb-2">
                 {getStoryPreview(story.generated_story)}
               </Text>
 
@@ -186,13 +186,13 @@ const StoryListPage: FC = () => {
               )}
 
               {/* 底部 */}
-              <View className="flex items-center justify-between pt-2 border-t border-gray-100">
+              <View className="flex items-center justify-between pt-2 border-t border-orange-100">
                 {story.matches?.name && (
-                  <Text className="block text-xs text-gray-400">
+                  <Text className="block text-xs text-stone-400">
                     对象：{story.matches.name}
                   </Text>
                 )}
-                <Text className="block text-xs text-gray-400">
+                <Text className="block text-xs text-stone-400">
                   {formatDate(story.created_at)}
                 </Text>
               </View>

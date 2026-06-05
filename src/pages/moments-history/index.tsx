@@ -95,34 +95,34 @@ const MomentsHistoryPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-20">
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
       <CustomHeader title="发布记录" />
 
       {/* 列表 */}
       <View className="p-4">
         {loading ? (
           <View className="text-center py-12">
-            <Text className="block text-gray-400">加载中...</Text>
+            <Text className="block text-stone-400">加载中...</Text>
           </View>
         ) : posts.length === 0 ? (
           <View className="text-center py-12">
-            <View className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar size={32} color="#9CA3AF" />
+            <View className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Calendar size={32} color="#A8A29E" />
             </View>
-            <Text className="block text-gray-400 mb-2">还没有发布记录</Text>
-            <Text className="block text-gray-400 text-sm">使用发圈助手后，记录会显示在这里</Text>
+            <Text className="block text-stone-400 mb-2">还没有发布记录</Text>
+            <Text className="block text-stone-400 text-sm">使用发圈助手后，记录会显示在这里</Text>
           </View>
         ) : (
           posts.map((post) => (
             <View
               key={post.id}
-              className="bg-white rounded-xl border border-gray-100 p-4 mb-3"
+              className="bg-white rounded-xl border border-orange-100 p-4 mb-3"
             >
               {/* 头部标签 */}
               <View className="flex items-center justify-between mb-3">
                 <View className="flex items-center gap-2">
-                  <View className="px-2 py-1 bg-indigo-50 rounded">
-                    <Text className="block text-xs text-indigo-600">
+                  <View className="px-2 py-1 bg-green-50 rounded">
+                    <Text className="block text-xs text-green-600">
                       {TYPE_LABELS[post.post_type] || post.post_type}
                     </Text>
                   </View>
@@ -141,7 +141,7 @@ const MomentsHistoryPage: FC = () => {
               </View>
 
               {/* 内容预览 */}
-              <Text className="block text-sm text-gray-700 mb-3 leading-relaxed">
+              <Text className="block text-sm text-stone-700 mb-3 leading-relaxed">
                 {getContentPreview(post.content)}
               </Text>
 
@@ -149,21 +149,21 @@ const MomentsHistoryPage: FC = () => {
               {post.persona_tags && post.persona_tags.length > 0 && (
                 <View className="flex flex-wrap gap-1 mb-3">
                   {post.persona_tags.map((tag) => (
-                    <View key={tag} className="px-2 py-1 bg-gray-100 rounded">
-                      <Text className="block text-xs text-gray-500">{tag}</Text>
+                    <View key={tag} className="px-2 py-1 bg-stone-100 rounded">
+                      <Text className="block text-xs text-stone-500">{tag}</Text>
                     </View>
                   ))}
                 </View>
               )}
 
               {/* 底部 */}
-              <View className="flex items-center justify-between pt-2 border-t border-gray-100">
+              <View className="flex items-center justify-between pt-2 border-t border-orange-100">
                 {post.matches?.name && (
-                  <Text className="block text-xs text-gray-400">
+                  <Text className="block text-xs text-stone-400">
                     对象：{post.matches.name}
                   </Text>
                 )}
-                <Text className="block text-xs text-gray-400">
+                <Text className="block text-xs text-stone-400">
                   {formatDate(post.publish_time)}
                 </Text>
               </View>

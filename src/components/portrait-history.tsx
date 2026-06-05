@@ -34,9 +34,9 @@ const PortraitHistory: FC<PortraitHistoryProps> = ({ history, limit = 5 }) => {
 
   const getChangeIcon = (oldValue: number, newValue: number) => {
     const diff = newValue - oldValue
-    if (diff > 5) return <TrendingUp size={14} color="#10B981" />
+    if (diff > 5) return <TrendingUp size={14} color="#4ECB71" />
     if (diff < -5) return <TrendingDown size={14} color="#EF4444" />
-    return <Minus size={14} color="#6B7280" />
+    return <Minus size={14} color="#78716C" />
   }
 
   const getChangeText = (oldValue: number, newValue: number) => {
@@ -56,19 +56,19 @@ const PortraitHistory: FC<PortraitHistoryProps> = ({ history, limit = 5 }) => {
 
   if (displayHistory.length === 0) {
     return (
-      <View className="bg-white rounded-xl border border-gray-100 p-4">
-        <Text className="block text-sm text-gray-400 text-center">暂无画像变化记录</Text>
+      <View className="bg-white rounded-xl border border-orange-100 p-4">
+        <Text className="block text-sm text-stone-400 text-center">暂无画像变化记录</Text>
       </View>
     )
   }
 
   return (
-    <View className="bg-white rounded-xl border border-gray-100">
+    <View className="bg-white rounded-xl border border-orange-100">
       {displayHistory.map((item, index) => (
         <View
           key={item.id}
           className={`flex items-start gap-3 p-4 ${
-            index < displayHistory.length - 1 ? 'border-b border-gray-100' : ''
+            index < displayHistory.length - 1 ? 'border-b border-orange-100' : ''
           }`}
         >
           <View className="mt-1">
@@ -76,27 +76,27 @@ const PortraitHistory: FC<PortraitHistoryProps> = ({ history, limit = 5 }) => {
           </View>
           <View className="flex-1">
             <View className="flex items-center justify-between mb-1">
-              <Text className="block text-sm font-medium text-gray-800">{item.dimension}</Text>
+              <Text className="block text-sm font-medium text-stone-800">{item.dimension}</Text>
               <Text
                 className={`block text-sm font-semibold ${
-                  item.newValue > item.oldValue ? 'text-emerald-600' : 
-                  item.newValue < item.oldValue ? 'text-red-500' : 'text-gray-500'
+                  item.newValue > item.oldValue ? 'text-green-600' : 
+                  item.newValue < item.oldValue ? 'text-red-500' : 'text-stone-500'
                 }`}
               >
                 {getChangeText(item.oldValue, item.newValue)}
               </Text>
             </View>
             <View className="flex items-center gap-2">
-              <Text className="block text-xs text-gray-400">
+              <Text className="block text-xs text-stone-400">
                 {item.oldValue} → {item.newValue}
               </Text>
-              <Text className="block text-xs text-gray-300">|</Text>
-              <Text className="block text-xs text-gray-400">
+              <Text className="block text-xs text-stone-300">|</Text>
+              <Text className="block text-xs text-stone-400">
                 {getReasonLabel(item.changeReason)}
               </Text>
             </View>
           </View>
-          <Text className="block text-xs text-gray-400">{formatDate(item.createdAt)}</Text>
+          <Text className="block text-xs text-stone-400">{formatDate(item.createdAt)}</Text>
         </View>
       ))}
     </View>

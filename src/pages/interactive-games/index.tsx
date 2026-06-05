@@ -77,7 +77,7 @@ const games: GameCard[] = [
     subtitle: '测试你的观察力',
     description: '通过观察和描述对方的外貌、神态、行为，提升你的感知力和表达能力。',
     icon: TrendingUp,
-    color: 'from-indigo-400 to-blue-500',
+    color: 'from-green-400 to-emerald-500',
     pagePath: '/pages/game-challenge/index',
     difficulty: 'medium',
     players: 2,
@@ -143,7 +143,7 @@ const games: GameCard[] = [
     subtitle: '最安静的亲密',
     description: '从各自呼吸到呼吸合一——当两个人呼吸同频，心跳也会慢慢靠近，科学证明的亲密感。',
     icon: Wind,
-    color: 'from-sky-400 to-indigo-500',
+    color: 'from-teal-400 to-green-500',
     pagePath: '/pages/game-breath/index',
     difficulty: 'easy',
     players: 2,
@@ -181,23 +181,23 @@ const InteractiveGamesPage: FC = () => {
       case 'hard':
         return 'bg-red-100 text-red-600'
       default:
-        return 'bg-gray-100 text-gray-600'
+        return 'bg-stone-100 text-stone-600'
     }
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-20">
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
       {/* 顶部说明 */}
       <View className="bg-gradient-to-r from-purple-500 to-blue-500 px-4 py-6">
         <Text className="block text-2xl font-bold text-white mb-2">互动游戏</Text>
-        <Text className="block text-sm text-gray-200 leading-relaxed">
+        <Text className="block text-sm text-stone-200 leading-relaxed">
           精选约会场景互动游戏，通过轻松有趣的方式快速拉近彼此距离，创造美好回忆
         </Text>
       </View>
 
       {/* 游戏列表 */}
       <View className="p-4">
-        <Text className="block text-sm font-medium text-gray-500 mb-3">破冰交流</Text>
+        <Text className="block text-sm font-medium text-stone-500 mb-3">破冰交流</Text>
         
         <ScrollView scrollY className="max-h-[calc(100vh-280px)]">
           {games.filter(g => !['touch', 'mirror', 'pulse', 'blind', 'distance', 'breath'].includes(g.id)).map((game) => {
@@ -217,7 +217,7 @@ const InteractiveGamesPage: FC = () => {
                       </View>
                       <View className="flex-1">
                         <Text className="block text-base font-semibold text-white">{game.title}</Text>
-                        <Text className="block text-xs text-gray-200">{game.subtitle}</Text>
+                        <Text className="block text-xs text-stone-200">{game.subtitle}</Text>
                       </View>
                     </View>
                     <View className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
@@ -228,7 +228,7 @@ const InteractiveGamesPage: FC = () => {
 
                 {/* 游戏内容 */}
                 <View className="p-4">
-                  <Text className="block text-sm text-gray-600 leading-relaxed mb-3">
+                  <Text className="block text-sm text-stone-600 leading-relaxed mb-3">
                     {game.description}
                   </Text>
 
@@ -240,7 +240,7 @@ const InteractiveGamesPage: FC = () => {
                       </View>
                       <View className="flex flex-row items-center">
                         <Users size={14} color="#9ca3af" />
-                        <Text className="text-xs text-gray-500 ml-1">{game.players} 人</Text>
+                        <Text className="text-xs text-stone-500 ml-1">{game.players} 人</Text>
                       </View>
                     </View>
                     <Text className="text-xs text-purple-600 font-medium">开始游戏 →</Text>
@@ -274,7 +274,7 @@ const InteractiveGamesPage: FC = () => {
                       </View>
                       <View className="flex-1">
                         <Text className="block text-base font-semibold text-white">{game.title}</Text>
-                        <Text className="block text-xs text-gray-200">{game.subtitle}</Text>
+                        <Text className="block text-xs text-stone-200">{game.subtitle}</Text>
                       </View>
                     </View>
                     <View className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
@@ -285,7 +285,7 @@ const InteractiveGamesPage: FC = () => {
 
                 {/* 游戏内容 */}
                 <View className="p-4">
-                  <Text className="block text-sm text-gray-600 leading-relaxed mb-3">
+                  <Text className="block text-sm text-stone-600 leading-relaxed mb-3">
                     {game.description}
                   </Text>
 
@@ -297,7 +297,7 @@ const InteractiveGamesPage: FC = () => {
                       </View>
                       <View className="flex flex-row items-center">
                         <Users size={14} color="#9ca3af" />
-                        <Text className="text-xs text-gray-500 ml-1">{game.players} 人</Text>
+                        <Text className="text-xs text-stone-500 ml-1">{game.players} 人</Text>
                       </View>
                     </View>
                     <Text className="text-xs text-rose-600 font-medium">开始游戏 →</Text>
@@ -310,10 +310,10 @@ const InteractiveGamesPage: FC = () => {
       </View>
 
       {/* 底部提示 */}
-      <View className="bg-white border-t border-gray-100 px-4 py-3 mt-4">
+      <View className="bg-white border-t border-orange-100 px-4 py-3 mt-4">
         <View className="flex flex-row items-center">
           <Sparkles size={16} color="#a855f7" />
-          <Text className="block text-xs text-gray-500 ml-2">
+          <Text className="block text-xs text-stone-500 ml-2">
             提示：选择适合当前约会阶段的游戏，循序渐进，效果更佳
           </Text>
         </View>

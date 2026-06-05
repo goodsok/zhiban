@@ -2,6 +2,7 @@ import { View, Text } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
 import { Moon, MessageCircle, Theater, Zap, BookOpen, Smartphone, Heart, Gamepad2, TrendingUp, MessageSquareText, CalendarHeart, Flame } from 'lucide-react-taro'
+import CategoryCard from '@/components/category-card'
 
 interface KnowledgeCategory {
   id: string
@@ -9,7 +10,7 @@ interface KnowledgeCategory {
   subtitle: string
   icon: typeof Moon
   pagePath: string
-  bgColor: string
+  iconColor: string
   iconBg: string
 }
 
@@ -20,8 +21,8 @@ const categories: KnowledgeCategory[] = [
     subtitle: '了解周期规律，把握最佳时机',
     icon: Moon,
     pagePath: '/pages/knowledge-cycle/index',
-    bgColor: 'bg-white border border-gray-200',
-    iconBg: 'bg-gray-100',
+    iconColor: '#A78BFA',
+    iconBg: 'bg-violet-50',
   },
   {
     id: 'icebreaker',
@@ -29,8 +30,8 @@ const categories: KnowledgeCategory[] = [
     subtitle: '告别尴尬，开启轻松对话',
     icon: MessageCircle,
     pagePath: '/pages/knowledge-icebreaker/index',
-    bgColor: 'bg-white border border-gray-200',
-    iconBg: 'bg-gray-100',
+    iconColor: '#4ECB71',
+    iconBg: 'bg-green-50',
   },
   {
     id: 'scenario',
@@ -38,8 +39,8 @@ const categories: KnowledgeCategory[] = [
     subtitle: '模拟真实场景，提升互动能力',
     icon: Theater,
     pagePath: '/pages/knowledge-scenario/index',
-    bgColor: 'bg-white border border-gray-200',
-    iconBg: 'bg-gray-100',
+    iconColor: '#F0C75E',
+    iconBg: 'bg-amber-50',
   },
   {
     id: 'speed-plan',
@@ -47,8 +48,8 @@ const categories: KnowledgeCategory[] = [
     subtitle: 'AI生成个性化推进方案',
     icon: Zap,
     pagePath: '/pages/speed-plan-list/index',
-    bgColor: 'bg-white border border-gray-200',
-    iconBg: 'bg-gray-100',
+    iconColor: '#4ECB71',
+    iconBg: 'bg-green-50',
   },
   {
     id: 'story',
@@ -56,7 +57,7 @@ const categories: KnowledgeCategory[] = [
     subtitle: '把故事变成高能量内容',
     icon: BookOpen,
     pagePath: '/pages/story-list/index',
-    bgColor: 'bg-white border border-gray-200',
+    iconColor: '#F0C75E',
     iconBg: 'bg-amber-50',
   },
   {
@@ -65,8 +66,8 @@ const categories: KnowledgeCategory[] = [
     subtitle: '打造有吸引力的朋友圈',
     icon: Smartphone,
     pagePath: '/pages/moments/index',
-    bgColor: 'bg-white border border-gray-200',
-    iconBg: 'bg-indigo-50',
+    iconColor: '#60A5FA',
+    iconBg: 'bg-blue-50',
   },
   {
     id: 'dating-app',
@@ -74,8 +75,8 @@ const categories: KnowledgeCategory[] = [
     subtitle: '优化资料，提升匹配率',
     icon: Heart,
     pagePath: '/pages/dating-app/index',
-    bgColor: 'bg-white border border-gray-200',
-    iconBg: 'bg-rose-50',
+    iconColor: '#E87461',
+    iconBg: 'bg-orange-50',
   },
   {
     id: 'games',
@@ -83,8 +84,8 @@ const categories: KnowledgeCategory[] = [
     subtitle: '约会破冰，快速拉近距离',
     icon: Gamepad2,
     pagePath: '/pages/interactive-games/index',
-    bgColor: 'bg-white border border-gray-200',
-    iconBg: 'bg-purple-50',
+    iconColor: '#A78BFA',
+    iconBg: 'bg-violet-50',
   },
   {
     id: 'grow',
@@ -92,8 +93,8 @@ const categories: KnowledgeCategory[] = [
     subtitle: '一起变得更好的每一天',
     icon: TrendingUp,
     pagePath: '/pages/grow/index',
-    bgColor: 'bg-white border border-gray-200',
-    iconBg: 'bg-emerald-50',
+    iconColor: '#4ECB71',
+    iconBg: 'bg-green-50',
   },
   {
     id: 'chat-review',
@@ -101,7 +102,7 @@ const categories: KnowledgeCategory[] = [
     subtitle: 'AI分析对话，洞察对方心意',
     icon: MessageSquareText,
     pagePath: '/pages/chat-review/index',
-    bgColor: 'bg-white border border-gray-200',
+    iconColor: '#60A5FA',
     iconBg: 'bg-blue-50',
   },
   {
@@ -110,7 +111,7 @@ const categories: KnowledgeCategory[] = [
     subtitle: 'AI定制专属约会方案',
     icon: CalendarHeart,
     pagePath: '/pages/date-plan/index',
-    bgColor: 'bg-white border border-gray-200',
+    iconColor: '#EC4899',
     iconBg: 'bg-pink-50',
   },
   {
@@ -119,7 +120,7 @@ const categories: KnowledgeCategory[] = [
     subtitle: '自然不油腻，让对方心动',
     icon: Flame,
     pagePath: '/pages/sweet-talk/index',
-    bgColor: 'bg-white border border-gray-200',
+    iconColor: '#E87461',
     iconBg: 'bg-orange-50',
   },
 ]
@@ -134,37 +135,29 @@ const DiscoverPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-20">
-      {/* 顶部 - 与首页风格一致 */}
-      <View className="bg-white px-4 py-4 border-b border-gray-100">
-        <Text className="block text-xl font-bold text-gray-900">发现</Text>
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
+      {/* 顶部 */}
+      <View className="bg-white px-4 py-4 border-b border-orange-100">
+        <Text className="block text-xl font-bold text-stone-900">发现</Text>
       </View>
 
       {/* 知识分类入口 - 两列网格 */}
       <View className="p-4">
         <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
           {categories.map((category) => {
-            const CategoryIcon = category.icon
             return (
               <View
                 key={category.id}
                 style={{ width: '48%', marginBottom: '12px' }}
-                onClick={() => goToCategory(category.pagePath)}
               >
-                <View className={`${category.bgColor} rounded-2xl p-4`}>
-                  {/* 图标 */}
-                  <View className={`w-11 h-11 ${category.iconBg} rounded-xl flex items-center justify-center mb-3`}>
-                    <CategoryIcon size={22} color="#374151" />
-                  </View>
-                  {/* 标题 */}
-                  <Text className="block text-base font-semibold text-gray-900">
-                    {category.title}
-                  </Text>
-                  {/* 副标题 */}
-                  <Text className="block text-xs mt-1 leading-tight text-gray-500">
-                    {category.subtitle}
-                  </Text>
-                </View>
+                <CategoryCard
+                  title={category.title}
+                  subtitle={category.subtitle}
+                  icon={category.icon}
+                  iconColor={category.iconColor}
+                  iconBg={category.iconBg}
+                  onClick={() => goToCategory(category.pagePath)}
+                />
               </View>
             )
           })}
@@ -173,7 +166,7 @@ const DiscoverPage: FC = () => {
 
       {/* 提示文字 */}
       <View className="px-4 mt-4">
-        <Text className="block text-xs text-gray-400 text-center">
+        <Text className="block text-xs text-stone-400 text-center">
           更多知识内容持续更新中...
         </Text>
       </View>

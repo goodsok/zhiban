@@ -38,7 +38,7 @@ const INTERACTION_TYPES: Array<{
 }> = [
   { type: 'date', label: '约会', icon: Calendar, color: '#EC4899', bgColor: 'bg-pink-50', category: 'offline' },
   { type: 'chat', label: '聊天', icon: MessageCircle, color: '#3B82F6', bgColor: 'bg-blue-50', category: 'online' },
-  { type: 'call', label: '通话', icon: Phone, color: '#10B981', bgColor: 'bg-emerald-50', category: 'online' },
+  { type: 'call', label: '通话', icon: Phone, color: '#10B981', bgColor: 'bg-green-50', category: 'online' },
   { type: 'video', label: '视频', icon: Video, color: '#8B5CF6', bgColor: 'bg-violet-50', category: 'online' },
   { type: 'message', label: '消息', icon: MessageCircle, color: '#F59E0B', bgColor: 'bg-amber-50', category: 'online' },
   { type: 'gift', label: '礼物', icon: Gift, color: '#EF4444', bgColor: 'bg-red-50', category: 'offline' },
@@ -50,7 +50,7 @@ const INTERACTION_TYPES: Array<{
 const MOOD_OPTIONS: Array<{ value: Mood; label: string; emoji: string; color: string }> = [
   { value: 'excellent', label: '超开心', emoji: '🥰', color: 'bg-rose-100 border-rose-300' },
   { value: 'good', label: '挺不错', emoji: '😊', color: 'bg-amber-100 border-amber-300' },
-  { value: 'neutral', label: '还行吧', emoji: '😐', color: 'bg-gray-100 border-gray-300' },
+  { value: 'neutral', label: '还行吧', emoji: '😐', color: 'bg-stone-100 border-stone-300' },
   { value: 'awkward', label: '有点尬', emoji: '😅', color: 'bg-blue-100 border-blue-300' },
   { value: 'bad', label: '不太好', emoji: '😞', color: 'bg-slate-100 border-slate-300' },
 ]
@@ -450,7 +450,7 @@ export default function InteractionCreatePage() {
   }, [matchId, interactionType, interactionCategory, startedAt, actualDuration, initiator, location, title, description, activities, mood, breakthroughMoment, issuesEncountered, chatRecords])
 
   return (
-    <View className="min-h-screen bg-gray-50" style={{ paddingBottom: '100px' }}>
+    <View className="min-h-screen" style={{ backgroundColor: '#FFF9F0', paddingBottom: '100px' }}>
       <CustomHeader
         title={matchName ? `和${matchName}的互动` : '记录互动'}
         onBack={() => {
@@ -469,13 +469,13 @@ export default function InteractionCreatePage() {
         }}
         rightAction={
           <View onClick={() => Taro.navigateTo({ url: `/pages/interactions/index?matchId=${matchId}` })}>
-            <History size={20} color="#6B7280" />
+            <History size={20} color="#78716C" />
           </View>
         }
       />
 
       {/* 互动类型选择 - ScrollView 横向滚动 */}
-      <View className="bg-white px-4 py-4 border-b border-gray-100">
+      <View className="bg-white px-4 py-4 border-b border-orange-100">
         <ScrollView scrollX className="flex flex-row gap-2" style={{ whiteSpace: 'nowrap' }}>
           {INTERACTION_TYPES.map(item => {
             const IconComponent = item.icon
@@ -486,7 +486,7 @@ export default function InteractionCreatePage() {
                 className={`flex-shrink-0 flex flex-col items-center justify-center px-4 py-3 rounded-xl border-2 ${
                   isActive
                     ? `${item.bgColor} border-current`
-                    : 'bg-gray-50 border-gray-100'
+                    : 'bg-stone-50 border-orange-100'
                 }`}
                 style={{ borderColor: isActive ? item.color : undefined, minWidth: '72px', display: 'inline-flex', verticalAlign: 'top' }}
                 onClick={() => setInteractionType(item.type)}
@@ -508,15 +508,15 @@ export default function InteractionCreatePage() {
 
       {/* 主要信息卡片 */}
       <View className="p-4">
-        <Card className="border border-gray-100">
+        <Card className="border border-orange-100">
           <CardContent className="p-4">
             {/* 时间选择 */}
-            <View className="pb-4 border-b border-gray-100">
+            <View className="pb-4 border-b border-orange-100">
               <View className="flex items-center gap-3 mb-2">
-                <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Clock size={18} color="#6B7280" />
+                <View className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center">
+                  <Clock size={18} color="#78716C" />
                 </View>
-                <Text className="block text-sm font-medium text-gray-700">互动时间</Text>
+                <Text className="block text-sm font-medium text-stone-700">互动时间</Text>
               </View>
               <View className="flex flex-row gap-2" style={{ marginLeft: '52px' }}>
                 <Picker
@@ -528,9 +528,9 @@ export default function InteractionCreatePage() {
                     setStartedAt(d)
                   }}
                 >
-                  <View className="px-3 py-2 bg-gray-50 rounded-lg flex items-center gap-1">
-                    <Calendar size={14} color="#6B7280" />
-                    <Text className="block text-xs text-gray-700">{startedAt.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}</Text>
+                  <View className="px-3 py-2 bg-stone-50 rounded-lg flex items-center gap-1">
+                    <Calendar size={14} color="#78716C" />
+                    <Text className="block text-xs text-stone-700">{startedAt.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}</Text>
                   </View>
                 </Picker>
                 <Picker
@@ -543,21 +543,21 @@ export default function InteractionCreatePage() {
                     setStartedAt(d)
                   }}
                 >
-                  <View className="px-3 py-2 bg-gray-50 rounded-lg flex items-center gap-1">
-                    <Clock size={14} color="#6B7280" />
-                    <Text className="block text-xs text-gray-700">{`${String(startedAt.getHours()).padStart(2, '0')}:${String(startedAt.getMinutes()).padStart(2, '0')}`}</Text>
+                  <View className="px-3 py-2 bg-stone-50 rounded-lg flex items-center gap-1">
+                    <Clock size={14} color="#78716C" />
+                    <Text className="block text-xs text-stone-700">{`${String(startedAt.getHours()).padStart(2, '0')}:${String(startedAt.getMinutes()).padStart(2, '0')}`}</Text>
                   </View>
                 </Picker>
               </View>
             </View>
 
             {/* 时长选择 */}
-            <View className="pt-4 pb-4 border-b border-gray-100">
+            <View className="pt-4 pb-4 border-b border-orange-100">
               <View className="flex items-center gap-3 mb-3">
-                <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Calendar size={18} color="#6B7280" />
+                <View className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center">
+                  <Calendar size={18} color="#78716C" />
                 </View>
-                <Text className="block text-sm font-medium text-gray-700">持续时长</Text>
+                <Text className="block text-sm font-medium text-stone-700">持续时长</Text>
               </View>
               <View className="flex flex-row flex-wrap gap-2" style={{ marginLeft: '52px' }}>
                 {DURATION_OPTIONS.map(opt => (
@@ -565,32 +565,32 @@ export default function InteractionCreatePage() {
                     key={opt.value}
                     className={`px-3 py-2 rounded-lg ${
                       !showCustomDuration && durationMinutes === opt.value
-                        ? 'bg-black'
-                        : 'bg-gray-100'
+                        ? 'bg-green-500'
+                        : 'bg-stone-100'
                     }`}
                     onClick={() => {
                       setDurationMinutes(opt.value)
                       setShowCustomDuration(false)
                     }}
                   >
-                    <Text className={`block text-xs ${!showCustomDuration && durationMinutes === opt.value ? 'text-white' : 'text-gray-600'}`}>
+                    <Text className={`block text-xs ${!showCustomDuration && durationMinutes === opt.value ? 'text-white' : 'text-stone-600'}`}>
                       {opt.label}
                     </Text>
                   </View>
                 ))}
                 {/* 自定义时长 */}
                 <View
-                  className={`px-3 py-2 rounded-lg ${showCustomDuration ? 'bg-black' : 'bg-gray-100'}`}
+                  className={`px-3 py-2 rounded-lg ${showCustomDuration ? 'bg-green-500' : 'bg-stone-100'}`}
                   onClick={() => setShowCustomDuration(!showCustomDuration)}
                 >
-                  <Text className={`block text-xs ${showCustomDuration ? 'text-white' : 'text-gray-600'}`}>
+                  <Text className={`block text-xs ${showCustomDuration ? 'text-white' : 'text-stone-600'}`}>
                     自定义
                   </Text>
                 </View>
               </View>
               {showCustomDuration && (
                 <View className="mt-2" style={{ marginLeft: '52px' }}>
-                  <View className="bg-gray-50 rounded-lg px-3 py-2" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                  <View className="bg-stone-50 rounded-lg px-3 py-2" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                     <Input
                       style={{ width: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
                       type="number"
@@ -598,19 +598,19 @@ export default function InteractionCreatePage() {
                       value={customDuration}
                       onInput={e => setCustomDuration(e.detail.value)}
                     />
-                    <Text className="block text-xs text-gray-500 ml-1">分钟</Text>
+                    <Text className="block text-xs text-stone-500 ml-1">分钟</Text>
                   </View>
                 </View>
               )}
             </View>
 
             {/* 发起方选择 */}
-            <View className="pt-4 pb-4 border-b border-gray-100">
+            <View className="pt-4 pb-4 border-b border-orange-100">
               <View className="flex items-center gap-3 mb-3">
-                <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                  <User size={18} color="#6B7280" />
+                <View className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center">
+                  <User size={18} color="#78716C" />
                 </View>
-                <Text className="block text-sm font-medium text-gray-700">谁发起的</Text>
+                <Text className="block text-sm font-medium text-stone-700">谁发起的</Text>
               </View>
               <View className="flex flex-row gap-2" style={{ marginLeft: '52px' }}>
                 {INITIATOR_OPTIONS.map(opt => {
@@ -620,12 +620,12 @@ export default function InteractionCreatePage() {
                     <View
                       key={opt.value}
                       className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg ${
-                        isActive ? 'bg-black' : 'bg-gray-100'
+                        isActive ? 'bg-green-500' : 'bg-stone-100'
                       }`}
                       onClick={() => setInitiator(opt.value)}
                     >
                       <IconComponent size={14} color={isActive ? '#fff' : '#6B7280'} />
-                      <Text className={`block text-xs ${isActive ? 'text-white' : 'text-gray-600'}`}>
+                      <Text className={`block text-xs ${isActive ? 'text-white' : 'text-stone-600'}`}>
                         {opt.label}
                       </Text>
                     </View>
@@ -636,15 +636,15 @@ export default function InteractionCreatePage() {
 
             {/* 地点（约会/社交时显示） */}
             {(interactionType === 'date' || interactionType === 'social') && (
-              <View className="pt-4 pb-4 border-b border-gray-100">
+              <View className="pt-4 pb-4 border-b border-orange-100">
                 <View className="flex items-center gap-3 mb-3">
-                  <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <MapPin size={18} color="#6B7280" />
+                  <View className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center">
+                    <MapPin size={18} color="#78716C" />
                   </View>
-                  <Text className="block text-sm font-medium text-gray-700">地点</Text>
+                  <Text className="block text-sm font-medium text-stone-700">地点</Text>
                 </View>
                 <View style={{ marginLeft: '52px' }}>
-                  <View className="bg-gray-50 rounded-lg px-3 py-2">
+                  <View className="bg-stone-50 rounded-lg px-3 py-2">
                     <Input
                       style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
                       placeholder="在哪里呢..."
@@ -658,7 +658,7 @@ export default function InteractionCreatePage() {
 
             {/* 活动标签 */}
             {ACTIVITY_PRESETS[interactionType]?.length > 0 && (
-              <View className="pt-4 pb-4 border-b border-gray-100">
+              <View className="pt-4 pb-4 border-b border-orange-100">
                 <View className="flex items-center gap-3 mb-3">
                   <View
                     className="w-10 h-10 rounded-full flex items-center justify-center"
@@ -666,7 +666,7 @@ export default function InteractionCreatePage() {
                   >
                     <Plus size={18} color={currentType.color} />
                   </View>
-                  <Text className="block text-sm font-medium text-gray-700">活动内容</Text>
+                  <Text className="block text-sm font-medium text-stone-700">活动内容</Text>
                 </View>
                 <View className="flex flex-row flex-wrap gap-2" style={{ marginLeft: '52px' }}>
                   {ACTIVITY_PRESETS[interactionType].map(tag => {
@@ -675,11 +675,11 @@ export default function InteractionCreatePage() {
                       <View
                         key={tag}
                         className={`px-3 py-2 rounded-full border ${
-                          isActive ? 'bg-gray-900 border-gray-900' : 'bg-gray-50 border-gray-200'
+                          isActive ? 'bg-stone-800 border-stone-800' : 'bg-stone-50 border-stone-200'
                         }`}
                         onClick={() => toggleActivity(tag)}
                       >
-                        <Text className={`block text-xs ${isActive ? 'text-white' : 'text-gray-600'}`}>
+                        <Text className={`block text-xs ${isActive ? 'text-white' : 'text-stone-600'}`}>
                           {isActive ? '✓ ' : ''}{tag}
                         </Text>
                       </View>
@@ -687,16 +687,16 @@ export default function InteractionCreatePage() {
                   })}
                   {/* 自定义标签按钮 */}
                   <View
-                    className="px-3 py-2 rounded-full border border-dashed border-gray-300 bg-gray-50"
+                    className="px-3 py-2 rounded-full border border-dashed border-stone-300 bg-stone-50"
                     onClick={() => setShowCustomActivityInput(!showCustomActivityInput)}
                   >
-                    <Text className="block text-xs text-gray-400">+ 自定义</Text>
+                    <Text className="block text-xs text-stone-400">+ 自定义</Text>
                   </View>
                 </View>
                 {/* 自定义标签输入框 */}
                 {showCustomActivityInput && (
                   <View style={{ marginLeft: '52px', marginTop: '8px' }} className="flex flex-row gap-2">
-                    <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                    <View className="flex-1 bg-stone-50 rounded-lg px-3 py-2">
                       <Input
                         style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
                         placeholder="输入后按回车或点添加"
@@ -711,7 +711,7 @@ export default function InteractionCreatePage() {
                       />
                     </View>
                     <View
-                      className="px-4 py-2 bg-gray-900 rounded-lg"
+                      className="px-4 py-2 bg-stone-800 rounded-lg"
                       onClick={() => {
                         if (customActivity.trim() && !activities.includes(customActivity.trim())) {
                           setActivities([...activities, customActivity.trim()])
@@ -735,12 +735,12 @@ export default function InteractionCreatePage() {
                 >
                   <TypeIcon size={18} color={currentType.color} />
                 </View>
-                <Text className="block text-sm font-medium text-gray-700">
+                <Text className="block text-sm font-medium text-stone-700">
                   {interactionType === 'date' ? '约会主题' : '互动内容'}
                 </Text>
               </View>
               <View style={{ marginLeft: '52px' }}>
-                <View className="bg-gray-50 rounded-lg px-3 py-2">
+                <View className="bg-stone-50 rounded-lg px-3 py-2">
                   <Input
                     style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
                     placeholder={interactionType === 'date' ? '给这次约会起个名字...' : '简单描述一下...'}
@@ -763,8 +763,8 @@ export default function InteractionCreatePage() {
                 <View className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                   <Paperclip size={18} color="#3B82F6" />
                 </View>
-                <Text className="block text-sm font-medium text-gray-700">聊天记录</Text>
-                <Text className="block text-xs text-gray-400">可选，上传后可供 AI 分析</Text>
+                <Text className="block text-sm font-medium text-stone-700">聊天记录</Text>
+                <Text className="block text-xs text-stone-400">可选，上传后可供 AI 分析</Text>
               </View>
 
               {/* 已上传的聊天记录列表 */}
@@ -783,19 +783,19 @@ export default function InteractionCreatePage() {
                       )}
                       <View className="flex-1" style={{ flex: 1, minWidth: 0 }}>
                         {record.uploading ? (
-                          <Text className="block text-xs text-gray-400">上传中...</Text>
+                          <Text className="block text-xs text-stone-400">上传中...</Text>
                         ) : (
                           <>
-                            <Text className="block text-xs text-gray-700 font-medium">
+                            <Text className="block text-xs text-stone-700 font-medium">
                               {record.contentType === 'image' ? '聊天截图' : '聊天文本'}
-                              <Text className="text-gray-400 font-normal"> · {CHAT_SOURCE_OPTIONS.find(s => s.value === record.source)?.label || record.source}</Text>
+                              <Text className="text-stone-400 font-normal"> · {CHAT_SOURCE_OPTIONS.find(s => s.value === record.source)?.label || record.source}</Text>
                             </Text>
                             {record.summary ? (
-                              <Text className="block text-xs text-gray-400 mt-1" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <Text className="block text-xs text-stone-400 mt-1" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {record.summary}
                               </Text>
                             ) : record.rawContent ? (
-                              <Text className="block text-xs text-gray-400 mt-1" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <Text className="block text-xs text-stone-400 mt-1" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {record.rawContent.slice(0, 50)}...
                               </Text>
                             ) : null}
@@ -804,7 +804,7 @@ export default function InteractionCreatePage() {
                       </View>
                       {!record.uploading && (
                         <View onClick={() => handleDeleteChatRecord(record.id)} className="p-1">
-                          <X size={14} color="#9CA3AF" />
+                          <X size={14} color="#A8A29E" />
                         </View>
                       )}
                     </View>
@@ -814,15 +814,15 @@ export default function InteractionCreatePage() {
 
               {/* 来源选择 */}
               <View className="mb-3" style={{ marginLeft: '52px' }}>
-                <Text className="block text-xs text-gray-500 mb-2">聊天来源</Text>
+                <Text className="block text-xs text-stone-500 mb-2">聊天来源</Text>
                 <View className="flex flex-row flex-wrap gap-2">
                   {CHAT_SOURCE_OPTIONS.map(opt => (
                     <View
                       key={opt.value}
-                      className={`px-3 py-2 rounded-lg ${chatSource === opt.value ? 'bg-blue-500' : 'bg-white border border-gray-200'}`}
+                      className={`px-3 py-2 rounded-lg ${chatSource === opt.value ? 'bg-blue-500' : 'bg-white border border-stone-200'}`}
                       onClick={() => setChatSource(opt.value)}
                     >
-                      <Text className={`block text-xs ${chatSource === opt.value ? 'text-white' : 'text-gray-600'}`}>
+                      <Text className={`block text-xs ${chatSource === opt.value ? 'text-white' : 'text-stone-600'}`}>
                         {opt.label}
                       </Text>
                     </View>
@@ -862,7 +862,7 @@ export default function InteractionCreatePage() {
                       maxlength={5000}
                     />
                     <View className="flex items-center justify-between mt-2">
-                      <Text className="block text-xs text-gray-400">{chatTextInput.length}/5000 字</Text>
+                      <Text className="block text-xs text-stone-400">{chatTextInput.length}/5000 字</Text>
                       <Button
                         className="bg-blue-500 text-white px-4 py-2 rounded-lg"
                         onClick={handleUploadChatText}
@@ -883,13 +883,13 @@ export default function InteractionCreatePage() {
 
       {/* 心情评价 + 能量预览 */}
       <View className="px-4 pb-4">
-        <Card className="border border-gray-100">
+        <Card className="border border-orange-100">
           <CardContent className="p-4">
             <View className="flex items-center gap-3 mb-4">
               <View className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
                 <Sparkles size={18} color="#F59E0B" />
               </View>
-              <Text className="block text-sm font-medium text-gray-700">这次感觉怎么样？</Text>
+              <Text className="block text-sm font-medium text-stone-700">这次感觉怎么样？</Text>
             </View>
 
             <View className="flex flex-row gap-2">
@@ -899,17 +899,17 @@ export default function InteractionCreatePage() {
                   <View
                     key={opt.value}
                     className={`relative flex-1 flex flex-col items-center py-3 rounded-xl border-2 ${
-                      isActive ? opt.color : 'bg-gray-50 border-gray-100'
+                      isActive ? opt.color : 'bg-stone-50 border-orange-100'
                     }`}
                     onClick={() => setMood(opt.value)}
                   >
                     {isActive && (
                       <View style={{ position: 'absolute', top: '4px', right: '4px' }}>
-                        <Check size={12} color="#10B981" />
+                        <Check size={12} color="#4ECB71" />
                       </View>
                     )}
                     <Text className="block text-xl mb-1">{opt.emoji}</Text>
-                    <Text className={`block text-xs ${isActive ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
+                    <Text className={`block text-xs ${isActive ? 'text-stone-700 font-medium' : 'text-stone-400'}`}>
                       {opt.label}
                     </Text>
                   </View>
@@ -920,17 +920,17 @@ export default function InteractionCreatePage() {
             {/* 能量预览条 */}
             {energyPreview && (
               <View className="mt-4 flex items-center gap-2 p-3 rounded-xl" style={{ backgroundColor: '#F0FDF4' }}>
-                <Zap size={16} color="#10B981" />
+                <Zap size={16} color="#4ECB71" />
                 <Text className="block text-xs text-emerald-700 font-medium">
                   预计获得 {energyPreview.totalEnergy} 能量
                 </Text>
                 {energyPreview.bonusEnergy > 0 && (
-                  <Text className="block text-xs text-emerald-500">
+                  <Text className="block text-xs text-green-500">
                     (+{energyPreview.bonusEnergy} 加成)
                   </Text>
                 )}
                 {energyLoading && (
-                  <Text className="block text-xs text-gray-400">计算中...</Text>
+                  <Text className="block text-xs text-stone-400">计算中...</Text>
                 )}
               </View>
             )}
@@ -940,10 +940,10 @@ export default function InteractionCreatePage() {
 
       {/* 详细描述 */}
       <View className="px-4 pb-4">
-        <Card className="border border-gray-100">
+        <Card className="border border-orange-100">
           <CardContent className="p-4">
-            <Text className="block text-sm font-medium text-gray-700 mb-3">详细记录</Text>
-            <View className="bg-gray-50 rounded-xl p-3">
+            <Text className="block text-sm font-medium text-stone-700 mb-3">详细记录</Text>
+            <View className="bg-stone-50 rounded-xl p-3">
               <Textarea
                 style={{ width: '100%', minHeight: '80px', fontSize: '14px', backgroundColor: 'transparent' }}
                 placeholder="记录这次互动的细节、感受、有趣的对话..."
@@ -961,7 +961,7 @@ export default function InteractionCreatePage() {
           <CardContent className="p-4">
             <View className="flex items-center gap-2 mb-3">
               <Text className="block text-base">✨</Text>
-              <Text className="block text-sm font-medium text-gray-700">突破性时刻</Text>
+              <Text className="block text-sm font-medium text-stone-700">突破性时刻</Text>
             </View>
             <View className="rounded-xl p-3" style={{ backgroundColor: 'rgba(255,255,255,0.6)' }}>
               <Textarea
@@ -977,14 +977,14 @@ export default function InteractionCreatePage() {
 
       {/* 遇到的问题 */}
       <View className="px-4 pb-4">
-        <Card className="border border-gray-100">
+        <Card className="border border-orange-100">
           <CardContent className="p-4">
             <View className="flex items-center gap-2 mb-3">
               <Text className="block text-base">⚠️</Text>
-              <Text className="block text-sm font-medium text-gray-700">遇到的问题</Text>
-              <Text className="block text-xs text-gray-400">可选</Text>
+              <Text className="block text-sm font-medium text-stone-700">遇到的问题</Text>
+              <Text className="block text-xs text-stone-400">可选</Text>
             </View>
-            <View className="bg-gray-50 rounded-xl p-3">
+            <View className="bg-stone-50 rounded-xl p-3">
               <Textarea
                 style={{ width: '100%', minHeight: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
                 placeholder="有没有什么尴尬、误会或问题？比如冷场了、说错话了..."
@@ -1006,7 +1006,7 @@ export default function InteractionCreatePage() {
         }}
       >
         <Button
-          className="w-full bg-black text-white py-3 rounded-xl"
+          className="w-full bg-green-500 text-white py-3 rounded-xl"
           onClick={handleSubmit}
           disabled={submitting}
         >

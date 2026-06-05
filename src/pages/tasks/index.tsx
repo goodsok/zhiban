@@ -64,13 +64,13 @@ const categoryColors = {
 }
 
 const difficultyColors = {
-  '简单': 'bg-gray-50 text-gray-500',
+  '简单': 'bg-stone-50 text-stone-500',
   '中等': 'bg-amber-50 text-amber-600',
   '困难': 'bg-red-50 text-red-600',
 }
 
 const tagColors: Record<string, string> = {
-  '信息补全': 'bg-indigo-50 text-indigo-600',
+  '信息补全': 'bg-green-50 text-green-600',
   '关系推进': 'bg-violet-50 text-violet-600',
   '周期适配': 'bg-teal-50 text-teal-600',
   '互动破冰': 'bg-cyan-50 text-cyan-600',
@@ -78,7 +78,7 @@ const tagColors: Record<string, string> = {
   '深度了解': 'bg-purple-50 text-purple-600',
   '趣味互动': 'bg-orange-50 text-orange-600',
   '浪漫约会': 'bg-pink-50 text-pink-600',
-  '贴心关怀': 'bg-emerald-50 text-emerald-600',
+  '贴心关怀': 'bg-green-50 text-green-600',
   '话题拓展': 'bg-sky-50 text-sky-600',
   '表达心意': 'bg-red-50 text-red-500',
   '创造回忆': 'bg-amber-50 text-amber-600',
@@ -237,22 +237,22 @@ const TasksPage: FC = () => {
   const PhaseIcon = getPhaseIcon()
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-24">
+    <View className="min-h-screen pb-24" style={{ backgroundColor: '#FFF9F0' }}>
       {/* 顶部 */}
       <CustomHeader title="任务" />
 
       {/* 进度 */}
       <View className="px-4 py-4">
-        <View className="bg-white rounded-xl border border-gray-100 p-4">
+        <View className="bg-white rounded-xl border border-orange-100 p-4">
           <View className="flex items-center justify-between mb-2">
-            <Text className="block text-sm text-gray-500">完成进度</Text>
-            <Text className="block text-sm font-semibold text-gray-900">
+            <Text className="block text-sm text-stone-500">完成进度</Text>
+            <Text className="block text-sm font-semibold text-stone-900">
               {progress.completed}/{progress.total}
             </Text>
           </View>
           <Progress 
             value={progress.total > 0 ? (progress.completed / progress.total) * 100 : 0} 
-            className="h-1 bg-gray-100" 
+            className="h-1 bg-stone-100" 
           />
         </View>
       </View>
@@ -261,16 +261,16 @@ const TasksPage: FC = () => {
       <View className="px-4 pb-4">
         <Button 
           variant="outline" 
-          className="w-full border-gray-200"
+          className="w-full border-stone-200"
           onClick={generateTasks}
           disabled={generating}
         >
           {generating ? (
-            <Loader size={16} color="#6B7280" className="animate-spin" />
+            <Loader size={16} color="#78716C" className="animate-spin" />
           ) : (
-            <RefreshCw size={16} color="#6B7280" />
+            <RefreshCw size={16} color="#78716C" />
           )}
-          <Text className="ml-2 text-gray-600">
+          <Text className="ml-2 text-stone-600">
             {generating ? 'AI 生成中...' : '生成推荐任务'}
           </Text>
         </Button>
@@ -280,24 +280,24 @@ const TasksPage: FC = () => {
       <View className="px-4">
         {loading ? (
           <View className="text-center py-12">
-            <Loader size={24} color="#6B7280" className="animate-spin" />
+            <Loader size={24} color="#78716C" className="animate-spin" />
           </View>
         ) : tasks.length === 0 ? (
           <View className="text-center py-12">
-            <Text className="block text-gray-400 mb-2">暂无任务</Text>
-            <Text className="block text-xs text-gray-300">点击上方按钮生成推荐任务</Text>
+            <Text className="block text-stone-400 mb-2">暂无任务</Text>
+            <Text className="block text-xs text-stone-300">点击上方按钮生成推荐任务</Text>
           </View>
         ) : (
           <>
             {/* 周期阶段提示 */}
             {cycleInfo && PhaseIcon && (
-              <View className="mb-4 bg-gray-50 rounded-xl p-3 flex items-center gap-3">
+              <View className="mb-4 bg-stone-50 rounded-xl p-3 flex items-center gap-3">
                 <PhaseIcon size={20} color={cycleInfo.phase === 'luteal_late' || cycleInfo.phase === 'luteal_mid' ? '#F59E0B' : '#10B981'} />
                 <View className="flex-1">
-                  <Text className="block text-sm font-medium text-gray-900">
+                  <Text className="block text-sm font-medium text-stone-900">
                     当前：{cycleInfo.phaseName} · Day {cycleInfo.day}
                   </Text>
-                  <Text className="block text-xs text-gray-500">{cycleInfo.description}</Text>
+                  <Text className="block text-xs text-stone-500">{cycleInfo.description}</Text>
                 </View>
               </View>
             )}
@@ -305,8 +305,8 @@ const TasksPage: FC = () => {
             {/* 待完成 */}
             {pendingTasks.length > 0 && (
               <View className="mb-4">
-                <Text className="block text-xs text-gray-400 mb-2">待完成</Text>
-                <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-50">
+                <Text className="block text-xs text-stone-400 mb-2">待完成</Text>
+                <View className="bg-white rounded-xl border border-orange-100 divide-y divide-gray-50">
                   {pendingTasks.map((task) => {
                     const phaseCheck = isTaskSuitableForPhase(task, cycleInfo?.phase || null)
                     const isExpanded = expandedTaskId === task.id
@@ -316,9 +316,9 @@ const TasksPage: FC = () => {
                         <View className="flex items-center">
                           <View className="flex-1">
                             <View className="flex items-center gap-2 mb-1">
-                              <Text className="block text-sm font-medium text-gray-900">{task.title}</Text>
+                              <Text className="block text-sm font-medium text-stone-900">{task.title}</Text>
                               {task.source === 'ai' && (
-                                <Sparkles size={12} color="#6366F1" />
+                                <Sparkles size={12} color="#4ECB71" />
                               )}
                             </View>
                             {/* 标签行 */}
@@ -329,16 +329,16 @@ const TasksPage: FC = () => {
                               <Badge className={`text-xs ${difficultyColors[task.difficulty]}`}>
                                 {task.difficulty}
                               </Badge>
-                              <Text className="block text-xs text-gray-400">{task.duration}</Text>
+                              <Text className="block text-xs text-stone-400">{task.duration}</Text>
                               {/* 周期阶段标记 */}
                               {phaseCheck.reason && (
-                                <Badge className={`text-xs ${phaseCheck.suitable ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                                <Badge className={`text-xs ${phaseCheck.suitable ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
                                   {phaseCheck.reason}
                                 </Badge>
                               )}
                               {/* AI 生成的多维标签 */}
                               {task.tags?.map(tag => (
-                                <Badge key={tag} className={`text-xs ${tagColors[tag] || 'bg-gray-50 text-gray-500'}`}>
+                                <Badge key={tag} className={`text-xs ${tagColors[tag] || 'bg-stone-50 text-stone-500'}`}>
                                   {tag}
                                 </Badge>
                               ))}
@@ -350,21 +350,21 @@ const TasksPage: FC = () => {
                             onClick={() => toggleExpand(task.id)}
                           >
                             {isExpanded ? (
-                              <ChevronUp size={16} color="#9CA3AF" />
+                              <ChevronUp size={16} color="#A8A29E" />
                             ) : (
-                              <ChevronDown size={16} color="#9CA3AF" />
+                              <ChevronDown size={16} color="#A8A29E" />
                             )}
                           </View>
                         </View>
 
                         {/* 展开详情 */}
                         {isExpanded && (
-                          <View className="mt-3 pt-3 border-t border-gray-50">
+                          <View className="mt-3 pt-3 border-t border-stone-100">
                             {/* 任务描述 */}
                             {task.description && (
                               <View className="mb-3">
-                                <Text className="block text-xs text-gray-500 mb-1">任务说明</Text>
-                                <Text className="block text-sm text-gray-700 leading-relaxed">{task.description}</Text>
+                                <Text className="block text-xs text-stone-500 mb-1">任务说明</Text>
+                                <Text className="block text-sm text-stone-700 leading-relaxed">{task.description}</Text>
                               </View>
                             )}
 
@@ -403,7 +403,7 @@ const TasksPage: FC = () => {
                         {!isExpanded && (
                           <View className="mt-2 flex items-center justify-end">
                             <View 
-                              className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-900"
+                              className="flex items-center gap-2 px-3 py-1 rounded-full bg-stone-800"
                               onClick={() => completeTask(task.id)}
                             >
                               <Target size={12} color="#fff" />
@@ -414,7 +414,7 @@ const TasksPage: FC = () => {
                         {isExpanded && (
                           <View className="mt-3 flex items-center justify-end gap-2">
                             <View 
-                              className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-900"
+                              className="flex items-center gap-2 px-4 py-2 rounded-full bg-stone-800"
                               onClick={() => completeTask(task.id)}
                             >
                               <Check size={14} color="#fff" />
@@ -432,31 +432,31 @@ const TasksPage: FC = () => {
             {/* 已完成 */}
             {completedTasks.length > 0 && (
               <View>
-                <Text className="block text-xs text-gray-400 mb-2">已完成</Text>
-                <View className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
+                <Text className="block text-xs text-stone-400 mb-2">已完成</Text>
+                <View className="bg-white rounded-xl border border-orange-100 divide-y divide-gray-100">
                   {completedTasks.slice(0, 5).map((task) => (
                     <View key={task.id} className="px-4 py-3">
                       <View className="flex items-center">
                         <View className="flex-1">
-                          <Text className="block text-sm text-gray-400 line-through">{task.title}</Text>
+                          <Text className="block text-sm text-stone-400 line-through">{task.title}</Text>
                           {task.tags && task.tags.length > 0 && (
                             <View className="flex flex-wrap gap-1 mt-1">
                               {task.tags.map(tag => (
-                                <Badge key={tag} className={`text-xs opacity-50 ${tagColors[tag] || 'bg-gray-50 text-gray-400'}`}>
+                                <Badge key={tag} className={`text-xs opacity-50 ${tagColors[tag] || 'bg-stone-50 text-stone-400'}`}>
                                   {tag}
                                 </Badge>
                               ))}
                             </View>
                           )}
                         </View>
-                        <View className="w-6 h-6 rounded-full bg-gray-900 flex items-center justify-center">
+                        <View className="w-6 h-6 rounded-full bg-stone-800 flex items-center justify-center">
                           <Check size={14} color="#fff" />
                         </View>
                       </View>
                       {/* 显示学习记录 */}
                       {task.lessonLearned && (
                         <View className="mt-2 pl-2 border-l-2 border-emerald-400">
-                          <Text className="block text-xs text-gray-500">{task.lessonLearned}</Text>
+                          <Text className="block text-xs text-stone-500">{task.lessonLearned}</Text>
                         </View>
                       )}
                     </View>

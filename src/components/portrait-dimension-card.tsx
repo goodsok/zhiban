@@ -19,24 +19,24 @@ const DimensionCard: FC<DimensionCardProps> = ({
   dimensions,
 }) => {
   return (
-    <View className="bg-white rounded-xl border border-gray-100 p-4 mb-3">
+    <View className="bg-white rounded-xl border border-orange-100 p-4 mb-3">
       <View className="flex items-center gap-2 mb-3">
         <Text className="block text-lg">{icon}</Text>
-        <Text className="block text-sm font-semibold text-gray-900">{title}</Text>
+        <Text className="block text-sm font-semibold text-stone-900">{title}</Text>
       </View>
       
       {dimensions.map((dim, i) => (
         <View key={i} className="mb-3">
           <View className="flex items-center justify-between mb-1">
-            <Text className="block text-xs text-gray-500">{dim.name}</Text>
-            <Text className="block text-sm font-semibold text-gray-700">{dim.value}</Text>
+            <Text className="block text-xs text-stone-500">{dim.name}</Text>
+            <Text className="block text-sm font-semibold text-stone-700">{dim.value}</Text>
           </View>
           <Progress 
             value={dim.value} 
-            className="h-2 bg-gray-100"
+            className="h-2 bg-stone-100"
           />
           {dim.description && (
-            <Text className="block text-xs text-gray-400 mt-1">{dim.description}</Text>
+            <Text className="block text-xs text-stone-400 mt-1">{dim.description}</Text>
           )}
         </View>
       ))}

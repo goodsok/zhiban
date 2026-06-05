@@ -236,15 +236,15 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
     return (
       <View className="dimension-viewer">
         {/* 维度统计骨架 */}
-        <View className="mb-4 p-3 bg-white rounded-xl border border-gray-100">
+        <View className="mb-4 p-3 bg-white rounded-xl border border-orange-100">
           <View className="flex items-center justify-between">
-            <View className="bg-gray-200 animate-pulse rounded h-3 w-20" />
+            <View className="bg-stone-200 animate-pulse rounded h-3 w-20" />
             <View className="flex items-center gap-1">
-              <View className="bg-gray-200 animate-pulse rounded h-4 w-8" />
-              <View className="bg-gray-200 animate-pulse rounded h-3 w-12" />
+              <View className="bg-stone-200 animate-pulse rounded h-4 w-8" />
+              <View className="bg-stone-200 animate-pulse rounded h-3 w-12" />
             </View>
           </View>
-          <View className="bg-gray-200 animate-pulse rounded-full h-1 w-full mt-2" />
+          <View className="bg-stone-200 animate-pulse rounded-full h-1 w-full mt-2" />
         </View>
         
         {/* 层级骨架 */}
@@ -258,7 +258,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
     return (
       <View className="flex flex-col items-center justify-center py-8">
         <Database size={48} color="#D1D5DB" className="mb-2" />
-        <Text className="text-gray-500 text-sm">暂无维度数据</Text>
+        <Text className="text-stone-500 text-sm">暂无维度数据</Text>
       </View>
     )
   }
@@ -268,17 +268,17 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
   return (
     <View className="dimension-viewer">
       {/* 维度统计概览 */}
-      <View className="mb-4 p-3 bg-white rounded-xl border border-gray-100">
+      <View className="mb-4 p-3 bg-white rounded-xl border border-orange-100">
         <View className="flex items-center justify-between">
-          <Text className="block text-xs text-gray-500">已填写维度</Text>
+          <Text className="block text-xs text-stone-500">已填写维度</Text>
           <View className="flex items-center gap-1">
-            <Text className="block text-sm font-semibold text-gray-900">{filledCount}</Text>
-            <Text className="block text-xs text-gray-400">/ {applicableCount}</Text>
+            <Text className="block text-sm font-semibold text-stone-900">{filledCount}</Text>
+            <Text className="block text-xs text-stone-400">/ {applicableCount}</Text>
           </View>
         </View>
         <Progress 
           value={applicableCount > 0 ? Math.round((filledCount / applicableCount) * 100) : 0} 
-          className="h-1 mt-2 bg-gray-100" 
+          className="h-1 mt-2 bg-stone-100" 
         />
       </View>
 
@@ -295,12 +295,12 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
           <View key={layer} className="mb-3">
             {/* 层级标题栏 - 可点击折叠 */}
             <View 
-              className="bg-white rounded-xl border border-gray-100 p-3"
+              className="bg-white rounded-xl border border-orange-100 p-3"
               onClick={() => toggleLayer(layer)}
             >
               <View className="flex items-center justify-between">
                 <View className="flex items-center gap-2 flex-1">
-                  <Text className="block text-sm font-semibold text-gray-900">
+                  <Text className="block text-sm font-semibold text-stone-900">
                     {layerNames[layer] || `Layer ${layer}`}
                   </Text>
                   <Badge variant="outline" className="text-xs">
@@ -308,17 +308,17 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                   </Badge>
                 </View>
                 <View className="flex items-center gap-2">
-                  <Progress value={layerComplete} className="w-16 h-1 bg-gray-100" />
+                  <Progress value={layerComplete} className="w-16 h-1 bg-stone-100" />
                   {isLayerExpanded ? (
-                    <ChevronUp size={16} color="#9CA3AF" />
+                    <ChevronUp size={16} color="#A8A29E" />
                   ) : (
-                    <ChevronDown size={16} color="#9CA3AF" />
+                    <ChevronDown size={16} color="#A8A29E" />
                   )}
                 </View>
               </View>
               
               {/* 层级描述 */}
-              <Text className="block text-xs text-gray-400 mt-1">
+              <Text className="block text-xs text-stone-400 mt-1">
                 {layerDescriptions[layer]}
               </Text>
             </View>
@@ -340,27 +340,27 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                       <View key={groupKey} className="mb-2">
                         {/* 分类标题 - 可点击折叠 */}
                         <View 
-                          className="bg-gray-50 rounded-lg p-3 flex items-center justify-between"
+                          className="bg-stone-50 rounded-lg p-3 flex items-center justify-between"
                           onClick={() => toggleCategory(groupKey)}
                         >
                           <View className="flex items-center gap-2">
-                            <Text className="block text-xs font-medium text-gray-700">
+                            <Text className="block text-xs font-medium text-stone-700">
                               {categoryNames[group.category] || group.category}
                             </Text>
-                            <Text className="block text-xs text-gray-400">
+                            <Text className="block text-xs text-stone-400">
                               {filledInCategory}/{group.dimensions.length}
                             </Text>
                           </View>
                           {isCategoryExpanded ? (
-                            <ChevronUp size={14} color="#9CA3AF" />
+                            <ChevronUp size={14} color="#A8A29E" />
                           ) : (
-                            <ChevronDown size={14} color="#9CA3AF" />
+                            <ChevronDown size={14} color="#A8A29E" />
                           )}
                         </View>
                         
                         {/* 展开后的维度列表 */}
                         {isCategoryExpanded && (
-                          <View className="bg-white rounded-lg border border-gray-100 mt-1 overflow-hidden">
+                          <View className="bg-white rounded-lg border border-orange-100 mt-1 overflow-hidden">
                             {group.dimensions.map((item, idx) => {
                               const hasValue = item.value !== null && item.value !== undefined && item.value.value !== null
                               const displayValue = hasValue 
@@ -372,7 +372,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                                 <View
                                   key={item.definition.dimension_key}
                                   className={`flex items-center justify-between py-3 px-3 ${
-                                    idx < group.dimensions.length - 1 ? 'border-b border-gray-50' : ''
+                                    idx < group.dimensions.length - 1 ? 'border-b border-stone-100' : ''
                                   }`}
                                   onClick={() => handleDimensionClick(item.definition.dimension_key)}
                                 >
@@ -385,21 +385,21 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                                       <View className="w-1 h-1 rounded-full bg-amber-500 mr-2" />
                                     )}
                                     
-                                    <Text className="text-sm text-gray-700 whitespace-nowrap">
+                                    <Text className="text-sm text-stone-700 whitespace-nowrap">
                                       {item.definition.display_name}
                                     </Text>
                                     
                                     {/* 维度说明提示 */}
                                     {hasHelp && (
                                       <View className="ml-1">
-                                        <Info size={12} color="#9CA3AF" />
+                                        <Info size={12} color="#A8A29E" />
                                       </View>
                                     )}
                                   </View>
                                   
                                   <View className="flex items-center flex-1 justify-end min-w-0">
                                     <Text 
-                                      className={`text-sm ${hasValue ? 'text-gray-800' : 'text-gray-400'} truncate`}
+                                      className={`text-sm ${hasValue ? 'text-stone-800' : 'text-stone-400'} truncate`}
                                     >
                                       {displayValue}
                                     </Text>

@@ -168,7 +168,7 @@ const CreatePage: FC = () => {
   const isValid = formData.name
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-24">
+    <View className="min-h-screen pb-24" style={{ backgroundColor: '#FFF9F0' }}>
       {/* 顶部 */}
       <CustomHeader title="新建档案" />
 
@@ -176,11 +176,11 @@ const CreatePage: FC = () => {
         {/* AI 图片分析 */}
         <View className="mb-4">
           <View className="flex items-center gap-2 mb-2">
-            <Sparkles size={14} color="#6B7280" />
-            <Text className="block text-xs text-gray-400">AI 智能分析</Text>
-            <Text className="block text-xs text-gray-300">最多3张图片</Text>
+            <Sparkles size={14} color="#78716C" />
+            <Text className="block text-xs text-stone-400">AI 智能分析</Text>
+            <Text className="block text-xs text-stone-300">最多3张图片</Text>
           </View>
-          <View className="bg-white rounded-xl border border-gray-100 p-4">
+          <View className="bg-white rounded-xl border border-orange-100 p-4">
             {/* 已选图片列表 */}
             {selectedImages.length > 0 && (
               <View className="flex flex-wrap gap-2 mb-3">
@@ -193,13 +193,13 @@ const CreatePage: FC = () => {
                     />
                     {/* 分析中遮罩 */}
                     {img.analyzing && (
-                      <View className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                      <View className="absolute inset-0 bg-green-500 bg-opacity-50 rounded-lg flex items-center justify-center">
                         <Loader size={16} color="#fff" className="animate-spin" />
                       </View>
                     )}
                     {/* 删除按钮 */}
                     <View 
-                      className="absolute -top-1 -right-1 w-5 h-5 bg-black rounded-full flex items-center justify-center"
+                      className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
                       onClick={() => handleRemoveImage(index)}
                     >
                       <X size={12} color="#fff" />
@@ -212,12 +212,12 @@ const CreatePage: FC = () => {
             {/* 上传按钮 */}
             {selectedImages.length < 3 && (
               <View 
-                className="flex items-center justify-center py-4 border-2 border-dashed border-gray-200 rounded-lg"
+                className="flex items-center justify-center py-4 border-2 border-dashed border-stone-200 rounded-lg"
                 onClick={handleChooseImage}
               >
                 <View className="text-center">
-                  <Camera size={24} color="#9CA3AF" />
-                  <Text className="block text-xs text-gray-400 mt-1">
+                  <Camera size={24} color="#A8A29E" />
+                  <Text className="block text-xs text-stone-400 mt-1">
                     {selectedImages.length > 0 ? '继续添加' : '点击上传图片'}
                   </Text>
                 </View>
@@ -227,8 +227,8 @@ const CreatePage: FC = () => {
             {/* 分析提示 */}
             {selectedImages.some(img => img.analyzing) && (
               <View className="mt-2 flex items-center justify-center">
-                <Loader size={14} color="#6B7280" className="animate-spin" />
-                <Text className="block text-xs text-gray-400 ml-2">正在分析图片...</Text>
+                <Loader size={14} color="#78716C" className="animate-spin" />
+                <Text className="block text-xs text-stone-400 ml-2">正在分析图片...</Text>
               </View>
             )}
             
@@ -236,7 +236,7 @@ const CreatePage: FC = () => {
             {selectedImages.length > 0 && !selectedImages.some(img => img.analyzing) && (
               <View className="mt-2 flex items-center justify-center">
                 <Check size={14} color="#22C55E" />
-                <Text className="block text-xs text-gray-500 ml-1">
+                <Text className="block text-xs text-stone-500 ml-1">
                   已分析 {selectedImages.filter(img => img.result).length} 张图片，信息已自动填充
                 </Text>
               </View>
@@ -246,8 +246,8 @@ const CreatePage: FC = () => {
 
         {/* 姓名 */}
         <View className="mb-4">
-          <Text className="block text-xs text-gray-400 mb-2">姓名 *</Text>
-          <View className="bg-white rounded-xl border border-gray-100 p-4">
+          <Text className="block text-xs text-stone-400 mb-2">姓名 *</Text>
+          <View className="bg-white rounded-xl border border-orange-100 p-4">
             <Input
               className="w-full"
               placeholder="输入姓名"
@@ -259,11 +259,11 @@ const CreatePage: FC = () => {
 
         {/* 性别 */}
         <View className="mb-4">
-          <Text className="block text-xs text-gray-400 mb-2">性别</Text>
+          <Text className="block text-xs text-stone-400 mb-2">性别</Text>
           <View className="flex gap-2">
             <View 
               className={`flex-1 text-center py-2 rounded-lg ${
-                formData.gender === 'female' ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600'
+                formData.gender === 'female' ? 'bg-green-500 text-white' : 'bg-white border border-stone-200 text-stone-600'
               }`}
               onClick={() => setFormData({ ...formData, gender: 'female' })}
             >
@@ -271,7 +271,7 @@ const CreatePage: FC = () => {
             </View>
             <View 
               className={`flex-1 text-center py-2 rounded-lg ${
-                formData.gender === 'male' ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600'
+                formData.gender === 'male' ? 'bg-green-500 text-white' : 'bg-white border border-stone-200 text-stone-600'
               }`}
               onClick={() => setFormData({ ...formData, gender: 'male' })}
             >
@@ -282,15 +282,15 @@ const CreatePage: FC = () => {
 
         {/* 见面场景 */}
         <View className="mb-4">
-          <Text className="block text-xs text-gray-400 mb-2">见面场景</Text>
+          <Text className="block text-xs text-stone-400 mb-2">见面场景</Text>
           <View className="flex flex-wrap gap-2">
             {meetingScenes.map((scene) => (
               <Badge
                 key={scene.id}
                 className={`${
                   formData.meetingScene === scene.id 
-                    ? 'bg-black text-white' 
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-stone-100 text-stone-600'
                 }`}
                 onClick={() => setFormData({ ...formData, meetingScene: scene.id })}
               >
@@ -302,8 +302,8 @@ const CreatePage: FC = () => {
 
         {/* 备注 */}
         <View className="mb-4">
-          <Text className="block text-xs text-gray-400 mb-2">备注</Text>
-          <View className="bg-white rounded-xl border border-gray-100 p-4">
+          <Text className="block text-xs text-stone-400 mb-2">备注</Text>
+          <View className="bg-white rounded-xl border border-orange-100 p-4">
             <Input
               className="w-full"
               placeholder="添加备注（选填）"
@@ -315,9 +315,9 @@ const CreatePage: FC = () => {
       </View>
 
       {/* 底部 */}
-      <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
+      <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-orange-100">
         <Button 
-          className="w-full bg-black" 
+          className="w-full bg-green-500" 
           onClick={handleSave}
           disabled={!isValid || loading}
         >

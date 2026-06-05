@@ -138,8 +138,8 @@ const MiniAppRadarChart: FC<RadarChartProps & { canvasId: string }> = ({
           className="absolute flex flex-col items-center"
           style={{ left: label.x - 30, top: label.y - 10, width: 60 }}
         >
-          <Text className="block text-xs text-gray-500 text-center">{label.name}</Text>
-          <Text className="block text-sm font-semibold text-gray-800">{label.value}</Text>
+          <Text className="block text-xs text-stone-500 text-center">{label.name}</Text>
+          <Text className="block text-sm font-semibold text-stone-800">{label.value}</Text>
         </View>
       ))}
     </View>
@@ -239,8 +239,8 @@ const H5RadarChart: FC<RadarChartProps> = ({
           className="absolute flex flex-col items-center"
           style={{ left: label.x - 30, top: label.y - 10, width: 60 }}
         >
-          <Text className="block text-xs text-gray-500 text-center">{label.name}</Text>
-          <Text className="block text-sm font-semibold text-gray-800">{label.value}</Text>
+          <Text className="block text-xs text-stone-500 text-center">{label.name}</Text>
+          <Text className="block text-sm font-semibold text-stone-800">{label.value}</Text>
         </View>
       ))}
     </View>

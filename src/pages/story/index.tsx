@@ -267,31 +267,31 @@ const StoryPage: FC = () => {
   // 聊天模式渲染
   if (isViewMode || currentStep === 5) {
     return (
-      <View className="min-h-screen bg-gray-50 flex flex-col">
+      <View className="min-h-screen flex flex-col" style={{ backgroundColor: '#FFF9F0' }}>
         <CustomHeader title="故事生成器" />
 
         {/* 故事信息卡片 */}
         {story && (
-          <View className="bg-white px-4 py-3 border-b border-gray-100">
+          <View className="bg-white px-4 py-3 border-b border-orange-100">
             <View className="flex items-center justify-between">
               <View className="flex items-center gap-2">
                 <View className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
                   <BookOpen size={16} color="#F59E0B" />
                 </View>
                 <View>
-                  <Text className="block text-sm font-medium text-gray-900">
+                  <Text className="block text-sm font-medium text-stone-900">
                     {getStoryTypeName(story.story_type)}
                   </Text>
                   <View className="flex items-center gap-2 mt-1">
                     {story.relationship_stage && (
-                      <Text className="block text-xs text-gray-500">
+                      <Text className="block text-xs text-stone-500">
                         {getStageName(story.relationship_stage)}
                       </Text>
                     )}
                     {story.matches?.name && (
                       <>
-                        <Text className="block text-xs text-gray-400">|</Text>
-                        <Text className="block text-xs text-gray-500">{story.matches.name}</Text>
+                        <Text className="block text-xs text-stone-400">|</Text>
+                        <Text className="block text-xs text-stone-500">{story.matches.name}</Text>
                       </>
                     )}
                   </View>
@@ -329,13 +329,13 @@ const StoryPage: FC = () => {
                 <View
                   className={`max-w-[85%] rounded-2xl p-3 ${
                     msg.role === 'user' 
-                      ? 'bg-black' 
-                      : 'bg-white border border-gray-100'
+                      ? 'bg-green-500' 
+                      : 'bg-white border border-orange-100'
                   }`}
                 >
                   <Text 
                     className={`block text-sm whitespace-pre-wrap ${
-                      msg.role === 'user' ? 'text-white' : 'text-gray-700'
+                      msg.role === 'user' ? 'text-white' : 'text-stone-700'
                     }`}
                     style={{ maxHeight: isLong && !isExpanded ? '200px' : 'none', overflow: 'hidden' }}
                   >
@@ -347,7 +347,7 @@ const StoryPage: FC = () => {
                       style={{ display: 'flex' }}
                       onClick={() => toggleMessageExpand(msg.id)}
                     >
-                      <Text className={`block text-xs ${msg.role === 'user' ? 'text-gray-300' : 'text-blue-500'}`}>
+                      <Text className={`block text-xs ${msg.role === 'user' ? 'text-stone-300' : 'text-blue-500'}`}>
                         {isExpanded ? '收起' : '展开全部'}
                       </Text>
                     </View>
@@ -359,32 +359,32 @@ const StoryPage: FC = () => {
           
           {sending && (
             <View className="mb-4 items-start" style={{ display: 'flex' }}>
-              <View className="bg-white border border-gray-100 rounded-2xl p-3">
-                <Text className="block text-sm text-gray-400">正在思考...</Text>
+              <View className="bg-white border border-orange-100 rounded-2xl p-3">
+                <Text className="block text-sm text-stone-400">正在思考...</Text>
               </View>
             </View>
           )}
         </ScrollView>
 
         {/* 快捷回复 */}
-        <View className="bg-white px-4 py-2 border-t border-gray-100">
+        <View className="bg-white px-4 py-2 border-t border-orange-100">
           <View className="flex gap-2">
             {quickReplies.map((text) => (
               <View
                 key={text}
-                className="px-3 py-2 rounded-full bg-gray-100"
+                className="px-3 py-2 rounded-full bg-stone-100"
                 onClick={() => handleQuickReply(text)}
               >
-                <Text className="block text-xs text-gray-600">{text}</Text>
+                <Text className="block text-xs text-stone-600">{text}</Text>
               </View>
             ))}
           </View>
         </View>
 
         {/* 输入框 */}
-        <View className="bg-white px-4 py-3 border-t border-gray-100">
+        <View className="bg-white px-4 py-3 border-t border-orange-100">
           <View className="flex items-center gap-2">
-            <View className="flex-1 bg-gray-50 rounded-xl px-4 py-2">
+            <View className="flex-1 bg-stone-50 rounded-xl px-4 py-2">
               <Input
                 className="w-full"
                 placeholder="输入问题或反馈..."
@@ -396,7 +396,7 @@ const StoryPage: FC = () => {
             </View>
             <View
               className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                chatInput.trim() ? 'bg-black' : 'bg-gray-200'
+                chatInput.trim() ? 'bg-green-500' : 'bg-stone-200'
               }`}
               onClick={sendMessage}
             >
@@ -413,11 +413,11 @@ const StoryPage: FC = () => {
 
   // 新建模式渲染（Step 1-4）
   return (
-    <View className="min-h-screen bg-gray-50">
+    <View className="min-h-screen" style={{ backgroundColor: '#FFF9F0' }}>
       <CustomHeader title="故事生成器" />
 
       {/* 进度指示器 */}
-      <View className="bg-white px-4 py-3 border-b border-gray-100">
+      <View className="bg-white px-4 py-3 border-b border-orange-100">
         <View className="flex items-center justify-between">
           {['对象', '类型', '要素', '生成'].map((label, index) => {
             const stepNum = index + 1
@@ -428,22 +428,22 @@ const StoryPage: FC = () => {
               <View key={label} className="flex items-center">
                 <View 
                   className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                    isCompleted ? 'bg-green-500' : isActive ? 'bg-black' : 'bg-gray-200'
+                    isCompleted ? 'bg-green-500' : isActive ? 'bg-green-500' : 'bg-stone-200'
                   }`}
                 >
                   {isCompleted ? (
                     <Check size={14} color="#fff" />
                   ) : (
-                    <Text className={`block text-xs ${isActive ? 'text-white' : 'text-gray-500'}`}>
+                    <Text className={`block text-xs ${isActive ? 'text-white' : 'text-stone-500'}`}>
                       {stepNum}
                     </Text>
                   )}
                 </View>
-                <Text className={`block text-xs ml-1 ${isActive ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
+                <Text className={`block text-xs ml-1 ${isActive ? 'text-stone-900 font-medium' : 'text-stone-400'}`}>
                   {label}
                 </Text>
                 {index < 3 && (
-                  <View className="w-6 h-1 bg-gray-200 mx-2" />
+                  <View className="w-6 h-1 bg-stone-200 mx-2" />
                 )}
               </View>
             )
@@ -456,22 +456,22 @@ const StoryPage: FC = () => {
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
-              <User size={18} color="#374151" />
-              <Text className="block text-base font-semibold text-gray-900">选择对象（可选）</Text>
+              <User size={18} color="#44403C" />
+              <Text className="block text-base font-semibold text-stone-900">选择对象（可选）</Text>
             </View>
             
-            <Text className="block text-sm text-gray-500 mb-3">
+            <Text className="block text-sm text-stone-500 mb-3">
               选择对象可以让故事更贴合当前关系阶段
             </Text>
             
             {/* 不选择选项 */}
             <View
               className={`p-3 rounded-xl flex items-center justify-between mb-2 ${
-                selectedMatch === null ? 'bg-black' : 'bg-gray-50'
+                selectedMatch === null ? 'bg-green-500' : 'bg-stone-50'
               }`}
               onClick={() => setSelectedMatch(null)}
             >
-              <Text className={`block font-medium ${selectedMatch === null ? 'text-white' : 'text-gray-900'}`}>
+              <Text className={`block font-medium ${selectedMatch === null ? 'text-white' : 'text-stone-900'}`}>
                 不关联对象
               </Text>
               {selectedMatch === null && <Check size={18} color="#fff" />}
@@ -479,11 +479,11 @@ const StoryPage: FC = () => {
             
             {loading ? (
               <View className="py-8 text-center">
-                <Text className="block text-gray-400">加载中...</Text>
+                <Text className="block text-stone-400">加载中...</Text>
               </View>
             ) : matches.length === 0 ? (
               <View className="py-4 text-center">
-                <Text className="block text-gray-400 text-sm">暂无对象可选</Text>
+                <Text className="block text-stone-400 text-sm">暂无对象可选</Text>
               </View>
             ) : (
               <View className="flex flex-col gap-2">
@@ -493,24 +493,24 @@ const StoryPage: FC = () => {
                     <View
                       key={match.id}
                       className={`p-3 rounded-xl flex items-center justify-between ${
-                        isSelected ? 'bg-black' : 'bg-gray-50'
+                        isSelected ? 'bg-green-500' : 'bg-stone-50'
                       }`}
                       onClick={() => handleMatchSelect(match)}
                     >
                       <View className="flex items-center gap-3">
                         <View className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          isSelected ? 'bg-white' : 'bg-gray-200'
+                          isSelected ? 'bg-white' : 'bg-stone-200'
                         }`}
                         >
                           <Text className={`block text-sm font-medium ${
-                            isSelected ? 'text-black' : 'text-gray-600'
+                            isSelected ? 'text-green-500' : 'text-stone-600'
                           }`}
                           >
                             {match.name.charAt(0)}
                           </Text>
                         </View>
                         <Text className={`block font-medium ${
-                          isSelected ? 'text-white' : 'text-gray-900'
+                          isSelected ? 'text-white' : 'text-stone-900'
                         }`}
                         >
                           {match.name}
@@ -525,7 +525,7 @@ const StoryPage: FC = () => {
           </View>
 
           <View
-            className="bg-black rounded-xl py-3 flex items-center justify-center"
+            className="bg-green-500 rounded-xl py-3 flex items-center justify-center"
             onClick={() => setCurrentStep(2)}
           >
             <Text className="block text-white font-medium">下一步</Text>
@@ -539,8 +539,8 @@ const StoryPage: FC = () => {
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
-              <BookOpen size={18} color="#374151" />
-              <Text className="block text-base font-semibold text-gray-900">选择故事类型</Text>
+              <BookOpen size={18} color="#44403C" />
+              <Text className="block text-base font-semibold text-stone-900">选择故事类型</Text>
             </View>
             
             <View className="flex flex-col gap-2">
@@ -549,7 +549,7 @@ const StoryPage: FC = () => {
                 return (
                   <View
                     key={type.code}
-                    className={`p-3 rounded-xl ${isSelected ? 'bg-black' : 'bg-gray-50'}`}
+                    className={`p-3 rounded-xl ${isSelected ? 'bg-green-500' : 'bg-stone-50'}`}
                     onClick={() => handleStoryTypeSelect(type.code)}
                   >
                     <View className="flex items-center justify-between">
@@ -557,13 +557,13 @@ const StoryPage: FC = () => {
                         <Text className="block text-lg">{type.icon}</Text>
                         <View>
                           <Text className={`block font-medium ${
-                            isSelected ? 'text-white' : 'text-gray-900'
+                            isSelected ? 'text-white' : 'text-stone-900'
                           }`}
                           >
                             {type.name}
                           </Text>
                           <Text className={`block text-xs ${
-                            isSelected ? 'text-gray-300' : 'text-gray-500'
+                            isSelected ? 'text-stone-300' : 'text-stone-500'
                           }`}
                           >
                             {type.description}
@@ -580,7 +580,7 @@ const StoryPage: FC = () => {
 
           {/* 推进阶段选择 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-sm font-medium text-gray-900 mb-3">推进阶段（可选）</Text>
+            <Text className="block text-sm font-medium text-stone-900 mb-3">推进阶段（可选）</Text>
             <View className="flex flex-wrap gap-2">
               {RELATIONSHIP_STAGES.map((stage) => {
                 const isSelected = relationshipStage === stage.code
@@ -588,12 +588,12 @@ const StoryPage: FC = () => {
                   <View
                     key={stage.code}
                     className={`px-3 py-2 rounded-lg ${
-                      isSelected ? 'bg-black' : 'bg-gray-100'
+                      isSelected ? 'bg-green-500' : 'bg-stone-100'
                     }`}
                     onClick={() => handleStageSelect(stage.code)}
                   >
                     <Text className={`block text-xs ${
-                      isSelected ? 'text-white' : 'text-gray-600'
+                      isSelected ? 'text-white' : 'text-stone-600'
                     }`}
                     >
                       {stage.name}
@@ -606,18 +606,18 @@ const StoryPage: FC = () => {
 
           <View className="flex gap-3">
             <View
-              className="flex-1 bg-gray-100 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-stone-100 rounded-xl py-3 flex items-center justify-center"
               onClick={() => setCurrentStep(1)}
             >
-              <Text className="block text-gray-600">上一步</Text>
+              <Text className="block text-stone-600">上一步</Text>
             </View>
             <View
               className={`flex-1 rounded-xl py-3 flex items-center justify-center ${
-                selectedStoryType ? 'bg-black' : 'bg-gray-200'
+                selectedStoryType ? 'bg-green-500' : 'bg-stone-200'
               }`}
               onClick={() => selectedStoryType && setCurrentStep(3)}
             >
-              <Text className={`block font-medium ${selectedStoryType ? 'text-white' : 'text-gray-400'}`}>
+              <Text className={`block font-medium ${selectedStoryType ? 'text-white' : 'text-stone-400'}`}>
                 下一步
               </Text>
             </View>
@@ -630,18 +630,18 @@ const StoryPage: FC = () => {
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-3">
-              <Sparkles size={18} color="#374151" />
-              <Text className="block text-base font-semibold text-gray-900">故事要素</Text>
+              <Sparkles size={18} color="#44403C" />
+              <Text className="block text-base font-semibold text-stone-900">故事要素</Text>
             </View>
             
-            <Text className="block text-sm text-gray-500 mb-4">
+            <Text className="block text-sm text-stone-500 mb-4">
               填写以下要素，帮助 AI 更好地改造你的故事
             </Text>
 
             {/* 原始故事 */}
             <View className="mb-4">
-              <Text className="block text-sm font-medium text-gray-700 mb-2">原始故事</Text>
-              <View className="bg-gray-50 rounded-xl p-3">
+              <Text className="block text-sm font-medium text-stone-700 mb-2">原始故事</Text>
+              <View className="bg-stone-50 rounded-xl p-3">
                 <Textarea
                   className="w-full"
                   style={{ minHeight: '100px' }}
@@ -655,8 +655,8 @@ const StoryPage: FC = () => {
             {/* 关键要素 */}
             <View className="space-y-3">
               <View>
-                <Text className="block text-sm font-medium text-gray-700 mb-1">时间</Text>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
+                <Text className="block text-sm font-medium text-stone-700 mb-1">时间</Text>
+                <View className="bg-stone-50 rounded-xl px-3 py-2">
                   <Input
                     className="w-full"
                     placeholder="例如：去年夏天、三年前..."
@@ -667,8 +667,8 @@ const StoryPage: FC = () => {
               </View>
 
               <View>
-                <Text className="block text-sm font-medium text-gray-700 mb-1">地点</Text>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
+                <Text className="block text-sm font-medium text-stone-700 mb-1">地点</Text>
+                <View className="bg-stone-50 rounded-xl px-3 py-2">
                   <Input
                     className="w-full"
                     placeholder="例如：西藏、老家的小河边..."
@@ -679,8 +679,8 @@ const StoryPage: FC = () => {
               </View>
 
               <View>
-                <Text className="block text-sm font-medium text-gray-700 mb-1">人物</Text>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
+                <Text className="block text-sm font-medium text-stone-700 mb-1">人物</Text>
+                <View className="bg-stone-50 rounded-xl px-3 py-2">
                   <Input
                     className="w-full"
                     placeholder="例如：我和一个当地老人、三个大学室友..."
@@ -691,8 +691,8 @@ const StoryPage: FC = () => {
               </View>
 
               <View>
-                <Text className="block text-sm font-medium text-gray-700 mb-1">关键事件</Text>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
+                <Text className="block text-sm font-medium text-stone-700 mb-1">关键事件</Text>
+                <View className="bg-stone-50 rounded-xl px-3 py-2">
                   <Input
                     className="w-full"
                     placeholder="例如：车子抛锚、发现了一个秘密..."
@@ -703,8 +703,8 @@ const StoryPage: FC = () => {
               </View>
 
               <View>
-                <Text className="block text-sm font-medium text-gray-700 mb-1">情绪转折</Text>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
+                <Text className="block text-sm font-medium text-stone-700 mb-1">情绪转折</Text>
+                <View className="bg-stone-50 rounded-xl px-3 py-2">
                   <Input
                     className="w-full"
                     placeholder="例如：从失望到释然、从害怕到勇敢..."
@@ -718,13 +718,13 @@ const StoryPage: FC = () => {
 
           <View className="flex gap-3">
             <View
-              className="flex-1 bg-gray-100 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-stone-100 rounded-xl py-3 flex items-center justify-center"
               onClick={() => setCurrentStep(2)}
             >
-              <Text className="block text-gray-600">上一步</Text>
+              <Text className="block text-stone-600">上一步</Text>
             </View>
             <View
-              className="flex-1 bg-black rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-green-500 rounded-xl py-3 flex items-center justify-center"
               onClick={() => setCurrentStep(4)}
             >
               <Text className="block text-white font-medium">下一步</Text>
@@ -739,49 +739,49 @@ const StoryPage: FC = () => {
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center gap-2 mb-4">
               <Sparkles size={18} color="#F59E0B" />
-              <Text className="block text-base font-semibold text-gray-900">准备生成</Text>
+              <Text className="block text-base font-semibold text-stone-900">准备生成</Text>
             </View>
             
             {/* 确认信息 */}
             <View className="space-y-3 mb-4">
               <View className="flex justify-between">
-                <Text className="block text-sm text-gray-500">故事类型</Text>
-                <Text className="block text-sm text-gray-900">{getStoryTypeName(selectedStoryType)}</Text>
+                <Text className="block text-sm text-stone-500">故事类型</Text>
+                <Text className="block text-sm text-stone-900">{getStoryTypeName(selectedStoryType)}</Text>
               </View>
               {relationshipStage && (
                 <View className="flex justify-between">
-                  <Text className="block text-sm text-gray-500">推进阶段</Text>
-                  <Text className="block text-sm text-gray-900">{getStageName(relationshipStage)}</Text>
+                  <Text className="block text-sm text-stone-500">推进阶段</Text>
+                  <Text className="block text-sm text-stone-900">{getStageName(relationshipStage)}</Text>
                 </View>
               )}
               {selectedMatch && (
                 <View className="flex justify-between">
-                  <Text className="block text-sm text-gray-500">关联对象</Text>
-                  <Text className="block text-sm text-gray-900">{selectedMatch.name}</Text>
+                  <Text className="block text-sm text-stone-500">关联对象</Text>
+                  <Text className="block text-sm text-stone-900">{selectedMatch.name}</Text>
                 </View>
               )}
               {originalContent && (
                 <View className="flex justify-between">
-                  <Text className="block text-sm text-gray-500">原始故事</Text>
-                  <Text className="block text-sm text-gray-900">已填写</Text>
+                  <Text className="block text-sm text-stone-500">原始故事</Text>
+                  <Text className="block text-sm text-stone-900">已填写</Text>
                 </View>
               )}
             </View>
 
-            <Text className="block text-xs text-gray-400 text-center">
+            <Text className="block text-xs text-stone-400 text-center">
               AI 将运用悬念、反转、心锚、推拉等技巧改造你的故事
             </Text>
           </View>
 
           <View className="flex gap-3">
             <View
-              className="flex-1 bg-gray-100 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-stone-100 rounded-xl py-3 flex items-center justify-center"
               onClick={() => setCurrentStep(3)}
             >
-              <Text className="block text-gray-600">上一步</Text>
+              <Text className="block text-stone-600">上一步</Text>
             </View>
             <View
-              className="flex-1 bg-black rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-green-500 rounded-xl py-3 flex items-center justify-center"
               onClick={createStory}
             >
               {generating ? (

@@ -117,8 +117,8 @@ export default function CyclePage() {
     return (
       <View className="mb-4">
         <View className="flex items-center justify-between mb-2">
-          <Text className="block text-sm font-medium text-gray-700">周期进度</Text>
-          <Text className="block text-sm text-gray-500">第 {currentDay} 天 / 共 {totalDays} 天</Text>
+          <Text className="block text-sm font-medium text-stone-700">周期进度</Text>
+          <Text className="block text-sm text-stone-500">第 {currentDay} 天 / 共 {totalDays} 天</Text>
         </View>
         <View className="relative h-8 rounded-full overflow-hidden flex" style={{ backgroundColor: '#F3F4F6' }}>
           {phases.map((p) => {
@@ -182,7 +182,7 @@ export default function CyclePage() {
               <Text className="block text-lg font-bold" style={{ color: conf.color }}>
                 {cycleInfo.phaseName}
               </Text>
-              <Text className="block text-sm text-gray-600 mt-1">{conf.range}</Text>
+              <Text className="block text-sm text-stone-600 mt-1">{conf.range}</Text>
             </View>
             <View className="bg-white rounded-xl px-3 py-1">
               <Text className="block text-xl font-bold" style={{ color: conf.color }}>
@@ -190,17 +190,17 @@ export default function CyclePage() {
               </Text>
             </View>
           </View>
-          <Text className="block text-sm text-gray-700 leading-relaxed">{cycleInfo.description}</Text>
+          <Text className="block text-sm text-stone-700 leading-relaxed">{cycleInfo.description}</Text>
         </View>
         {cycleInfo.recommendations && cycleInfo.recommendations.length > 0 && (
           <CardContent className="pt-4">
-            <Text className="block text-sm font-medium text-gray-700 mb-3">相处建议</Text>
+            <Text className="block text-sm font-medium text-stone-700 mb-3">相处建议</Text>
             {cycleInfo.recommendations.map((rec, idx) => (
               <View key={idx} className="flex items-start gap-2 mb-2">
                 <View className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-1" style={{ backgroundColor: conf.bgColor }}>
                   <Text className="block" style={{ fontSize: '10px', color: conf.color }}>{idx + 1}</Text>
                 </View>
-                <Text className="block text-sm text-gray-600 leading-relaxed">{rec}</Text>
+                <Text className="block text-sm text-stone-600 leading-relaxed">{rec}</Text>
               </View>
             ))}
           </CardContent>
@@ -240,7 +240,7 @@ export default function CyclePage() {
                     <Text className="block text-sm font-medium" style={{ color: isActive ? conf.color : '#374151' }}>
                       {conf.name}
                     </Text>
-                    <Text className="block text-xs text-gray-400">{conf.range}</Text>
+                    <Text className="block text-xs text-stone-400">{conf.range}</Text>
                     {isActive && (
                       <View className="px-1 py-1 rounded-full" style={{ backgroundColor: conf.color }}>
                         <Text className="block text-white" style={{ fontSize: '9px' }}>当前</Text>
@@ -266,22 +266,22 @@ export default function CyclePage() {
         </CardHeader>
         <CardContent className="pt-0">
           <View className="mb-4">
-            <Text className="block text-sm text-gray-500 mb-2">上次开始日期</Text>
+            <Text className="block text-sm text-stone-500 mb-2">上次开始日期</Text>
             <Picker mode="date" value={cycleStartDate} onChange={handleDateChange}>
-              <View className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
+              <View className="flex items-center justify-between bg-stone-50 rounded-xl px-4 py-3 border border-stone-200">
                 <View className="flex items-center gap-2">
-                  <Calendar size={16} color="#6B7280" />
+                  <Calendar size={16} color="#78716C" />
                   <Text className="block text-sm" style={{ color: cycleStartDate ? '#374151' : '#9CA3AF' }}>
                     {cycleStartDate || '请选择日期'}
                   </Text>
                 </View>
-                <ChevronLeft size={16} color="#9CA3AF" />
+                <ChevronLeft size={16} color="#A8A29E" />
               </View>
             </Picker>
           </View>
 
           <View className="mb-4">
-            <Text className="block text-sm text-gray-500 mb-2">周期天数</Text>
+            <Text className="block text-sm text-stone-500 mb-2">周期天数</Text>
             <View className="flex flex-wrap gap-2">
               {lengthOptions.map((len) => (
                 <View
@@ -316,25 +316,25 @@ export default function CyclePage() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-50 min-h-screen">
+      <View className="flex-1 bg-stone-50 min-h-screen">
         <View className="flex items-center justify-center" style={{ height: '60vh' }}>
           <Activity size={24} color="#EC4899" />
-          <Text className="block text-gray-400 ml-2">加载中...</Text>
+          <Text className="block text-stone-400 ml-2">加载中...</Text>
         </View>
       </View>
     )
   }
 
   return (
-    <View className="flex-1 bg-gray-50 min-h-screen pb-8">
+    <View className="flex-1 bg-stone-50 min-h-screen pb-8">
       <View className="bg-gradient-to-b from-pink-50 to-gray-50 px-4 pt-12 pb-4">
         <View className="flex items-center gap-3 mb-2">
           <View className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center">
             <Activity size={20} color="#EC4899" />
           </View>
           <View className="flex-1">
-            <Text className="block text-lg font-bold text-gray-800">周期追踪</Text>
-            <Text className="block text-xs text-gray-500">了解她，从了解她的周期开始</Text>
+            <Text className="block text-lg font-bold text-stone-800">周期追踪</Text>
+            <Text className="block text-xs text-stone-500">了解她，从了解她的周期开始</Text>
           </View>
         </View>
       </View>
@@ -353,8 +353,8 @@ export default function CyclePage() {
         <Card className="mb-4">
           <CardContent className="pt-4">
             <View className="flex items-start gap-2">
-              <Info size={16} color="#9CA3AF" />
-              <Text className="block text-xs text-gray-400 leading-relaxed">
+              <Info size={16} color="#A8A29E" />
+              <Text className="block text-xs text-stone-400 leading-relaxed">
                 周期追踪仅作为参考，帮助您更好地了解和关心对方。每个人的身体状况不同，如有健康疑问请咨询专业医生。数据仅保存在您的设备上。
               </Text>
             </View>

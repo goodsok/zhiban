@@ -174,12 +174,12 @@ const DistancePage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-8">
+    <View className="min-h-screen pb-8" style={{ backgroundColor: '#FFF9F0' }}>
       {/* 顶部进度条 */}
-      <View className="bg-white px-4 pt-2 pb-3 border-b border-gray-100">
+      <View className="bg-white px-4 pt-2 pb-3 border-b border-orange-100">
         <View className="flex flex-row items-center justify-between mb-1">
-          <Text className="text-xs text-gray-500">靠近进度</Text>
-          <Text className="text-xs text-gray-500">{completedLevels.length}/{distanceLevels.length}</Text>
+          <Text className="text-xs text-stone-500">靠近进度</Text>
+          <Text className="text-xs text-stone-500">{completedLevels.length}/{distanceLevels.length}</Text>
         </View>
         <Progress value={getProgressPercent()} className="h-2" />
       </View>
@@ -191,32 +191,32 @@ const DistancePage: FC = () => {
             <View className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center mb-4">
               <Magnet size={40} color="white" />
             </View>
-            <Text className="block text-2xl font-bold text-gray-900 mb-2">距离挑战</Text>
-            <Text className="block text-sm text-gray-500 mb-4 text-center leading-relaxed">
+            <Text className="block text-2xl font-bold text-stone-900 mb-2">距离挑战</Text>
+            <Text className="block text-sm text-stone-500 mb-4 text-center leading-relaxed">
               渐进式靠近游戏{'\n'}从一米到零距离，用6步走进对方心里
             </Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">游戏规则</Text>
+                <Text className="block text-sm font-medium text-stone-700 mb-3">游戏规则</Text>
                 <View className="space-y-2">
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-orange-600">1</Text>
                     </View>
-                    <Text className="text-sm text-gray-600">共6个等级，从1米面对面到零距离拥抱</Text>
+                    <Text className="text-sm text-stone-600">共6个等级，从1米面对面到零距离拥抱</Text>
                   </View>
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-orange-600">2</Text>
                     </View>
-                    <Text className="text-sm text-gray-600">每级需要完成指定动作并保持一段时间</Text>
+                    <Text className="text-sm text-stone-600">每级需要完成指定动作并保持一段时间</Text>
                   </View>
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-orange-600">3</Text>
                     </View>
-                    <Text className="text-sm text-gray-600">可以跳过不舒适的等级，按你们的节奏来</Text>
+                    <Text className="text-sm text-stone-600">可以跳过不舒适的等级，按你们的节奏来</Text>
                   </View>
                 </View>
               </CardContent>
@@ -251,14 +251,14 @@ const DistancePage: FC = () => {
             <View className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center mb-4">
               <Sparkles size={32} color="#d97706" />
             </View>
-            <Text className="block text-lg font-bold text-gray-900 mb-2">把手机递给TA</Text>
-            <Text className="block text-sm text-gray-500 mb-6 text-center leading-relaxed">
+            <Text className="block text-lg font-bold text-stone-900 mb-2">把手机递给TA</Text>
+            <Text className="block text-sm text-stone-500 mb-6 text-center leading-relaxed">
               让TA看到这段话，如果愿意就点「好呀」
             </Text>
 
             <Card className="mb-6 w-full bg-gradient-to-br from-orange-50 to-amber-50 border-orange-100">
               <CardContent className="py-5">
-                <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
+                <Text className="block text-base text-stone-800 leading-loose text-center font-medium">
                   “你有没有想过，{'\n'}从一米远到拥抱，{'\n'}需要走几步？{'\n'}{'\n'}我们来试试，{'\n'}每一步我都会等你，{'\n'}不想走了随时可以停。{'\n'}{'\n'}一起走吗？”
                 </Text>
               </CardContent>
@@ -279,7 +279,7 @@ const DistancePage: FC = () => {
                 className="rounded-xl py-2 w-full"
                 onClick={() => setStep('intro')}
               >
-                <Text className="text-gray-400 text-sm">返回</Text>
+                <Text className="text-stone-400 text-sm">返回</Text>
               </Button>
             </View>
           </View>
@@ -297,14 +297,14 @@ const DistancePage: FC = () => {
                 <Text className="text-xs text-orange-600">+{currentLevel.intimacyScore} 亲密度</Text>
               </View>
             </View>
-            <Text className="block text-xl font-bold text-gray-900 mb-1">{currentLevel.name}</Text>
-            <Text className="block text-sm text-gray-400 mb-6">距离：{currentLevel.distance}</Text>
+            <Text className="block text-xl font-bold text-stone-900 mb-1">{currentLevel.name}</Text>
+            <Text className="block text-sm text-stone-400 mb-6">距离：{currentLevel.distance}</Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-5">
                 <View className="flex flex-col items-center">
-                  <Text className="text-xs text-gray-500 mb-3">怎么做</Text>
-                  <Text className="block text-base text-gray-800 text-center leading-relaxed font-medium">
+                  <Text className="text-xs text-stone-500 mb-3">怎么做</Text>
+                  <Text className="block text-base text-stone-800 text-center leading-relaxed font-medium">
                     {currentLevel.instruction}
                   </Text>
                 </View>
@@ -335,7 +335,7 @@ const DistancePage: FC = () => {
                 className="rounded-xl py-2 w-full"
                 onClick={handleSkip}
               >
-                <Text className="text-gray-400 text-sm">跳过这一级</Text>
+                <Text className="text-stone-400 text-sm">跳过这一级</Text>
               </Button>
             </View>
           </View>
@@ -348,7 +348,7 @@ const DistancePage: FC = () => {
             <View className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center mb-4">
               <Text className="block text-4xl font-bold text-white">{countdown}</Text>
             </View>
-            <Text className="block text-sm text-gray-500 mb-2">保持姿势，感受彼此</Text>
+            <Text className="block text-sm text-stone-500 mb-2">保持姿势，感受彼此</Text>
             <Text className="block text-sm text-orange-500 italic text-center px-8">{currentLevel.tip}</Text>
           </View>
         )}
@@ -360,8 +360,8 @@ const DistancePage: FC = () => {
               <Check size={32} color="white" />
             </View>
             <Text className="block text-lg font-semibold text-green-600 mb-1">靠近了一步！</Text>
-            <Text className="block text-sm text-gray-500 mb-1">+{currentLevel.intimacyScore} 亲密度</Text>
-            <Text className="block text-sm text-gray-400 mb-6">
+            <Text className="block text-sm text-stone-500 mb-1">+{currentLevel.intimacyScore} 亲密度</Text>
+            <Text className="block text-sm text-stone-400 mb-6">
               已完成 {completedLevels.length}/{distanceLevels.length} 级
             </Text>
 
@@ -393,12 +393,12 @@ const DistancePage: FC = () => {
         {step === 'summary' && (
           <View className="flex flex-col items-center">
             <Text className="block text-5xl mb-3">{totalScore >= 90 ? '🫂' : '💫'}</Text>
-            <Text className="block text-2xl font-bold text-gray-900 mb-1">{getSummaryTitle()}</Text>
-            <Text className="block text-sm text-gray-500 mb-6">亲密度 {totalScore} 分</Text>
+            <Text className="block text-2xl font-bold text-stone-900 mb-1">{getSummaryTitle()}</Text>
+            <Text className="block text-sm text-stone-500 mb-6">亲密度 {totalScore} 分</Text>
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm text-gray-700 leading-relaxed text-center">
+                <Text className="block text-sm text-stone-700 leading-relaxed text-center">
                   {getSummaryText()}
                 </Text>
               </CardContent>
@@ -406,7 +406,7 @@ const DistancePage: FC = () => {
 
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">靠近记录</Text>
+                <Text className="block text-sm font-medium text-stone-700 mb-3">靠近记录</Text>
                 {distanceLevels.map(level => {
                   const isCompleted = completedLevels.includes(level.id)
                   const isSkipped = skippedLevels.includes(level.id)
@@ -418,24 +418,24 @@ const DistancePage: FC = () => {
                             <Check size={12} color="#16a34a" />
                           </View>
                         ) : (
-                          <View className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mr-2">
-                            <Text className="text-xs text-gray-400">-</Text>
+                          <View className="w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center mr-2">
+                            <Text className="text-xs text-stone-400">-</Text>
                           </View>
                         )}
-                        <Text className={`text-sm ${isCompleted ? 'text-gray-700' : isSkipped ? 'text-amber-500' : 'text-gray-400'}`}>
+                        <Text className={`text-sm ${isCompleted ? 'text-stone-700' : isSkipped ? 'text-amber-500' : 'text-stone-400'}`}>
                           Lv.{level.id} {level.name}
                         </Text>
                         {isSkipped && !isCompleted && (
                           <Text className="text-xs text-amber-400 ml-2">已跳过</Text>
                         )}
                       </View>
-                      <Text className="text-xs text-gray-400">{level.distance}</Text>
+                      <Text className="text-xs text-stone-400">{level.distance}</Text>
                     </View>
                   )
                 })}
                 {skippedLevels.some(id => !completedLevels.includes(id)) && (
-                  <View className="mt-3 pt-3 border-t border-gray-100">
-                    <Text className="block text-xs text-gray-500 mb-2">补玩跳过的等级</Text>
+                  <View className="mt-3 pt-3 border-t border-orange-100">
+                    <Text className="block text-xs text-stone-500 mb-2">补玩跳过的等级</Text>
                     <View className="flex flex-row flex-wrap gap-2">
                       {skippedLevels.filter(id => !completedLevels.includes(id)).map(id => {
                         const level = distanceLevels.find(l => l.id === id)

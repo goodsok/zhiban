@@ -52,13 +52,13 @@ export default defineAppConfig({
   ],
   window: {
     backgroundTextStyle: 'light',
-    navigationBarBackgroundColor: '#ffffff',
-    navigationBarTitleText: '心动助手',
+    navigationBarBackgroundColor: '#FFF9F0',
+    navigationBarTitleText: '知拌',
     navigationBarTextStyle: 'black',
   },
   tabBar: {
-    color: '#9CA3AF',
-    selectedColor: '#6366F1',
+    color: '#A8A29E',
+    selectedColor: '#4ECB71',
     backgroundColor: '#ffffff',
     borderStyle: 'black',
     list: [

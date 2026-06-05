@@ -301,7 +301,7 @@ const DatingPhotoPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen bg-gray-50 pb-20">
+    <View className="min-h-screen pb-20" style={{ backgroundColor: '#FFF9F0' }}>
       {/* 顶部说明 */}
       <View className="bg-amber-50 px-4 py-3">
         <View className="flex flex-row items-center justify-between">
@@ -332,19 +332,19 @@ const DatingPhotoPage: FC = () => {
 
       {/* 历史记录 */}
       {showHistory && (
-        <View className="bg-white border-b border-gray-100">
-          <View className="px-4 py-3 border-b border-gray-100">
-            <Text className="text-sm font-medium text-gray-900">照片评分历史</Text>
+        <View className="bg-white border-b border-orange-100">
+          <View className="px-4 py-3 border-b border-orange-100">
+            <Text className="text-sm font-medium text-stone-900">照片评分历史</Text>
           </View>
           {historyLoading && historyList.length === 0 ? (
             <View className="px-4 py-8 flex flex-col items-center">
               <Loader size={20} color="#9ca3af" className="animate-spin" />
-              <Text className="text-sm text-gray-400 mt-2">加载中...</Text>
+              <Text className="text-sm text-stone-400 mt-2">加载中...</Text>
             </View>
           ) : historyList.length === 0 ? (
             <View className="px-4 py-8 flex flex-col items-center">
               <Clock size={24} color="#d1d5db" />
-              <Text className="text-sm text-gray-400 mt-2">暂无历史记录</Text>
+              <Text className="text-sm text-stone-400 mt-2">暂无历史记录</Text>
             </View>
           ) : (
             <ScrollView scrollY className="max-h-80">
@@ -353,7 +353,7 @@ const DatingPhotoPage: FC = () => {
                 return (
                   <View
                     key={history.id}
-                    className="px-4 py-3 border-b border-gray-50 flex flex-row items-center justify-between active:bg-gray-50"
+                    className="px-4 py-3 border-b border-stone-100 flex flex-row items-center justify-between active:bg-stone-50"
                     onClick={() => handleLoadHistory(history)}
                   >
                     <View className="flex-1 mr-3">
@@ -362,11 +362,11 @@ const DatingPhotoPage: FC = () => {
                         <View className="bg-amber-100 rounded-full px-2 py-1 mr-2">
                           <Text className="text-xs text-amber-600">{history.analysisResult.overallScore}分</Text>
                         </View>
-                        <Text className="text-xs text-gray-400">{formatDate(history.createdAt)}</Text>
+                        <Text className="text-xs text-stone-400">{formatDate(history.createdAt)}</Text>
                       </View>
-                      <Text className="text-xs text-gray-400">{history.photoUrls?.length || 0}张照片</Text>
+                      <Text className="text-xs text-stone-400">{history.photoUrls?.length || 0}张照片</Text>
                     </View>
-                    <View className="p-2 rounded-lg active:bg-gray-100" onClick={(e) => handleDeleteHistory(history.id, e)}>
+                    <View className="p-2 rounded-lg active:bg-stone-100" onClick={(e) => handleDeleteHistory(history.id, e)}>
                       <Trash2 size={16} color="#9ca3af" />
                     </View>
                   </View>
@@ -390,19 +390,19 @@ const DatingPhotoPage: FC = () => {
           </CardHeader>
           <CardContent>
             <View
-              className="bg-gray-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
+              className="bg-stone-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
               onClick={() => setShowPlatformPicker(!showPlatformPicker)}
             >
               <View className="flex flex-row items-center">
                 <Text className="text-lg mr-2">{currentPlatform.icon}</Text>
-                <Text className="text-sm text-gray-700">{currentPlatform.label}</Text>
-                <Text className="text-xs text-gray-400 ml-2">{currentPlatform.desc}</Text>
+                <Text className="text-sm text-stone-700">{currentPlatform.label}</Text>
+                <Text className="text-xs text-stone-400 ml-2">{currentPlatform.desc}</Text>
               </View>
               <ChevronDown size={18} color="#9ca3af" />
             </View>
 
             {showPlatformPicker && (
-              <View className="mt-2 bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <View className="mt-2 bg-white rounded-xl border border-orange-100 overflow-hidden">
                 {platformOptions.map((option) => (
                   <View
                     key={option.value}
@@ -415,8 +415,8 @@ const DatingPhotoPage: FC = () => {
                     <View className="flex flex-row items-center">
                       <Text className="text-lg mr-2">{option.icon}</Text>
                       <View>
-                        <Text className="text-sm text-gray-700">{option.label}</Text>
-                        <Text className="text-xs text-gray-400">{option.desc}</Text>
+                        <Text className="text-sm text-stone-700">{option.label}</Text>
+                        <Text className="text-xs text-stone-400">{option.desc}</Text>
                       </View>
                     </View>
                     {platform === option.value && <Text className="text-amber-500">✓</Text>}
@@ -437,12 +437,12 @@ const DatingPhotoPage: FC = () => {
               {photos.map((photo, index) => (
                 <View
                   key={index}
-                  className="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden"
+                  className="w-24 h-24 bg-stone-100 rounded-xl overflow-hidden"
                   style={{ position: 'relative' }}
                 >
                   <Image src={photo} mode="aspectFill" style={{ width: '100%', height: '100%' }} />
                   <View
-                    className="absolute top-1 right-1 bg-black rounded-full w-5 h-5 flex items-center justify-center opacity-50"
+                    className="absolute top-1 right-1 bg-green-500 rounded-full w-5 h-5 flex items-center justify-center opacity-50"
                     onClick={() => handleRemovePhoto(index)}
                   >
                     <X size={12} color="#fff" />
@@ -452,15 +452,15 @@ const DatingPhotoPage: FC = () => {
 
               {photos.length < 3 && (
                 <View
-                  className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center"
+                  className="w-24 h-24 border-2 border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center"
                   onClick={handleChoosePhoto}
                 >
                   <Camera size={24} color="#9ca3af" />
-                  <Text className="block text-xs text-gray-400 mt-1">添加照片</Text>
+                  <Text className="block text-xs text-stone-400 mt-1">添加照片</Text>
                 </View>
               )}
             </View>
-            <Text className="block text-xs text-gray-400 mt-2">最多上传 3 张照片，建议包含清晰的正面照</Text>
+            <Text className="block text-xs text-stone-400 mt-2">最多上传 3 张照片，建议包含清晰的正面照</Text>
           </CardContent>
         </Card>
 
@@ -482,8 +482,8 @@ const DatingPhotoPage: FC = () => {
         {!analysis && !loading && photos.length === 0 && (
           <View className="py-6 flex flex-col items-center">
             <Camera size={32} color="#d1d5db" />
-            <Text className="text-sm text-gray-400 mt-3">上传照片后即可开始 AI 评分</Text>
-            <Text className="text-xs text-gray-300 mt-1">支持从相册选择或拍照上传</Text>
+            <Text className="text-sm text-stone-400 mt-3">上传照片后即可开始 AI 评分</Text>
+            <Text className="text-xs text-stone-300 mt-1">支持从相册选择或拍照上传</Text>
           </View>
         )}
 
@@ -520,16 +520,16 @@ const DatingPhotoPage: FC = () => {
                 {analysis.dimensions.map((dimension, index) => (
                   <View key={index} className="mb-4 last:mb-0">
                     <View className="flex flex-row items-center justify-between mb-2">
-                      <Text className="block text-sm font-medium text-gray-700">{dimension.name}</Text>
+                      <Text className="block text-sm font-medium text-stone-700">{dimension.name}</Text>
                       <Text className={`block text-lg font-bold ${getScoreColor(dimension.score)}`}>{dimension.score}</Text>
                     </View>
-                    <View className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <View className="h-2 bg-stone-100 rounded-full overflow-hidden">
                       <View
                         className={`h-full rounded-full ${dimension.score >= 80 ? 'bg-green-500' : dimension.score >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
                         style={{ width: `${dimension.score}%` }}
                       />
                     </View>
-                    <Text className="block text-xs text-gray-500 mt-1">{dimension.comment}</Text>
+                    <Text className="block text-xs text-stone-500 mt-1">{dimension.comment}</Text>
                   </View>
                 ))}
               </CardContent>
@@ -540,14 +540,14 @@ const DatingPhotoPage: FC = () => {
               <CardHeader className="pb-3">
                 <View className="flex flex-row items-center">
                   <Sparkles size={18} color="#f59e0b" />
-                  <Text className="block text-base font-semibold text-gray-900 ml-2">改进建议</Text>
+                  <Text className="block text-base font-semibold text-stone-900 ml-2">改进建议</Text>
                 </View>
               </CardHeader>
               <CardContent>
                 {analysis.suggestions.map((suggestion, index) => (
                   <View key={index} className="flex flex-row items-start mb-2">
                     <Text className="block text-amber-500 mr-2">•</Text>
-                    <Text className="block text-sm text-gray-700 flex-1">{suggestion}</Text>
+                    <Text className="block text-sm text-stone-700 flex-1">{suggestion}</Text>
                   </View>
                 ))}
               </CardContent>
@@ -558,11 +558,11 @@ const DatingPhotoPage: FC = () => {
               <CardContent className="py-4">
                 <View className="flex flex-col items-center">
                   <Wand size={24} color="#9333ea" />
-                  <Text className="block text-sm font-medium text-gray-700 mt-2 mb-3">想看看优化后的效果？</Text>
+                  <Text className="block text-sm font-medium text-stone-700 mt-2 mb-3">想看看优化后的效果？</Text>
                   <Button variant="default" className="bg-purple-500 text-white rounded-xl px-6" disabled={generating} onClick={handleGenerateOptimized}>
                     <Text className="text-white">{generating ? '生成中...' : '生成优化示例'}</Text>
                   </Button>
-                  <Text className="block text-xs text-gray-400 mt-2">AI 将根据建议生成优化后的示例照片</Text>
+                  <Text className="block text-xs text-stone-400 mt-2">AI 将根据建议生成优化后的示例照片</Text>
                 </View>
               </CardContent>
             </Card>
@@ -573,15 +573,15 @@ const DatingPhotoPage: FC = () => {
                 <CardHeader className="pb-3">
                   <View className="flex flex-row items-center">
                     <Wand size={18} color="#9333ea" />
-                    <Text className="block text-base font-semibold text-gray-900 ml-2">优化示例</Text>
+                    <Text className="block text-base font-semibold text-stone-900 ml-2">优化示例</Text>
                   </View>
                 </CardHeader>
                 <CardContent>
                   <View className="flex flex-row gap-4">
                     <View className="flex-1">
-                      <Text className="block text-xs text-gray-500 mb-2 text-center">原始照片</Text>
+                      <Text className="block text-xs text-stone-500 mb-2 text-center">原始照片</Text>
                       <View
-                        className="aspect-square rounded-xl overflow-hidden bg-gray-100"
+                        className="aspect-square rounded-xl overflow-hidden bg-stone-100"
                         onClick={() => handlePreviewImage(optimizedPhoto.originalUrl, [optimizedPhoto.originalUrl, optimizedPhoto.optimizedUrl])}
                       >
                         <Image src={optimizedPhoto.originalUrl} mode="aspectFill" style={{ width: '100%', height: '100%' }} />

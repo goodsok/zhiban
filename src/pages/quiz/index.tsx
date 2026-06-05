@@ -92,12 +92,12 @@ const QuizPage: FC = () => {
   // 介绍页
   if (currentStep === 'intro') {
     return (
-      <View className="min-h-screen bg-gray-50 p-4 flex flex-col items-center justify-center">
+      <View className="min-h-screen p-4 flex flex-col items-center justify-center" style={{ backgroundColor: '#FFF9F0' }}>
         <View className="w-24 h-24 rounded-full bg-pink-100 flex items-center justify-center mb-6">
           <Brain size={48} color="#FF6B9D" />
         </View>
-        <Text className="block text-2xl font-bold text-gray-800 mb-2">默契测试</Text>
-        <Text className="block text-gray-500 text-center mb-8">
+        <Text className="block text-2xl font-bold text-stone-800 mb-2">默契测试</Text>
+        <Text className="block text-stone-500 text-center mb-8">
           回答问题，测试你们对彼此的了解程度
         </Text>
         <Button 
@@ -111,18 +111,18 @@ const QuizPage: FC = () => {
 
         {/* 历史记录 */}
         <View className="w-full mt-12">
-          <Text className="block text-sm text-gray-500 mb-3">历史最佳成绩</Text>
+          <Text className="block text-sm text-stone-500 mb-3">历史最佳成绩</Text>
           <Card className="shadow-sm border-0">
             <CardContent className="p-4">
               <View className="flex items-center justify-between">
                 <View className="flex items-center gap-3">
                   <Trophy size={24} color="#F59E0B" />
                   <View>
-                    <Text className="block font-semibold text-gray-800">默契度 85%</Text>
-                    <Text className="block text-sm text-gray-500">上次测试：3天前</Text>
+                    <Text className="block font-semibold text-stone-800">默契度 85%</Text>
+                    <Text className="block text-sm text-stone-500">上次测试：3天前</Text>
                   </View>
                 </View>
-                <ChevronRight size={20} color="#9CA3AF" />
+                <ChevronRight size={20} color="#A8A29E" />
               </View>
             </CardContent>
           </Card>
@@ -135,11 +135,11 @@ const QuizPage: FC = () => {
   if (currentStep === 'quiz' && questions.length > 0) {
     const question = questions[currentQuestion]
     return (
-      <View className="min-h-screen bg-gray-50 p-4">
+      <View className="min-h-screen p-4" style={{ backgroundColor: '#FFF9F0' }}>
         {/* 进度 */}
         <View className="mb-6">
           <View className="flex items-center justify-between mb-2">
-            <Text className="block text-sm text-gray-500">
+            <Text className="block text-sm text-stone-500">
               题目 {currentQuestion + 1}/{questions.length}
             </Text>
           </View>
@@ -149,7 +149,7 @@ const QuizPage: FC = () => {
         {/* 问题卡片 */}
         <Card className="shadow-sm border-0 mb-4">
           <CardContent className="p-6">
-            <Text className="block text-xl font-semibold text-gray-800 text-center">
+            <Text className="block text-xl font-semibold text-stone-800 text-center">
               {question.question}
             </Text>
           </CardContent>
@@ -166,7 +166,7 @@ const QuizPage: FC = () => {
           >
             <CardContent className="p-4">
               <Text className={`block text-base ${
-                selectedAnswer === index ? 'text-pink-500 font-medium' : 'text-gray-700'
+                selectedAnswer === index ? 'text-pink-500 font-medium' : 'text-stone-700'
               }`}
               >
                 {option}
@@ -195,20 +195,20 @@ const QuizPage: FC = () => {
   // 结果页
   if (currentStep === 'result' && result) {
     return (
-      <View className="min-h-screen bg-gray-50 p-4 flex flex-col items-center justify-center">
+      <View className="min-h-screen p-4 flex flex-col items-center justify-center" style={{ backgroundColor: '#FFF9F0' }}>
         <Text className="block text-6xl mb-4">{result.percentage === 100 ? '🎉' : result.percentage >= 60 ? '💖' : '💪'}</Text>
-        <Text className="block text-2xl font-bold text-gray-800 mb-2">{result.title}</Text>
-        <Text className="block text-gray-500 mb-8">{result.message}</Text>
+        <Text className="block text-2xl font-bold text-stone-800 mb-2">{result.title}</Text>
+        <Text className="block text-stone-500 mb-8">{result.message}</Text>
 
         <Card className="shadow-sm border-0 w-full mb-6">
           <CardContent className="p-6">
             <View className="flex items-center justify-between mb-4">
-              <Text className="block text-gray-500">默契度</Text>
+              <Text className="block text-stone-500">默契度</Text>
               <Text className="block text-3xl font-bold text-pink-500">{result.percentage}%</Text>
             </View>
             <Progress value={result.percentage} className="h-3" />
             <View className="flex items-center justify-between mt-4">
-              <Text className="block text-sm text-gray-500">答对 {result.score}/{result.total} 题</Text>
+              <Text className="block text-sm text-stone-500">答对 {result.score}/{result.total} 题</Text>
             </View>
           </CardContent>
         </Card>
