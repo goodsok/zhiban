@@ -1,8 +1,8 @@
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { useLoad, navigateTo } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState, useEffect } from 'react'
-import { ArrowRight, Users, Sparkles } from 'lucide-react-taro'
+import { ArrowRight, Users, Sparkles, Heart, Brain, MessageSquare, Zap, TrendingUp, Hand, HeartPulse, EyeOff, Magnet, Wind } from 'lucide-react-taro'
 import { Network } from '@/network'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -21,20 +21,50 @@ interface GameCard {
   sort_order: number
 }
 
-// 图标映射表 - 在前端维护，因为 lucide-react-taro 图标是 React 组件
-const ICON_MAP: Record<string, any> = {}
+// 图标映射表 - 静态导入，避免动态加载时序问题
+const ICON_MAP: Record<string, any> = {
+  Heart,
+  Sparkles,
+  Brain,
+  MessageSquare,
+  Zap,
+  TrendingUp,
+  Hand,
+  HeartPulse,
+  EyeOff,
+  Magnet,
+  Wind,
+}
+
+// 分类配置 - 使用数据库 category 字段
+const CATEGORY_CONFIG: Record<string, { label: string; accentColor: string; dividerColor: string; dividerTextColor: string }> = {
+  icebreaker: {
+    label: '破冰交流',
+    accentColor: 'text-purple-600',
+    dividerColor: 'bg-purple-200',
+    dividerTextColor: 'text-purple-500',
+  },
+  physical: {
+    label: '肢体进挪',
+    accentColor: 'text-rose-600',
+    dividerColor: 'bg-rose-200',
+    dividerTextColor: 'text-rose-500',
+  },
+}
 
 const InteractiveGamesPage: FC = () => {
   const [games, setGames] = useState<GameCard[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  // 动态加载图标
   const getIconComponent = (iconName: string) => {
     return ICON_MAP[iconName] || Sparkles
   }
 
   const fetchGameList = async () => {
     try {
+      setLoading(true)
+      setError('')
       console.log('[InteractiveGames] Fetching game list from API...')
       const res = await Network.request({
         url: '/api/game-data/list',
@@ -42,35 +72,19 @@ const InteractiveGamesPage: FC = () => {
       })
       console.log('[InteractiveGames] Game list response:', res.data)
       const gameList = res.data?.data || []
+      // 按 sort_order 排序
+      gameList.sort((a: GameCard, b: GameCard) => a.sort_order - b.sort_order)
       setGames(gameList)
     } catch (err) {
       console.error('[InteractiveGames] Failed to fetch game list:', err)
+      setError('加载游戏列表失败，请下拉刷新重试')
     } finally {
       setLoading(false)
     }
   }
 
-  // 动态导入图标组件
   useEffect(() => {
-    const loadIcons = async () => {
-      const iconNames = [
-        'Heart', 'Sparkles', 'Brain', 'MessageSquare', 'Zap',
-        'TrendingUp', 'Hand', 'HeartPulse', 'EyeOff', 'Magnet', 'Wind',
-      ]
-      try {
-        const icons = await import('lucide-react-taro')
-        for (const name of iconNames) {
-          if (icons[name]) {
-            ICON_MAP[name] = icons[name]
-          }
-        }
-      } catch (err) {
-        console.error('[InteractiveGames] Failed to load icons:', err)
-      }
-      // 图标加载完成后再拉数据
-      fetchGameList()
-    }
-    loadIcons()
+    fetchGameList()
   }, [])
 
   useLoad(() => {
@@ -107,9 +121,21 @@ const InteractiveGamesPage: FC = () => {
     }
   }
 
-  const physicalKeys = ['touch', 'mirror', 'pulse', 'blind', 'distance', 'breath']
-  const icebreakerGames = games.filter(g => !physicalKeys.includes(g.game_key))
-  const physicalGames = games.filter(g => physicalKeys.includes(g.game_key))
+  // 按数据库 category 字段分组
+  const groupedGames = games.reduce<Record<string, GameCard[]>>((acc, game) => {
+    const cat = game.category || 'icebreaker'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(game)
+    return acc
+  }, {})
+
+  // 按定义顺序输出分类
+  const categoryOrder = ['icebreaker', 'physical']
+  const orderedCategories = categoryOrder.filter(cat => groupedGames[cat]?.length)
+  // 也追加未在 order 中但存在的分类
+  Object.keys(groupedGames).forEach(cat => {
+    if (!categoryOrder.includes(cat)) orderedCategories.push(cat)
+  })
 
   const renderGameCard = (game: GameCard, accentColor: string) => {
     const GameIcon = getIconComponent(game.icon_name)
@@ -173,34 +199,59 @@ const InteractiveGamesPage: FC = () => {
 
       {/* 游戏列表 */}
       <View className="p-4">
-        <Text className="block text-sm font-medium text-gray-500 mb-4">破冰交流</Text>
-
-        <ScrollView scrollY className="max-h-[calc(100vh-280px)]">
-          {loading ? (
-            <View className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <View key={i} className="bg-white rounded-2xl p-4 mb-4">
-                  <Skeleton className="h-16 w-full rounded-xl mb-3" />
-                  <Skeleton className="h-4 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-1/2" />
-                </View>
-              ))}
-            </View>
-          ) : (
-            <>
-              {icebreakerGames.map((game) => renderGameCard(game, 'text-purple-600'))}
-
-              {/* 肢体进挪分区 */}
-              <View className="flex flex-row items-center mt-2 mb-4">
-                <View className="h-px bg-rose-200 flex-1" />
-                <Text className="text-sm font-medium text-rose-500 mx-3">肢体进挪</Text>
-                <View className="h-px bg-rose-200 flex-1" />
+        {loading ? (
+          <View className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <View key={i} className="bg-white rounded-2xl p-4 mb-4">
+                <Skeleton className="h-16 w-full rounded-xl mb-3" />
+                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2" />
               </View>
-
-              {physicalGames.map((game) => renderGameCard(game, 'text-rose-600'))}
-            </>
-          )}
-        </ScrollView>
+            ))}
+          </View>
+        ) : error ? (
+          <View className="flex flex-col items-center justify-center py-16">
+            <Sparkles size={48} color="#d1d5db" />
+            <Text className="block text-gray-400 mt-4 mb-6">{error}</Text>
+            <View
+              className="px-6 py-2 bg-purple-500 rounded-full"
+              onClick={fetchGameList}
+            >
+              <Text className="text-white text-sm">重新加载</Text>
+            </View>
+          </View>
+        ) : games.length === 0 ? (
+          <View className="flex flex-col items-center justify-center py-16">
+            <Sparkles size={48} color="#d1d5db" />
+            <Text className="block text-gray-400 mt-4">暂无游戏数据</Text>
+          </View>
+        ) : (
+          <>
+            {orderedCategories.map((cat, catIdx) => {
+              const config = CATEGORY_CONFIG[cat] || {
+                label: cat,
+                accentColor: 'text-purple-600',
+                dividerColor: 'bg-gray-200',
+                dividerTextColor: 'text-gray-500',
+              }
+              return (
+                <View key={cat}>
+                  {/* 分类标题（第一个分类直接显示文字，后续分类加分隔线） */}
+                  {catIdx === 0 ? (
+                    <Text className="block text-sm font-medium text-gray-500 mb-4">{config.label}</Text>
+                  ) : (
+                    <View className="flex flex-row items-center mt-2 mb-4">
+                      <View className={`h-px ${config.dividerColor} flex-1`} />
+                      <Text className={`text-sm font-medium ${config.dividerTextColor} mx-3`}>{config.label}</Text>
+                      <View className={`h-px ${config.dividerColor} flex-1`} />
+                    </View>
+                  )}
+                  {groupedGames[cat].map((game) => renderGameCard(game, config.accentColor))}
+                </View>
+              )
+            })}
+          </>
+        )}
       </View>
 
       {/* 底部提示 */}
