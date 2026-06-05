@@ -103,7 +103,7 @@ const KnowledgeDetailPage: FC = () => {
 
       {/* 顶部概览卡片 */}
       <View className={`${config.bgColor} mx-4 mt-4 rounded-xl p-4`}>
-        <View className="flex items-center gap-3 mb-3">
+        <View className="flex items-center gap-4 mb-4">
           <View className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
             <PhaseIcon size={20} color={config.color} />
           </View>
@@ -121,7 +121,7 @@ const KnowledgeDetailPage: FC = () => {
       <View className="mx-4 mt-4">
         <Text className="block text-sm font-semibold text-gray-900 mb-2">激素状态</Text>
         <View className="bg-white rounded-xl p-4">
-          <View className="flex flex-wrap gap-2">
+          <View className="flex flex-wrap gap-3">
             {Object.entries(knowledge.hormone_status || {}).map(([key, value]) => (
               <Badge key={key} variant="outline" className="text-xs">
                 {hormoneNames[key] || key}: {value}
@@ -136,7 +136,7 @@ const KnowledgeDetailPage: FC = () => {
         <Text className="block text-sm font-semibold text-gray-900 mb-2">阶段特点</Text>
         <View className="bg-white rounded-xl p-4 space-y-3">
           {knowledge.characteristics?.emotion && (
-            <View className="flex items-start gap-3">
+            <View className="flex items-start gap-4">
               <View className="w-6 h-6 rounded-full bg-pink-50 flex items-center justify-center shrink-0 mt-1">
                 <Heart size={12} color="#EC4899" />
               </View>
@@ -147,7 +147,7 @@ const KnowledgeDetailPage: FC = () => {
             </View>
           )}
           {knowledge.characteristics?.thinking && (
-            <View className="flex items-start gap-3">
+            <View className="flex items-start gap-4">
               <View className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center shrink-0 mt-1">
                 <Lightbulb size={12} color="#3B82F6" />
               </View>
@@ -158,7 +158,7 @@ const KnowledgeDetailPage: FC = () => {
             </View>
           )}
           {knowledge.characteristics?.social && (
-            <View className="flex items-start gap-3">
+            <View className="flex items-start gap-4">
               <View className="w-6 h-6 rounded-full bg-green-50 flex items-center justify-center shrink-0 mt-1">
                 <Users size={12} color="#4ECB71" />
               </View>
@@ -169,7 +169,7 @@ const KnowledgeDetailPage: FC = () => {
             </View>
           )}
           {knowledge.characteristics?.body && (
-            <View className="flex items-start gap-3">
+            <View className="flex items-start gap-4">
               <View className="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center shrink-0 mt-1">
                 <Sun size={12} color="#F59E0B" />
               </View>
@@ -180,7 +180,7 @@ const KnowledgeDetailPage: FC = () => {
             </View>
           )}
           {knowledge.characteristics?.libido && (
-            <View className="flex items-start gap-3">
+            <View className="flex items-start gap-4">
               <View className="w-6 h-6 rounded-full bg-purple-50 flex items-center justify-center shrink-0 mt-1">
                 <Heart size={12} color="#8B5CF6" />
               </View>
@@ -201,13 +201,13 @@ const KnowledgeDetailPage: FC = () => {
           {/* 推荐做的事 */}
           {knowledge.recommendations.best_actions && knowledge.recommendations.best_actions.length > 0 && (
             <View className="bg-white rounded-xl p-4 mb-2">
-              <View className="flex items-center gap-2 mb-2">
+              <View className="flex items-center gap-3 mb-2">
                 <Check size={14} color="#4ECB71" />
                 <Text className="block text-xs font-medium text-gray-700">推荐做的事</Text>
               </View>
               <View className="space-y-2">
                 {knowledge.recommendations.best_actions.map((action, index) => (
-                  <View key={index} className="flex items-start gap-2">
+                  <View key={index} className="flex items-start gap-3">
                     <View className="w-2 h-2 rounded-full bg-green-500 mt-2 shrink-0" />
                     <Text className="block text-sm text-gray-600">{action}</Text>
                   </View>
@@ -219,13 +219,13 @@ const KnowledgeDetailPage: FC = () => {
           {/* 避免做的事 */}
           {knowledge.recommendations.avoid_actions && knowledge.recommendations.avoid_actions.length > 0 && (
             <View className="bg-white rounded-xl p-4 mb-2">
-              <View className="flex items-center gap-2 mb-2">
+              <View className="flex items-center gap-3 mb-2">
                 <X size={14} color="#EF4444" />
                 <Text className="block text-xs font-medium text-gray-700">避免做的事</Text>
               </View>
               <View className="space-y-2">
                 {knowledge.recommendations.avoid_actions.map((action, index) => (
-                  <View key={index} className="flex items-start gap-2">
+                  <View key={index} className="flex items-start gap-3">
                     <View className="w-2 h-2 rounded-full bg-red-500 mt-2 shrink-0" />
                     <Text className="block text-sm text-gray-600">{action}</Text>
                   </View>
@@ -237,13 +237,13 @@ const KnowledgeDetailPage: FC = () => {
           {/* 自我照顾 */}
           {knowledge.recommendations.self_care && knowledge.recommendations.self_care.length > 0 && (
             <View className="bg-white rounded-xl p-4">
-              <View className="flex items-center gap-2 mb-2">
+              <View className="flex items-center gap-3 mb-2">
                 <Heart size={14} color="#EC4899" />
                 <Text className="block text-xs font-medium text-gray-700">自我照顾</Text>
               </View>
               <View className="space-y-2">
                 {knowledge.recommendations.self_care.map((action, index) => (
-                  <View key={index} className="flex items-start gap-2">
+                  <View key={index} className="flex items-start gap-3">
                     <View className="w-2 h-2 rounded-full bg-pink-500 mt-2 shrink-0" />
                     <Text className="block text-sm text-gray-600">{action}</Text>
                   </View>

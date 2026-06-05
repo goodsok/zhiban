@@ -175,7 +175,7 @@ const CreatePage: FC = () => {
       <View className="p-4">
         {/* AI 图片分析 */}
         <View className="mb-4">
-          <View className="flex items-center gap-2 mb-2">
+          <View className="flex items-center gap-3 mb-2">
             <Sparkles size={14} color="#6B7280" />
             <Text className="block text-xs text-gray-400">AI 智能分析</Text>
             <Text className="block text-xs text-gray-300">最多3张图片</Text>
@@ -183,7 +183,7 @@ const CreatePage: FC = () => {
           <View className="bg-white rounded-xl p-4">
             {/* 已选图片列表 */}
             {selectedImages.length > 0 && (
-              <View className="flex flex-wrap gap-2 mb-3">
+              <View className="flex flex-wrap gap-3 mb-4">
                 {selectedImages.map((img, index) => (
                   <View key={index} className="relative">
                     <Image 
@@ -260,7 +260,7 @@ const CreatePage: FC = () => {
         {/* 性别 */}
         <View className="mb-4">
           <Text className="block text-xs text-gray-400 mb-2">性别</Text>
-          <View className="flex gap-2">
+          <View className="flex gap-3">
             <View 
               className={`flex-1 text-center py-2 rounded-lg ${
                 formData.gender === 'female' ? 'bg-green-500 text-white' : 'bg-white border border-gray-200 text-gray-600'
@@ -283,7 +283,7 @@ const CreatePage: FC = () => {
         {/* 见面场景 */}
         <View className="mb-4">
           <Text className="block text-xs text-gray-400 mb-2">见面场景</Text>
-          <View className="flex flex-wrap gap-2">
+          <View className="flex flex-wrap gap-3">
             {meetingScenes.map((scene) => (
               <Badge
                 key={scene.id}

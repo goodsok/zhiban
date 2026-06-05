@@ -196,7 +196,7 @@ const BreathPage: FC = () => {
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">游戏规则</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-4">游戏规则</Text>
                 <View className="space-y-2">
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-sky-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
@@ -286,7 +286,7 @@ const BreathPage: FC = () => {
         {/* 当前阶段说明 */}
         {step === 'playing' && currentPhase && (
           <View className="flex flex-col items-center">
-            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center mb-3">
+            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center mb-4">
               <Text className="text-2xl">🌬️</Text>
             </View>
             <View className="flex flex-row items-center mb-1">
@@ -301,7 +301,7 @@ const BreathPage: FC = () => {
             <Card className="mb-4 w-full">
               <CardContent className="py-5">
                 <View className="flex flex-col items-center">
-                  <Text className="text-xs text-gray-500 mb-3">怎么做</Text>
+                  <Text className="text-xs text-gray-500 mb-4">怎么做</Text>
                   <Text className="block text-base text-gray-800 text-center leading-relaxed font-medium">
                     {currentPhase.instruction}
                   </Text>
@@ -353,7 +353,7 @@ const BreathPage: FC = () => {
             <View className="w-36 h-36 rounded-full bg-gradient-to-br from-teal-400 to-green-500 flex items-center justify-center mb-4">
               <Text className="block text-3xl font-bold text-white">{countdown}</Text>
             </View>
-            <Text className="block text-xl font-medium text-sky-600 mb-3">{breathText}</Text>
+            <Text className="block text-xl font-medium text-sky-600 mb-4">{breathText}</Text>
             <Text className="block text-sm text-gray-400 text-center px-8 italic">{currentPhase.tip}</Text>
           </View>
         )}
@@ -397,7 +397,7 @@ const BreathPage: FC = () => {
         {/* 游戏总结 */}
         {step === 'summary' && (
           <View className="flex flex-col items-center">
-            <Text className="block text-5xl mb-3">{totalScore >= 90 ? '💞' : '🌙'}</Text>
+            <Text className="block text-5xl mb-4">{totalScore >= 90 ? '💞' : '🌙'}</Text>
             <Text className="block text-2xl font-bold text-gray-900 mb-1">{getSummaryTitle()}</Text>
             <Text className="block text-sm text-gray-500 mb-6">亲密度 {totalScore} 分</Text>
 
@@ -411,7 +411,7 @@ const BreathPage: FC = () => {
 
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">同步记录</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-4">同步记录</Text>
                 {breathPhases.map(phase => (
                   <View key={phase.id} className="flex flex-row items-center justify-between py-2">
                     <View className="flex flex-row items-center">

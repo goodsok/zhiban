@@ -323,7 +323,7 @@ const UserProfilePage: FC = () => {
       {/* 置信度提示 */}
       <View className="px-4 pt-4">
         <View className="flex items-center justify-between bg-white rounded-xl p-3">
-          <View className="flex items-center gap-2">
+          <View className="flex items-center gap-3">
             <User size={16} color="#6B7280" />
             <Text className="block text-sm text-gray-600">
               档案完整度 {profile.confidence}%
@@ -338,7 +338,7 @@ const UserProfilePage: FC = () => {
       {/* Tab 切换 */}
       <View className="px-4 pt-4">
         <ScrollView scrollX className="whitespace-nowrap">
-          <View className="flex bg-gray-100 border border-gray-200 rounded-lg p-1 inline-flex min-w-full">
+          <View className="flex bg-gray-100 rounded-lg p-1 inline-flex min-w-full">
             {[
               { key: 'basic', label: '基本信息' },
               { key: 'personality', label: '性格情感' },
@@ -376,7 +376,7 @@ const UserProfilePage: FC = () => {
             {/* 昵称 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">昵称</Text>
-              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+              <View className="bg-gray-50 rounded-lg px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="请输入昵称"
@@ -390,7 +390,7 @@ const UserProfilePage: FC = () => {
             {/* 性别 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">性别</Text>
-              <View className="flex gap-3">
+              <View className="flex gap-4">
                 {genderOptions.map((option) => (
                   <View
                     key={option.value}
@@ -410,7 +410,7 @@ const UserProfilePage: FC = () => {
             {/* 出生年份 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">出生年份</Text>
-              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+              <View className="bg-gray-50 rounded-lg px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：1995"
@@ -425,7 +425,7 @@ const UserProfilePage: FC = () => {
             {/* 身高 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">身高 (cm)</Text>
-              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+              <View className="bg-gray-50 rounded-lg px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：175"
@@ -440,7 +440,7 @@ const UserProfilePage: FC = () => {
             {/* 学历 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">学历</Text>
-              <View className="flex flex-wrap gap-2">
+              <View className="flex flex-wrap gap-3">
                 {educationOptions.map((option) => (
                   <View
                     key={option.value}
@@ -458,7 +458,7 @@ const UserProfilePage: FC = () => {
             {/* 职业 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">职业</Text>
-              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+              <View className="bg-gray-50 rounded-lg px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：产品经理"
@@ -472,7 +472,7 @@ const UserProfilePage: FC = () => {
             {/* 所在地 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">所在地</Text>
-              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+              <View className="bg-gray-50 rounded-lg px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：北京"
@@ -486,7 +486,7 @@ const UserProfilePage: FC = () => {
             {/* 自我介绍 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">自我介绍</Text>
-              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+              <View className="bg-gray-50 rounded-lg px-4 py-3">
                 <Textarea
                   className="w-full bg-transparent text-sm"
                   placeholder="写几句话介绍自己..."
@@ -504,7 +504,7 @@ const UserProfilePage: FC = () => {
       {activeSection === 'personality' && (
         <View className="p-4">
           {/* 性格自评说明 */}
-          <View className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4">
+          <View className="bg-gray-50 rounded-xl p-3 mb-4">
             <Text className="block text-sm text-gray-600">
               💡 拖动滑块评估自己在每个维度上的倾向。这些信息会帮助AI更好地理解你，提供更贴合你性格的建议。
             </Text>
@@ -512,19 +512,19 @@ const UserProfilePage: FC = () => {
 
           {/* MBTI 选择 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <Text className="block text-sm font-semibold text-gray-900">MBTI 人格类型</Text>
               <Text className="block text-xs text-gray-400 ml-auto">选填</Text>
             </View>
-            <Text className="block text-xs text-gray-400 mb-3">选择你的 MBTI 类型，帮助 AI 更精准地理解你的性格</Text>
-            <View className="grid grid-cols-4 gap-2">
+            <Text className="block text-xs text-gray-400 mb-4">选择你的 MBTI 类型，帮助 AI 更精准地理解你的性格</Text>
+            <View className="grid grid-cols-4 gap-3">
               {mbtiOptions.map((option) => (
                 <View
                   key={option.value}
                   className={`rounded-lg p-2 text-center ${
                     profile.mbti === option.value
                       ? 'bg-blue-500 border-2 border-blue-500'
-                      : 'bg-gray-50 border border-gray-200'
+                      : 'bg-gray-50'
                   }`}
                   onClick={() => updateProfile({ mbti: profile.mbti === option.value ? null : option.value })}
                 >
@@ -548,7 +548,7 @@ const UserProfilePage: FC = () => {
           </View>
 
           <View className="bg-white rounded-xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-4">
+            <View className="flex items-center gap-3 mb-4">
               <Sparkles size={16} color="#6B7280" />
               <Text className="block text-sm font-semibold text-gray-900">性格自评</Text>
               <Text className="block text-xs text-gray-400 ml-auto">基于五大人格理论</Text>
@@ -671,7 +671,7 @@ const UserProfilePage: FC = () => {
           </View>
 
           <View className="bg-white rounded-xl p-4">
-            <View className="flex items-center gap-2 mb-4">
+            <View className="flex items-center gap-3 mb-4">
               <Heart size={16} color="#6B7280" />
               <Text className="block text-sm font-semibold text-gray-900">情感特点</Text>
             </View>
@@ -753,7 +753,7 @@ const UserProfilePage: FC = () => {
         <View className="p-4">
           {/* 恋爱目标 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">恋爱目标</Text>
+            <Text className="block text-sm font-semibold text-gray-900 mb-4">恋爱目标</Text>
             <View className="space-y-2">
               {relationshipGoalOptions.map((option) => (
                 <View
@@ -774,7 +774,7 @@ const UserProfilePage: FC = () => {
 
           {/* 依恋类型 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">依恋类型</Text>
+            <Text className="block text-sm font-semibold text-gray-900 mb-4">依恋类型</Text>
             <View className="space-y-2">
               {attachmentStyleOptions.map((option) => (
                 <View
@@ -795,8 +795,8 @@ const UserProfilePage: FC = () => {
 
           {/* 爱的语言 */}
           <View className="bg-white rounded-xl p-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">爱的语言（可多选）</Text>
-            <View className="flex flex-wrap gap-2">
+            <Text className="block text-sm font-semibold text-gray-900 mb-4">爱的语言（可多选）</Text>
+            <View className="flex flex-wrap gap-3">
               {loveLanguageOptions.map((option) => (
                 <View
                   key={option.value}
@@ -819,11 +819,11 @@ const UserProfilePage: FC = () => {
         <View className="p-4">
           {/* 爱好 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <Heart size={14} color="#6B7280" />
               <Text className="block text-sm font-semibold text-gray-900">爱好（可多选）</Text>
             </View>
-            <View className="flex flex-wrap gap-2">
+            <View className="flex flex-wrap gap-3">
               {hobbyOptions.map((option) => (
                 <View
                   key={option.value}
@@ -841,11 +841,11 @@ const UserProfilePage: FC = () => {
 
           {/* 兴趣领域 */}
           <View className="bg-white rounded-xl p-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <Sparkles size={14} color="#6B7280" />
               <Text className="block text-sm font-semibold text-gray-900">兴趣领域（可多选）</Text>
             </View>
-            <View className="flex flex-wrap gap-2">
+            <View className="flex flex-wrap gap-3">
               {interestOptions.map((option) => (
                 <View
                   key={option.value}
@@ -868,11 +868,11 @@ const UserProfilePage: FC = () => {
         <View className="p-4">
           {/* 期望特质 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <Target size={14} color="#6B7280" />
               <Text className="block text-sm font-semibold text-gray-900">期望的特质（可多选）</Text>
             </View>
-            <View className="flex flex-wrap gap-2">
+            <View className="flex flex-wrap gap-3">
               {preferredTraitOptions.map((option) => (
                 <View
                   key={option.value}
@@ -889,11 +889,11 @@ const UserProfilePage: FC = () => {
 
           {/* 不能接受的点 */}
           <View className="bg-white rounded-xl p-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <X size={14} color="#6B7280" />
               <Text className="block text-sm font-semibold text-gray-900">不能接受的点（可多选）</Text>
             </View>
-            <View className="flex flex-wrap gap-2">
+            <View className="flex flex-wrap gap-3">
               {dealBreakerOptions.map((option) => (
                 <View
                   key={option.value}
@@ -915,11 +915,11 @@ const UserProfilePage: FC = () => {
         <View className="p-4">
           {/* 线上沟通风格 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-1">
+            <View className="flex items-center gap-3 mb-1">
               <MessageCircle size={14} color="#3B82F6" />
               <Text className="block text-sm font-semibold text-gray-900">线上沟通风格</Text>
             </View>
-            <Text className="block text-xs text-gray-400 mb-3">微信/电话等线上场景</Text>
+            <Text className="block text-xs text-gray-400 mb-4">微信/电话等线上场景</Text>
             <View className="space-y-2">
               {communicationStyleOnlineOptions.map((option) => (
                 <View
@@ -943,11 +943,11 @@ const UserProfilePage: FC = () => {
 
           {/* 线下沟通风格 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-1">
+            <View className="flex items-center gap-3 mb-1">
               <MessageCircle size={14} color="#F97316" />
               <Text className="block text-sm font-semibold text-gray-900">线下沟通风格</Text>
             </View>
-            <Text className="block text-xs text-gray-400 mb-3">见面时的沟通方式</Text>
+            <Text className="block text-xs text-gray-400 mb-4">见面时的沟通方式</Text>
             <View className="space-y-2">
               {communicationStyleOfflineOptions.map((option) => (
                 <View
@@ -977,7 +977,7 @@ const UserProfilePage: FC = () => {
 
           {/* 回复速度 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">你通常多久回复消息？</Text>
+            <Text className="block text-sm font-semibold text-gray-900 mb-4">你通常多久回复消息？</Text>
             <View className="space-y-2">
               {responseSpeedOptions.map((option) => (
                 <View
@@ -1001,7 +1001,7 @@ const UserProfilePage: FC = () => {
 
           {/* 社交能量 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">社交能量</Text>
+            <Text className="block text-sm font-semibold text-gray-900 mb-4">社交能量</Text>
             <View className="space-y-2">
               {socialEnergyOptions.map((option) => (
                 <View
@@ -1025,8 +1025,8 @@ const UserProfilePage: FC = () => {
 
           {/* 活跃时段 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">活跃时段（可多选）</Text>
-            <View className="flex flex-wrap gap-2">
+            <Text className="block text-sm font-semibold text-gray-900 mb-4">活跃时段（可多选）</Text>
+            <View className="flex flex-wrap gap-3">
               {timeSlotOptions.map((option) => (
                 <View
                   key={option.value}
@@ -1044,7 +1044,7 @@ const UserProfilePage: FC = () => {
 
           {/* 表达风格 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">表达风格</Text>
+            <Text className="block text-sm font-semibold text-gray-900 mb-4">表达风格</Text>
             <View className="space-y-2">
               {expressionStyleOptions.map((option) => (
                 <View
@@ -1068,8 +1068,8 @@ const UserProfilePage: FC = () => {
 
           {/* 偏爱话题 */}
           <View className="bg-white rounded-xl p-4 mb-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">偏爱话题（可多选）</Text>
-            <View className="flex flex-wrap gap-2">
+            <Text className="block text-sm font-semibold text-gray-900 mb-4">偏爱话题（可多选）</Text>
+            <View className="flex flex-wrap gap-3">
               {topicOptions.map((option) => (
                 <View
                   key={option.value}
@@ -1087,8 +1087,8 @@ const UserProfilePage: FC = () => {
 
           {/* 回避话题 */}
           <View className="bg-white rounded-xl p-4">
-            <Text className="block text-sm font-semibold text-gray-900 mb-3">回避话题（可多选）</Text>
-            <View className="flex flex-wrap gap-2">
+            <Text className="block text-sm font-semibold text-gray-900 mb-4">回避话题（可多选）</Text>
+            <View className="flex flex-wrap gap-3">
               {topicOptions.map((option) => (
                 <View
                   key={option.value}

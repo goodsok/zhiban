@@ -103,11 +103,11 @@ const SpeedPlanListPage: FC = () => {
 
   // 加载骨架屏
   const renderSkeleton = () => (
-    <View className="flex flex-col gap-3">
+    <View className="flex flex-col gap-4">
       {Array.from({ length: 3 }).map((_, i) => (
         <Card key={i} className="rounded-xl">
           <CardContent className="p-4">
-            <View className="flex items-center gap-3 mb-3">
+            <View className="flex items-center gap-4 mb-4">
               <Skeleton className="w-10 h-10 rounded-full shrink-0" />
               <View className="flex-1">
                 <Skeleton className="h-4 w-20 mb-2 rounded" />
@@ -175,11 +175,11 @@ const SpeedPlanListPage: FC = () => {
       >
         <CardContent className="p-4">
           {/* 头部：头像 + 名称 + 状态 + 箭头 */}
-          <View className="flex items-center justify-between mb-3">
-            <View className="flex items-center gap-3">
+          <View className="flex items-center justify-between mb-4">
+            <View className="flex items-center gap-4">
               {renderMatchAvatar(plan.matches?.name || '', plan.matches?.avatar_url)}
               <View>
-                <View className="flex items-center gap-2">
+                <View className="flex items-center gap-3">
                   <Text className="block font-medium text-gray-900">
                     {plan.matches?.name || '未知对象'}
                   </Text>
@@ -213,7 +213,7 @@ const SpeedPlanListPage: FC = () => {
 
           {/* 难度 - 带颜色标识 */}
           <View className="flex items-center justify-between mt-2">
-            <View className="flex items-center gap-2">
+            <View className="flex items-center gap-3">
               <Text className="block text-sm text-gray-500">
                 难度：
               </Text>
@@ -247,7 +247,7 @@ const SpeedPlanListPage: FC = () => {
       {/* 内容区 */}
       <View className="p-4">
         {loading ? renderSkeleton() : error ? renderError() : plans.length === 0 ? renderEmpty() : (
-          <View className="flex flex-col gap-3">
+          <View className="flex flex-col gap-4">
             {plans.map(renderPlanCard)}
           </View>
         )}

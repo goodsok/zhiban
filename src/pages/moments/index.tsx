@@ -80,7 +80,7 @@ const MomentsPage: FC = () => {
       {/* 使用提示 */}
       <View className="px-4 mt-4">
         <View className="bg-amber-50 rounded-xl p-4">
-          <View className="flex items-start gap-3">
+          <View className="flex items-start gap-4">
             <Sparkles size={20} color="#F59E0B" />
             <View className="flex-1">
               <Text className="block text-sm font-medium text-amber-800">使用技巧</Text>

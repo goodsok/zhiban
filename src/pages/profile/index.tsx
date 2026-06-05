@@ -105,7 +105,7 @@ const ProfilePage: FC = () => {
     <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 用户信息卡片 */}
       <View className="p-4">
-        <Card className="shadow border-0 bg-green-600">
+        <Card className="shadow-soft border-0 bg-green-600">
           <CardContent className="p-6">
             <View className="flex items-center gap-4">
               {/* 头像选择 */}
@@ -182,8 +182,8 @@ const ProfilePage: FC = () => {
 
       {/* 数据统计 */}
       <View className="p-4 mt-2">
-        <View className="grid grid-cols-3 gap-3">
-          <Card className="shadow border-0">
+        <View className="grid grid-cols-3 gap-4">
+          <Card className="shadow-soft border-0">
             <CardContent className="p-3 text-center">
               <View className="flex items-center justify-center gap-1">
                 <Users size={16} color="#111827" />
@@ -192,7 +192,7 @@ const ProfilePage: FC = () => {
               <Text className="block text-xs text-gray-500">接触对象</Text>
             </CardContent>
           </Card>
-          <Card className="shadow border-0">
+          <Card className="shadow-soft border-0">
             <CardContent className="p-3 text-center">
               <View className="flex items-center justify-center gap-1">
                 <Heart size={16} color="#EC4899" />
@@ -201,7 +201,7 @@ const ProfilePage: FC = () => {
               <Text className="block text-xs text-gray-500">完成互动</Text>
             </CardContent>
           </Card>
-          <Card className="shadow border-0">
+          <Card className="shadow-soft border-0">
             <CardContent className="p-3 text-center">
               <Text className="block text-2xl font-bold text-green-500">{stats.compatibility}%</Text>
               <Text className="block text-xs text-gray-500">平均契合度</Text>
@@ -212,9 +212,9 @@ const ProfilePage: FC = () => {
 
       {/* 成就 */}
       <View className="p-4">
-        <Card className="shadow border-0">
+        <Card className="shadow-soft border-0">
           <CardContent className="p-4">
-            <View className="flex items-center justify-between mb-3">
+            <View className="flex items-center justify-between mb-4">
               <Text className="block font-semibold text-gray-800">我的成就</Text>
               <Text className="block text-sm text-gray-500">查看全部</Text>
             </View>
@@ -250,10 +250,10 @@ const ProfilePage: FC = () => {
 
       {/* 我的档案入口 */}
       <View className="p-4">
-        <Card className="shadow border-0">
+        <Card className="shadow-soft border-0">
           <CardContent className="p-4">
             <View 
-              className="flex items-center gap-3"
+              className="flex items-center gap-4"
               onClick={() => Taro.navigateTo({ url: '/pages/user-profile/index' })}
             >
               <View className="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center">
@@ -271,11 +271,11 @@ const ProfilePage: FC = () => {
 
       {/* 功能菜单 */}
       <View className="p-4">
-        <Card className="shadow border-0">
+        <Card className="shadow-soft border-0">
           <CardContent className="p-0">
             {menuItems.map((item, index) => (
               <View key={index}>
-                <View className="flex items-center gap-3 p-4">
+                <View className="flex items-center gap-4 p-4">
                   <View className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
                     <item.icon size={20} color="#374151" />
                   </View>

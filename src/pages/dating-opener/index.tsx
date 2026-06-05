@@ -345,7 +345,7 @@ const DatingOpenerPage: FC = () => {
           </CardHeader>
           <CardContent>
             <View
-              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
+              className="bg-gray-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
               onClick={() => setShowPlatformPicker(!showPlatformPicker)}
             >
               <View className="flex flex-row items-center">
@@ -387,7 +387,7 @@ const DatingOpenerPage: FC = () => {
             <CardTitle className="text-base">对方资料</CardTitle>
           </CardHeader>
           <CardContent>
-            <View className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-3">
+            <View className="bg-gray-50 rounded-xl p-4 mb-4">
               <Textarea
                 style={{ width: '100%', height: '200px', backgroundColor: 'transparent' }}
                 placeholder="描述对方的资料，如：昵称、简介、兴趣标签、照片内容等..."
@@ -409,7 +409,7 @@ const DatingOpenerPage: FC = () => {
             </View>
           </CardHeader>
           <CardContent>
-            <View className="bg-purple-50 rounded-xl p-4 mb-3">
+            <View className="bg-purple-50 rounded-xl p-4 mb-4">
               <Textarea
                 style={{ width: '100%', height: '120px', backgroundColor: 'transparent' }}
                 placeholder="描述你自己的风格偏好，如：我比较幽默、喜欢直来直去、偏内向安静..."
@@ -424,7 +424,7 @@ const DatingOpenerPage: FC = () => {
         </Card>
 
         {/* 操作按钮 */}
-        <View className="flex flex-row gap-3 mb-4">
+        <View className="flex flex-row gap-4 mb-4">
           <View className="flex-1">
             <Button variant="default" className="bg-purple-500 text-white rounded-xl" disabled={!canGenerate} onClick={handleGenerate}>
               <Text className="text-white">{loading ? '生成中...' : '生成开场白'}</Text>
@@ -481,25 +481,25 @@ const DatingOpenerPage: FC = () => {
               const copyKey = `${index}-${opener.category}`
               const isCopied = copiedIndex === copyKey
               return (
-                <Card key={index} className="mb-3">
+                <Card key={index} className="mb-4">
                   <CardContent className="py-4">
                     {/* 分类和风格标签 */}
-                    <View className="flex flex-row items-center mb-3">
+                    <View className="flex flex-row items-center mb-4">
                       <View className={`${categoryColor.bg} rounded-full px-3 py-1 mr-2`}>
                         <Text className={`text-xs ${categoryColor.text}`}>{opener.category}</Text>
                       </View>
-                      <View className="bg-gray-100 border border-gray-300 rounded-full px-3 py-1">
+                      <View className="bg-gray-100 rounded-full px-3 py-1">
                         <Text className="text-xs text-gray-600">{opener.style}</Text>
                       </View>
                     </View>
 
                     {/* 开场白内容 */}
-                    <View className="bg-purple-50 rounded-xl px-4 py-3 mb-3">
+                    <View className="bg-purple-50 rounded-xl px-4 py-3 mb-4">
                       <Text className="block text-base text-gray-900 leading-relaxed">{opener.content}</Text>
                     </View>
 
                     {/* 理由 */}
-                    <Text className="block text-xs text-gray-500 mb-3">{opener.reason}</Text>
+                    <Text className="block text-xs text-gray-500 mb-4">{opener.reason}</Text>
 
                     {/* 复制按钮 */}
                     <View className="flex flex-row justify-end">

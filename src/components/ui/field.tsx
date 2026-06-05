@@ -11,7 +11,7 @@ function FieldSet({ className, ...props }: React.ComponentPropsWithoutRef<typeof
     <View
       data-slot="field-set"
       className={cn(
-        "flex flex-col gap-3",
+        "flex flex-col gap-4",
         className
       )}
       {...props}
@@ -44,7 +44,7 @@ function FieldGroup({ className, ...props }: React.ComponentPropsWithoutRef<type
     <View
       data-slot="field-group"
       className={cn(
-        "flex w-full flex-col gap-3 data-[slot=checkbox-group]:gap-3",
+        "flex w-full flex-col gap-4 data-[slot=checkbox-group]:gap-3",
         className
       )}
       {...props}
@@ -91,7 +91,7 @@ function FieldContent({ className, ...props }: React.ComponentPropsWithoutRef<ty
     <View
       data-slot="field-content"
       className={cn(
-        "flex flex-1 flex-col gap-2 leading-snug",
+        "flex flex-1 flex-col gap-3 leading-snug",
         className
       )}
       {...props}
@@ -107,7 +107,7 @@ function FieldLabel({
     <Label
       data-slot="field-label"
       className={cn(
-        "flex w-fit gap-2 leading-snug",
+        "flex w-fit gap-3 leading-snug",
         "[&>view]:p-1",
         className
       )}
@@ -121,7 +121,7 @@ function FieldTitle({ className, ...props }: React.ComponentPropsWithoutRef<type
     <View
       data-slot="field-label"
       className={cn(
-        "flex w-fit items-center gap-2 text-sm font-medium leading-snug",
+        "flex w-fit items-center gap-3 text-sm font-medium leading-snug",
         className
       )}
       {...props}

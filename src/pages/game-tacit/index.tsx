@@ -257,11 +257,11 @@ const TacitPage: FC = () => {
       <View className="p-4">
         {step === 'select' && (
           <>
-            <Text className="block text-sm font-medium text-gray-500 mb-3">选择测试类型</Text>
+            <Text className="block text-sm font-medium text-gray-500 mb-4">选择测试类型</Text>
             {categories.map((category) => (
               <Card 
                 key={category.id} 
-                className="mb-3 overflow-hidden"
+                className="mb-4 overflow-hidden"
                 onClick={() => handleSelectCategory(category)}
               >
                 <View className={`bg-gradient-to-r ${category.color} px-4 py-4`}>
@@ -323,7 +323,7 @@ const TacitPage: FC = () => {
                 <View className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
                   <Users size={40} color="#6366f1" />
                 </View>
-                <Text className="block text-xl font-bold text-gray-900 mb-3">
+                <Text className="block text-xl font-bold text-gray-900 mb-4">
                   请将设备交给 B
                 </Text>
                 <Text className="block text-sm text-gray-500 text-center mb-2 leading-relaxed">
@@ -421,7 +421,7 @@ const TacitPage: FC = () => {
             {/* 答案对比 */}
             <Card className="mb-4">
               <CardContent className="py-4">
-                <View className="flex flex-row items-center mb-3">
+                <View className="flex flex-row items-center mb-4">
                   <Sparkles size={16} color="#a855f7" />
                   <Text className="text-sm font-semibold text-gray-900 ml-2">答案对比</Text>
                 </View>

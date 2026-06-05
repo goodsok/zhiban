@@ -244,7 +244,7 @@ const PulsePage: FC = () => {
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">游戏规则</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-4">游戏规则</Text>
                 <View className="space-y-2">
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
@@ -345,7 +345,7 @@ const PulsePage: FC = () => {
         {/* 挑战说明 */}
         {step === 'measure' && currentChallenge && (
           <View className="flex flex-col items-center">
-            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-100 to-red-100 flex items-center justify-center mb-3">
+            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-100 to-red-100 flex items-center justify-center mb-4">
               <Text className="text-2xl">{getIntensityEmoji(currentChallenge.intensity)}</Text>
             </View>
             <Text className="block text-xl font-bold text-gray-900 mb-1">{currentChallenge.name}</Text>
@@ -354,7 +354,7 @@ const PulsePage: FC = () => {
             <Card className="mb-4 w-full">
               <CardContent className="py-5">
                 <View className="flex flex-col items-center">
-                  <Text className="text-xs text-gray-500 mb-3">怎么做</Text>
+                  <Text className="text-xs text-gray-500 mb-4">怎么做</Text>
                   <Text className="block text-base text-gray-800 text-center leading-relaxed font-medium">
                     {currentChallenge.instruction}
                   </Text>
@@ -432,10 +432,10 @@ const PulsePage: FC = () => {
               A 数 B 的脉搏跳动次数，B 数 A 的脉搏跳动次数
             </Text>
 
-            <Card className="mb-3 w-full">
+            <Card className="mb-4 w-full">
               <CardContent className="py-4">
                 <Text className="block text-sm font-medium text-gray-700 mb-2">A 感受到 B 的脉搏次数（{currentChallenge.duration}秒）</Text>
-                <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                <View className="bg-gray-50 rounded-xl px-4 py-3">
                   <input
                     type="number"
                     className="w-full bg-transparent text-2xl font-bold text-center text-gray-800"
@@ -450,7 +450,7 @@ const PulsePage: FC = () => {
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
                 <Text className="block text-sm font-medium text-gray-700 mb-2">B 感受到 A 的脉搏次数（{currentChallenge.duration}秒）</Text>
-                <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                <View className="bg-gray-50 rounded-xl px-4 py-3">
                   <input
                     type="number"
                     className="w-full bg-transparent text-2xl font-bold text-center text-gray-800"
@@ -485,11 +485,11 @@ const PulsePage: FC = () => {
               const bChange = latest.bBeats - baseline.bBeats
               return (
                 <>
-                  <Text className="block text-3xl mb-3">{getIntensityEmoji(latest.intensity)}</Text>
+                  <Text className="block text-3xl mb-4">{getIntensityEmoji(latest.intensity)}</Text>
                   <Text className="block text-lg font-bold text-gray-900 mb-1">{latest.challengeName} 数据</Text>
                   <Text className="block text-sm text-gray-400 mb-4">对比基线变化</Text>
 
-                  <View className="w-full flex flex-row gap-3 mb-4">
+                  <View className="w-full flex flex-row gap-4 mb-4">
                     <Card className="flex-1">
                       <CardContent className="py-4">
                         <View className="flex flex-col items-center">
@@ -559,7 +559,7 @@ const PulsePage: FC = () => {
               const verdict = getOverallVerdict()
               return (
                 <>
-                  <Text className="block text-5xl mb-3">{verdict.emoji}</Text>
+                  <Text className="block text-5xl mb-4">{verdict.emoji}</Text>
                   <Text className="block text-xl font-bold text-gray-900 mb-2">心跳报告</Text>
                   <Card className="mb-4 w-full">
                     <CardContent className="py-4">
@@ -574,14 +574,14 @@ const PulsePage: FC = () => {
 
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">心跳变化曲线</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-4">心跳变化曲线</Text>
                 {measurements.map((m, idx) => (
                   <View key={idx} className="flex flex-row items-center justify-between py-2 border-b border-gray-100 last:border-0">
                     <View className="flex flex-row items-center flex-1">
                       <Text className="mr-2">{getIntensityEmoji(m.intensity)}</Text>
                       <Text className="text-sm text-gray-700">{m.challengeName}</Text>
                     </View>
-                    <View className="flex flex-row items-center gap-3">
+                    <View className="flex flex-row items-center gap-4">
                       <View className="flex flex-row items-center">
                         <Text className="text-xs text-gray-400">A</Text>
                         <Text className="text-sm font-medium text-gray-900 ml-1">{m.aBeats}</Text>

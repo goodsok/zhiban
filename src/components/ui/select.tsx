@@ -127,7 +127,7 @@ const SelectTrigger = React.forwardRef<
       {...props}
       id={context?.triggerId}
       className={cn(
-        "flex w-fit items-center justify-between gap-2 rounded-lg border border-input bg-transparent pr-2 pl-3 text-sm whitespace-nowrap transition-colors outline-none select-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-4",
+        "flex w-fit items-center justify-between gap-3 rounded-lg border border-input bg-transparent pr-2 pl-3 text-sm whitespace-nowrap transition-colors outline-none select-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-4",
         size === "default" && "h-8 py-2",
         size === "sm" && "h-7 py-1 rounded-[10px]",
         context?.open &&
@@ -386,7 +386,7 @@ const SelectItem = React.forwardRef<
     <View
       ref={ref}
       className={cn(
-        "relative flex w-full cursor-default items-center gap-2 rounded-md py-1 pr-8 pl-2 text-sm outline-none select-none transition-colors focus:bg-accent focus:text-accent-foreground",
+        "relative flex w-full cursor-default items-center gap-3 rounded-md py-1 pr-8 pl-2 text-sm outline-none select-none transition-colors focus:bg-accent focus:text-accent-foreground",
         disabled && "opacity-50 pointer-events-none",
         className
       )}
@@ -399,7 +399,7 @@ const SelectItem = React.forwardRef<
       }}
       {...props}
     >
-      <View className="flex flex-1 shrink-0 gap-2 whitespace-nowrap">
+      <View className="flex flex-1 shrink-0 gap-3 whitespace-nowrap">
         {children}
       </View>
       {isSelected ? (

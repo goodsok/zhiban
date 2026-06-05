@@ -106,7 +106,7 @@ const MomentsHistoryPage: FC = () => {
           </View>
         ) : posts.length === 0 ? (
           <View className="text-center py-12">
-            <View className="w-16 h-16 bg-gray-100 border border-gray-300 rounded-full flex items-center justify-center mx-auto mb-4">
+            <View className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Calendar size={32} color="#9CA3AF" />
             </View>
             <Text className="block text-gray-400 mb-2">还没有发布记录</Text>
@@ -116,11 +116,11 @@ const MomentsHistoryPage: FC = () => {
           posts.map((post) => (
             <View
               key={post.id}
-              className="bg-white rounded-xl p-4 mb-3"
+              className="bg-white rounded-xl p-4 mb-4"
             >
               {/* 头部标签 */}
-              <View className="flex items-center justify-between mb-3">
-                <View className="flex items-center gap-2">
+              <View className="flex items-center justify-between mb-4">
+                <View className="flex items-center gap-3">
                   <View className="px-2 py-1 bg-green-50 rounded">
                     <Text className="block text-xs text-green-600">
                       {TYPE_LABELS[post.post_type] || post.post_type}
@@ -141,13 +141,13 @@ const MomentsHistoryPage: FC = () => {
               </View>
 
               {/* 内容预览 */}
-              <Text className="block text-sm text-gray-700 mb-3 leading-relaxed">
+              <Text className="block text-sm text-gray-700 mb-4 leading-relaxed">
                 {getContentPreview(post.content)}
               </Text>
 
               {/* 人设标签 */}
               {post.persona_tags && post.persona_tags.length > 0 && (
-                <View className="flex flex-wrap gap-1 mb-3">
+                <View className="flex flex-wrap gap-1 mb-4">
                   {post.persona_tags.map((tag) => (
                     <View key={tag} className="px-2 py-1 bg-gray-100 rounded">
                       <Text className="block text-xs text-gray-500">{tag}</Text>

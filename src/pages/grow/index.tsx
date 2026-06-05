@@ -461,7 +461,7 @@ const GrowPage: FC = () => {
       {/* Tab切换 */}
       <View className="bg-white px-4 pt-3 border-b">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-gray-100 border border-gray-200 rounded-lg h-10">
+          <TabsList className="w-full bg-gray-100 rounded-lg h-10">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
@@ -513,7 +513,7 @@ const GrowPage: FC = () => {
               const years = getYearsTogether(item.date)
 
               return (
-                <Card key={item.id} className="mb-3 overflow-hidden">
+                <Card key={item.id} className="mb-4 overflow-hidden">
                   <View className="bg-gray-700 px-4 py-4">
                     <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                       <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
@@ -610,7 +610,7 @@ const GrowPage: FC = () => {
             </Card>
 
             {goals.map((item) => (
-              <Card key={item.id} className="mb-3">
+              <Card key={item.id} className="mb-4">
                 <CardContent className="py-4">
                   <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <View className="flex-1">
@@ -625,7 +625,7 @@ const GrowPage: FC = () => {
                       <Trash2 size={14} color="#ef4444" />
                     </View>
                   </View>
-                  <View className="mt-3 mb-3">
+                  <View className="mt-3 mb-4">
                     <Progress value={(item.progress / item.total) * 100} className="h-2" />
                   </View>
                   <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -686,7 +686,7 @@ const GrowPage: FC = () => {
             <Text className="block text-xs text-gray-400">美好回忆</Text>
 
             {memories.map((item) => (
-              <Card key={item.id} className="mb-3">
+              <Card key={item.id} className="mb-4">
                 <CardContent className="py-4">
                   <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <View className="flex-1">
@@ -766,7 +766,7 @@ const GrowPage: FC = () => {
 
             {/* 完成进度 */}
             {promises.length > 0 && (
-              <Card className="mb-3 p-4 bg-gray-50">
+              <Card className="mb-4 p-4 bg-gray-50">
                 <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                   <Heart size={16} color="#000000" />
                   <Text className="block text-xs text-gray-700 ml-2">
@@ -777,7 +777,7 @@ const GrowPage: FC = () => {
             )}
 
             {promises.map((item) => (
-              <Card key={item.id} className="mb-3">
+              <Card key={item.id} className="mb-4">
                 <CardContent className="py-4">
                   <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <View
@@ -879,7 +879,7 @@ const GrowPage: FC = () => {
               <View>
                 <View className="mb-4">
                   <Text className="block text-xs text-gray-500 mb-1">名称</Text>
-                  <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                  <View className="bg-gray-50 rounded-xl px-4 py-3">
                     <Input
                       value={newTitle}
                       onInput={(e) => setNewTitle(e.detail.value)}
@@ -890,7 +890,7 @@ const GrowPage: FC = () => {
                 <View className="mb-4">
                   <Text className="block text-xs text-gray-500 mb-1">日期</Text>
                   <Picker mode="date" onChange={handleDateChange} value={newDate || ''}>
-                    <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                    <View className="bg-gray-50 rounded-xl px-4 py-3">
                       <Text className={`block ${newDate ? 'text-gray-900' : 'text-gray-400'}`}>
                         {newDate || '请选择日期'}
                       </Text>
@@ -904,7 +904,7 @@ const GrowPage: FC = () => {
               <View>
                 <View className="mb-4">
                   <Text className="block text-xs text-gray-500 mb-1">目标</Text>
-                  <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                  <View className="bg-gray-50 rounded-xl px-4 py-3">
                     <Input
                       value={newTitle}
                       onInput={(e) => setNewTitle(e.detail.value)}
@@ -914,7 +914,7 @@ const GrowPage: FC = () => {
                 </View>
                 <View className="mb-4">
                   <Text className="block text-xs text-gray-500 mb-1">目标数量</Text>
-                  <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                  <View className="bg-gray-50 rounded-xl px-4 py-3">
                     <Input
                       value={newGoalTotal}
                       onInput={(e) => setNewGoalTotal(e.detail.value)}
@@ -941,7 +941,7 @@ const GrowPage: FC = () => {
             {addType === 'promise' && (
               <View className="mb-4">
                 <Text className="block text-xs text-gray-500 mb-1">约定内容</Text>
-                <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                <View className="bg-gray-50 rounded-xl px-4 py-3">
                   <Input
                     value={newContent}
                     onInput={(e) => setNewContent(e.detail.value)}

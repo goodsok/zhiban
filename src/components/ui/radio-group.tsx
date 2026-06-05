@@ -28,7 +28,7 @@ const RadioGroup = React.forwardRef<
   return (
     <RadioGroupContext.Provider value={{ value, onValueChange: handleValueChange }}>
       <View
-        className={cn("grid gap-2", className)}
+        className={cn("grid gap-3", className)}
         {...props}
         ref={ref}
       />

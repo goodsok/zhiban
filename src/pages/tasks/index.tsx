@@ -291,7 +291,7 @@ const TasksPage: FC = () => {
           <>
             {/* 周期阶段提示 */}
             {cycleInfo && PhaseIcon && (
-              <View className="mb-4 bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center gap-3">
+              <View className="mb-4 bg-gray-50 rounded-xl p-3 flex items-center gap-4">
                 <PhaseIcon size={20} color={cycleInfo.phase === 'luteal_late' || cycleInfo.phase === 'luteal_mid' ? '#F59E0B' : '#10B981'} />
                 <View className="flex-1">
                   <Text className="block text-sm font-medium text-gray-900">
@@ -315,7 +315,7 @@ const TasksPage: FC = () => {
                         {/* 标题行 */}
                         <View className="flex items-center">
                           <View className="flex-1">
-                            <View className="flex items-center gap-2 mb-1">
+                            <View className="flex items-center gap-3 mb-1">
                               <Text className="block text-sm font-medium text-gray-900">{task.title}</Text>
                               {task.source === 'ai' && (
                                 <Sparkles size={12} color="#4ECB71" />
@@ -362,7 +362,7 @@ const TasksPage: FC = () => {
                           <View className="mt-3 pt-3 border-t border-gray-100">
                             {/* 任务描述 */}
                             {task.description && (
-                              <View className="mb-3">
+                              <View className="mb-4">
                                 <Text className="block text-xs text-gray-500 mb-1">任务说明</Text>
                                 <Text className="block text-sm text-gray-700 leading-relaxed">{task.description}</Text>
                               </View>
@@ -370,8 +370,8 @@ const TasksPage: FC = () => {
 
                             {/* 做任务的原因 */}
                             {task.reason && (
-                              <View className="mb-3 bg-amber-50 rounded-lg p-3">
-                                <View className="flex items-center gap-2 mb-2">
+                              <View className="mb-4 bg-amber-50 rounded-lg p-3">
+                                <View className="flex items-center gap-3 mb-2">
                                   <Lightbulb size={14} color="#D97706" />
                                   <Text className="block text-xs font-medium text-amber-700">为什么做</Text>
                                 </View>
@@ -382,12 +382,12 @@ const TasksPage: FC = () => {
                             {/* 执行步骤 */}
                             {task.steps && task.steps.length > 0 && (
                               <View className="mb-2 bg-blue-50 rounded-lg p-3">
-                                <View className="flex items-center gap-2 mb-2">
+                                <View className="flex items-center gap-3 mb-2">
                                   <ListChecks size={14} color="#2563EB" />
                                   <Text className="block text-xs font-medium text-blue-700">执行步骤</Text>
                                 </View>
                                 {task.steps.map((step, idx) => (
-                                  <View key={idx} className="flex items-start gap-2 mb-1 last:mb-0">
+                                  <View key={idx} className="flex items-start gap-3 mb-1 last:mb-0">
                                     <View className="mt-1 w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                                       <Text className="block text-xs text-blue-600">{idx + 1}</Text>
                                     </View>
@@ -403,7 +403,7 @@ const TasksPage: FC = () => {
                         {!isExpanded && (
                           <View className="mt-2 flex items-center justify-end">
                             <View 
-                              className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800"
+                              className="flex items-center gap-3 px-3 py-1 rounded-full bg-gray-800"
                               onClick={() => completeTask(task.id)}
                             >
                               <Target size={12} color="#fff" />
@@ -412,9 +412,9 @@ const TasksPage: FC = () => {
                           </View>
                         )}
                         {isExpanded && (
-                          <View className="mt-3 flex items-center justify-end gap-2">
+                          <View className="mt-3 flex items-center justify-end gap-3">
                             <View 
-                              className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-800"
+                              className="flex items-center gap-3 px-4 py-2 rounded-full bg-gray-800"
                               onClick={() => completeTask(task.id)}
                             >
                               <Check size={14} color="#fff" />

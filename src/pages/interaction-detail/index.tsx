@@ -265,7 +265,7 @@ export default function InteractionDetailPage() {
 
       {/* 头部卡片 - 类型标识 */}
       <View className="mx-4 mt-4 rounded-2xl p-5" style={{ backgroundColor: `${typeColor}10` }}>
-        <View className="flex items-center gap-3 mb-3">
+        <View className="flex items-center gap-4 mb-4">
           <View className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: `${typeColor}20` }}>
             <TypeIcon size={24} color={typeColor} />
           </View>
@@ -273,7 +273,7 @@ export default function InteractionDetailPage() {
             <Text className="block text-lg font-semibold text-gray-900">
               {detail.title || typeLabel}
             </Text>
-            <View className="flex items-center gap-2 mt-1">
+            <View className="flex items-center gap-3 mt-1">
               <Text className="block text-xs px-2 py-1 rounded-full" style={{ backgroundColor: `${typeColor}20`, color: typeColor }}>
                 {typeLabel}
               </Text>
@@ -305,7 +305,7 @@ export default function InteractionDetailPage() {
       <View className="mx-4 mt-3">
         <Card>
           <CardContent className="p-4">
-            <View className="flex items-center gap-3">
+            <View className="flex items-center gap-4">
               <View className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FEF3C7' }}>
                 <Sparkles size={20} color="#F59E0B" />
               </View>
@@ -330,7 +330,7 @@ export default function InteractionDetailPage() {
           <CardContent className="p-4">
             {detail.initiator ? (
               <View className="flex items-center justify-between py-3 border-b border-gray-100">
-                <View className="flex items-center gap-2">
+                <View className="flex items-center gap-3">
                   <User size={16} color="#6b7280" />
                   <Text className="block text-sm text-gray-500">发起方</Text>
                 </View>
@@ -340,7 +340,7 @@ export default function InteractionDetailPage() {
 
             {detail.location ? (
               <View className="flex items-center justify-between py-3 border-b border-gray-100">
-                <View className="flex items-center gap-2">
+                <View className="flex items-center gap-3">
                   <MapPin size={16} color="#6b7280" />
                   <Text className="block text-sm text-gray-500">地点</Text>
                 </View>
@@ -350,7 +350,7 @@ export default function InteractionDetailPage() {
 
             {moodInfo ? (
               <View className="flex items-center justify-between py-3">
-                <View className="flex items-center gap-2">
+                <View className="flex items-center gap-3">
                   <Heart size={16} color="#6b7280" />
                   <Text className="block text-sm text-gray-500">心情</Text>
                 </View>
@@ -366,8 +366,8 @@ export default function InteractionDetailPage() {
         <View className="mx-4 mt-3">
           <Card>
             <CardContent className="p-4">
-              <Text className="block text-sm font-medium text-gray-500 mb-3">活动</Text>
-              <View className="flex flex-row flex-wrap gap-2">
+              <Text className="block text-sm font-medium text-gray-500 mb-4">活动</Text>
+              <View className="flex flex-row flex-wrap gap-3">
                 {detail.activities.map((activity, idx) => (
                   <View key={idx} className="px-3 py-2 rounded-full" style={{ backgroundColor: `${typeColor}10` }}>
                     <Text className="block text-sm" style={{ color: typeColor }}>{activity}</Text>
@@ -422,7 +422,7 @@ export default function InteractionDetailPage() {
             <CardContent className="p-4">
               <Text className="block text-sm font-medium text-gray-500 mb-2">💡 新发现</Text>
               {detail.newInsights.map((insight, idx) => (
-                <View key={idx} className="flex items-start gap-2 mb-1">
+                <View key={idx} className="flex items-start gap-3 mb-1">
                   <Text className="block text-xs text-gray-400 mt-1">•</Text>
                   <Text className="block text-sm text-gray-900">{insight}</Text>
                 </View>
@@ -437,16 +437,16 @@ export default function InteractionDetailPage() {
         <View className="mx-4 mt-3">
           <Card>
             <CardContent className="p-4">
-              <Text className="block text-sm font-medium text-gray-500 mb-3">📎 关联聊天记录</Text>
+              <Text className="block text-sm font-medium text-gray-500 mb-4">📎 关联聊天记录</Text>
               {chatRecords.map(record => {
                 const RecordIcon = record.contentType === 'image' ? Image : FileText
                 return (
-                  <View key={record.id} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0">
+                  <View key={record.id} className="flex items-center gap-4 py-2 border-b border-gray-100 last:border-b-0">
                     <View className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#EFF6FF' }}>
                       <RecordIcon size={16} color="#3B82F6" />
                     </View>
                     <View className="flex-1">
-                      <View className="flex items-center gap-2">
+                      <View className="flex items-center gap-3">
                         <Text className="block text-sm text-gray-900">
                           {record.contentType === 'image' ? '聊天截图' : '聊天文字'}
                         </Text>
@@ -484,7 +484,7 @@ export default function InteractionDetailPage() {
             style={{ backgroundColor: '#6366f1' }}
             onClick={handleEdit}
           >
-            <View className="flex items-center justify-center gap-2">
+            <View className="flex items-center justify-center gap-3">
               <Pencil size={16} color="#fff" />
               <Text className="block text-sm font-medium text-white">编辑</Text>
             </View>
@@ -496,7 +496,7 @@ export default function InteractionDetailPage() {
             style={{ backgroundColor: '#fff', border: '1px solid #ef4444' }}
             onClick={handleDelete}
           >
-            <View className="flex items-center justify-center gap-2">
+            <View className="flex items-center justify-center gap-3">
               <Trash2 size={16} color="#ef4444" />
               <Text className="block text-sm font-medium" style={{ color: '#ef4444' }}>删除</Text>
             </View>

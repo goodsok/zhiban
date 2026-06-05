@@ -99,9 +99,9 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
         </View>
       </View>
 
-      <View className="grid grid-cols-2 gap-3 mb-4">
+      <View className="grid grid-cols-2 gap-4 mb-4">
         {/* 回复时间 */}
-        <View className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+        <View className="bg-gray-50 rounded-lg p-3">
           <View className="flex items-center gap-1.5 mb-1">
             <Clock size={14} color="#6B7280" />
             <Text className="block text-xs text-gray-500">平均回复</Text>
@@ -112,7 +112,7 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
         </View>
 
         {/* 消息长度 */}
-        <View className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+        <View className="bg-gray-50 rounded-lg p-3">
           <View className="flex items-center gap-1.5 mb-1">
             <MessageCircle size={14} color="#6B7280" />
             <Text className="block text-xs text-gray-500">平均字数</Text>
@@ -125,9 +125,9 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
 
       {/* 线上/线下沟通风格 */}
       {hasAnyStyle && (
-        <View className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
+        <View className="mb-4 bg-gray-50 rounded-lg p-3">
           <Text className="block text-xs text-gray-500 mb-2">沟通风格</Text>
-          <View className="flex items-start gap-3">
+          <View className="flex items-start gap-4">
             {/* 线上 */}
             <View className="flex-1 bg-white rounded-lg p-3 border border-blue-100">
               <View className="flex items-center gap-1 mb-1">
@@ -158,16 +158,16 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
       )}
 
       {/* 行为指标 */}
-      <View className="flex flex-wrap gap-2 mb-4">
-        <View className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-3 py-1">
+      <View className="flex flex-wrap gap-3 mb-4">
+        <View className="flex items-center gap-3 bg-gray-50 rounded-full px-3 py-1">
           <Smile size={12} color="#6B7280" />
           <Text className="block text-xs text-gray-600">表情 {pattern.emojiUsageRate}%</Text>
         </View>
-        <View className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-3 py-1">
+        <View className="flex items-center gap-3 bg-gray-50 rounded-full px-3 py-1">
           <MessageCircle size={12} color="#6B7280" />
           <Text className="block text-xs text-gray-600">提问 {pattern.questionRate}%</Text>
         </View>
-        <View className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-3 py-1">
+        <View className="flex items-center gap-3 bg-gray-50 rounded-full px-3 py-1">
           <Send size={12} color="#6B7280" />
           <Text className="block text-xs text-gray-600">主动 {pattern.initiativeRate}%</Text>
         </View>
@@ -207,7 +207,7 @@ const BehaviorPatternCard: FC<BehaviorPatternCardProps> = ({ pattern }) => {
       {pattern.emotionalKeywords.length > 0 && (
         <View className="pt-3 mt-2 border-t">
           <Text className="block text-xs text-gray-500 mb-2">情绪关键词</Text>
-          <View className="flex flex-wrap gap-2">
+          <View className="flex flex-wrap gap-3">
             {pattern.emotionalKeywords.slice(0, 6).map((keyword, i) => (
               <View 
                 key={i} 

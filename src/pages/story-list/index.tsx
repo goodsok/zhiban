@@ -115,13 +115,13 @@ const StoryListPage: FC = () => {
           </View>
         ) : stories.length === 0 ? (
           <View className="text-center py-12">
-            <View className="w-16 h-16 bg-gray-100 border border-gray-300 rounded-full flex items-center justify-center mx-auto mb-4">
+            <View className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <BookOpen size={32} color="#9CA3AF" />
             </View>
             <Text className="block text-gray-400 mb-2">还没有故事</Text>
             <Text className="block text-gray-400 text-sm mb-4">把你的故事变成高能量内容</Text>
             <View
-              className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg"
+              className="inline-flex items-center gap-3 bg-green-500 text-white px-4 py-2 rounded-lg"
               onClick={goToCreate}
             >
               <Plus size={16} color="#fff" />
@@ -132,7 +132,7 @@ const StoryListPage: FC = () => {
           <>
             {/* 新建按钮 */}
             <View
-              className="bg-green-500 rounded-xl py-3 flex items-center justify-center gap-2 mb-4"
+              className="bg-green-500 rounded-xl py-3 flex items-center justify-center gap-3 mb-4"
               onClick={goToCreate}
             >
               <Plus size={18} color="#fff" />
@@ -142,12 +142,12 @@ const StoryListPage: FC = () => {
             {stories.map((story) => (
             <View
               key={story.id}
-              className="bg-white rounded-xl p-4 mb-3"
+              className="bg-white rounded-xl p-4 mb-4"
               onClick={() => goToDetail(story.id)}
             >
               {/* 头部 */}
               <View className="flex items-center justify-between mb-2">
-                <View className="flex items-center gap-2">
+                <View className="flex items-center gap-3">
                   <View className="px-2 py-1 bg-gray-100 rounded">
                     <Text className="block text-xs text-gray-600">
                       {STORY_TYPE_LABELS[story.story_type] || story.story_type}

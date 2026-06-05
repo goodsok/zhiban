@@ -204,7 +204,7 @@ function Calendar({
     <View
       className={cn(
         "bg-background w-fit rounded-md p-3",
-        "flex flex-col gap-3 border-2",
+        "flex flex-col gap-4 border-2",
         className
       )}
     >
@@ -223,7 +223,7 @@ function Calendar({
         )}
 
         {captionHasDropdown ? (
-          <View className="flex items-center gap-2">
+          <View className="flex items-center gap-3">
             <Picker
               mode="selector"
               range={yearOptions}
@@ -284,7 +284,7 @@ function Calendar({
         ))}
       </View>
 
-      <View className="flex flex-col gap-2">
+      <View className="flex flex-col gap-3">
         {weeks.map((week, rowIndex) => (
           <View key={rowIndex} className="flex">
             {week.map((date) => {

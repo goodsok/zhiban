@@ -171,13 +171,13 @@ export default function InteractionsPage() {
 
       {/* 能量概览卡片 */}
       {energy && (
-        <View className="mx-4 mt-4 mb-3">
+        <View className="mx-4 mt-4 mb-4">
           <View 
             className="rounded-2xl p-4 border border-amber-100"
             style={{ background: 'linear-gradient(to right, #FFFBEB, #FFF7ED)' }}
           >
-            <View className="flex items-center justify-between mb-3">
-              <View className="flex items-center gap-2">
+            <View className="flex items-center justify-between mb-4">
+              <View className="flex items-center gap-3">
                 <View className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FEF3C7' }}>
                   <Sparkles size={16} color="#F59E0B" />
                 </View>
@@ -192,7 +192,7 @@ export default function InteractionsPage() {
             </View>
             
             <View className="flex items-end justify-between">
-              <View className="flex items-end gap-2">
+              <View className="flex items-end gap-3">
                 <Text className="block text-4xl font-bold text-amber-600">{energy.current}</Text>
                 <Text className="block text-sm text-gray-400 pb-1">/ 100</Text>
               </View>
@@ -208,7 +208,7 @@ export default function InteractionsPage() {
 
       {/* 类型筛选 - ScrollView 横向滚动 */}
       <View className="bg-white border-b">
-        <ScrollView scrollX className="flex flex-row px-4 py-3 gap-2" style={{ whiteSpace: 'nowrap' }}>
+        <ScrollView scrollX className="flex flex-row px-4 py-3 gap-3" style={{ whiteSpace: 'nowrap' }}>
           <View
             className="flex-shrink-0 px-4 py-2 rounded-full"
             style={{ 
@@ -252,7 +252,7 @@ export default function InteractionsPage() {
           Object.entries(groupedEvents).map(([date, dateEvents]) => (
             <View key={date} className="mb-6">
               {/* 日期标题 */}
-              <View className="flex items-center gap-2 mb-3 px-1">
+              <View className="flex items-center gap-3 mb-4 px-1">
                 <Text className="block text-sm font-medium text-gray-500">{date}</Text>
                 <View className="flex-1 h-px bg-gray-200" />
                 <Text className="block text-xs text-gray-400">{dateEvents.length}次</Text>
@@ -267,7 +267,7 @@ export default function InteractionsPage() {
                 return (
                   <Card
                     key={event.id}
-                    className="mb-3 overflow-hidden"
+                    className="mb-4 overflow-hidden"
                     onClick={() => goEventDetail(event.id)}
                   >
                     <CardContent className="p-0">
@@ -281,7 +281,7 @@ export default function InteractionsPage() {
                         <View className="flex-1 p-4">
                           {/* 头部：类型 + 时间 */}
                           <View className="flex items-center justify-between mb-2">
-                            <View className="flex items-center gap-2">
+                            <View className="flex items-center gap-3">
                               <View 
                                 className="w-6 h-6 rounded-full flex items-center justify-center"
                                 style={{ backgroundColor: `${typeConfig.color}20` }}
@@ -303,7 +303,7 @@ export default function InteractionsPage() {
                           </Text>
 
                           {/* 元信息 */}
-                          <View className="flex flex-row flex-wrap gap-3 mb-2">
+                          <View className="flex flex-row flex-wrap gap-4 mb-2">
                             {event.durationMinutes ? (
                               <View className="flex items-center gap-1">
                                 <Clock size={12} color="#9CA3AF" />
@@ -343,7 +343,7 @@ export default function InteractionsPage() {
 
                           {/* 底部：能量 + 突破 */}
                           <View className="flex items-center justify-between pt-2 border-t border-gray-100">
-                            <View className="flex items-center gap-2">
+                            <View className="flex items-center gap-3">
                               {event.energyChange > 0 ? (
                                 <View className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ backgroundColor: '#FFFBEB' }}>
                                   <Sparkles size={10} color="#F59E0B" />
@@ -382,7 +382,7 @@ export default function InteractionsPage() {
           style={{ backgroundColor: '#1f2937' }}
           onClick={goCreateInteraction}
         >
-          <View className="flex items-center justify-center gap-2">
+          <View className="flex items-center justify-center gap-3">
             <Plus size={20} color="#fff" />
             <Text className="block text-base font-medium text-white">
               {events.length === 0 ? '记录第一次互动' : '记录新互动'}

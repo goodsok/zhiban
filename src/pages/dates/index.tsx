@@ -144,7 +144,7 @@ const DatesPage: FC = () => {
           records.map((record) => (
             <View
               key={record.id}
-              className="bg-white rounded-xl p-4 mb-3"
+              className="bg-white rounded-xl p-4 mb-4"
               onClick={() => goToEdit(record.id)}
             >
               <View className="flex items-start justify-between mb-2">
@@ -152,7 +152,7 @@ const DatesPage: FC = () => {
                   <Text className="block text-base font-semibold text-gray-900 mb-1">
                     {record.activity}
                   </Text>
-                  <View className="flex items-center gap-2 text-xs text-gray-400">
+                  <View className="flex items-center gap-3 text-xs text-gray-400">
                     <View className="flex items-center gap-1">
                       <Calendar size={12} color="#9CA3AF" />
                       <Text>{formatDate(record.date)}</Text>
@@ -187,7 +187,7 @@ const DatesPage: FC = () => {
                     <Text className="block text-xs text-gray-400">提取的关键信息</Text>
                   </View>
                   {record.keyInfoExtracted.map((info, i) => (
-                    <View key={i} className="flex items-center gap-2">
+                    <View key={i} className="flex items-center gap-3">
                       <Text className="block text-xs text-gray-500">{info.label}:</Text>
                       <Text className="block text-xs text-gray-600">{info.value}</Text>
                     </View>

@@ -292,14 +292,14 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
         const shouldRenderContent = !enableLazyLoad || loadedLayers.has(layer) || isLayerExpanded
         
         return (
-          <View key={layer} className="mb-3">
+          <View key={layer} className="mb-4">
             {/* 层级标题栏 - 可点击折叠 */}
             <View 
               className="bg-white rounded-xl p-3"
               onClick={() => toggleLayer(layer)}
             >
               <View className="flex items-center justify-between">
-                <View className="flex items-center gap-2 flex-1">
+                <View className="flex items-center gap-3 flex-1">
                   <Text className="block text-sm font-semibold text-gray-900">
                     {layerNames[layer] || `Layer ${layer}`}
                   </Text>
@@ -307,7 +307,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                     {layerComplete}%
                   </Badge>
                 </View>
-                <View className="flex items-center gap-2">
+                <View className="flex items-center gap-3">
                   <Progress value={layerComplete} className="w-16 h-1 bg-gray-100" />
                   {isLayerExpanded ? (
                     <ChevronUp size={16} color="#9CA3AF" />
@@ -340,10 +340,10 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                       <View key={groupKey} className="mb-2">
                         {/* 分类标题 - 可点击折叠 */}
                         <View 
-                          className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between"
+                          className="bg-gray-50 rounded-lg p-3 flex items-center justify-between"
                           onClick={() => toggleCategory(groupKey)}
                         >
-                          <View className="flex items-center gap-2">
+                          <View className="flex items-center gap-3">
                             <Text className="block text-xs font-medium text-gray-700">
                               {categoryNames[group.category] || group.category}
                             </Text>

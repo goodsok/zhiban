@@ -64,12 +64,12 @@ const StrategyCard: FC<StrategyCardProps> = ({ strategies }) => {
           key={index}
           className="bg-white rounded-xl p-4"
         >
-          <View className="flex items-start gap-3">
+          <View className="flex items-start gap-4">
             <View className={`w-8 h-8 rounded-lg flex items-center justify-center ${getCategoryBg(strategy.category)}`}>
               {getCategoryIcon(strategy.category)}
             </View>
             <View className="flex-1">
-              <View className="flex items-center gap-2 mb-1">
+              <View className="flex items-center gap-3 mb-1">
                 <Text className="block text-xs text-gray-400">{strategy.category}</Text>
               </View>
               <Text className="block text-sm font-medium text-gray-800 mb-2">

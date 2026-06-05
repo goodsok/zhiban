@@ -182,7 +182,7 @@ const DimensionEditPage: FC = () => {
           <View className="space-y-2">
             {/* 搜索框 */}
             {showSearch && (
-              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 mb-3 flex items-center gap-2">
+              <View className="bg-gray-50 rounded-lg px-4 py-3 mb-4 flex items-center gap-3">
                 <Search size={16} color="#9CA3AF" />
                 <View className="flex-1">
                   <Input
@@ -215,7 +215,7 @@ const DimensionEditPage: FC = () => {
               {/* 自定义选项入口 */}
               {!showCustomInput ? (
                 <View
-                  className={`flex items-center gap-2 px-4 py-3 ${
+                  className={`flex items-center gap-3 px-4 py-3 ${
                     filteredOptions.length > 0 ? 'border-t border-gray-100' : ''
                   } ${isCustomSelected ? 'bg-gray-50' : ''}`}
                   onClick={() => {
@@ -237,7 +237,7 @@ const DimensionEditPage: FC = () => {
                 </View>
               ) : (
                 <View
-                  className={`flex items-center gap-2 px-4 py-3 ${
+                  className={`flex items-center gap-3 px-4 py-3 ${
                     filteredOptions.length > 0 ? 'border-t border-gray-100' : ''
                   } bg-gray-50`}
                 >
@@ -279,7 +279,7 @@ const DimensionEditPage: FC = () => {
           <View>
             {/* 搜索框 */}
             {showSearch && hasEnumOptions && (
-              <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 mb-3 flex items-center gap-2">
+              <View className="bg-gray-50 rounded-lg px-4 py-3 mb-4 flex items-center gap-3">
                 <Search size={16} color="#9CA3AF" />
                 <View className="flex-1">
                   <Input
@@ -296,7 +296,7 @@ const DimensionEditPage: FC = () => {
             {multiSelectValues.length > 0 && (
               <View className="mb-4">
                 <Text className="block text-xs text-gray-500 mb-2">已选择 ({multiSelectValues.length})</Text>
-                <View className="flex flex-wrap gap-2">
+                <View className="flex flex-wrap gap-3">
                   {multiSelectValues.map(value => {
                     const option = definition.enum_options?.find(o => o.value === value)
                     return (
@@ -319,7 +319,7 @@ const DimensionEditPage: FC = () => {
             {hasEnumOptions && (
               <View className="mb-2">
                 <Text className="block text-xs text-gray-500 mb-2">可选项</Text>
-                <View className="flex flex-wrap gap-2">
+                <View className="flex flex-wrap gap-3">
                   {filteredOptions
                     .filter(option => !multiSelectValues.includes(option.value))
                     .map(option => (
@@ -342,7 +342,7 @@ const DimensionEditPage: FC = () => {
             <View className={hasEnumOptions ? 'mt-4 pt-4 border-t' : ''}>
               {!showCustomInput && hasEnumOptions ? (
                 <View 
-                  className="flex items-center gap-2 text-gray-500"
+                  className="flex items-center gap-3 text-gray-500"
                   onClick={() => setShowCustomInput(true)}
                 >
                   <Plus size={16} color="#9CA3AF" />
@@ -353,8 +353,8 @@ const DimensionEditPage: FC = () => {
                   {!hasEnumOptions && multiSelectValues.length === 0 && (
                     <Text className="block text-xs text-gray-500 mb-2">输入后按回车或点击添加</Text>
                   )}
-                  <View className="flex items-center gap-2">
-                    <View className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                  <View className="flex items-center gap-3">
+                    <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
                       <Input
                         value={customInputValue}
                         onInput={(e) => setCustomInputValue(e.detail.value)}
@@ -428,7 +428,7 @@ const DimensionEditPage: FC = () => {
             {max - min >= 50 && (
               <View className="flex items-center justify-between mt-4 pt-3 border-t">
                 <Text className="text-xs text-gray-400">快捷选择</Text>
-                <View className="flex gap-2">
+                <View className="flex gap-3">
                   {[25, 50, 75].map(v => {
                     const inRange = v >= min && v <= max
                     return inRange ? (
@@ -454,7 +454,7 @@ const DimensionEditPage: FC = () => {
       
       case 'number':
         return (
-          <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+          <View className="bg-gray-50 rounded-lg px-4 py-3">
             <Input
               type="number"
               value={inputValue}
@@ -467,7 +467,7 @@ const DimensionEditPage: FC = () => {
       
       case 'textarea':
         return (
-          <View className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+          <View className="bg-gray-50 rounded-lg p-3">
             <Input
               value={inputValue}
               onInput={(e) => setInputValue(e.detail.value)}
@@ -479,7 +479,7 @@ const DimensionEditPage: FC = () => {
       
       default:
         return (
-          <View className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+          <View className="bg-gray-50 rounded-lg px-4 py-3">
             <Input
               value={inputValue}
               onInput={(e) => setInputValue(e.detail.value)}
@@ -513,7 +513,7 @@ const DimensionEditPage: FC = () => {
       
       {/* 顶部信息 */}
       <View className="p-4 bg-white border-b">
-        <View className="flex items-center gap-2 mb-2">
+        <View className="flex items-center gap-3 mb-2">
           <Text className="text-lg font-semibold text-gray-900">{definition.display_name}</Text>
           {definition.importance === 'critical' && (
             <Badge className="bg-red-100 text-red-600 text-xs">必填</Badge>
@@ -552,7 +552,7 @@ const DimensionEditPage: FC = () => {
         className="fixed left-0 right-0 bg-white border-t"
         style={{ bottom: 0, paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <View className="p-4 flex gap-3">
+        <View className="p-4 flex gap-4">
           <Button
             variant="outline"
             className="flex-1"

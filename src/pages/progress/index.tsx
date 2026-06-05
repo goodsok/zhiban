@@ -57,9 +57,9 @@ const ProgressPage: FC = () => {
     <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 关系阶段卡片 */}
       <View className="p-4">
-        <Card className="shadow border-0 bg-gradient-to-r from-pink-500 to-orange-400">
+        <Card className="shadow-soft border-0 bg-gradient-to-r from-pink-500 to-orange-400">
           <CardContent className="p-4">
-            <View className="flex items-center justify-between mb-3">
+            <View className="flex items-center justify-between mb-4">
               <View>
                 <Text className="block text-white text-opacity-80 text-sm">当前关系阶段</Text>
                 <Text className="block text-white text-2xl font-bold">相互了解中 💕</Text>
@@ -78,7 +78,7 @@ const ProgressPage: FC = () => {
 
       {/* 里程碑时间线 */}
       <View className="p-4">
-        <View className="flex items-center justify-between mb-3">
+        <View className="flex items-center justify-between mb-4">
           <Text className="block text-lg font-semibold text-gray-800">里程碑</Text>
           <Button size="sm" variant="ghost" className="text-pink-500">
             <Plus size={16} color="#FF6B9D" />
@@ -86,12 +86,12 @@ const ProgressPage: FC = () => {
           </Button>
         </View>
 
-        <Card className="shadow border-0">
+        <Card className="shadow-soft border-0">
           <CardContent className="p-4">
             {milestones.map((milestone, index) => (
               <View 
                 key={milestone.id}
-                className={`flex items-start gap-3 ${
+                className={`flex items-start gap-4 ${
                   index < milestones.length - 1 ? 'pb-4 border-b mb-4' : ''
                 }`}
               >
@@ -102,7 +102,7 @@ const ProgressPage: FC = () => {
                   <Text className="block text-lg">{milestone.icon}</Text>
                 </View>
                 <View className="flex-1">
-                  <View className="flex items-center gap-2 mb-1">
+                  <View className="flex items-center gap-3 mb-1">
                     <Text className={`block font-semibold ${
                       milestone.completed ? 'text-gray-800' : 'text-gray-400'
                     }`}
@@ -133,7 +133,7 @@ const ProgressPage: FC = () => {
 
       {/* 美好时刻照片墙 */}
       <View className="p-4">
-        <View className="flex items-center justify-between mb-3">
+        <View className="flex items-center justify-between mb-4">
           <Text className="block text-lg font-semibold text-gray-800">美好时刻</Text>
           <Button size="sm" variant="ghost" className="text-pink-500">
             <Camera size={16} color="#FF6B9D" />
@@ -141,7 +141,7 @@ const ProgressPage: FC = () => {
           </Button>
         </View>
 
-        <View className="grid grid-cols-3 gap-2">
+        <View className="grid grid-cols-3 gap-3">
           {moments.map((moment) => (
             <View key={moment.id} className="relative aspect-square rounded-xl overflow-hidden">
               <Image
@@ -166,27 +166,27 @@ const ProgressPage: FC = () => {
 
       {/* 统计数据 */}
       <View className="p-4">
-        <Text className="block text-lg font-semibold text-gray-800 mb-3">恋爱统计</Text>
-        <View className="grid grid-cols-2 gap-3">
-          <Card className="shadow border-0">
+        <Text className="block text-lg font-semibold text-gray-800 mb-4">恋爱统计</Text>
+        <View className="grid grid-cols-2 gap-4">
+          <Card className="shadow-soft border-0">
             <CardContent className="p-4 text-center">
               <Text className="block text-3xl font-bold text-pink-500 mb-1">15</Text>
               <Text className="block text-sm text-gray-500">相识天数</Text>
             </CardContent>
           </Card>
-          <Card className="shadow border-0">
+          <Card className="shadow-soft border-0">
             <CardContent className="p-4 text-center">
               <Text className="block text-3xl font-bold text-orange-500 mb-1">3</Text>
               <Text className="block text-sm text-gray-500">约会次数</Text>
             </CardContent>
           </Card>
-          <Card className="shadow border-0">
+          <Card className="shadow-soft border-0">
             <CardContent className="p-4 text-center">
               <Text className="block text-3xl font-bold text-blue-500 mb-1">5</Text>
               <Text className="block text-sm text-gray-500">完成任务</Text>
             </CardContent>
           </Card>
-          <Card className="shadow border-0">
+          <Card className="shadow-soft border-0">
             <CardContent className="p-4 text-center">
               <Text className="block text-3xl font-bold text-green-500 mb-1">85%</Text>
               <Text className="block text-sm text-gray-500">默契度</Text>

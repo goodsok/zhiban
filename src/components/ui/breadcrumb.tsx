@@ -19,7 +19,7 @@ const BreadcrumbList = React.forwardRef<
   <View
     ref={ref}
     className={cn(
-      "flex flex-wrap items-center gap-2 break-words text-sm text-muted-foreground sm:gap-3",
+      "flex flex-wrap items-center gap-3 break-words text-sm text-muted-foreground sm:gap-3",
       className
     )}
     {...props}
@@ -33,7 +33,7 @@ const BreadcrumbItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <View
     ref={ref}
-    className={cn("inline-flex items-center gap-2", className)}
+    className={cn("inline-flex items-center gap-3", className)}
     {...props}
   />
 ))

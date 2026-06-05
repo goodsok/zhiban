@@ -274,7 +274,7 @@ const StoryPage: FC = () => {
         {story && (
           <View className="bg-white px-4 py-3 border-b">
             <View className="flex items-center justify-between">
-              <View className="flex items-center gap-2">
+              <View className="flex items-center gap-3">
                 <View className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
                   <BookOpen size={16} color="#F59E0B" />
                 </View>
@@ -282,7 +282,7 @@ const StoryPage: FC = () => {
                   <Text className="block text-sm font-medium text-gray-900">
                     {getStoryTypeName(story.story_type)}
                   </Text>
-                  <View className="flex items-center gap-2 mt-1">
+                  <View className="flex items-center gap-3 mt-1">
                     {story.relationship_stage && (
                       <Text className="block text-xs text-gray-500">
                         {getStageName(story.relationship_stage)}
@@ -368,7 +368,7 @@ const StoryPage: FC = () => {
 
         {/* 快捷回复 */}
         <View className="bg-white px-4 py-2 border-t">
-          <View className="flex gap-2">
+          <View className="flex gap-3">
             {quickReplies.map((text) => (
               <View
                 key={text}
@@ -383,8 +383,8 @@ const StoryPage: FC = () => {
 
         {/* 输入框 */}
         <View className="bg-white px-4 py-3 border-t">
-          <View className="flex items-center gap-2">
-            <View className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2">
+          <View className="flex items-center gap-3">
+            <View className="flex-1 bg-gray-50 rounded-xl px-4 py-2">
               <Input
                 className="w-full"
                 placeholder="输入问题或反馈..."
@@ -455,12 +455,12 @@ const StoryPage: FC = () => {
       {currentStep === 1 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <User size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">选择对象（可选）</Text>
             </View>
             
-            <Text className="block text-sm text-gray-500 mb-3">
+            <Text className="block text-sm text-gray-500 mb-4">
               选择对象可以让故事更贴合当前关系阶段
             </Text>
             
@@ -486,7 +486,7 @@ const StoryPage: FC = () => {
                 <Text className="block text-gray-400 text-sm">暂无对象可选</Text>
               </View>
             ) : (
-              <View className="flex flex-col gap-2">
+              <View className="flex flex-col gap-3">
                 {matches.map((match) => {
                   const isSelected = selectedMatch?.id === match.id
                   return (
@@ -497,7 +497,7 @@ const StoryPage: FC = () => {
                       }`}
                       onClick={() => handleMatchSelect(match)}
                     >
-                      <View className="flex items-center gap-3">
+                      <View className="flex items-center gap-4">
                         <View className={`w-10 h-10 rounded-full flex items-center justify-center ${
                           isSelected ? 'bg-white' : 'bg-gray-200'
                         }`}
@@ -538,12 +538,12 @@ const StoryPage: FC = () => {
       {currentStep === 2 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <BookOpen size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">选择故事类型</Text>
             </View>
             
-            <View className="flex flex-col gap-2">
+            <View className="flex flex-col gap-3">
               {STORY_TYPES.map((type) => {
                 const isSelected = selectedStoryType === type.code
                 return (
@@ -553,7 +553,7 @@ const StoryPage: FC = () => {
                     onClick={() => handleStoryTypeSelect(type.code)}
                   >
                     <View className="flex items-center justify-between">
-                      <View className="flex items-center gap-2">
+                      <View className="flex items-center gap-3">
                         <Text className="block text-lg">{type.icon}</Text>
                         <View>
                           <Text className={`block font-medium ${
@@ -580,8 +580,8 @@ const StoryPage: FC = () => {
 
           {/* 推进阶段选择 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-sm font-medium text-gray-900 mb-3">推进阶段（可选）</Text>
-            <View className="flex flex-wrap gap-2">
+            <Text className="block text-sm font-medium text-gray-900 mb-4">推进阶段（可选）</Text>
+            <View className="flex flex-wrap gap-3">
               {RELATIONSHIP_STAGES.map((stage) => {
                 const isSelected = relationshipStage === stage.code
                 return (
@@ -604,9 +604,9 @@ const StoryPage: FC = () => {
             </View>
           </View>
 
-          <View className="flex gap-3">
+          <View className="flex gap-4">
             <View
-              className="flex-1 bg-gray-100 border border-gray-200 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-gray-100 rounded-xl py-3 flex items-center justify-center"
               onClick={() => setCurrentStep(1)}
             >
               <Text className="block text-gray-600">上一步</Text>
@@ -629,7 +629,7 @@ const StoryPage: FC = () => {
       {currentStep === 3 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <Sparkles size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">故事要素</Text>
             </View>
@@ -641,7 +641,7 @@ const StoryPage: FC = () => {
             {/* 原始故事 */}
             <View className="mb-4">
               <Text className="block text-sm font-medium text-gray-700 mb-2">原始故事</Text>
-              <View className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+              <View className="bg-gray-50 rounded-xl p-3">
                 <Textarea
                   className="w-full"
                   style={{ minHeight: '100px' }}
@@ -656,7 +656,7 @@ const StoryPage: FC = () => {
             <View className="space-y-3">
               <View>
                 <Text className="block text-sm font-medium text-gray-700 mb-1">时间</Text>
-                <View className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                <View className="bg-gray-50 rounded-xl px-3 py-2">
                   <Input
                     className="w-full"
                     placeholder="例如：去年夏天、三年前..."
@@ -668,7 +668,7 @@ const StoryPage: FC = () => {
 
               <View>
                 <Text className="block text-sm font-medium text-gray-700 mb-1">地点</Text>
-                <View className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                <View className="bg-gray-50 rounded-xl px-3 py-2">
                   <Input
                     className="w-full"
                     placeholder="例如：西藏、老家的小河边..."
@@ -680,7 +680,7 @@ const StoryPage: FC = () => {
 
               <View>
                 <Text className="block text-sm font-medium text-gray-700 mb-1">人物</Text>
-                <View className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                <View className="bg-gray-50 rounded-xl px-3 py-2">
                   <Input
                     className="w-full"
                     placeholder="例如：我和一个当地老人、三个大学室友..."
@@ -692,7 +692,7 @@ const StoryPage: FC = () => {
 
               <View>
                 <Text className="block text-sm font-medium text-gray-700 mb-1">关键事件</Text>
-                <View className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                <View className="bg-gray-50 rounded-xl px-3 py-2">
                   <Input
                     className="w-full"
                     placeholder="例如：车子抛锚、发现了一个秘密..."
@@ -704,7 +704,7 @@ const StoryPage: FC = () => {
 
               <View>
                 <Text className="block text-sm font-medium text-gray-700 mb-1">情绪转折</Text>
-                <View className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                <View className="bg-gray-50 rounded-xl px-3 py-2">
                   <Input
                     className="w-full"
                     placeholder="例如：从失望到释然、从害怕到勇敢..."
@@ -716,9 +716,9 @@ const StoryPage: FC = () => {
             </View>
           </View>
 
-          <View className="flex gap-3">
+          <View className="flex gap-4">
             <View
-              className="flex-1 bg-gray-100 border border-gray-200 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-gray-100 rounded-xl py-3 flex items-center justify-center"
               onClick={() => setCurrentStep(2)}
             >
               <Text className="block text-gray-600">上一步</Text>
@@ -737,7 +737,7 @@ const StoryPage: FC = () => {
       {currentStep === 4 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-4">
+            <View className="flex items-center gap-3 mb-4">
               <Sparkles size={18} color="#F59E0B" />
               <Text className="block text-base font-semibold text-gray-900">准备生成</Text>
             </View>
@@ -773,9 +773,9 @@ const StoryPage: FC = () => {
             </Text>
           </View>
 
-          <View className="flex gap-3">
+          <View className="flex gap-4">
             <View
-              className="flex-1 bg-gray-100 border border-gray-200 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-gray-100 rounded-xl py-3 flex items-center justify-center"
               onClick={() => setCurrentStep(3)}
             >
               <Text className="block text-gray-600">上一步</Text>

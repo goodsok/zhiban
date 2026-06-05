@@ -234,7 +234,7 @@ const PortraitPage: FC = () => {
       {/* 数据来源提示：引导去档案维度填写 */}
       <View className="px-4 pt-4">
         <View className="bg-white rounded-xl p-4">
-          <View className="flex items-start gap-3 mb-3">
+          <View className="flex items-start gap-4 mb-4">
             <View className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
               <Brain size={18} color="#3B82F6" />
             </View>
@@ -247,12 +247,12 @@ const PortraitPage: FC = () => {
           </View>
 
           {/* 完成度进度条 */}
-          <View className="mb-3">
+          <View className="mb-4">
             <View className="flex items-center justify-between mb-1">
               <Text className="block text-xs text-gray-500">档案完成度</Text>
               <Text className="block text-xs text-gray-700 font-medium">{completion.percent}%（{completion.filled}/{completion.total}项）</Text>
             </View>
-            <View className="w-full h-2 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
+            <View className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
               <View 
                 className="h-full rounded-full bg-blue-500 transition-all"
                 style={{ width: `${completion.percent}%` }}
@@ -282,7 +282,7 @@ const PortraitPage: FC = () => {
       {/* 置信度 & 重新分析 */}
       <View className="px-4 pt-3">
         <View className="flex items-center justify-between bg-white rounded-xl p-3">
-          <View className="flex items-center gap-2">
+          <View className="flex items-center gap-3">
             <Brain size={16} color="#6B7280" />
             <Text className="block text-sm text-gray-600">
               画像置信度 {portrait?.confidence || 0}%
@@ -307,7 +307,7 @@ const PortraitPage: FC = () => {
 
       {/* Tab 切换 */}
       <View className="px-4 pt-4">
-        <View className="flex bg-gray-100 border border-gray-200 rounded-lg p-1">
+        <View className="flex bg-gray-100 rounded-lg p-1">
           {[
             { key: 'overview', label: '概览' },
             { key: 'interaction', label: '相处' },
@@ -453,7 +453,7 @@ const PortraitPage: FC = () => {
       {/* 历史 Tab */}
       {activeTab === 'history' && portrait && (
         <View className="p-4">
-          <View className="flex items-center gap-2 mb-3">
+          <View className="flex items-center gap-3 mb-4">
             <History size={14} color="#6B7280" />
             <Text className="block text-sm font-semibold text-gray-900">画像变化记录</Text>
           </View>

@@ -134,7 +134,7 @@ const Index: FC = () => {
       {/* 顶部 */}
       <View className="bg-white px-4 py-4 border-b">
         <View className="flex items-center justify-between">
-          <View className="flex items-center gap-2">
+          <View className="flex items-center gap-3">
             <Text className="block text-xl font-bold text-gray-900">对象</Text>
             <Switch
               checked={showHidden}
@@ -174,11 +174,12 @@ const Index: FC = () => {
             return (
               <View
                 key={match.id}
-                className={`bg-white rounded-2xl shadow p-4 mb-3 ${isHidden ? 'opacity-60' : ''}`}
+                className={`bg-white rounded-2xl p-4 mb-4 ${isHidden ? 'opacity-60' : ''}`}
+                style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}
               >
                 <View className="flex items-center justify-between" onClick={() => goToDetail(match.id)}>
                   <View className="flex-1 min-w-0">
-                    <View className="flex items-center gap-2 mb-1">
+                    <View className="flex items-center gap-3 mb-1">
                       <Text className="block text-base font-semibold text-gray-900 flex-shrink-0">
                         {match.name}
                       </Text>
@@ -191,7 +192,7 @@ const Index: FC = () => {
                     {/* 推进值显示 */}
                     {match.progressScore !== undefined && (
                       <View className="flex items-center gap-1">
-                        <View className="w-24 h-2 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
+                        <View className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
                           <View
                             className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
                             style={{ width: `${match.progressScore}%` }}
@@ -205,9 +206,9 @@ const Index: FC = () => {
                 </View>
 
                 {/* 快捷操作按钮 */}
-                <View className="flex items-center gap-2 mt-3 pt-3 border-t">
+                <View className="flex items-center gap-3 mt-3 pt-3 border-t">
                   <View
-                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-green-50 border border-green-200 rounded-xl"
+                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-green-50 rounded-xl"
                     onClick={(e) => {
                       e.stopPropagation()
                       navigateTo({ url: `/pages/interaction-create/index?matchId=${match.id}` })
@@ -217,14 +218,14 @@ const Index: FC = () => {
                     <Text className="block text-xs font-medium text-green-600">记录互动</Text>
                   </View>
                   <View
-                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-gray-50 border border-gray-200 rounded-xl"
+                    className="flex-1 flex items-center justify-center gap-1 py-2 bg-gray-50 rounded-xl"
                     onClick={() => goToDetail(match.id)}
                   >
                     <Sparkles size={14} color="#6B7280" />
                     <Text className="block text-xs font-medium text-gray-600">查看档案</Text>
                   </View>
                   <View
-                    className="flex items-center justify-center py-2 px-3 bg-gray-50 border border-gray-200 rounded-xl"
+                    className="flex items-center justify-center py-2 px-3 bg-gray-50 rounded-xl"
                     onClick={(e) => {
                       e.stopPropagation()
                       toggleHide(match)
@@ -241,7 +242,7 @@ const Index: FC = () => {
                 {/* 周期阶段显示 */}
                 {cycleInfo && phaseConf && (
                   <View className={`mt-3 pt-3 border-t ${phaseConf.bgColor} -mx-4 -mb-4 px-4 py-3 rounded-b-2xl`}>
-                    <View className="flex items-center gap-2 mb-1">
+                    <View className="flex items-center gap-3 mb-1">
                       <PhaseIcon size={14} color={phaseConf.color} />
                       <Text className="block text-xs font-medium" style={{ color: phaseConf.color }}>
                         {cycleInfo.phaseName} · Day {cycleInfo.day}

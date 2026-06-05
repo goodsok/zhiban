@@ -133,7 +133,7 @@ const ChatRecordUploader: FC<ChatRecordUploaderProps> = ({
               : 'bg-red-50'
           }`}
         >
-          <View className="flex items-start gap-2">
+          <View className="flex items-start gap-3">
             {result.success && result.isChatRecord ? (
               <CircleCheck size={16} color="#4ECB71" />
             ) : (
@@ -197,7 +197,7 @@ const ChatRecordUploader: FC<ChatRecordUploaderProps> = ({
       )}
 
       {/* 提示信息 */}
-      <View className="mt-3 flex items-start gap-2">
+      <View className="mt-3 flex items-start gap-3">
         <CircleAlert size={14} color="#999" />
         <Text className="block text-xs text-gray-400">
           请上传真实的聊天记录截图，AI会自动识别对话内容并提取行为特征

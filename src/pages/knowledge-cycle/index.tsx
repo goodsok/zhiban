@@ -110,12 +110,12 @@ const KnowledgeCyclePage: FC = () => {
                     className="flex items-center justify-between p-4"
                     onClick={() => togglePhase(phase.phase_key)}
                   >
-                    <View className="flex items-center gap-3">
+                    <View className="flex items-center gap-4">
                       <View className={`w-8 h-8 rounded-full ${config.bgColor} flex items-center justify-center`}>
                         <PhaseIcon size={16} color={config.color} />
                       </View>
                       <View>
-                        <View className="flex items-center gap-2">
+                        <View className="flex items-center gap-3">
                           <Text className="block text-sm font-semibold text-gray-900">{phase.phase_name}</Text>
                           <Text className="block text-xs text-gray-400">Day {phase.day_range}</Text>
                         </View>
@@ -139,19 +139,19 @@ const KnowledgeCyclePage: FC = () => {
                         <Text className="block text-xs font-medium text-gray-700 mb-2">阶段特点</Text>
                         <View className="space-y-2">
                           {phase.characteristics?.emotion && (
-                            <View className="flex items-start gap-2">
+                            <View className="flex items-start gap-3">
                               <Text className="block text-xs text-gray-400 w-12 shrink-0">情绪</Text>
                               <Text className="block text-xs text-gray-600">{phase.characteristics.emotion}</Text>
                             </View>
                           )}
                           {phase.characteristics?.social && (
-                            <View className="flex items-start gap-2">
+                            <View className="flex items-start gap-3">
                               <Text className="block text-xs text-gray-400 w-12 shrink-0">社交</Text>
                               <Text className="block text-xs text-gray-600">{phase.characteristics.social}</Text>
                             </View>
                           )}
                           {phase.characteristics?.body && (
-                            <View className="flex items-start gap-2">
+                            <View className="flex items-start gap-3">
                               <Text className="block text-xs text-gray-400 w-12 shrink-0">身体</Text>
                               <Text className="block text-xs text-gray-600">{phase.characteristics.body}</Text>
                             </View>
@@ -161,7 +161,7 @@ const KnowledgeCyclePage: FC = () => {
 
                       {/* 伴侣建议 */}
                       {phase.partner_tips && (
-                        <View className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <View className="mt-3 p-3 bg-gray-50 rounded-lg">
                           <Text className="block text-xs font-medium text-gray-700 mb-1">给TA的建议</Text>
                           <Text className="block text-xs text-gray-600">{phase.partner_tips}</Text>
                         </View>

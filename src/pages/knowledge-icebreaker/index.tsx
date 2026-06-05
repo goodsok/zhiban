@@ -81,9 +81,9 @@ const KnowledgeIcebreakerPage: FC = () => {
       </View>
 
       {/* 刷新按钮 */}
-      <View className="px-4 mb-3">
+      <View className="px-4 mb-4">
         <View
-          className="flex items-center justify-center gap-2 py-3 bg-white rounded-xl"
+          className="flex items-center justify-center gap-3 py-3 bg-white rounded-xl"
           onClick={refreshTopics}
         >
           <RefreshCw size={16} color="#6B7280" className={loading ? 'animate-spin' : ''} />
@@ -111,7 +111,7 @@ const KnowledgeIcebreakerPage: FC = () => {
                   key={topic.id || index}
                   className="bg-white rounded-xl p-4"
                 >
-                  <View className="flex items-start gap-3">
+                  <View className="flex items-start gap-4">
                     <View className={`w-8 h-8 rounded-full ${config.bgColor} flex items-center justify-center shrink-0`}>
                       <Text className="block text-sm font-semibold text-gray-900">{index + 1}</Text>
                     </View>
@@ -129,7 +129,7 @@ const KnowledgeIcebreakerPage: FC = () => {
 
       {/* 使用提示 */}
       <View className="px-4 mt-6">
-        <View className="bg-gray-100 border border-gray-200 rounded-xl p-4">
+        <View className="bg-gray-100 rounded-xl p-4">
           <Text className="block text-xs font-medium text-gray-700 mb-2">使用提示</Text>
           <Text className="block text-xs text-gray-500 leading-relaxed">
             这些话题适合在约会、聊天时使用。选择一个轻松的话题开始，根据对方的反应自然延续对话。记住，真诚比技巧更重要。

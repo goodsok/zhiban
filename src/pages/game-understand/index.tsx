@@ -174,7 +174,7 @@ const UnderstandPage: FC = () => {
         {!selectedCategory ? (
           <>
             {/* 类别选择 */}
-            <Text className="block text-sm font-medium text-gray-500 mb-3">选择一个话题</Text>
+            <Text className="block text-sm font-medium text-gray-500 mb-4">选择一个话题</Text>
             <ScrollView scrollY className="max-h-[calc(100vh-280px)]">
               <View className="space-y-3">
                 {categories.map((category) => (

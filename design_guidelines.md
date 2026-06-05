@@ -51,7 +51,7 @@
 | 浅绿底（标签/徽章） | `#ECFDF5` | `bg-green-50` | 极淡薄荷底色 |
 | 页面背景（冷灰） | `#F7F8FA` | `style={{ backgroundColor: '#F7F8FA' }}` | 冷淡浅灰，卡片浮在背景上 |
 | 卡片背景 | `#FFFFFF` | `bg-white` | 纯白卡片，靠阴影区分层次 |
-| 卡片阴影 | `shadow` | `shadow` | 比默认稍重的阴影，卡片浮起感 |
+| 卡片阴影 | 柔和弥散 `0 2px 12px rgba(0,0,0,0.08)` | `shadow-soft` | 大范围低透明度，卡片浮起感 |
 | 标题文字 | `#111827` | `text-gray-900` | 深黑 |
 | 正文文字 | `#374151` | `text-gray-700` | 中灰 |
 | 辅助文字 | `#6B7280` | `text-gray-500` | 浅灰 |
@@ -95,8 +95,8 @@
 | 用途 | 间距 | Tailwind 类名 |
 |------|------|---------------|
 | 页面边距 | 16px | `px-4` |
-| 卡片间距 | 12px | `mb-3` / `gap-3` |
-| 内容间距 | 8px | `gap-2` |
+| 卡片间距 | 16px | `mb-4` / `gap-4` |
+| 内容间距 | 12px | `gap-3` |
 | 紧凑间距 | 4px | `gap-1` |
 
 ---
@@ -107,20 +107,20 @@
 
 ### 卡片
 ```
-bg-white rounded-2xl shadow-sm
+bg-white rounded-2xl shadow-soft
 ```
-无边框，靠阴影与纯白背景区分层次
+无边框，柔和弥散阴影与纯白背景区分层次
 
 ### 按钮
 ```
 主按钮：bg-green-500 text-white rounded-xl
-次按钮：bg-gray-100 border border-gray-200 text-gray-700 rounded-xl
+次按钮：bg-gray-100 text-gray-700 rounded-xl
 文字按钮：text-gray-500
 ```
 
 ### 标签
 ```
-bg-green-50 border border-green-200 text-green-600 text-xs rounded-lg
+bg-green-50 text-green-600 text-xs rounded-lg
 ```
 
 ### 信息分组标题

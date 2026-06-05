@@ -134,7 +134,7 @@ const DrawerHeader = ({
   ...props
 }: React.ComponentPropsWithoutRef<typeof View>) => (
   <View
-    className={cn("grid gap-2 p-4 text-center sm:text-left", className)}
+    className={cn("grid gap-3 p-4 text-center sm:text-left", className)}
     {...props}
   />
 )
@@ -145,7 +145,7 @@ const DrawerFooter = ({
   ...props
 }: React.ComponentPropsWithoutRef<typeof View>) => (
   <View
-    className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+    className={cn("mt-auto flex flex-col gap-3 p-4", className)}
     {...props}
   />
 )

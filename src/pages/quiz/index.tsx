@@ -111,11 +111,11 @@ const QuizPage: FC = () => {
 
         {/* 历史记录 */}
         <View className="w-full mt-12">
-          <Text className="block text-sm text-gray-500 mb-3">历史最佳成绩</Text>
-          <Card className="shadow border-0">
+          <Text className="block text-sm text-gray-500 mb-4">历史最佳成绩</Text>
+          <Card className="shadow-soft border-0">
             <CardContent className="p-4">
               <View className="flex items-center justify-between">
-                <View className="flex items-center gap-3">
+                <View className="flex items-center gap-4">
                   <Trophy size={24} color="#F59E0B" />
                   <View>
                     <Text className="block font-semibold text-gray-800">默契度 85%</Text>
@@ -147,7 +147,7 @@ const QuizPage: FC = () => {
         </View>
 
         {/* 问题卡片 */}
-        <Card className="shadow border-0 mb-4">
+        <Card className="shadow-soft border-0 mb-4">
           <CardContent className="p-6">
             <Text className="block text-xl font-semibold text-gray-800 text-center">
               {question.question}
@@ -159,7 +159,7 @@ const QuizPage: FC = () => {
         {question.options.map((option, index) => (
           <Card 
             key={index} 
-            className={`mb-3 shadow border-0 ${
+            className={`mb-3 shadow-soft border-0 ${
               selectedAnswer === index ? 'ring-2 ring-pink-500' : ''
             }`}
             onClick={() => selectAnswer(index)}
@@ -200,7 +200,7 @@ const QuizPage: FC = () => {
         <Text className="block text-2xl font-bold text-gray-800 mb-2">{result.title}</Text>
         <Text className="block text-gray-500 mb-8">{result.message}</Text>
 
-        <Card className="shadow border-0 w-full mb-6">
+        <Card className="shadow-soft border-0 w-full mb-6">
           <CardContent className="p-6">
             <View className="flex items-center justify-between mb-4">
               <Text className="block text-gray-500">默契度</Text>
@@ -213,7 +213,7 @@ const QuizPage: FC = () => {
           </CardContent>
         </Card>
 
-        <View className="flex gap-3 w-full">
+        <View className="flex gap-4 w-full">
           <Button
             variant="outline"
             size="lg"

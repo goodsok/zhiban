@@ -350,13 +350,13 @@ const QuickPage: FC = () => {
       <View className="p-4">
         {step === 'select' && (
           <>
-            <Text className="block text-sm font-medium text-gray-500 mb-3">选择问题类别</Text>
+            <Text className="block text-sm font-medium text-gray-500 mb-4">选择问题类别</Text>
             {categories.map((category) => {
               const Icon = category.icon
               return (
                 <Card
                   key={category.id}
-                  className="mb-3 overflow-hidden"
+                  className="mb-4 overflow-hidden"
                   onClick={() => handleSelectCategory(category)}
                 >
                   <View className={`bg-gradient-to-r ${category.color} px-4 py-4`}>
@@ -498,7 +498,7 @@ const QuickPage: FC = () => {
                   <Text className="block text-lg font-semibold text-gray-900 mb-2">
                     挑战完成！
                   </Text>
-                  <View className="flex flex-row items-center mb-3">
+                  <View className="flex flex-row items-center mb-4">
                     <Text className="text-2xl mr-2">{getMatchText(getMatchRate()).icon}</Text>
                     <Text
                       className={`text-lg font-semibold ${getMatchText(getMatchRate()).color}`}
@@ -511,7 +511,7 @@ const QuickPage: FC = () => {
             </Card>
 
             {/* 统计数据 */}
-            <View className="grid grid-cols-2 gap-3 mb-4">
+            <View className="grid grid-cols-2 gap-4 mb-4">
               <Card>
                 <CardContent className="py-4">
                   <Text className="block text-xs text-gray-500 mb-1">答对题数</Text>

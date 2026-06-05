@@ -133,7 +133,7 @@ const DateEditPage: FC = () => {
         <View className="mb-6">
           <Text className="block text-xs text-gray-400 mb-2">基本信息</Text>
           <View className="bg-white rounded-xl p-4">
-            <View className="mb-3">
+            <View className="mb-4">
               <Text className="block text-xs text-gray-400 mb-1">日期</Text>
               <Input
                 className="w-full"
@@ -142,7 +142,7 @@ const DateEditPage: FC = () => {
                 onInput={(e) => setDate(e.detail.value)}
               />
             </View>
-            <View className="mb-3">
+            <View className="mb-4">
               <Text className="block text-xs text-gray-400 mb-1">地点</Text>
               <Input
                 className="w-full"
@@ -151,7 +151,7 @@ const DateEditPage: FC = () => {
                 onInput={(e) => setLocation(e.detail.value)}
               />
             </View>
-            <View className="mb-3">
+            <View className="mb-4">
               <Text className="block text-xs text-gray-400 mb-1">活动</Text>
               <Input
                 className="w-full"
@@ -175,7 +175,7 @@ const DateEditPage: FC = () => {
         {/* 感受 */}
         <View className="mb-6">
           <Text className="block text-xs text-gray-400 mb-2">约会感受</Text>
-          <View className="flex gap-2">
+          <View className="flex gap-3">
             {moodOptions.map((option) => (
               <View
                 key={option.value}
@@ -194,7 +194,7 @@ const DateEditPage: FC = () => {
         <View className="mb-6">
           <Text className="block text-xs text-gray-400 mb-2">精彩瞬间（选填）</Text>
           {highlights.length > 0 && (
-            <View className="flex flex-wrap gap-2 mb-2">
+            <View className="flex flex-wrap gap-3 mb-2">
               {highlights.map((h, i) => (
                 <Badge key={i} className="bg-gray-100 text-gray-600 pr-1">
                   <Text className="block">{h}</Text>
@@ -209,7 +209,7 @@ const DateEditPage: FC = () => {
             </View>
           )}
           {highlights.length < 5 && (
-            <View className="flex gap-2">
+            <View className="flex gap-3">
               <View className="flex-1">
                 <Input
                   className="w-full"
@@ -249,7 +249,7 @@ const DateEditPage: FC = () => {
 
       {/* 底部 */}
       <View className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-        <View className="flex gap-3">
+        <View className="flex gap-4">
           <Button variant="outline" className="flex-1" onClick={goBack}>
             取消
           </Button>

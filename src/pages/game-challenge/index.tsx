@@ -433,13 +433,13 @@ const ChallengePage: FC = () => {
       <View className="p-4">
         {step === 'select' && (
           <>
-            <Text className="block text-sm font-medium text-gray-500 mb-3">选择挑战类型</Text>
+            <Text className="block text-sm font-medium text-gray-500 mb-4">选择挑战类型</Text>
             {challenges.map((challenge) => {
               const Icon = challenge.icon
               return (
                 <Card
                   key={challenge.id}
-                  className="mb-3 overflow-hidden"
+                  className="mb-4 overflow-hidden"
                   onClick={() => handleSelectChallenge(challenge)}
                 >
                   <View className={`bg-gradient-to-r ${challenge.color} px-4 py-4`}>
@@ -652,7 +652,7 @@ const ChallengePage: FC = () => {
                   <Text className="block text-lg font-semibold text-gray-900 mb-2">
                     挑战完成！
                   </Text>
-                  <View className="flex flex-row items-center mb-3">
+                  <View className="flex flex-row items-center mb-4">
                     <Text className="text-2xl mr-2">{getObservationLevel(getObservationScore()).icon}</Text>
                     <Text
                       className={`text-lg font-semibold ${getObservationLevel(getObservationScore()).color}`}
@@ -665,7 +665,7 @@ const ChallengePage: FC = () => {
             </Card>
 
             {/* 统计数据 */}
-            <View className="grid grid-cols-2 gap-3 mb-4">
+            <View className="grid grid-cols-2 gap-4 mb-4">
               <Card>
                 <CardContent className="py-4">
                   <Text className="block text-xs text-gray-500 mb-1">正确题数</Text>

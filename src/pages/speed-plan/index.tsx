@@ -640,11 +640,11 @@ const SpeedPlanPage: FC = () => {
         {plan && (
           <View className="bg-white px-4 py-3 border-b">
             <View className="flex items-center justify-between">
-              <View className="flex items-center gap-2">
+              <View className="flex items-center gap-3">
                 {renderAvatar(plan.matches?.name || '?', plan.matches?.avatar_url)}
                 <View>
                   <Text className="block text-sm font-medium text-gray-900">{plan.matches?.name}</Text>
-                  <View className="flex items-center gap-2 mt-1">
+                  <View className="flex items-center gap-3 mt-1">
                     <Text className="block text-xs text-gray-500">
                       目标：{getBehaviorName(plan.target_behavior)}
                     </Text>
@@ -670,7 +670,7 @@ const SpeedPlanPage: FC = () => {
                   <Text className="block text-xs text-gray-500">执行进度</Text>
                   <Text className="block text-xs text-gray-400">{doneSteps}/{totalSteps} 步完成</Text>
                 </View>
-                <View className="w-full bg-gray-100 border border-gray-300 rounded-full h-2">
+                <View className="w-full bg-gray-100 rounded-full h-2">
                   <View 
                     className="bg-green-500 h-2 rounded-full transition-all"
                     style={{ width: `${totalSteps > 0 ? (doneSteps / totalSteps * 100) : 0}%` }}
@@ -697,7 +697,7 @@ const SpeedPlanPage: FC = () => {
                   idx < steps.length - 1 ? 'border-b border-gray-100' : ''
                 }`}
               >
-                <View className="flex items-center gap-2 flex-1 mr-2">
+                <View className="flex items-center gap-3 flex-1 mr-2">
                   {step.status === 'done' ? (
                     <CircleCheck size={16} color="#4ECB71" />
                   ) : step.status === 'failed' ? (
@@ -801,7 +801,7 @@ const SpeedPlanPage: FC = () => {
           {sending && (
             <View className="mb-4 items-start" style={{ display: 'flex' }}>
               <View className="bg-white rounded-2xl p-3">
-                <View className="flex items-center gap-2">
+                <View className="flex items-center gap-3">
                   <LoaderCircle size={14} color="#9CA3AF" className="animate-spin" />
                   <Text className="block text-sm text-gray-400">正在思考...</Text>
                 </View>
@@ -813,7 +813,7 @@ const SpeedPlanPage: FC = () => {
         {/* 快捷回复 */}
         <View className="bg-white px-4 py-2 border-t">
           <ScrollView scrollX className="whitespace-nowrap">
-            <View className="flex gap-2">
+            <View className="flex gap-3">
               {quickReplies.map((text) => (
                 <View
                   key={text}
@@ -908,7 +908,7 @@ const SpeedPlanPage: FC = () => {
       {currentStep === 1 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <User size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">互动背景</Text>
             </View>
@@ -922,12 +922,12 @@ const SpeedPlanPage: FC = () => {
               />
             </View>
 
-            <Text className="block text-sm text-gray-500 mb-3">当前进展（可多选）</Text>
+            <Text className="block text-sm text-gray-500 mb-4">当前进展（可多选）</Text>
             
             {PROGRESS_GROUPS.map((group) => (
-              <View key={group.title} className="mb-3">
+              <View key={group.title} className="mb-4">
                 <Text className="block text-xs text-gray-400 mb-2">{group.title}</Text>
-                <View className="flex flex-wrap gap-2">
+                <View className="flex flex-wrap gap-3">
                   {group.items.map((behavior) => (
                     <View
                       key={behavior.code}
@@ -965,7 +965,7 @@ const SpeedPlanPage: FC = () => {
       {currentStep === 2 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <User size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">选择对象</Text>
             </View>
@@ -979,7 +979,7 @@ const SpeedPlanPage: FC = () => {
                 <Text className="block text-gray-400">还没有对象，请先添加</Text>
               </View>
             ) : (
-              <View className="flex flex-col gap-2">
+              <View className="flex flex-col gap-3">
                 {matches.map((match) => {
                   const isSelected = selectedMatch?.id === match.id
                   return (
@@ -990,7 +990,7 @@ const SpeedPlanPage: FC = () => {
                       }`}
                       onClick={() => handleMatchSelect(match)}
                     >
-                      <View className="flex items-center gap-3">
+                      <View className="flex items-center gap-4">
                         {isSelected ? (
                           <View className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
                             <Text className="block text-sm font-medium text-green-500">
@@ -1033,27 +1033,27 @@ const SpeedPlanPage: FC = () => {
           {selectedMatch && (
             <View className="bg-white rounded-2xl p-4 mb-4">
               <Text className="block text-sm text-gray-500 mb-2">对象分析</Text>
-              <View className="grid grid-cols-2 gap-3">
+              <View className="grid grid-cols-2 gap-4">
                 {selectedMatch.mbti && (
-                  <View className="bg-gray-50 border border-gray-200 rounded-lg p-2">
+                  <View className="bg-gray-50 rounded-lg p-2">
                     <Text className="block text-xs text-gray-400">MBTI</Text>
                     <Text className="block text-sm font-medium text-gray-900">{selectedMatch.mbti}</Text>
                   </View>
                 )}
                 {selectedMatch.attachment_type && (
-                  <View className="bg-gray-50 border border-gray-200 rounded-lg p-2">
+                  <View className="bg-gray-50 rounded-lg p-2">
                     <Text className="block text-xs text-gray-400">依恋类型</Text>
                     <Text className="block text-sm font-medium text-gray-900">{selectedMatch.attachment_type}</Text>
                   </View>
                 )}
                 {selectedMatch.cycle_phase && (
-                  <View className="bg-gray-50 border border-gray-200 rounded-lg p-2">
+                  <View className="bg-gray-50 rounded-lg p-2">
                     <Text className="block text-xs text-gray-400">周期阶段</Text>
                     <Text className="block text-sm font-medium text-gray-900">{getCyclePhaseLabel(selectedMatch.cycle_phase)}</Text>
                   </View>
                 )}
                 {selectedMatch.relationship_energy !== undefined && (
-                  <View className="bg-gray-50 border border-gray-200 rounded-lg p-2">
+                  <View className="bg-gray-50 rounded-lg p-2">
                     <Text className="block text-xs text-gray-400">关系能量</Text>
                     <Text className="block text-sm font-medium text-gray-900">{selectedMatch.relationship_energy}</Text>
                   </View>
@@ -1062,7 +1062,7 @@ const SpeedPlanPage: FC = () => {
             </View>
           )}
 
-          <View className="flex gap-3">
+          <View className="flex gap-4">
             <Button
               variant="outline"
               className="flex-1 rounded-xl py-3"
@@ -1087,15 +1087,15 @@ const SpeedPlanPage: FC = () => {
       {currentStep === 3 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <Target size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">设定目标</Text>
             </View>
             
             <View className="mb-4">
               <Text className="block text-sm text-gray-500 mb-2">目标时间</Text>
-              <View className="flex items-center gap-2">
-                <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex-1">
+              <View className="flex items-center gap-3">
+                <View className="bg-gray-50 rounded-xl px-4 py-3 flex-1">
                   <Input
                     style={{ width: '100%', textAlign: 'center' }}
                     type="number"
@@ -1106,7 +1106,7 @@ const SpeedPlanPage: FC = () => {
                 <Text className="block text-gray-600">小时内</Text>
               </View>
               
-              <View className="flex gap-2 mt-2">
+              <View className="flex gap-3 mt-2">
                 {[24, 48, 72, 168].map((hours) => (
                   <View
                     key={hours}
@@ -1128,7 +1128,7 @@ const SpeedPlanPage: FC = () => {
 
             <View>
               <Text className="block text-sm text-gray-500 mb-2">目标行为</Text>
-              <View className="flex flex-wrap gap-2">
+              <View className="flex flex-wrap gap-3">
                 {TARGET_BEHAVIORS.map((behavior) => (
                   <View
                     key={behavior.code}
@@ -1152,11 +1152,11 @@ const SpeedPlanPage: FC = () => {
           {/* 难度预估 - 实时计算 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
             <View className="flex items-center justify-between mb-2">
-              <View className="flex items-center gap-2">
+              <View className="flex items-center gap-3">
                 <Sparkles size={18} color="#F59E0B" />
                 <Text className="block text-sm font-medium text-gray-900">难度预估</Text>
               </View>
-              <View className="flex items-center gap-2">
+              <View className="flex items-center gap-3">
                 <Text className={`block text-lg font-bold ${getDifficultyColor(difficultyResult.score)}`}>
                   {difficultyResult.score}/10
                 </Text>
@@ -1179,7 +1179,7 @@ const SpeedPlanPage: FC = () => {
             </Text>
           </View>
 
-          <View className="flex gap-3">
+          <View className="flex gap-4">
             <Button
               variant="outline"
               className="flex-1 rounded-xl py-3"
@@ -1193,7 +1193,7 @@ const SpeedPlanPage: FC = () => {
               disabled={generating}
             >
               {generating ? (
-                <View className="flex items-center gap-2">
+                <View className="flex items-center gap-3">
                   <LoaderCircle size={18} color="#fff" className="animate-spin" />
                   <Text className="text-white font-medium">生成中...</Text>
                 </View>

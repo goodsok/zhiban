@@ -145,7 +145,7 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
   if (!requested && !loading && !profile) {
     return (
       <View className="flex flex-col items-center justify-center pt-10 pb-10 px-4">
-        <View className="mb-3">
+        <View className="mb-4">
           <Sparkles size={44} color="#9090B0" />
         </View>
         <Text className="block text-base font-medium text-gray-700 mb-2">相处模式分析</Text>
@@ -167,7 +167,7 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
   if (loading && !profile) {
     return (
       <View className="flex flex-col items-center justify-center py-10 px-4">
-        <View className="mb-3 animate-pulse">
+        <View className="mb-4 animate-pulse">
           <Sparkles size={44} color="#9090B0" />
         </View>
         <Text className="block text-sm font-medium text-gray-600 mb-2">正在扫描维度数据...</Text>
@@ -205,7 +205,7 @@ export default function InteractionProfile({ matchId }: InteractionProfileProps)
             }}
           >
             {/* 头部 */}
-            <View className="flex flex-row items-center gap-2 px-3 pt-3 pb-1">
+            <View className="flex flex-row items-center gap-3 px-3 pt-3 pb-1">
               <View
                 className="rounded flex items-center justify-center"
                 style={{

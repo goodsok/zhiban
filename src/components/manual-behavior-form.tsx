@@ -129,7 +129,7 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
     <View className="bg-white rounded-xl">
       {/* 回复速度 */}
       <View className="p-4 border-b">
-        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta通常多久回复你？</Text>
+        <Text className="block text-sm font-semibold text-gray-900 mb-4">Ta通常多久回复你？</Text>
         <View className="space-y-2">
           {responseSpeedOptions.map((option) => (
             <View
@@ -155,8 +155,8 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
 
       {/* 活跃时段 */}
       <View className="p-4 border-b">
-        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta通常什么时候活跃？（可多选）</Text>
-        <View className="flex flex-wrap gap-2">
+        <Text className="block text-sm font-semibold text-gray-900 mb-4">Ta通常什么时候活跃？（可多选）</Text>
+        <View className="flex flex-wrap gap-3">
           {timeSlotOptions.map((option) => (
             <View
               key={option.value}
@@ -176,8 +176,8 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
 
       {/* 话题偏好 */}
       <View className="p-4 border-b">
-        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta喜欢聊什么话题？（可多选）</Text>
-        <View className="flex flex-wrap gap-2">
+        <Text className="block text-sm font-semibold text-gray-900 mb-4">Ta喜欢聊什么话题？（可多选）</Text>
+        <View className="flex flex-wrap gap-3">
           {topicOptions.map((option) => (
             <View
               key={option.value}
@@ -197,13 +197,13 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
 
       {/* 线上沟通风格 */}
       <View className="p-4 border-b">
-        <View className="flex items-center gap-2 mb-1">
+        <View className="flex items-center gap-3 mb-1">
           <Text className="block text-sm font-semibold text-gray-900">线上沟通风格</Text>
           <View className="px-2 py-1 bg-blue-50 rounded">
             <Text className="block text-xs text-blue-600">微信/电话</Text>
           </View>
         </View>
-        <Text className="block text-xs text-gray-400 mb-3">Ta在线上（打字聊天/语音）时说话风格是怎样的？</Text>
+        <Text className="block text-xs text-gray-400 mb-4">Ta在线上（打字聊天/语音）时说话风格是怎样的？</Text>
         <View className="space-y-2">
           {communicationStyleOptions.map((option) => (
             <View
@@ -229,13 +229,13 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
 
       {/* 线下沟通风格 */}
       <View className="p-4 border-b">
-        <View className="flex items-center gap-2 mb-1">
+        <View className="flex items-center gap-3 mb-1">
           <Text className="block text-sm font-semibold text-gray-900">线下沟通风格</Text>
           <View className="px-2 py-1 bg-white rounded">
             <Text className="block text-xs text-orange-600">见面时</Text>
           </View>
         </View>
-        <Text className="block text-xs text-gray-400 mb-3">Ta在线下（面对面）时说话风格是怎样的？</Text>
+        <Text className="block text-xs text-gray-400 mb-4">Ta在线下（面对面）时说话风格是怎样的？</Text>
         <View className="space-y-2">
           {communicationStyleOptions.map((option) => (
             <View
@@ -270,7 +270,7 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
 
       {/* 情感表达 */}
       <View className="p-4 border-b">
-        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta的情感表达程度如何？</Text>
+        <Text className="block text-sm font-semibold text-gray-900 mb-4">Ta的情感表达程度如何？</Text>
         <View className="space-y-2">
           {emotionalExpressionOptions.map((option) => (
             <View
@@ -296,7 +296,7 @@ const ManualBehaviorForm: FC<ManualBehaviorFormProps> = ({
 
       {/* 社交主动性 */}
       <View className="p-4 border-b">
-        <Text className="block text-sm font-semibold text-gray-900 mb-3">Ta在社交中主动性如何？</Text>
+        <Text className="block text-sm font-semibold text-gray-900 mb-4">Ta在社交中主动性如何？</Text>
         <View className="space-y-2">
           {socialInitiativeOptions.map((option) => (
             <View

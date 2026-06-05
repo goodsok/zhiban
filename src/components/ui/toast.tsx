@@ -455,7 +455,7 @@ const ToastItem = ({
 
   return (
     <View className={baseClasses} style={finalStyle} id={elementId}>
-      <View className="flex gap-3 items-center flex-1" style={{ opacity: isCollapsedStack ? 0 : 1, transition: "opacity 400ms ease" }}>
+      <View className="flex gap-4 items-center flex-1" style={{ opacity: isCollapsedStack ? 0 : 1, transition: "opacity 400ms ease" }}>
         {TypeIcon && (
           <TypeIcon className={cn("shrink-0", item.type === "loading" && "animate-spin")} color={iconColor} size={20} />
         )}
@@ -470,7 +470,7 @@ const ToastItem = ({
       </View>
 
       {(item.action || item.cancel) && (
-        <View className="flex flex-nowrap items-center gap-2 shrink-0" style={{ opacity: isCollapsedStack ? 0 : 1, transition: "opacity 400ms ease" }}>
+        <View className="flex flex-nowrap items-center gap-3 shrink-0" style={{ opacity: isCollapsedStack ? 0 : 1, transition: "opacity 400ms ease" }}>
           {item.cancel && (
             <View
               className="text-xs font-medium opacity-70 active:opacity-100 whitespace-nowrap"

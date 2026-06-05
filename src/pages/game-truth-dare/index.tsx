@@ -98,7 +98,7 @@ const TruthDarePage: FC = () => {
 
       {/* 模式切换 */}
       <View className="bg-white px-4 py-3">
-        <View className="flex flex-row bg-gray-100 border border-gray-200 rounded-xl p-1">
+        <View className="flex flex-row bg-gray-100 rounded-xl p-1">
           <View 
             className={`flex-1 py-2 rounded-lg flex flex-row items-center justify-center ${
               mode === 'truth' ? 'bg-rose-500' : ''
@@ -154,7 +154,7 @@ const TruthDarePage: FC = () => {
             <Card className="mb-4">
               <CardContent className="py-8">
                 <View className="flex flex-col items-center">
-                  <Text className="block text-xs text-rose-500 font-medium mb-3">
+                  <Text className="block text-xs text-rose-500 font-medium mb-4">
                     {mode === 'truth' ? '真心话' : '大冒险'}
                   </Text>
                   {isRevealed ? (
@@ -163,7 +163,7 @@ const TruthDarePage: FC = () => {
                     </Text>
                   ) : (
                     <View className="flex flex-col items-center">
-                      <View className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-3">
+                      <View className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-4">
                         <Heart size={24} color="#f43f5e" className="animate-pulse" />
                       </View>
                       <Text className="block text-sm text-gray-500">准备好了吗？</Text>
@@ -214,7 +214,7 @@ const TruthDarePage: FC = () => {
             {/* 历史记录 */}
             {history.length > 0 && (
               <View className="mt-6">
-                <Text className="block text-sm font-medium text-gray-500 mb-3">历史记录</Text>
+                <Text className="block text-sm font-medium text-gray-500 mb-4">历史记录</Text>
                 <View className="space-y-2">
                   {history.slice(0, 5).map((item, index) => (
                     <View key={index} className="bg-white rounded-lg px-4 py-3 flex flex-row items-start">

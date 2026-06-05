@@ -245,7 +245,7 @@ const MirrorPage: FC = () => {
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">游戏规则</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-4">游戏规则</Text>
                 <View className="space-y-2">
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
@@ -355,7 +355,7 @@ const MirrorPage: FC = () => {
             <Card className="mb-4 w-full">
               <CardContent className="py-6">
                 <View className="flex flex-col items-center">
-                  <Text className="text-xs text-gray-500 mb-3">
+                  <Text className="text-xs text-gray-500 mb-4">
                     {isLeaderA ? 'A 做动作，B 来模仿' : 'B 做动作，A 来模仿'}
                   </Text>
                   <Text className="block text-lg text-gray-800 text-center leading-relaxed font-semibold">
@@ -395,8 +395,8 @@ const MirrorPage: FC = () => {
               </Button>
             ) : (
               <View className="w-full">
-                <Text className="block text-sm text-gray-500 text-center mb-3">模仿得怎么样？</Text>
-                <View className="flex flex-row gap-3">
+                <Text className="block text-sm text-gray-500 text-center mb-4">模仿得怎么样？</Text>
+                <View className="flex flex-row gap-4">
                   <View className="flex-1">
                     <Button
                       className="bg-amber-50 border border-amber-200 rounded-xl py-3 w-full"
@@ -421,7 +421,7 @@ const MirrorPage: FC = () => {
                   </View>
                   <View className="flex-1">
                     <Button
-                      className="bg-green-50 border border-green-200 rounded-xl py-3 w-full"
+                      className="bg-green-50 rounded-xl py-3 w-full"
                       onClick={() => handleScore(3)}
                     >
                       <View className="flex flex-col items-center">
@@ -453,7 +453,7 @@ const MirrorPage: FC = () => {
         {/* 轮次结束评分 */}
         {step === 'scoring' && (
           <View className="flex flex-col items-center">
-            <Text className="block text-3xl mb-3">{getRoundEmoji(currentRound)}</Text>
+            <Text className="block text-3xl mb-4">{getRoundEmoji(currentRound)}</Text>
             <Text className="block text-xl font-bold text-gray-900 mb-1">
               {getRoundName(currentRound)} 完成！
             </Text>
@@ -490,7 +490,7 @@ const MirrorPage: FC = () => {
         {/* 最终结果 */}
         {step === 'result' && (
           <View className="flex flex-col items-center">
-            <Text className="block text-5xl mb-3">🪞</Text>
+            <Text className="block text-5xl mb-4">🪞</Text>
             <Text className="block text-2xl font-bold text-gray-900 mb-1">{getResultTitle()}</Text>
             <Text className="block text-sm text-gray-500 mb-6">
               总分 {getTotalScore()}/{getMaxScore()}
@@ -506,7 +506,7 @@ const MirrorPage: FC = () => {
 
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">各轮表现</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-4">各轮表现</Text>
                 {actionSets.map((set, idx) => (
                   <View key={idx} className="flex flex-row items-center justify-between py-2">
                     <View className="flex flex-row items-center">

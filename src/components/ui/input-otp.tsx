@@ -41,7 +41,7 @@ const InputOTP = React.forwardRef<
     <InputOTPContext.Provider value={{ value, maxLength, isFocused }}>
       <View
         className={cn(
-          "relative flex items-center gap-2",
+          "relative flex items-center gap-3",
           disabled && "opacity-50",
           containerClassName
         )}
@@ -74,7 +74,7 @@ const InputOTP = React.forwardRef<
           focus={autoFocus}
           ref={ref}
         />
-        <View className={cn("flex items-center gap-2", className)}>
+        <View className={cn("flex items-center gap-3", className)}>
           {children}
         </View>
       </View>

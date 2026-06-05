@@ -124,11 +124,11 @@ const SweetTalkPage: FC = () => {
 
               {/* 情话列表 */}
               {result.lines.map((line, idx) => (
-                <Card key={idx} className="mb-3">
+                <Card key={idx} className="mb-4">
                   <CardContent className="p-4">
-                    <Text className="block text-base text-gray-900 leading-relaxed mb-3">{line.content}</Text>
+                    <Text className="block text-base text-gray-900 leading-relaxed mb-4">{line.content}</Text>
                     <View className="flex flex-row items-center justify-between">
-                      <View className="flex flex-row items-center gap-2">
+                      <View className="flex flex-row items-center gap-3">
                         <Badge variant="secondary">
                           <Text className="text-xs">{line.style}</Text>
                         </Badge>
@@ -151,7 +151,7 @@ const SweetTalkPage: FC = () => {
               {/* 小技巧 */}
               <Card className="mb-4">
                 <CardContent className="p-4">
-                  <View className="flex flex-row items-center mb-3">
+                  <View className="flex flex-row items-center mb-4">
                     <Sparkles size={18} color="#374151" />
                     <Text className="block text-base font-semibold text-gray-900 ml-2">发送小技巧</Text>
                   </View>
@@ -177,8 +177,8 @@ const SweetTalkPage: FC = () => {
 
       <ScrollView scrollY className="px-4 pt-4 pb-20">
         {/* 选择场景 */}
-        <Text className="block text-sm font-semibold text-gray-900 mb-3">选择场景</Text>
-        <View className="flex flex-row flex-wrap gap-3 mb-6">
+        <Text className="block text-sm font-semibold text-gray-900 mb-4">选择场景</Text>
+        <View className="flex flex-row flex-wrap gap-4 mb-6">
           {SCENES.map((scene) => {
             const SceneIcon = scene.icon
             return (
@@ -198,8 +198,8 @@ const SweetTalkPage: FC = () => {
         </View>
 
         {/* 选择语气 */}
-        <Text className="block text-sm font-semibold text-gray-900 mb-3">语气风格</Text>
-        <View className="flex flex-row flex-wrap gap-2 mb-6">
+        <Text className="block text-sm font-semibold text-gray-900 mb-4">语气风格</Text>
+        <View className="flex flex-row flex-wrap gap-3 mb-6">
           {TONES.map((tone) => (
             <Badge
               key={tone.key}
@@ -212,7 +212,7 @@ const SweetTalkPage: FC = () => {
         </View>
 
         {/* 自定义上下文 */}
-        <Text className="block text-sm font-semibold text-gray-900 mb-3">补充要求（选填）</Text>
+        <Text className="block text-sm font-semibold text-gray-900 mb-4">补充要求（选填）</Text>
         <View className="bg-gray-50 rounded-2xl p-4 mb-6">
           <Textarea
             style={{ width: '100%', minHeight: '60px', backgroundColor: 'transparent' }}

@@ -67,7 +67,7 @@ const PortraitHistory: FC<PortraitHistoryProps> = ({ history, limit = 5 }) => {
       {displayHistory.map((item, index) => (
         <View
           key={item.id}
-          className={`flex items-start gap-3 p-4 ${
+          className={`flex items-start gap-4 p-4 ${
             index < displayHistory.length - 1 ? 'border-b' : ''
           }`}
         >
@@ -86,7 +86,7 @@ const PortraitHistory: FC<PortraitHistoryProps> = ({ history, limit = 5 }) => {
                 {getChangeText(item.oldValue, item.newValue)}
               </Text>
             </View>
-            <View className="flex items-center gap-2">
+            <View className="flex items-center gap-3">
               <Text className="block text-xs text-gray-400">
                 {item.oldValue} → {item.newValue}
               </Text>

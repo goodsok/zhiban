@@ -164,7 +164,7 @@ const MomentsCreatePage: FC = () => {
         <ScrollView className="p-4" scrollY>
           {/* 文案建议 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <Sparkles size={18} color="#F59E0B" />
               <Text className="block text-base font-semibold text-gray-900">文案建议</Text>
             </View>
@@ -188,12 +188,12 @@ const MomentsCreatePage: FC = () => {
 
           {/* 图片建议 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <ImageLucide size={18} color="#3B82F6" />
               <Text className="block text-base font-semibold text-gray-900">图片建议</Text>
             </View>
             {suggestion.imageSuggestions.map((img, index) => (
-              <View key={index} className="flex items-start gap-2 mb-2">
+              <View key={index} className="flex items-start gap-3 mb-2">
                 <View className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
                   <Text className="block text-xs text-blue-600">{index + 1}</Text>
                 </View>
@@ -204,7 +204,7 @@ const MomentsCreatePage: FC = () => {
 
           {/* 发布时机 */}
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-2">
+            <View className="flex items-center gap-3 mb-2">
               <Clock size={18} color="#4ECB71" />
               <Text className="block text-base font-semibold text-gray-900">发布时机</Text>
             </View>
@@ -218,9 +218,9 @@ const MomentsCreatePage: FC = () => {
           </View>
 
           {/* 操作按钮 */}
-          <View className="flex gap-3 mb-4">
+          <View className="flex gap-4 mb-4">
             <View
-              className="flex-1 bg-gray-100 border border-gray-200 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-gray-100 rounded-xl py-3 flex items-center justify-center"
               onClick={() => {
                 setSuggestion(null)
                 setCurrentStep(3)
@@ -282,12 +282,12 @@ const MomentsCreatePage: FC = () => {
       {currentStep === 1 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <User size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">选择对象（可选）</Text>
             </View>
             
-            <Text className="block text-sm text-gray-500 mb-3">
+            <Text className="block text-sm text-gray-500 mb-4">
               选择对象可以让建议更贴合目标
             </Text>
             
@@ -313,7 +313,7 @@ const MomentsCreatePage: FC = () => {
                 <Text className="block text-gray-400 text-sm">暂无对象可选</Text>
               </View>
             ) : (
-              <View className="flex flex-col gap-2">
+              <View className="flex flex-col gap-3">
                 {matches.map((match) => {
                   const isSelected = selectedMatch?.id === match.id
                   return (
@@ -324,7 +324,7 @@ const MomentsCreatePage: FC = () => {
                       }`}
                       onClick={() => setSelectedMatch(match)}
                     >
-                      <View className="flex items-center gap-3">
+                      <View className="flex items-center gap-4">
                         <View className={`w-10 h-10 rounded-full flex items-center justify-center ${isSelected ? 'bg-white' : 'bg-gray-200'}`}>
                           <Text className={`block text-sm font-medium ${isSelected ? 'text-green-500' : 'text-gray-600'}`}>
                             {match.name.charAt(0)}
@@ -356,8 +356,8 @@ const MomentsCreatePage: FC = () => {
       {currentStep === 2 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-base font-semibold text-gray-900 mb-3">内容类型</Text>
-            <View className="grid grid-cols-4 gap-2">
+            <Text className="block text-base font-semibold text-gray-900 mb-4">内容类型</Text>
+            <View className="grid grid-cols-4 gap-3">
               {POST_TYPES.map((type) => {
                 const isSelected = selectedType === type.code
                 return (
@@ -379,8 +379,8 @@ const MomentsCreatePage: FC = () => {
           </View>
 
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-base font-semibold text-gray-900 mb-3">发圈目的</Text>
-            <View className="flex flex-col gap-2">
+            <Text className="block text-base font-semibold text-gray-900 mb-4">发圈目的</Text>
+            <View className="flex flex-col gap-3">
               {PURPOSES.map((purpose) => {
                 const isSelected = selectedPurpose === purpose.code
                 return (
@@ -407,8 +407,8 @@ const MomentsCreatePage: FC = () => {
           </View>
 
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <Text className="block text-base font-semibold text-gray-900 mb-3">人设标签（可多选）</Text>
-            <View className="flex flex-wrap gap-2">
+            <Text className="block text-base font-semibold text-gray-900 mb-4">人设标签（可多选）</Text>
+            <View className="flex flex-wrap gap-3">
               {PERSONA_TAGS.map((tag) => {
                 const isSelected = selectedPersonas.includes(tag.code)
                 return (
@@ -428,9 +428,9 @@ const MomentsCreatePage: FC = () => {
             </View>
           </View>
 
-          <View className="flex gap-3">
+          <View className="flex gap-4">
             <View
-              className="flex-1 bg-gray-100 border border-gray-200 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-gray-100 rounded-xl py-3 flex items-center justify-center"
               onClick={() => setCurrentStep(1)}
             >
               <Text className="block text-gray-600">上一步</Text>
@@ -453,13 +453,13 @@ const MomentsCreatePage: FC = () => {
       {currentStep === 3 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl p-4 mb-4">
-            <View className="flex items-center gap-2 mb-3">
+            <View className="flex items-center gap-3 mb-4">
               <Sparkles size={18} color="#374151" />
               <Text className="block text-base font-semibold text-gray-900">描述你想发的内容</Text>
             </View>
             
             <View className="mb-4">
-              <View className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+              <View className="bg-gray-50 rounded-xl p-3">
                 <Textarea
                   className="w-full"
                   style={{ minHeight: '120px' }}
@@ -475,9 +475,9 @@ const MomentsCreatePage: FC = () => {
             </Text>
           </View>
 
-          <View className="flex gap-3">
+          <View className="flex gap-4">
             <View
-              className="flex-1 bg-gray-100 border border-gray-200 rounded-xl py-3 flex items-center justify-center"
+              className="flex-1 bg-gray-100 rounded-xl py-3 flex items-center justify-center"
               onClick={() => setCurrentStep(2)}
             >
               <Text className="block text-gray-600">上一步</Text>

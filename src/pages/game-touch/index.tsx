@@ -218,7 +218,7 @@ const TouchPage: FC = () => {
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">游戏规则</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-4">游戏规则</Text>
                 <View className="space-y-2">
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
@@ -308,7 +308,7 @@ const TouchPage: FC = () => {
         {/* 当前等级说明 */}
         {step === 'playing' && currentLevel && (
           <View className="flex flex-col items-center">
-            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center mb-3">
+            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center mb-4">
               <Text className="text-2xl">🤲</Text>
             </View>
             <View className="flex flex-row items-center mb-1">
@@ -323,7 +323,7 @@ const TouchPage: FC = () => {
             <Card className="mb-4 w-full">
               <CardContent className="py-5">
                 <View className="flex flex-col items-center">
-                  <Text className="text-xs text-gray-500 mb-3">怎么做</Text>
+                  <Text className="text-xs text-gray-500 mb-4">怎么做</Text>
                   <Text className="block text-base text-gray-800 text-center leading-relaxed font-medium">
                     {currentLevel.instruction}
                   </Text>
@@ -412,7 +412,7 @@ const TouchPage: FC = () => {
         {/* 游戏总结 */}
         {step === 'summary' && (
           <View className="flex flex-col items-center">
-            <Text className="block text-5xl mb-3">{getSummaryEmoji()}</Text>
+            <Text className="block text-5xl mb-4">{getSummaryEmoji()}</Text>
             <Text className="block text-2xl font-bold text-gray-900 mb-1">{getSummaryTitle()}</Text>
             <Text className="block text-sm text-gray-500 mb-6">亲密度 {totalScore} 分</Text>
 
@@ -426,7 +426,7 @@ const TouchPage: FC = () => {
 
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">完成记录</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-4">完成记录</Text>
                 {touchLevels.map(level => {
                   const isCompleted = completedLevels.includes(level.id)
                   const isSkipped = skippedLevels.includes(level.id)
@@ -458,7 +458,7 @@ const TouchPage: FC = () => {
                 {skippedLevels.some(id => !completedLevels.includes(id)) && (
                   <View className="mt-3 pt-3 border-t">
                     <Text className="block text-xs text-gray-500 mb-2">补玩跳过的等级</Text>
-                    <View className="flex flex-row flex-wrap gap-2">
+                    <View className="flex flex-row flex-wrap gap-3">
                       {skippedLevels.filter(id => !completedLevels.includes(id)).map(id => {
                         const level = touchLevels.find(l => l.id === id)
                         return level ? (

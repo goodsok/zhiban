@@ -98,7 +98,7 @@ const KnowledgeScenarioPage: FC = () => {
       <ScrollView scrollY style={{ flex: 1 }}>
         {/* 搜索栏 + 进度 */}
         <View className="px-4 pt-3 pb-2 bg-white border-b">
-          <View className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+          <View className="bg-gray-50 rounded-xl px-3 py-2">
             <Input
               placeholder="搜索场景、案例..."
               value={searchQuery}
@@ -107,7 +107,7 @@ const KnowledgeScenarioPage: FC = () => {
             />
           </View>
           {!searchQuery && (
-            <View className="flex items-center gap-2 mt-3">
+            <View className="flex items-center gap-3 mt-3">
               <BookOpen size={14} color="#6B7280" />
               <Text className="block text-xs text-gray-500">
                 已阅读 {readCount}/{totalCases} 个案例
@@ -139,7 +139,7 @@ const KnowledgeScenarioPage: FC = () => {
             const isScenarioComplete = scenarioReadCount === scenarioTotal
 
             return (
-              <Card key={scenario.id} className="mb-3 overflow-hidden">
+              <Card key={scenario.id} className="mb-4 overflow-hidden">
                 {/* 场景标题 */}
                 <Collapsible
                   open={isExpanded}
@@ -147,12 +147,12 @@ const KnowledgeScenarioPage: FC = () => {
                 >
                   <CollapsibleTrigger className="p-4">
                     <View className="flex items-center justify-between">
-                      <View className="flex items-center gap-3">
+                      <View className="flex items-center gap-4">
                         <View className={`w-10 h-10 ${scenario.bgColor} rounded-xl flex items-center justify-center`}>
                           <ScenarioIcon size={20} color={scenario.color} />
                         </View>
                         <View>
-                          <View className="flex items-center gap-2">
+                          <View className="flex items-center gap-3">
                             <Text className="block text-base font-semibold text-gray-900">
                               {scenario.title}
                             </Text>
@@ -167,7 +167,7 @@ const KnowledgeScenarioPage: FC = () => {
                           </Text>
                         </View>
                       </View>
-                      <View className="flex items-center gap-2">
+                      <View className="flex items-center gap-3">
                         <Badge variant="secondary" className="bg-gray-100 text-gray-600 text-xs px-2 py-0 border-0">
                           {scenarioReadCount}/{scenarioTotal}
                         </Badge>
@@ -187,16 +187,16 @@ const KnowledgeScenarioPage: FC = () => {
                         const isRead = readCases.has(dialogueCase.id)
 
                         return (
-                          <View key={dialogueCase.id} className="mb-3 last:mb-0">
+                          <View key={dialogueCase.id} className="mb-4 last:mb-0">
                             <Collapsible
                               open={isCaseExpanded}
                               onOpenChange={() => toggleCase(dialogueCase.id)}
                             >
                               {/* 案例标题 */}
                               <CollapsibleTrigger>
-                                <View className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+                                <View className="bg-gray-50 rounded-xl p-3">
                                   <View className="flex items-center justify-between">
-                                    <View className="flex items-center gap-2">
+                                    <View className="flex items-center gap-3">
                                       <View className={`w-6 h-6 rounded-full flex items-center justify-center ${isRead ? 'bg-emerald-100' : 'bg-white'}`}>
                                         {isRead ? (
                                           <Check size={12} color="#4ECB71" />
@@ -224,9 +224,9 @@ const KnowledgeScenarioPage: FC = () => {
 
                               {/* 展开的案例详情 */}
                               <CollapsibleContent>
-                                <View className="bg-gray-50 border border-gray-200 rounded-xl p-4 mt-2">
+                                <View className="bg-gray-50 rounded-xl p-4 mt-2">
                                   {/* 场景背景 */}
-                                  <View className="flex items-center gap-1 mb-3">
+                                  <View className="flex items-center gap-1 mb-4">
                                     <View className="w-1 h-1 rounded-full bg-gray-400" />
                                     <Text className="block text-xs text-gray-500">
                                       {dialogueCase.context}
@@ -235,7 +235,7 @@ const KnowledgeScenarioPage: FC = () => {
 
                                   {/* TA说的话 */}
                                   <View className="mb-4">
-                                    <View className="flex items-start gap-2 mb-1">
+                                    <View className="flex items-start gap-3 mb-1">
                                       <View className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                                         <Text className="block text-xs text-gray-600 font-medium">TA</Text>
                                       </View>
@@ -246,7 +246,7 @@ const KnowledgeScenarioPage: FC = () => {
                                   </View>
 
                                   {/* 错误回复 */}
-                                  <View className="mb-3">
+                                  <View className="mb-4">
                                     <View className="flex items-center gap-1 mb-2">
                                       <X size={14} color="#EF4444" />
                                       <Text className="block text-xs font-medium text-red-500">错误回复</Text>
@@ -257,12 +257,12 @@ const KnowledgeScenarioPage: FC = () => {
                                   </View>
 
                                   {/* 正确回复 */}
-                                  <View className="mb-3">
+                                  <View className="mb-4">
                                     <View className="flex items-center gap-1 mb-2">
                                       <Check size={14} color="#4ECB71" />
                                       <Text className="block text-xs font-medium text-green-600">正确回复</Text>
                                     </View>
-                                    <View className="bg-green-50 border border-green-200 rounded-xl p-3 border border-emerald-100">
+                                    <View className="bg-green-50 rounded-xl p-3 border border-emerald-100">
                                       <Text className="block text-sm text-gray-700">{dialogueCase.rightReply}</Text>
                                     </View>
                                   </View>

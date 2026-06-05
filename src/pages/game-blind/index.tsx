@@ -195,7 +195,7 @@ const BlindPage: FC = () => {
 
             <Card className="mb-4 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">游戏规则</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-4">游戏规则</Text>
                 <View className="space-y-2">
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
@@ -290,7 +290,7 @@ const BlindPage: FC = () => {
         {/* 触碰阶段 - 展示触碰指令 */}
         {step === 'touch' && currentRound && (
           <View className="flex flex-col items-center">
-            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center mb-3">
+            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center mb-4">
               <Text className="text-2xl">🙈</Text>
             </View>
             <Text className="block text-xs text-teal-500 font-medium mb-1">第 {currentRound.id} 轮 / 共 {blindRounds.length} 轮</Text>
@@ -300,7 +300,7 @@ const BlindPage: FC = () => {
             <Card className="mb-4 w-full">
               <CardContent className="py-5">
                 <View className="flex flex-col items-center">
-                  <View className="flex flex-row items-center mb-3">
+                  <View className="flex flex-row items-center mb-4">
                     <EyeOff size={16} color="#0d9488" />
                     <Text className="text-xs text-teal-600 font-medium ml-1">触碰者请看（让对方闭眼）</Text>
                   </View>
@@ -344,7 +344,7 @@ const BlindPage: FC = () => {
         {/* 猜测阶段 */}
         {step === 'guess' && currentRound && (
           <View className="flex flex-col items-center">
-            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center mb-3">
+            <View className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center mb-4">
               <CircleQuestionMark size={32} color="white" />
             </View>
             <Text className="block text-lg font-bold text-gray-900 mb-2">睁开眼睛，开始猜测</Text>
@@ -443,7 +443,7 @@ const BlindPage: FC = () => {
         {/* 游戏总结 */}
         {step === 'summary' && (
           <View className="flex flex-col items-center">
-            <Text className="block text-5xl mb-3">{correctCount >= 3 ? '🫶' : '🤗'}</Text>
+            <Text className="block text-5xl mb-4">{correctCount >= 3 ? '🫶' : '🤗'}</Text>
             <Text className="block text-2xl font-bold text-gray-900 mb-1">{getSummaryTitle()}</Text>
             <Text className="block text-sm text-gray-500 mb-2">
               猜对 {correctCount}/{blindRounds.length} · 亲密度 {totalScore} 分
@@ -459,7 +459,7 @@ const BlindPage: FC = () => {
 
             <Card className="mb-6 w-full">
               <CardContent className="py-4">
-                <Text className="block text-sm font-medium text-gray-700 mb-3">挑战记录</Text>
+                <Text className="block text-sm font-medium text-gray-700 mb-4">挑战记录</Text>
                 {blindRounds.map((round, idx) => (
                   <View key={round.id} className="flex flex-row items-center justify-between py-2">
                     <View className="flex flex-row items-center">

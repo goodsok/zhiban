@@ -465,11 +465,11 @@ const ScenarioPage: FC = () => {
       <View className="p-4">
         {step === 'select' && (
           <>
-            <Text className="block text-sm font-medium text-gray-500 mb-3">选择场景类型</Text>
+            <Text className="block text-sm font-medium text-gray-500 mb-4">选择场景类型</Text>
             {scenarios.map((scenario) => (
               <Card
                 key={scenario.id}
-                className="mb-3 overflow-hidden"
+                className="mb-4 overflow-hidden"
                 onClick={() => handleSelectScenario(scenario)}
               >
                 <View className={`bg-gradient-to-r ${scenario.color} px-4 py-4`}>
@@ -516,7 +516,7 @@ const ScenarioPage: FC = () => {
             {/* 情境卡片 */}
             <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-100 mb-4">
               <CardContent className="py-5">
-                <View className="flex flex-row items-start mb-3">
+                <View className="flex flex-row items-start mb-4">
                   <Play size={16} color="#22c55e" className="mr-2 mt-1 flex-shrink-0" />
                   <Text className="text-sm text-gray-600 flex-1 leading-relaxed">
                     {selectedScenario.situations[currentSituationIndex].context}
@@ -568,7 +568,7 @@ const ScenarioPage: FC = () => {
               <CardContent className="py-5">
                 <View className="flex flex-col items-center">
                   <View
-                    className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${
+                    className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
                       selectedOption.isBest ? 'bg-green-500' : 'bg-amber-500'
                     }`}
                   >
@@ -665,7 +665,7 @@ const ScenarioPage: FC = () => {
               <CardContent className="py-5">
                 <View className="flex flex-col items-center">
                   <View
-                    className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${
+                    className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
                       selectedOption.isBest ? 'bg-green-500' : 'bg-amber-500'
                     }`}
                   >

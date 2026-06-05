@@ -390,7 +390,7 @@ const DatingPhotoPage: FC = () => {
           </CardHeader>
           <CardContent>
             <View
-              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
+              className="bg-gray-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
               onClick={() => setShowPlatformPicker(!showPlatformPicker)}
             >
               <View className="flex flex-row items-center">
@@ -433,11 +433,11 @@ const DatingPhotoPage: FC = () => {
             <CardTitle className="text-base">上传照片</CardTitle>
           </CardHeader>
           <CardContent>
-            <View className="flex flex-row flex-wrap gap-3">
+            <View className="flex flex-row flex-wrap gap-4">
               {photos.map((photo, index) => (
                 <View
                   key={index}
-                  className="w-24 h-24 bg-gray-100 border border-gray-200 rounded-xl overflow-hidden"
+                  className="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden"
                   style={{ position: 'relative' }}
                 >
                   <Image src={photo} mode="aspectFill" style={{ width: '100%', height: '100%' }} />
@@ -465,7 +465,7 @@ const DatingPhotoPage: FC = () => {
         </Card>
 
         {/* 操作按钮 */}
-        <View className="flex flex-row gap-3 mb-4">
+        <View className="flex flex-row gap-4 mb-4">
           <View className="flex-1">
             <Button variant="default" className="bg-amber-500 text-white rounded-xl" disabled={loading || photos.length === 0} onClick={handleAnalyze}>
               <Text className="text-white">{uploadProgress || (loading ? '评分中...' : '开始评分')}</Text>
@@ -523,7 +523,7 @@ const DatingPhotoPage: FC = () => {
                       <Text className="block text-sm font-medium text-gray-700">{dimension.name}</Text>
                       <Text className={`block text-lg font-bold ${getScoreColor(dimension.score)}`}>{dimension.score}</Text>
                     </View>
-                    <View className="h-2 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
+                    <View className="h-2 bg-gray-100 rounded-full overflow-hidden">
                       <View
                         className={`h-full rounded-full ${dimension.score >= 80 ? 'bg-green-500' : dimension.score >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
                         style={{ width: `${dimension.score}%` }}
@@ -558,7 +558,7 @@ const DatingPhotoPage: FC = () => {
               <CardContent className="py-4">
                 <View className="flex flex-col items-center">
                   <Wand size={24} color="#9333ea" />
-                  <Text className="block text-sm font-medium text-gray-700 mt-2 mb-3">想看看优化后的效果？</Text>
+                  <Text className="block text-sm font-medium text-gray-700 mt-2 mb-4">想看看优化后的效果？</Text>
                   <Button variant="default" className="bg-purple-500 text-white rounded-xl px-6" disabled={generating} onClick={handleGenerateOptimized}>
                     <Text className="text-white">{generating ? '生成中...' : '生成优化示例'}</Text>
                   </Button>

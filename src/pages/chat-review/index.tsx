@@ -139,7 +139,7 @@ const ChatReviewPage: FC = () => {
             <CardContent className="p-4">
               <View className="flex flex-row items-center justify-between">
                 <View className="flex flex-row items-center">
-                  <View className="w-10 h-10 bg-gray-100 border border-gray-300 rounded-full flex items-center justify-center mr-3">
+                  <View className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-3">
                     <MessageSquare size={20} color="#374151" />
                   </View>
                   <View>
@@ -172,7 +172,7 @@ const ChatReviewPage: FC = () => {
               {/* 情绪状态 */}
               <Card className="mb-4">
                 <CardContent className="p-4">
-                  <View className="flex flex-row items-center mb-3">
+                  <View className="flex flex-row items-center mb-4">
                     <Heart size={18} color="#374151" />
                     <Text className="block text-base font-semibold text-gray-900 ml-2">情绪状态</Text>
                   </View>
@@ -189,11 +189,11 @@ const ChatReviewPage: FC = () => {
               {/* 回复节奏 */}
               <Card className="mb-4">
                 <CardContent className="p-4">
-                  <View className="flex flex-row items-center mb-3">
+                  <View className="flex flex-row items-center mb-4">
                     <Clock size={18} color="#374151" />
                     <Text className="block text-base font-semibold text-gray-900 ml-2">回复节奏</Text>
                   </View>
-                  <View className="flex flex-row flex-wrap gap-2 mb-2">
+                  <View className="flex flex-row flex-wrap gap-3 mb-2">
                     <Badge variant="secondary">{analysis.replyRhythm.speed}</Badge>
                     <Badge variant="secondary">{analysis.replyRhythm.initiative}</Badge>
                   </View>
@@ -204,12 +204,12 @@ const ChatReviewPage: FC = () => {
               {/* 兴趣信号 */}
               <Card className="mb-4">
                 <CardContent className="p-4">
-                  <View className="flex flex-row items-center mb-3">
+                  <View className="flex flex-row items-center mb-4">
                     <Zap size={18} color="#374151" />
                     <Text className="block text-base font-semibold text-gray-900 ml-2">兴趣信号</Text>
                   </View>
                   {analysis.interestSignals.map((signal, idx) => (
-                    <View key={idx} className="mb-3 last:mb-0">
+                    <View key={idx} className="mb-4 last:mb-0">
                       <View className="flex flex-row items-center mb-1">
                         <Text className="block text-sm font-medium text-gray-900 mr-2">{signal.signal}</Text>
                         <Badge className={levelConfig[signal.level]?.color || 'bg-gray-100 text-gray-600'}>
@@ -225,7 +225,7 @@ const ChatReviewPage: FC = () => {
               {/* 建议 */}
               <Card className="mb-4">
                 <CardContent className="p-4">
-                  <View className="flex flex-row items-center mb-3">
+                  <View className="flex flex-row items-center mb-4">
                     <TrendingUp size={18} color="#374151" />
                     <Text className="block text-base font-semibold text-gray-900 ml-2">下一步建议</Text>
                   </View>
@@ -254,7 +254,7 @@ const ChatReviewPage: FC = () => {
 
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 rounded-xl mb-3" />
+            <Skeleton key={i} className="h-20 rounded-xl mb-4" />
           ))
         ) : matches.length === 0 ? (
           <Card>
@@ -267,11 +267,11 @@ const ChatReviewPage: FC = () => {
           matches.map((match) => {
             const hasChat = match.chatRecordCount > 0 || match.chatHistoryCount > 0
             return (
-              <Card key={match.id} className="mb-3">
+              <Card key={match.id} className="mb-4">
                 <CardContent className="p-4">
                   <View className="flex flex-row items-center justify-between">
                     <View className="flex flex-row items-center flex-1">
-                      <View className="w-10 h-10 bg-gray-100 border border-gray-300 rounded-full flex items-center justify-center mr-3">
+                      <View className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-3">
                         <MessageSquare size={18} color="#374151" />
                       </View>
                       <View className="flex-1">

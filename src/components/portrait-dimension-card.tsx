@@ -19,14 +19,14 @@ const DimensionCard: FC<DimensionCardProps> = ({
   dimensions,
 }) => {
   return (
-    <View className="bg-white rounded-xl p-4 mb-3">
-      <View className="flex items-center gap-2 mb-3">
+    <View className="bg-white rounded-xl p-4 mb-4">
+      <View className="flex items-center gap-3 mb-4">
         <Text className="block text-lg">{icon}</Text>
         <Text className="block text-sm font-semibold text-gray-900">{title}</Text>
       </View>
       
       {dimensions.map((dim, i) => (
-        <View key={i} className="mb-3">
+        <View key={i} className="mb-4">
           <View className="flex items-center justify-between mb-1">
             <Text className="block text-xs text-gray-500">{dim.name}</Text>
             <Text className="block text-sm font-semibold text-gray-700">{dim.value}</Text>

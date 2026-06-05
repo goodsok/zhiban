@@ -421,7 +421,7 @@ const DatingProfilePage: FC = () => {
           </CardHeader>
           <CardContent>
             <View
-              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
+              className="bg-gray-50 rounded-xl px-4 py-3 flex flex-row items-center justify-between"
               onClick={() => setShowPlatformPicker(!showPlatformPicker)}
             >
               <View className="flex flex-row items-center">
@@ -466,7 +466,7 @@ const DatingProfilePage: FC = () => {
             {/* 昵称输入 */}
             <View className="mb-4">
               <Text className="block text-sm font-medium text-gray-700 mb-2">昵称</Text>
-              <View className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
                 <Input
                   style={{ width: '100%', backgroundColor: 'transparent' }}
                   placeholder="输入你在交友软件上的昵称..."
@@ -481,7 +481,7 @@ const DatingProfilePage: FC = () => {
             {/* 个人简介 */}
             <View className="mb-4">
               <Text className="block text-sm font-medium text-gray-700 mb-2">个人简介</Text>
-              <View className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <View className="bg-gray-50 rounded-xl p-4">
                 <Textarea
                   style={{ width: '100%', height: '256px', backgroundColor: 'transparent' }}
                   placeholder="粘贴你的个人简介..."
@@ -496,7 +496,7 @@ const DatingProfilePage: FC = () => {
             {/* 兴趣标签 */}
             <View>
               <Text className="block text-sm font-medium text-gray-700 mb-2">兴趣标签</Text>
-              <View className="flex flex-row flex-wrap gap-2">
+              <View className="flex flex-row flex-wrap gap-3">
                 {interestOptions.map((option) => {
                   const isSelected = selectedInterests.includes(option.value)
                   return (
@@ -519,7 +519,7 @@ const DatingProfilePage: FC = () => {
         </Card>
 
         {/* 操作按钮 */}
-        <View className="flex flex-row gap-3 mb-4">
+        <View className="flex flex-row gap-4 mb-4">
           <View className="flex-1">
             <Button variant="default" className="bg-blue-500 text-white rounded-xl" disabled={!canAnalyze} onClick={handleAnalyze}>
               <Text className="text-white">{loading ? '分析中...' : '开始分析'}</Text>
@@ -617,11 +617,11 @@ const DatingProfilePage: FC = () => {
                   analysis.suggestions.map((suggestion, index) => (
                     <View key={index} className="mb-4 pb-4 border-b last:border-0 last:mb-0 last:pb-0">
                       <Text className="block text-sm font-medium text-gray-900 mb-2">{suggestion.field}</Text>
-                      <View className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-2">
+                      <View className="bg-gray-50 rounded-lg p-3 mb-2">
                         <Text className="block text-xs text-gray-500 mb-1">原文：</Text>
                         <Text className="block text-sm text-gray-600">{suggestion.original || '（未填写）'}</Text>
                       </View>
-                      <View className="bg-green-50 border border-green-200 rounded-lg p-3 mb-2">
+                      <View className="bg-green-50 rounded-lg p-3 mb-2">
                         <Text className="block text-xs text-green-600 mb-1">建议修改为：</Text>
                         <Text className="block text-sm text-green-700">{suggestion.suggested}</Text>
                       </View>
@@ -668,7 +668,7 @@ const DatingProfilePage: FC = () => {
                 </CardHeader>
                 <CardContent>
                   {/* 聊天消息列表 */}
-                  <ScrollView scrollY scrollIntoView={chatScrollId.current} className="max-h-80 mb-3">
+                  <ScrollView scrollY scrollIntoView={chatScrollId.current} className="max-h-80 mb-4">
                     {chatMessages.map((msg, index) => (
                       <View
                         key={index}
@@ -683,8 +683,8 @@ const DatingProfilePage: FC = () => {
                       </View>
                     ))}
                     {chatLoading && (
-                      <View className="flex flex-row items-center mb-3">
-                        <View className="bg-gray-100 border border-gray-200 rounded-xl px-4 py-2">
+                      <View className="flex flex-row items-center mb-4">
+                        <View className="bg-gray-100 rounded-xl px-4 py-2">
                           <View className="flex flex-row items-center">
                             <Loader size={14} color="#6b7280" className="animate-spin" />
                             <Text className="text-sm text-gray-500 ml-2">思考中...</Text>
@@ -695,8 +695,8 @@ const DatingProfilePage: FC = () => {
                   </ScrollView>
 
                   {/* 输入框 */}
-                  <View className="flex flex-row gap-2 items-end">
-                    <View className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2">
+                  <View className="flex flex-row gap-3 items-end">
+                    <View className="flex-1 bg-gray-50 rounded-xl px-4 py-2">
                       <Textarea
                         style={{ width: '100%', minHeight: '36px', maxHeight: '80px', backgroundColor: 'transparent' }}
                         placeholder="输入你的问题..."

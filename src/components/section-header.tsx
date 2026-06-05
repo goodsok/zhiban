@@ -14,7 +14,7 @@ interface SectionHeaderProps {
  */
 const SectionHeader: FC<SectionHeaderProps> = ({ icon, title, description, action }) => {
   return (
-    <View className="flex items-center gap-2 mb-3">
+    <View className="flex items-center gap-3 mb-4">
       {icon && (
         <View className="w-6 h-6 rounded-md bg-green-50 flex items-center justify-center">
           {icon}

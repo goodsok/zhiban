@@ -397,8 +397,8 @@ const DetailPage: FC = () => {
           <CardContent className="p-4">
             {/* 姓名可编辑 */}
             {editingName ? (
-              <View className="flex items-center gap-2 mb-3">
-                <View className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+              <View className="flex items-center gap-3 mb-4">
+                <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
                   <Input
                     className="w-full text-xl font-bold"
                     value={nameValue}
@@ -422,7 +422,7 @@ const DetailPage: FC = () => {
                 </View>
               </View>
             ) : (
-              <View className="flex items-center gap-2 mb-3" onClick={() => setEditingName(true)}>
+              <View className="flex items-center gap-3 mb-4" onClick={() => setEditingName(true)}>
                 <Text className="block text-xl font-bold text-gray-900">{detail.name}</Text>
                 <Pencil size={14} color="#9CA3AF" />
               </View>
@@ -432,7 +432,7 @@ const DetailPage: FC = () => {
             {selectingRelationshipType ? (
               <View className="mt-2">
                 <Text className="block text-xs text-gray-500 mb-2">选择关系类型</Text>
-                <View className="flex flex-wrap gap-2">
+                <View className="flex flex-wrap gap-3">
                   {(['long_term', 'short_term', 'both'] as RelationshipType[]).map(type => {
                     const config = RELATIONSHIP_TYPE_CONFIG[type]
                     const isSelected = detail?.relationshipType === type
@@ -464,7 +464,7 @@ const DetailPage: FC = () => {
               </View>
             ) : (
               <View 
-                className="flex items-center gap-2"
+                className="flex items-center gap-3"
                 onClick={() => setSelectingRelationshipType(true)}
               >
                 <View 
@@ -487,7 +487,7 @@ const DetailPage: FC = () => {
 
       {/* 快捷操作：网格布局 */}
       <View className="px-4 pb-4">
-        <View className="grid grid-cols-4 gap-2">
+        <View className="grid grid-cols-4 gap-3">
           {/* 记录互动 */}
           <View 
             className="flex flex-col items-center justify-center p-3 bg-white rounded-xl"
@@ -554,7 +554,7 @@ const DetailPage: FC = () => {
 
       {/* 智能助手：关联发现页功能的快捷入口 */}
       <View className="px-4 pb-4">
-        <View className="flex items-center gap-2 mb-3">
+        <View className="flex items-center gap-3 mb-4">
           <Sparkles size={14} color="#4ECB71" />
           <Text className="block text-sm font-semibold text-gray-900">智能助手</Text>
           <Text className="block text-xs text-gray-400">基于 TA 的档案，为你推荐</Text>
@@ -669,13 +669,13 @@ const DetailPage: FC = () => {
             className="flex items-center justify-between p-4 cursor-pointer"
             onClick={() => setShowDataOverview(!showDataOverview)}
           >
-            <View className="flex items-center gap-2">
+            <View className="flex items-center gap-3">
               <ChartPie size={16} color="#2E9E5A" />
               <Text className="block text-sm font-semibold text-gray-900">数据概览</Text>
             </View>
-            <View className="flex items-center gap-2">
+            <View className="flex items-center gap-3">
               {/* 简要数据 */}
-              <View className="flex items-center gap-3">
+              <View className="flex items-center gap-4">
                 {detail.progressScore && (
                   <View className="flex items-center gap-1">
                     <TrendingUp size={12} color="#4ECB71" />
@@ -718,11 +718,11 @@ const DetailPage: FC = () => {
                   onClick={() => navigateTo({ url: `/pages/interactions/index?matchId=${detail.id}` })}
                 >
                   <View className="flex items-center justify-between">
-                    <View className="flex items-center gap-2">
+                    <View className="flex items-center gap-3">
                       <Sun size={14} color="#F59E0B" />
                       <Text className="block text-xs text-gray-600">关系能量</Text>
                     </View>
-                    <View className="flex items-center gap-2">
+                    <View className="flex items-center gap-3">
                       <Text className="block text-lg font-bold text-amber-600">{detail.energy.current}</Text>
                       <Text className="block text-xs text-gray-400">本周 {detail.energy.thisWeek} 次</Text>
                       <ChevronRight size={14} color="#D1D5DB" />
@@ -740,7 +740,7 @@ const DetailPage: FC = () => {
                     return (
                       <View className={`${phaseConf.bgColor} rounded-lg p-3`}>
                         <View className="flex items-center justify-between">
-                          <View className="flex items-center gap-2">
+                          <View className="flex items-center gap-3">
                             <PhaseIcon size={14} color={phaseConf.color} />
                             <Text className="block text-xs font-medium" style={{ color: phaseConf.color }}>
                               {cycleInfo.phaseName}
@@ -762,7 +762,7 @@ const DetailPage: FC = () => {
       {/* ==================== 第二屏：维度数据 ==================== */}
       
       <View className="px-4 pb-4">
-        <View className="flex items-center gap-2 mb-2">
+        <View className="flex items-center gap-3 mb-2">
           <Database size={14} color="#2E9E5A" />
           <Text className="block text-sm font-semibold text-gray-900">档案维度</Text>
           <Text className="block text-xs text-gray-400">点击编辑</Text>
@@ -776,7 +776,7 @@ const DetailPage: FC = () => {
         <Text className="block text-sm font-semibold text-gray-900 mb-2">备注</Text>
         {editingNotes ? (
           <View className="bg-white rounded-xl p-4">
-            <View className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3">
+            <View className="bg-gray-50 rounded-lg p-3 mb-4">
               <Input
                 className="w-full text-sm"
                 value={notesValue}
@@ -785,7 +785,7 @@ const DetailPage: FC = () => {
                 autoFocus
               />
             </View>
-            <View className="flex justify-end gap-2">
+            <View className="flex justify-end gap-3">
               <View 
                 className="px-4 py-2 bg-gray-200 rounded-lg"
                 onClick={() => { setEditingNotes(false); setNotesValue(detail.notes || '') }}
@@ -807,12 +807,12 @@ const DetailPage: FC = () => {
             onClick={() => setEditingNotes(true)}
           >
             {detail.notes ? (
-              <View className="flex items-start gap-2">
+              <View className="flex items-start gap-3">
                 <Text className="block text-sm text-gray-600 flex-1">{detail.notes}</Text>
                 <Pencil size={14} color="#D1D5DB" />
               </View>
             ) : (
-              <View className="flex items-center gap-2">
+              <View className="flex items-center gap-3">
                 <Text className="block text-sm text-gray-400">点击添加备注...</Text>
                 <Pencil size={14} color="#D1D5DB" />
               </View>

@@ -168,19 +168,19 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
     <View className="space-y-3">
       {/* 总览进度 */}
       <View className="bg-white rounded-xl p-4">
-        <View className="flex items-center justify-between mb-3">
+        <View className="flex items-center justify-between mb-4">
           <Text className="block text-sm font-semibold text-gray-900">维度完成度</Text>
           <Text className="block text-sm font-medium text-blue-600">
             {totalStats.filled}/{totalStats.total}
           </Text>
         </View>
-        <View className="w-full h-2 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
+        <View className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
           <View
             className="h-full rounded-full bg-blue-500 transition-all"
             style={{ width: `${totalStats.total > 0 ? Math.round((totalStats.filled / totalStats.total) * 100) : 0}%` }}
           />
         </View>
-        <View className="flex flex-wrap gap-2 mt-3">
+        <View className="flex flex-wrap gap-3 mt-3">
           {[1, 2, 3, 4].map((layer) => {
             const config = LAYER_CONFIG[layer]
             const layerItems = sortedGroups.filter(([, g]) => g.layer === layer)
@@ -220,7 +220,7 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
           >
             {/* 分类标题 */}
             <View className="flex items-center justify-between px-4 pt-3 pb-2">
-              <View className="flex items-center gap-2">
+              <View className="flex items-center gap-3">
                 <View className={`w-6 h-6 rounded flex items-center justify-center ${config.bgColor}`}>
                   <Text className="block text-xs">{config.icon}</Text>
                 </View>
@@ -231,7 +231,7 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
                   </Text>
                 </View>
               </View>
-              <View className="flex items-center gap-2">
+              <View className="flex items-center gap-3">
                 {fillPercent === 100 && (
                   <Badge className="bg-green-50 text-green-700 text-xs">已完整</Badge>
                 )}
@@ -244,7 +244,7 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
 
             {/* 完成度条 */}
             <View className="px-4 pb-2">
-              <View className="w-full h-1 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
+              <View className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
                 <View
                   className={`h-full rounded-full transition-all ${fillPercent >= 80 ? 'bg-green-400' : fillPercent >= 40 ? 'bg-blue-400' : 'bg-gray-300'}`}
                   style={{ width: `${fillPercent}%` }}
@@ -268,8 +268,8 @@ const DimensionOverview: FC<DimensionOverviewProps> = ({ dimensions, onCategoryC
 
                     {isScore ? (
                       /* 分数型维度 */
-                      <View className="flex items-center gap-2">
-                        <View className="w-16 h-1 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
+                      <View className="flex items-center gap-3">
+                        <View className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
                           <View
                             className={`h-full rounded-full ${getScoreColor(scoreVal)}`}
                             style={{ width: `${scoreVal}%` }}

@@ -197,7 +197,7 @@ const InteractiveGamesPage: FC = () => {
 
       {/* 游戏列表 */}
       <View className="p-4">
-        <Text className="block text-sm font-medium text-gray-500 mb-3">破冰交流</Text>
+        <Text className="block text-sm font-medium text-gray-500 mb-4">破冰交流</Text>
         
         <ScrollView scrollY className="max-h-[calc(100vh-280px)]">
           {games.filter(g => !['touch', 'mirror', 'pulse', 'blind', 'distance', 'breath'].includes(g.id)).map((game) => {
@@ -228,13 +228,13 @@ const InteractiveGamesPage: FC = () => {
 
                 {/* 游戏内容 */}
                 <View className="p-4">
-                  <Text className="block text-sm text-gray-600 leading-relaxed mb-3">
+                  <Text className="block text-sm text-gray-600 leading-relaxed mb-4">
                     {game.description}
                   </Text>
 
                   {/* 游戏信息 */}
                   <View className="flex flex-row items-center justify-between">
-                    <View className="flex flex-row items-center gap-2">
+                    <View className="flex flex-row items-center gap-3">
                       <View className={`px-2 py-1 rounded-full ${getDifficultyColor(game.difficulty)}`}>
                         <Text className="text-xs">{getDifficultyText(game.difficulty)}</Text>
                       </View>
@@ -251,7 +251,7 @@ const InteractiveGamesPage: FC = () => {
           })}
 
           {/* 肢体进挪分区 */}
-          <View className="flex flex-row items-center mt-2 mb-3">
+          <View className="flex flex-row items-center mt-2 mb-4">
             <View className="h-px bg-rose-200 flex-1" />
             <Text className="text-sm font-medium text-rose-500 mx-3">肢体进挪</Text>
             <View className="h-px bg-rose-200 flex-1" />
@@ -285,13 +285,13 @@ const InteractiveGamesPage: FC = () => {
 
                 {/* 游戏内容 */}
                 <View className="p-4">
-                  <Text className="block text-sm text-gray-600 leading-relaxed mb-3">
+                  <Text className="block text-sm text-gray-600 leading-relaxed mb-4">
                     {game.description}
                   </Text>
 
                   {/* 游戏信息 */}
                   <View className="flex flex-row items-center justify-between">
-                    <View className="flex flex-row items-center gap-2">
+                    <View className="flex flex-row items-center gap-3">
                       <View className={`px-2 py-1 rounded-full ${getDifficultyColor(game.difficulty)}`}>
                         <Text className="text-xs">{getDifficultyText(game.difficulty)}</Text>
                       </View>

@@ -471,7 +471,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
           >
             <ArrowLeft size={24} color="#374151" />
           </View>
-          <View className="flex items-center gap-2 flex-1 justify-center">
+          <View className="flex items-center gap-3 flex-1 justify-center">
             <Sparkles size={18} color="#000" />
             <Text className="text-base font-semibold text-gray-900">AI 助手</Text>
           </View>
@@ -546,8 +546,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
           )}
           
           {loading && (
-            <View className="mb-3">
-              <View className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 inline-flex items-center gap-2 shadow-sm">
+            <View className="mb-4">
+              <View className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 inline-flex items-center gap-3 shadow-sm">
                 <Loader size={14} color="#6B7280" className="animate-spin" />
                 <Text className="text-sm text-gray-400">思考中...</Text>
               </View>
@@ -570,12 +570,12 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
                 <Text className="text-xs text-gray-400 ml-2">加载推荐问题...</Text>
               </View>
             ) : (
-              <View className="flex items-center gap-2">
-                <View className="flex flex-wrap gap-2 flex-1">
+              <View className="flex items-center gap-3">
+                <View className="flex flex-wrap gap-3 flex-1">
                   {visibleQuestions.map((q, i) => (
                     <View
                       key={`${q}-${i}`}
-                      className="bg-gray-100 border border-gray-300 rounded-full px-3 py-2 active:bg-gray-200"
+                      className="bg-gray-100 rounded-full px-3 py-2 active:bg-gray-200"
                       onClick={() => handleQuickQuestion(q)}
                     >
                       <Text className="text-xs text-gray-600">{q}</Text>
@@ -599,7 +599,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
         {/* 已选图片预览 */}
         {selectedImages.length > 0 && (
           <View className="px-4 pt-2 pb-2">
-            <View className="flex flex-wrap gap-2">
+            <View className="flex flex-wrap gap-3">
               {selectedImages.map((img, index) => (
                 <View key={index} className="relative">
                   <Image 
@@ -621,7 +621,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
 
         {/* 输入框 */}
         <View className="px-4 py-3">
-          <View className="flex items-center gap-2">
+          <View className="flex items-center gap-3">
             {/* 图片上传按钮 */}
             <View 
               className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 flex-shrink-0"
@@ -631,7 +631,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
             </View>
             
             {/* 输入框容器 */}
-            <View className="flex-1 bg-gray-100 border border-gray-300 rounded-full px-4 py-2 min-h-[40px] flex items-center">
+            <View className="flex-1 bg-gray-100 rounded-full px-4 py-2 min-h-[40px] flex items-center">
               <Input
                 value={inputValue}
                 onInput={(e) => setInputValue(e.detail.value)}

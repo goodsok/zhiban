@@ -58,6 +58,12 @@ root-portal {
   --tw-ring-offset-width: 0px;
   --tw-ring-offset-color: #fff;
   --tw-ring-offset-shadow: 0 0 #0000;
+  --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 柔和弥散阴影 - 用于卡片 */
+.shadow-soft {
+  box-shadow: var(--card-shadow);
 }
 
 .dark {

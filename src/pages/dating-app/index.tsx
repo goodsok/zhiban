@@ -102,7 +102,7 @@ const DatingAppPage: FC = () => {
       )
     }
     return (
-      <View className="bg-gray-100 border border-gray-300 rounded-full px-2 py-0">
+      <View className="bg-gray-100 rounded-full px-2 py-0">
         <Text className="text-xs text-gray-500">未使用</Text>
       </View>
     )
@@ -136,7 +136,7 @@ const DatingAppPage: FC = () => {
           return (
             <Card
               key={feature.id}
-              className="mb-3"
+              className="mb-4"
               onClick={() => goToFeature(feature.pagePath)}
             >
               <CardContent className="py-4 flex flex-row items-center">
@@ -170,7 +170,7 @@ const DatingAppPage: FC = () => {
               {getNextStep() || '建议先完成「资料优化」，再进行「照片评分」，最后使用「开场白生成」获得最佳效果。三项优化完成后，匹配率可提升 50% 以上！'}
             </Text>
             {!loading && featureStatus && (
-              <View className="mt-3 flex flex-row gap-2">
+              <View className="mt-3 flex flex-row gap-3">
                 <View className="flex-1 bg-white rounded-lg p-2 flex flex-col items-center">
                   <Text className="block text-lg font-bold text-blue-500">{featureStatus.profileCount}</Text>
                   <Text className="block text-xs text-gray-500">资料优化</Text>
