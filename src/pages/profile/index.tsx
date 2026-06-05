@@ -18,7 +18,7 @@ import {
   FileText,
   Target,
   Trophy,
-  Sparkles,
+  Star,
 } from 'lucide-react-taro'
 
 interface UserProfile {
@@ -69,7 +69,7 @@ const achievementDefinitions = [
     check: (s: { matches: number; interactions: number; avgProgress: number }) => s.avgProgress >= 50,
   },
   {
-    icon: Sparkles,
+    icon: Star,
     title: '关系专家',
     bgColor: 'bg-violet-100',
     unlockedIconColor: '#A78BFA',
@@ -91,6 +91,7 @@ const ProfilePage: FC = () => {
   const [statsLoading, setStatsLoading] = useState(true)
   const [statsError, setStatsError] = useState(false)
   const [achievements, setAchievements] = useState<AchievementItem[]>([])
+  const [avatarFailed, setAvatarFailed] = useState(false)
 
   // 是否为小程序环境（微信 + 抖音）
   const currentEnv = Taro.getEnv()
@@ -108,7 +109,11 @@ const ProfilePage: FC = () => {
       // 先用本地缓存快速渲染
       const saved = Taro.getStorageSync('user_profile')
       if (saved) {
-        setProfile(saved)
+        // 过滤无效的临时 URL（blob:/wxfile: 等在页面刷新后失效）
+        const validAvatarUrl = saved.avatarUrl && !saved.avatarUrl.startsWith('blob:') && !saved.avatarUrl.startsWith('wxfile://')
+          ? saved.avatarUrl
+          : ''
+        setProfile({ ...saved, avatarUrl: validAvatarUrl })
       }
       // 再从后端获取最新昵称
       const res = await Network.request({ url: '/api/user-profile' })
@@ -203,6 +208,7 @@ const ProfilePage: FC = () => {
     const { avatarUrl } = e.detail
     const newProfile = { ...profile, avatarUrl }
     setProfile(newProfile)
+    setAvatarFailed(false)
     Taro.setStorageSync('user_profile', newProfile)
     Taro.showToast({ title: '头像已更新', icon: 'success' })
   }
@@ -217,6 +223,7 @@ const ProfilePage: FC = () => {
         const avatarUrl = res.tempFilePaths[0]
         const newProfile = { ...profile, avatarUrl }
         setProfile(newProfile)
+        setAvatarFailed(false)
         Taro.setStorageSync('user_profile', newProfile)
         Taro.showToast({ title: '头像已更新', icon: 'success' })
       }
@@ -236,6 +243,16 @@ const ProfilePage: FC = () => {
     Taro.showToast({ title: '昵称已保存', icon: 'success' })
   }
 
+  // 头像加载失败时回退到默认头像
+  const handleAvatarError = () => {
+    console.log('Avatar image load failed, falling back to default')
+    setAvatarFailed(true)
+    // 清除无效 URL，避免下次还尝试加载
+    const newProfile = { ...profile, avatarUrl: '' }
+    setProfile(newProfile)
+    Taro.setStorageSync('user_profile', newProfile)
+  }
+
   return (
     <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 用户信息卡片 */}
@@ -253,11 +270,12 @@ const ProfilePage: FC = () => {
                   className="w-16 h-16 rounded-full bg-transparent border-0 p-0"
                   style={{ padding: 0, background: 'transparent' }}
                 >
-                  {profile.avatarUrl ? (
+                  {profile.avatarUrl && !avatarFailed ? (
                     <Image
                       src={profile.avatarUrl}
                       className="w-16 h-16 rounded-full"
                       mode="aspectFill"
+                      onError={handleAvatarError}
                     />
                   ) : (
                     <View className="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center">
@@ -269,14 +287,15 @@ const ProfilePage: FC = () => {
                 // H5 端降级为 chooseImage
                 <View
                   className="w-16 h-16 rounded-full flex items-center justify-center overflow-hidden"
-                  style={{ backgroundColor: profile.avatarUrl ? 'transparent' : '#2E9E5A' }}
+                  style={{ backgroundColor: (profile.avatarUrl && !avatarFailed) ? 'transparent' : '#2E9E5A' }}
                   onClick={handleH5ChooseAvatar}
                 >
-                  {profile.avatarUrl ? (
+                  {profile.avatarUrl && !avatarFailed ? (
                     <Image
                       src={profile.avatarUrl}
                       className="w-16 h-16 rounded-full"
                       mode="aspectFill"
+                      onError={handleAvatarError}
                     />
                   ) : (
                     <User size={32} color="#fff" />
