@@ -6,6 +6,7 @@ import { Wind, Sparkles, Check, ArrowRight, RotateCcw } from 'lucide-react-taro'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { Network } from '@/network'
 
 /** 呼吸阶段 */
 interface BreathPhase {
@@ -18,64 +19,8 @@ interface BreathPhase {
   intimacyScore: number
 }
 
-const breathPhases: BreathPhase[] = [
-  {
-    id: 1,
-    name: '各自呼吸',
-    instruction: '两人面对面坐着，闭上眼睛，各自自然呼吸30秒',
-    breathGuide: '吸气...呼气...吸气...呼气...',
-    duration: 30,
-    tip: '先找到自己的节奏，感受空气在身体里流动',
-    intimacyScore: 10,
-  },
-  {
-    id: 2,
-    name: '对视呼吸',
-    instruction: '睁开眼睛，注视对方的眼睛，继续自然呼吸',
-    breathGuide: '看着TA...呼吸...看着TA...呼吸...',
-    duration: 25,
-    tip: '看着对方的眼睛呼吸，你会发现呼吸不自觉地开始同步',
-    intimacyScore: 15,
-  },
-  {
-    id: 3,
-    name: '手心感应',
-    instruction: '伸出双手，掌心对掌心但不接触，保持2厘米距离，继续呼吸',
-    breathGuide: '感受掌心之间的温度...呼吸...温度...呼吸...',
-    duration: 25,
-    tip: '手心之间的那2厘米，比任何接触都让人紧张',
-    intimacyScore: 20,
-  },
-  {
-    id: 4,
-    name: '掌心相贴',
-    instruction: '掌心慢慢合在一起，十指自然放松，试着同步呼吸节奏',
-    breathGuide: '一起吸气...一起呼气...一起吸气...一起呼气...',
-    duration: 30,
-    tip: '当你们的呼吸开始同步，身体会释放催产素——这是"拥抱荷尔蒙"',
-    intimacyScore: 25,
-  },
-  {
-    id: 5,
-    name: '胸腔共鸣',
-    instruction: '靠近一步，让胸腔几乎相贴，感受对方呼吸时胸腔的起伏',
-    breathGuide: '感受TA的胸腔起伏...吸气...起伏...呼气...',
-    duration: 30,
-    tip: '你能感受到对方的每一次呼吸，这种共振比任何语言都亲密',
-    intimacyScore: 35,
-  },
-  {
-    id: 6,
-    name: '呼吸合一',
-    instruction: '轻轻将额头相抵，一只手放在对方后背感受呼吸，完全同步你们的节奏',
-    breathGuide: '一起吸气...1...2...3...一起呼气...1...2...3...',
-    duration: 30,
-    tip: '此刻你们共享着同一片空气、同一个节奏——这是两个人之间最安静的亲密',
-    intimacyScore: 45,
-  },
-]
-
 const BreathPage: FC = () => {
+  const [breathPhases, setBreathPhases] = useState<BreathPhase[]>([])
   const [step, setStep] = useState<'intro' | 'invite' | 'playing' | 'breathing' | 'completed' | 'summary'>('intro')
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0)
   const [completedPhases, setCompletedPhases] = useState<number[]>([])
@@ -84,6 +29,22 @@ const BreathPage: FC = () => {
   const [breathText, setBreathText] = useState('')
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const breathTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    const fetchGameData = async () => {
+      try {
+        const res = await Network.request({ url: '/api/game-data/content?gameKey=breath' })
+        console.log('Breath game data response:', res.data)
+        const apiData = res.data?.data
+        if (Array.isArray(apiData) && apiData.length > 0 && apiData[0].content_data?.phases) {
+          setBreathPhases(apiData[0].content_data.phases)
+        }
+      } catch (err) {
+        console.error('Failed to fetch breath game data:', err)
+      }
+    }
+    fetchGameData()
+  }, [])
 
   useLoad(() => {
     console.log('Breath sync game loaded.')
@@ -169,6 +130,14 @@ const BreathPage: FC = () => {
     if (totalScore >= 90) return '你们的呼吸越来越同频了！呼吸同步是最深层的亲密——比拥抱更深，比接吻更安静。'
     if (totalScore >= 50) return '好的开始！呼吸同步需要时间，重要的是你们愿意为彼此安静下来。'
     return '能一起安静下来，本身就是一种默契。慢慢来，呼吸会带你们靠近。'
+  }
+
+  if (breathPhases.length === 0) {
+    return (
+      <View className="flex items-center justify-center h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <Text className="block text-gray-500">加载中...</Text>
+      </View>
+    )
   }
 
   return (
@@ -257,7 +226,7 @@ const BreathPage: FC = () => {
             <Card className="mb-6 w-full bg-gradient-to-br from-green-50 to-emerald-50 border-green-100">
               <CardContent className="py-5">
                 <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
-                  “你有没有试过，{'\n'}两个人什么也不做，{'\n'}只是安静地一起呼吸？{'\n'}{'\n'}听说呼吸同步的时候，{'\n'}心跳也会慢慢一致。{'\n'}{'\n'}想试试吗？”
+                  &ldquo;你有没有试过，{'\n'}两个人什么也不做，{'\n'}只是安静地一起呼吸？{'\n'}{'\n'}听说呼吸同步的时候，{'\n'}心跳也会慢慢一致。{'\n'}{'\n'}想试试吗？&rdquo;
                 </Text>
               </CardContent>
             </Card>

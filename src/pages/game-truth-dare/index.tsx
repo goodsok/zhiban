@@ -1,56 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { Heart, Shuffle, RotateCcw, Sparkles, ArrowRight, Check } from 'lucide-react-taro'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-
-const truthQuestions = [
-  '你最近一次哭是什么时候？为什么？',
-  '你最大的恐惧是什么？',
-  '你做过最勇敢的事情是什么？',
-  '你觉得什么样的伴侣最适合你？',
-  '你童年最美好的回忆是什么？',
-  '你最想改变自己的哪一点？',
-  '你人生中最骄傲的时刻是什么？',
-  '你觉得爱情中最重要的是什么？',
-  '你希望对方了解你的哪些方面？',
-  '你最近的烦恼是什么？',
-  '你最欣赏对方的哪个特质？',
-  '你理想中的约会是什么样的？',
-  '你觉得两个人之间最重要的是什么？',
-  '你最近的一次成长是什么？',
-  '你对未来的规划是什么？',
-  '你最难忘的一次经历是什么？',
-  '你觉得什么样的瞬间最浪漫？',
-  '你想对对方说但没说出口的话是什么？',
-  '你最近思考最多的问题是什么？',
-  '你最想和对方一起做什么？',
-]
-
-const dareChallenges = [
-  '给对方唱一首歌',
-  '模仿一个你认识的人',
-  '表演你拿手的才艺',
-  '告诉对方你觉得他/她最可爱的地方',
-  '和对方对视30秒不笑',
-  '分享一张你的童年照片',
-  '说出你最近做过最疯狂的事',
-  '给对方一个真诚的赞美',
-  '模仿对方的说话方式',
-  '做一个鬼脸让对方笑',
-  '分享你最尴尬的瞬间',
-  '给对方一个拥抱',
-  '说出你想和对方一起做的三件事',
-  '模仿你最喜欢的电影角色',
-  '告诉对方你今天最开心的事',
-  '表演一个夸张的惊讶表情',
-  '让对方在你的手机里随机选一张照片',
-  '说出你最近学到的新东西',
-  '模仿你最爱的明星',
-  '做一个让你觉得害羞的动作',
-]
+import { Network } from '@/network'
 
 const TruthDarePage: FC = () => {
   const [mode, setMode] = useState<'truth' | 'dare'>('truth')
@@ -58,6 +13,39 @@ const TruthDarePage: FC = () => {
   const [isRevealed, setIsRevealed] = useState(false)
   const [history, setHistory] = useState<string[]>([])
   const [usedQuestions, setUsedQuestions] = useState<string[]>([])
+  const [truthQuestions, setTruthQuestions] = useState<string[]>([])
+  const [dareChallenges, setDareChallenges] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchGameData = async () => {
+    try {
+      console.log('[TruthDare] Fetching game data from API...')
+      const res = await Network.request({
+        url: '/api/game-data/content?gameKey=truth-dare',
+        method: 'GET',
+      })
+      console.log('[TruthDare] Game data response:', res.data)
+      const items = res.data?.data || []
+      const truths: string[] = []
+      const dares: string[] = []
+      for (const item of items) {
+        const text = item?.content_data?.text
+        if (!text) continue
+        if (item.category === 'truth') truths.push(text)
+        else if (item.category === 'dare') dares.push(text)
+      }
+      if (truths.length > 0) setTruthQuestions(truths)
+      if (dares.length > 0) setDareChallenges(dares)
+    } catch (err) {
+      console.error('[TruthDare] Failed to fetch game data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchGameData()
+  }, [])
 
   useLoad(() => {
     console.log('Truth or Dare game loaded.')
@@ -71,6 +59,7 @@ const TruthDarePage: FC = () => {
 
   const handleNewQuestion = () => {
     const questions = mode === 'truth' ? truthQuestions : dareChallenges
+    if (questions.length === 0) return
     const question = getRandomQuestion(questions, usedQuestions)
     setCurrentQuestion(question)
     setIsRevealed(false)
@@ -84,6 +73,17 @@ const TruthDarePage: FC = () => {
     setIsRevealed(false)
     setCurrentQuestion('')
     setUsedQuestions([])
+  }
+
+  if (loading) {
+    return (
+      <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <View className="bg-gradient-to-r from-rose-500 to-pink-500 px-4 py-6">
+          <Text className="block text-2xl font-bold text-white mb-2">真心话大冒险</Text>
+          <Text className="block text-sm text-gray-200">加载中...</Text>
+        </View>
+      </View>
+    )
   }
 
   return (
@@ -164,7 +164,7 @@ const TruthDarePage: FC = () => {
                   ) : (
                     <View className="flex flex-col items-center">
                       <View className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-4">
-                        <Heart size={24} color="#f43f5e" className="animate-pulse" />
+                        <Heart size={24} color="#f43f5e" />
                       </View>
                       <Text className="block text-sm text-gray-500">准备好了吗？</Text>
                     </View>

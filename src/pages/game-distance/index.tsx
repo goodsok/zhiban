@@ -6,6 +6,7 @@ import { Magnet, Sparkles, Check, ArrowRight, RotateCcw, Footprints } from 'luci
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { Network } from '@/network'
 
 /** 距离等级 */
 interface DistanceLevel {
@@ -18,64 +19,8 @@ interface DistanceLevel {
   intimacyScore: number
 }
 
-const distanceLevels: DistanceLevel[] = [
-  {
-    id: 1,
-    name: '面对面站立',
-    distance: '1米',
-    instruction: '两人面对面站立，保持约一臂距离，看着对方的眼睛5秒不说话',
-    duration: 10,
-    tip: '先从对视开始——很多人连5秒对视都觉得害羞，这就是第一步',
-    intimacyScore: 10,
-  },
-  {
-    id: 2,
-    name: '臂弯之距',
-    distance: '50cm',
-    instruction: '向前迈一步，伸出手刚好能碰到对方肩膀的距离。双手自然下垂，再对视5秒',
-    duration: 10,
-    tip: '已经能闻到对方的气息了，你的心跳有没有加速？',
-    intimacyScore: 15,
-  },
-  {
-    id: 3,
-    name: '肩并肩',
-    distance: '0cm（侧面）',
-    instruction: '侧身站到对方身边，肩膀轻轻相碰，一起往前走10步',
-    duration: 15,
-    tip: '肩并肩是最自然的靠近方式，像老朋友一样，身体会自动放松',
-    intimacyScore: 20,
-  },
-  {
-    id: 4,
-    name: '背靠背',
-    distance: '0cm（背面）',
-    instruction: '背靠背站立，感受对方背部的温度和呼吸节奏，一起慢慢数到10',
-    duration: 15,
-    tip: '背靠背时，你能感受到对方的每一次呼吸，这种同步感很奇妙',
-    intimacyScore: 25,
-  },
-  {
-    id: 5,
-    name: '环腰而立',
-    distance: '拥抱距离',
-    instruction: '一方双手轻轻环住对方的腰，另一方双手搭在对方肩上，保持10秒',
-    duration: 15,
-    tip: '如果对方轻轻收紧了手臂，说明TA也想再近一点',
-    intimacyScore: 35,
-  },
-  {
-    id: 6,
-    name: '相拥而立',
-    distance: '零距离',
-    instruction: '自然地拥抱对方，感受彼此的心跳。如果可以，轻轻在耳边说一句你想说的话',
-    duration: 20,
-    tip: '最远的距离变成零距离，你们做到了。记住这个拥抱的温度',
-    intimacyScore: 45,
-  },
-]
-
 const DistancePage: FC = () => {
+  const [distanceLevels, setDistanceLevels] = useState<DistanceLevel[]>([])
   const [step, setStep] = useState<'intro' | 'invite' | 'playing' | 'countdown' | 'completed' | 'summary'>('intro')
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0)
   const [completedLevels, setCompletedLevels] = useState<number[]>([])
@@ -83,6 +28,22 @@ const DistancePage: FC = () => {
   const [totalScore, setTotalScore] = useState(0)
   const [countdown, setCountdown] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    const fetchGameData = async () => {
+      try {
+        const res = await Network.request({ url: '/api/game-data/content?gameKey=distance' })
+        console.log('Distance game data response:', res.data)
+        const apiData = res.data?.data
+        if (Array.isArray(apiData) && apiData.length > 0 && apiData[0].content_data?.levels) {
+          setDistanceLevels(apiData[0].content_data.levels)
+        }
+      } catch (err) {
+        console.error('Failed to fetch distance game data:', err)
+      }
+    }
+    fetchGameData()
+  }, [])
 
   useLoad(() => {
     console.log('Distance game loaded.')
@@ -173,6 +134,14 @@ const DistancePage: FC = () => {
     return '迈出第一步最难能可贵。感情不怕慢，只怕不肯靠近。'
   }
 
+  if (distanceLevels.length === 0) {
+    return (
+      <View className="flex items-center justify-center h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <Text className="block text-gray-500">加载中...</Text>
+      </View>
+    )
+  }
+
   return (
     <View className="min-h-screen pb-8" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部进度条 */}
@@ -259,7 +228,7 @@ const DistancePage: FC = () => {
             <Card className="mb-6 w-full bg-gradient-to-br from-orange-50 to-amber-50">
               <CardContent className="py-5">
                 <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
-                  “你有没有想过，{'\n'}从一米远到拥抱，{'\n'}需要走几步？{'\n'}{'\n'}我们来试试，{'\n'}每一步我都会等你，{'\n'}不想走了随时可以停。{'\n'}{'\n'}一起走吗？”
+                  &ldquo;你有没有想过，{'\n'}从一米远到拥抱，{'\n'}需要走几步？{'\n'}{'\n'}我们来试试，{'\n'}每一步我都会等你，{'\n'}不想走了随时可以停。{'\n'}{'\n'}一起走吗？&rdquo;
                 </Text>
               </CardContent>
             </Card>

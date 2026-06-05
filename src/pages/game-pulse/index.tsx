@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -6,16 +6,12 @@ import { RotateCcw, Check, ArrowRight, Sparkles, Timer, HeartPulse } from 'lucid
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { Network } from '@/network'
 
 /**
  * 心跳同步游戏
  * 通过测量和比较心跳，利用"靠近会增加心跳"的生理原理，
  * 自然创造亲密接触和靠近的机会。
- *
- * 核心机制：
- * 1. 各自静息心跳 → 测量靠近后的心跳 → 对比差值
- * 2. 心跳加速越多，说明对方对你越有感觉
- * 3. 多种"靠近方式"渐进升级
  */
 
 interface ProximityChallenge {
@@ -23,69 +19,13 @@ interface ProximityChallenge {
   name: string
   description: string
   instruction: string
-  duration: number // 测量秒数
-  intensity: 'calm' | 'warm' | 'hot' | 'burning' // 亲密度等级
+  duration: number
+  intensity: 'calm' | 'warm' | 'hot' | 'burning'
   tip: string
 }
 
-const proximityChallenges: ProximityChallenge[] = [
-  {
-    id: 1,
-    name: '静息基线',
-    description: '先测量平静状态的心跳',
-    instruction: '各自把两根手指搭在对方手腕内侧，感受脉搏跳动，默数30秒',
-    duration: 30,
-    intensity: 'calm',
-    tip: '先记下平静时的心跳，这是你的"基线"',
-  },
-  {
-    id: 2,
-    name: '对视挑战',
-    description: '看着对方的眼睛，心跳会说话',
-    instruction: '两人对视，保持眼神接触，同时用手指感受对方手腕脉搏',
-    duration: 30,
-    intensity: 'warm',
-    tip: '对视超过4秒就会产生化学反应，相信你的身体',
-  },
-  {
-    id: 3,
-    name: '肩并肩',
-    description: '身体靠近，心跳加速',
-    instruction: '肩并肩坐在一起，肩膀轻轻相触，继续感受对方的心跳',
-    duration: 30,
-    intensity: 'warm',
-    tip: '肩膀的接触是最自然的靠近方式，不用担心尴尬',
-  },
-  {
-    id: 4,
-    name: '掌心相贴',
-    description: '感受彼此掌心的温度',
-    instruction: '掌心对手掌心贴合，另一只手依然搭在对方手腕上测心跳',
-    duration: 30,
-    intensity: 'hot',
-    tip: '掌心是人体最敏感的触觉区域之一',
-  },
-  {
-    id: 5,
-    name: '耳畔低语',
-    description: '最近的距离，最真实的心跳',
-    instruction: '靠近对方耳边，轻声说一句想说的话，然后感受心跳变化',
-    duration: 30,
-    intensity: 'hot',
-    tip: '耳边的气息和声音，是让人心跳加速的最强武器',
-  },
-  {
-    id: 6,
-    name: '心跳共振',
-    description: '终极挑战',
-    instruction: '胸口相贴（或尽可能靠近），直接感受对方的心跳，闭眼同步呼吸',
-    duration: 45,
-    intensity: 'burning',
-    tip: '如果两颗心在同一频率跳动，那就是最浪漫的事',
-  },
-]
-
 const PulsePage: FC = () => {
+  const [proximityChallenges, setProximityChallenges] = useState<ProximityChallenge[]>([])
   const [step, setStep] = useState<'intro' | 'invite' | 'measure' | 'counting' | 'input' | 'result' | 'summary'>('intro')
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0)
   const [countdown, setCountdown] = useState(0)
@@ -99,6 +39,22 @@ const PulsePage: FC = () => {
     intensity: string
   }>>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    const fetchGameData = async () => {
+      try {
+        const res = await Network.request({ url: '/api/game-data/content?gameKey=pulse' })
+        console.log('Pulse game data response:', res.data)
+        const apiData = res.data?.data
+        if (Array.isArray(apiData) && apiData.length > 0 && apiData[0].content_data?.challenges) {
+          setProximityChallenges(apiData[0].content_data.challenges)
+        }
+      } catch (err) {
+        console.error('Failed to fetch pulse game data:', err)
+      }
+    }
+    fetchGameData()
+  }, [])
 
   useLoad(() => {
     console.log('Pulse game loaded.')
@@ -210,6 +166,14 @@ const PulsePage: FC = () => {
     return { emoji: '😌', text: '心跳平稳，也许TA很淡定，也许TA在努力控制。' }
   }
 
+  if (proximityChallenges.length === 0) {
+    return (
+      <View className="flex items-center justify-center h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <Text className="block text-gray-500">加载中...</Text>
+      </View>
+    )
+  }
+
   return (
     <View className="min-h-screen pb-8" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部进度 */}
@@ -316,7 +280,7 @@ const PulsePage: FC = () => {
             <Card className="mb-6 w-full bg-gradient-to-br from-rose-50 to-red-50 border-rose-100">
               <CardContent className="py-5">
                 <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
-                  “你知道吗？{'\n'}靠近喜欢的人时，{'\n'}心跳会不自觉地加速。{'\n'}{'\n'}我们来验证一下？{'\n'}你摸我的脉搏，我摸你的，{'\n'}看看谁先‘露馅’。{'\n'}{'\n'}敢试试吗？”
+                  &ldquo;你知道吗？{'\n'}靠近喜欢的人时，{'\n'}心跳会不自觉地加速。{'\n'}{'\n'}我们来验证一下？{'\n'}你摸我的脉搏，我摸你的，{'\n'}看看谁先&#39;露馅&#39;。{'\n'}{'\n'}敢试试吗？&rdquo;
                 </Text>
               </CardContent>
             </Card>

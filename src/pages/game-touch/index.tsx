@@ -6,6 +6,7 @@ import { Hand, Timer, Heart, ArrowRight, Check, RotateCcw, Sparkles } from 'luci
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { Network } from '@/network'
 
 /** 进挪等级：从低到高，循序渐进 */
 interface TouchLevel {
@@ -18,80 +19,49 @@ interface TouchLevel {
   intimacyScore: number // 完成后获得的亲密度
 }
 
-const touchLevels: TouchLevel[] = [
-  {
-    id: 1,
-    name: '指尖触碰',
-    description: '最自然的开始',
-    instruction: '两人伸出食指，指尖轻轻相触，保持不动',
-    duration: 15,
-    tip: '不用紧张，就像碰到了一片温柔的花瓣',
-    intimacyScore: 10,
-  },
-  {
-    id: 2,
-    name: '手掌贴合',
-    description: '感受彼此的温度',
-    instruction: '将手掌自然贴合，掌心对掌心，手指自然放松',
-    duration: 20,
-    tip: '闭上眼，感受掌心传来的温度，那是最真实的信号',
-    intimacyScore: 15,
-  },
-  {
-    id: 3,
-    name: '十指相扣',
-    description: '最温柔的牵手方式',
-    instruction: '十指自然交叉相扣，感受对方手指的力度',
-    duration: 25,
-    tip: '如果对方轻轻回握，说明TA也很享受这一刻',
-    intimacyScore: 20,
-  },
-  {
-    id: 4,
-    name: '手背轻抚',
-    description: '指尖的温度传递',
-    instruction: '一人手掌朝上，另一人用指尖轻轻在手背上画圈',
-    duration: 30,
-    tip: '慢慢来，力度要轻，像在画一幅看不见的画',
-    intimacyScore: 25,
-  },
-  {
-    id: 5,
-    name: '掌心画字',
-    description: '猜猜我写了什么',
-    instruction: '一人在对方掌心慢慢写一个字，让对方猜是什么字',
-    duration: 40,
-    tip: '写慢一点，感受指尖在掌心滑过的触感，这比文字更浪漫',
-    intimacyScore: 30,
-  },
-  {
-    id: 6,
-    name: '手腕轻触',
-    description: '感受心跳的节奏',
-    instruction: '用指尖轻轻搭在对方手腕内侧，感受脉搏的跳动',
-    duration: 30,
-    tip: '感受到了吗？那加速的心跳，是身体最诚实的回答',
-    intimacyScore: 35,
-  },
-  {
-    id: 7,
-    name: '额头相抵',
-    description: '最近的距离',
-    instruction: '两人额头轻轻相抵，闭眼，一起深呼吸三次',
-    duration: 30,
-    tip: '此刻世界安静下来，只剩下彼此的呼吸和心跳',
-    intimacyScore: 40,
-  },
-]
-
 const TouchPage: FC = () => {
+  const [touchLevels, setTouchLevels] = useState<TouchLevel[]>([])
   const [step, setStep] = useState<'intro' | 'invite' | 'playing' | 'countdown' | 'completed' | 'summary'>('intro')
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0)
   const [completedLevels, setCompletedLevels] = useState<number[]>([])
   const [skippedLevels, setSkippedLevels] = useState<number[]>([])
   const [totalScore, setTotalScore] = useState(0)
   const [countdown, setCountdown] = useState(0)
+  const [loading, setLoading] = useState(true)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const fetchGameData = async () => {
+    try {
+      console.log('[Touch] Fetching game data from API...')
+      const res = await Network.request({
+        url: '/api/game-data/content?gameKey=touch',
+        method: 'GET',
+      })
+      console.log('[Touch] Game data response:', res.data)
+      const items = res.data?.data || []
+      if (items.length > 0) {
+        const d = items[0]?.content_data || {}
+        const levels: TouchLevel[] = (d.levels || []).map((l: any) => ({
+          id: l.id,
+          name: l.name || '',
+          description: l.description || '',
+          instruction: l.instruction || '',
+          duration: l.duration || 15,
+          tip: l.tip || '',
+          intimacyScore: l.intimacyScore || 10,
+        }))
+        if (levels.length > 0) setTouchLevels(levels)
+      }
+    } catch (err) {
+      console.error('[Touch] Failed to fetch game data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchGameData()
+  }, [])
 
   useLoad(() => {
     console.log('Touch game loaded.')
@@ -193,6 +163,17 @@ const TouchPage: FC = () => {
     return '每一次触碰都是一次勇敢的尝试。慢慢来，温柔以待，感情需要时间升温。'
   }
 
+  if (loading || touchLevels.length === 0) {
+    return (
+      <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <View className="bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-6">
+          <Text className="block text-2xl font-bold text-white mb-2">手心温度</Text>
+          <Text className="block text-sm text-gray-200">加载中...</Text>
+        </View>
+      </View>
+    )
+  }
+
   return (
     <View className="min-h-screen pb-8" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部进度条 */}
@@ -224,7 +205,7 @@ const TouchPage: FC = () => {
                     <View className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
                       <Text className="text-xs text-rose-600">1</Text>
                     </View>
-                    <Text className="text-sm text-gray-600">共7个等级，从轻触指尖到额头相抵</Text>
+                    <Text className="text-sm text-gray-600">共{touchLevels.length}个等级，从轻触指尖到额头相抵</Text>
                   </View>
                   <View className="flex flex-row items-start">
                     <View className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
@@ -279,7 +260,7 @@ const TouchPage: FC = () => {
             <Card className="mb-6 w-full bg-gradient-to-br from-rose-50 to-pink-50 border-rose-100">
               <CardContent className="py-5">
                 <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
-                  “我想和你玩一个游戏，{'\n'}从指尖开始，{'\n'}慢慢感受彼此的温度。{'\n'}{'\n'}如果任何一步你觉得不舒服，{'\n'}我们可以随时停下来。{'\n'}{'\n'}愿意吗？”
+                  &ldquo;我想和你玩一个游戏，{'\n'}从指尖开始，{'\n'}慢慢感受彼此的温度。{'\n'}{'\n'}如果任何一步你觉得不舒服，{'\n'}我们可以随时停下来。{'\n'}{'\n'}愿意吗？&rdquo;
                 </Text>
               </CardContent>
             </Card>

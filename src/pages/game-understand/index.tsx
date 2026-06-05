@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { Sparkles, Heart, ArrowRight, ChevronRight, RefreshCw } from 'lucide-react-taro'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Network } from '@/network'
 
 interface QuestionCategory {
   id: string
@@ -14,104 +15,44 @@ interface QuestionCategory {
   questions: string[]
 }
 
-const categories: QuestionCategory[] = [
-  {
-    id: 'basic',
-    name: '基本信息',
-    icon: '👋',
-    color: 'from-blue-400 to-cyan-500',
-    questions: [
-      '你最喜欢的食物是什么？',
-      '你最喜欢的电影类型是什么？',
-      '你最喜欢的季节是哪个？',
-      '你喜欢猫还是狗？',
-      '你最喜欢的旅行方式是什么？',
-      '你最喜欢的运动是什么？',
-      '你最喜欢的音乐类型是什么？',
-      '你喜欢的周末是什么样的？',
-      '你最喜欢的书是什么？',
-      '你最喜欢的一句名言是什么？',
-    ],
-  },
-  {
-    id: 'personality',
-    name: '性格特点',
-    icon: '💭',
-    color: 'from-purple-400 to-violet-500',
-    questions: [
-      '你觉得最让你开心的事情是什么？',
-      '你压力大的时候会做什么？',
-      '你是一个喜欢计划还是随性的人？',
-      '你最看重朋友身上的什么品质？',
-      '你觉得自己的优点是什么？',
-      '你觉得什么事情能让你放松？',
-      '你更喜欢独处还是和朋友在一起？',
-      '你觉得什么样的环境让你最舒服？',
-      '你对待朋友的方式是什么？',
-      '你觉得最舒服的社交方式是什么？',
-    ],
-  },
-  {
-    id: 'values',
-    name: '价值观',
-    icon: '⚖️',
-    color: 'from-amber-400 to-orange-500',
-    questions: [
-      '你觉得什么样的人生是有意义的？',
-      '你最想追求的是什么？',
-      '你觉得家庭和事业哪个更重要？',
-      '你觉得成功的定义是什么？',
-      '你觉得爱情应该是什么样的？',
-      '你觉得什么最重要？',
-      '你对未来有什么期待？',
-      '你觉得什么值得坚持？',
-      '你的人生目标是什么？',
-      '你觉得什么是幸福？',
-    ],
-  },
-  {
-    id: 'life',
-    name: '生活趣事',
-    icon: '😄',
-    color: 'from-green-400 to-emerald-500',
-    questions: [
-      '你最近做过的最有趣的事情是什么？',
-      '你最难忘的一次经历是什么？',
-      '你小时候最喜欢做的事情是什么？',
-      '你觉得最搞笑的事情是什么？',
-      '你最近的一次收获是什么？',
-      '你最喜欢的一个回忆是什么？',
-      '你觉得最开心的一天是什么样的？',
-      '你觉得最放松的事情是什么？',
-      '你觉得最温暖的瞬间是什么？',
-      '你觉得最期待的旅行目的地是哪里？',
-    ],
-  },
-  {
-    id: 'relationship',
-    name: '感情观',
-    icon: '❤️',
-    color: 'from-rose-400 to-pink-500',
-    questions: [
-      '你觉得什么样的伴侣最适合你？',
-      '你理想中的约会是什么样的？',
-      '你觉得两个人之间最重要的是什么？',
-      '你最欣赏异性的什么特质？',
-      '你觉得什么最能打动你？',
-      '你对另一半有什么期待？',
-      '你觉得什么样的关系最舒服？',
-      '你觉得爱情中最重要的是什么？',
-      '你觉得如何保持感情的新鲜感？',
-      '你觉得什么是最好的相处方式？',
-    ],
-  },
-]
-
 const UnderstandPage: FC = () => {
+  const [categories, setCategories] = useState<QuestionCategory[]>([])
   const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState<string>('')
   const [questionIndex, setQuestionIndex] = useState(0)
   const [completedCategoryIds, setCompletedCategoryIds] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchGameData = async () => {
+    try {
+      console.log('[Understand] Fetching game data from API...')
+      const res = await Network.request({
+        url: '/api/game-data/content?gameKey=understand',
+        method: 'GET',
+      })
+      console.log('[Understand] Game data response:', res.data)
+      const items = res.data?.data || []
+      const cats: QuestionCategory[] = items.map((item: any) => {
+        const d = item?.content_data || {}
+        return {
+          id: item.category,
+          name: d.name || item.category,
+          icon: d.icon || '💬',
+          color: d.color || 'from-gray-400 to-gray-500',
+          questions: d.questions || [],
+        }
+      })
+      if (cats.length > 0) setCategories(cats)
+    } catch (err) {
+      console.error('[Understand] Failed to fetch game data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchGameData()
+  }, [])
 
   useLoad(() => {
     console.log('Understand game loaded.')
@@ -157,6 +98,17 @@ const UnderstandPage: FC = () => {
     setSelectedCategory(null)
     setCurrentQuestion('')
     setQuestionIndex(0)
+  }
+
+  if (loading) {
+    return (
+      <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <View className="bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-6">
+          <Text className="block text-2xl font-bold text-white mb-2">深入了解问答</Text>
+          <Text className="block text-sm text-gray-200">加载中...</Text>
+        </View>
+      </View>
+    )
   }
 
   return (

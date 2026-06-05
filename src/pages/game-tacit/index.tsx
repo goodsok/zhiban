@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { Brain, ArrowRight, Users, Heart, Sparkles, RefreshCw, Check } from 'lucide-react-taro'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Network } from '@/network'
 
 interface Question {
   id: number
@@ -21,151 +22,50 @@ interface TacitTestCategory {
   questions: Question[]
 }
 
-const categories: TacitTestCategory[] = [
-  {
-    id: 'values',
-    name: '价值观匹配',
-    description: '测试你们在人生观、价值观上的契合度',
-    icon: '⚖️',
-    color: 'from-blue-400 to-cyan-500',
-    questions: [
-      {
-        id: 1,
-        question: '你认为最幸福的生活是什么样的？',
-        options: ['安稳平淡的生活', '充满挑战和变化', '有成就感和认可', '自由自在无拘束'],
-      },
-      {
-        id: 2,
-        question: '面对困难时，你通常的做法是？',
-        options: ['自己默默解决', '寻求朋友帮助', '和家人商量', '顺其自然'],
-      },
-      {
-        id: 3,
-        question: '你认为最重要的品质是？',
-        options: ['诚实守信', '善良体贴', '幽默风趣', '聪明智慧'],
-      },
-      {
-        id: 4,
-        question: '你对未来的规划更看重？',
-        options: ['稳定的工作和收入', '追求个人梦想', '家庭幸福', '自由的时间'],
-      },
-      {
-        id: 5,
-        question: '你觉得什么样的朋友最值得珍惜？',
-        options: ['真心待你的朋友', '能共同成长的朋友', '有趣好玩的朋友', '可靠的朋友'],
-      },
-    ],
-  },
-  {
-    id: 'lifestyle',
-    name: '生活方式',
-    description: '了解你们的日常生活习惯是否相似',
-    icon: '🏠',
-    color: 'from-green-400 to-emerald-500',
-    questions: [
-      {
-        id: 1,
-        question: '你理想的周末是怎么度过的？',
-        options: ['宅在家里休息', '和朋友聚会', '户外运动', '学习提升'],
-      },
-      {
-        id: 2,
-        question: '你对美食的态度是？',
-        options: ['随便吃就行', '喜欢尝试各种美食', '自己动手做饭', '注重健康饮食'],
-      },
-      {
-        id: 3,
-        question: '你喜欢的旅行方式是？',
-        options: ['跟团省心', '自由行探索', '度假村放松', '深度体验当地文化'],
-      },
-      {
-        id: 4,
-        question: '你通常几点睡觉？',
-        options: ['晚上10点左右', '晚上11点左右', '凌晨12点以后', '看情况而定'],
-      },
-      {
-        id: 5,
-        question: '你觉得家里最重要的部分是？',
-        options: ['舒适的卧室', '宽敞的客厅', '功能齐全的厨房', '安静的书房'],
-      },
-    ],
-  },
-  {
-    id: 'personality',
-    name: '性格互补',
-    description: '发现你们的性格特点和互补性',
-    icon: '💭',
-    color: 'from-purple-400 to-violet-500',
-    questions: [
-      {
-        id: 1,
-        question: '在社交场合，你通常？',
-        options: ['主动交流认识新朋友', '和熟悉的人聊天', '安静观察', '害羞躲在角落'],
-      },
-      {
-        id: 2,
-        question: '做决定时，你更倾向于？',
-        options: ['快速果断', '深思熟虑', '征求他人意见', '犹豫不决'],
-      },
-      {
-        id: 3,
-        question: '面对压力，你会？',
-        options: ['努力克服', '寻求帮助', '逃避一下', '抱怨发泄'],
-      },
-      {
-        id: 4,
-        question: '你更喜欢哪种工作方式？',
-        options: ['独立完成', '团队合作', '领导指挥', '执行任务'],
-      },
-      {
-        id: 5,
-        question: '你觉得自己是？',
-        options: ['乐观开朗', '理性冷静', '感性敏感', '稳重踏实'],
-      },
-    ],
-  },
-  {
-    id: 'love',
-    name: '感情观念',
-    description: '测试你们对感情和恋爱的看法',
-    icon: '❤️',
-    color: 'from-rose-400 to-pink-500',
-    questions: [
-      {
-        id: 1,
-        question: '你认为理想的爱情应该是？',
-        options: ['轰轰烈烈的激情', '细水长流的陪伴', '互相理解和支持', '有共同的目标'],
-      },
-      {
-        id: 2,
-        question: '在恋爱中，你更看重？',
-        options: ['外貌和吸引力', '性格和人品', '经济条件', '共同兴趣'],
-      },
-      {
-        id: 3,
-        question: '你觉得吵架后应该怎么做？',
-        options: ['主动道歉', '等对方冷静', '一起解决问题', '各自冷静一段时间'],
-      },
-      {
-        id: 4,
-        question: '你理想的约会频率是？',
-        options: ['天天见面', '一周2-3次', '一周1次', '看心情和时间'],
-      },
-      {
-        id: 5,
-        question: '你对婚姻的态度是？',
-        options: ['一定要结婚', '顺其自然', '不一定结婚', '暂时不考虑'],
-      },
-    ],
-  },
-]
-
 const TacitPage: FC = () => {
+  const [categories, setCategories] = useState<TacitTestCategory[]>([])
   const [step, setStep] = useState<'select' | 'intro' | 'player-a' | 'handover' | 'player-b' | 'result'>('select')
   const [selectedCategory, setSelectedCategory] = useState<TacitTestCategory | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [playerAAnswers, setPlayerAAnswers] = useState<number[]>([])
   const [playerBAnswers, setPlayerBAnswers] = useState<number[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchGameData = async () => {
+    try {
+      console.log('[Tacit] Fetching game data from API...')
+      const res = await Network.request({
+        url: '/api/game-data/content?gameKey=tacit',
+        method: 'GET',
+      })
+      console.log('[Tacit] Game data response:', res.data)
+      const items = res.data?.data || []
+      const cats: TacitTestCategory[] = items.map((item: any, idx: number) => {
+        const d = item?.content_data || {}
+        return {
+          id: item.category || String(idx),
+          name: d.name || item.category,
+          description: d.description || '',
+          icon: d.icon || '💬',
+          color: d.color || 'from-gray-400 to-gray-500',
+          questions: (d.questions || []).map((q: any, qi: number) => ({
+            id: q.id || qi + 1,
+            question: q.question || '',
+            options: q.options || [],
+          })),
+        }
+      })
+      if (cats.length > 0) setCategories(cats)
+    } catch (err) {
+      console.error('[Tacit] Failed to fetch game data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchGameData()
+  }, [])
 
   useLoad(() => {
     console.log('Tacit game loaded.')
@@ -191,7 +91,6 @@ const TacitPage: FC = () => {
       if (currentQuestionIndex < selectedCategory!.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1)
       } else {
-        // A回答完成，切换到交接页面
         setStep('handover')
       }
     } else if (step === 'player-b') {
@@ -201,7 +100,6 @@ const TacitPage: FC = () => {
       if (currentQuestionIndex < selectedCategory!.questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1)
       } else {
-        // 测试完成
         setStep('result')
       }
     }
@@ -241,6 +139,17 @@ const TacitPage: FC = () => {
     if (score >= 60) return { text: '高度默契', color: 'text-purple-600', emoji: '💜' }
     if (score >= 40) return { text: '需要了解', color: 'text-blue-600', emoji: '💙' }
     return { text: '互补性格', color: 'text-amber-600', emoji: '💛' }
+  }
+
+  if (loading) {
+    return (
+      <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <View className="bg-gradient-to-r from-blue-500 to-cyan-500 px-4 py-6">
+          <Text className="block text-2xl font-bold text-white mb-2">默契测试</Text>
+          <Text className="block text-sm text-gray-200">加载中...</Text>
+        </View>
+      </View>
+    )
   }
 
   return (

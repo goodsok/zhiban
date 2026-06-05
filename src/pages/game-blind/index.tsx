@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -6,81 +6,19 @@ import { EyeOff, Sparkles, Check, ArrowRight, RotateCcw, CircleQuestionMark } fr
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { Network } from '@/network'
 
 /** 触碰关卡 */
 interface BlindRound {
   id: number
   name: string
-  touchInstruction: string // 触碰者的动作
-  guessHint: string // 给猜测者的提示
-  bodyPart: string // 正确答案
-  decoyOptions: string[] // 干扰选项
+  touchInstruction: string
+  guessHint: string
+  bodyPart: string
+  decoyOptions: string[]
   intimacyScore: number
   tip: string
 }
-
-const blindRounds: BlindRound[] = [
-  {
-    id: 1,
-    name: '指尖探路',
-    touchInstruction: '用食指指尖轻轻触碰对方的手背，缓慢移动',
-    guessHint: 'TA正在用指尖在你手上移动，猜猜TA用了什么？',
-    bodyPart: '食指尖',
-    decoyOptions: ['拇指尖', '小指尖', '笔尖'],
-    intimacyScore: 10,
-    tip: '指尖是最温柔的触角，慢慢感受它的温度和力度',
-  },
-  {
-    id: 2,
-    name: '掌心温度',
-    touchInstruction: '把整只手掌轻轻贴在对方的小臂上，停留3秒',
-    guessHint: 'TA刚刚在你手臂上做了什么？',
-    bodyPart: '手掌轻贴',
-    decoyOptions: ['手指弹了弹', '指甲轻划', '拳头轻碰'],
-    intimacyScore: 15,
-    tip: '整个手掌的温度，比指尖更温暖，也更让人安心',
-  },
-  {
-    id: 3,
-    name: '发丝轻拂',
-    touchInstruction: '用手指轻轻拨开对方额前的一缕头发',
-    guessHint: 'TA刚刚碰了你哪里？',
-    bodyPart: '拨开额前头发',
-    decoyOptions: ['摸了耳朵', '碰了脸颊', '点了鼻子'],
-    intimacyScore: 20,
-    tip: '拨开头发是约会中最自然又最暧昧的动作之一',
-  },
-  {
-    id: 4,
-    name: '耳畔低语',
-    touchInstruction: '靠近对方耳边，轻轻吹一口气，然后说"猜猜我是谁"',
-    guessHint: '你感觉到了什么？',
-    bodyPart: '耳边吹气',
-    decoyOptions: ['摸了脖子', '碰了耳朵', '亲了脸颊'],
-    intimacyScore: 25,
-    tip: '耳边的气息是最私密的感觉，距离在这一刻无限缩小',
-  },
-  {
-    id: 5,
-    name: '背后画心',
-    touchInstruction: '让对方转过身，用手指在TA后背慢慢画一个爱心',
-    guessHint: 'TA在你背后画了什么？',
-    bodyPart: '爱心',
-    decoyOptions: ['圆形', '三角形', '五角星'],
-    intimacyScore: 30,
-    tip: '背后的触碰让人充满期待和想象，这就是信任的力量',
-  },
-  {
-    id: 6,
-    name: '唇间糖果',
-    touchInstruction: '把一颗糖果（或薄荷糖）放在自己唇边，让对方用嘴接过去',
-    guessHint: '最后的挑战，你需要用最特别的方式接受TA的礼物',
-    bodyPart: '唇间传糖',
-    decoyOptions: ['手指喂食', '手心递糖', '肩膀放糖'],
-    intimacyScore: 40,
-    tip: '这是最终的信任测试——如果你们都准备好了，这将是最甜蜜的瞬间',
-  },
-]
 
 /** Fisher-Yates 随机打乱选项 */
 const shuffleOptions = (correct: string, decoys: string[]): string[] => {
@@ -93,6 +31,7 @@ const shuffleOptions = (correct: string, decoys: string[]): string[] => {
 }
 
 const BlindPage: FC = () => {
+  const [blindRounds, setBlindRounds] = useState<BlindRound[]>([])
   const [step, setStep] = useState<'intro' | 'invite' | 'touch' | 'guess' | 'correct' | 'wrong' | 'summary'>('intro')
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0)
   const [totalScore, setTotalScore] = useState(0)
@@ -102,6 +41,22 @@ const BlindPage: FC = () => {
 
   /** 记录每轮是否猜对 */
   const [roundResults, setRoundResults] = useState<boolean[]>([])
+
+  useEffect(() => {
+    const fetchGameData = async () => {
+      try {
+        const res = await Network.request({ url: '/api/game-data/content?gameKey=blind' })
+        console.log('Blind game data response:', res.data)
+        const apiData = res.data?.data
+        if (Array.isArray(apiData) && apiData.length > 0 && apiData[0].content_data?.rounds) {
+          setBlindRounds(apiData[0].content_data.rounds)
+        }
+      } catch (err) {
+        console.error('Failed to fetch blind game data:', err)
+      }
+    }
+    fetchGameData()
+  }, [])
 
   useLoad(() => {
     console.log('Blind touch game loaded.')
@@ -166,6 +121,14 @@ const BlindPage: FC = () => {
     if (correctCount >= 3) return '你们已经有了不错的默契，闭上眼的世界里，TA的触碰你越来越熟悉了。'
     if (correctCount >= 1) return '每一次感知都是一次靠近，慢慢来，你们的身体会越来越了解彼此。'
     return '感知需要时间培养，重要的是你们愿意为彼此闭上眼睛，这本身就是最大的信任。'
+  }
+
+  if (blindRounds.length === 0) {
+    return (
+      <View className="flex items-center justify-center h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <Text className="block text-gray-500">加载中...</Text>
+      </View>
+    )
   }
 
   return (
@@ -261,7 +224,7 @@ const BlindPage: FC = () => {
             <Card className="mb-6 w-full bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-100">
               <CardContent className="py-5">
                 <Text className="block text-base text-gray-800 leading-loose text-center font-medium">
-                  “你相信吗？{'\n'}闭上眼睛之后，{'\n'}触碰会变得完全不同。{'\n'}{'\n'}我碰你，你来猜，{'\n'}猜对了有奖励哦。{'\n'}{'\n'}敢不敢闭眼试试？”
+                  &ldquo;你相信吗？{'\n'}闭上眼睛之后，{'\n'}触碰会变得完全不同。{'\n'}{'\n'}我碰你，你来猜，{'\n'}猜对了有奖励哦。{'\n'}{'\n'}敢不敢闭眼试试？&rdquo;
                 </Text>
               </CardContent>
             </Card>

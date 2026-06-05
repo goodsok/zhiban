@@ -5,12 +5,13 @@ import type { FC } from 'react'
 import { Zap, Clock, Heart, Star, Coffee, Target, RotateCcw } from 'lucide-react-taro'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Network } from '@/network'
 
 interface Question {
   id: string
   text: string
   options: string[]
-  answer: number // 正确答案的索引，0或1
+  answer: number
 }
 
 interface Category {
@@ -23,209 +24,15 @@ interface Category {
   questions: Question[]
 }
 
-const categories: Category[] = [
-  {
-    id: 'emotion',
-    name: '情感观念',
-    icon: Heart,
-    color: 'from-pink-400 to-rose-500',
-    description: '深入了解TA的爱情观',
-    difficulty: '⭐⭐⭐⭐',
-    questions: [
-      { id: 'e1', text: 'TA和前任是因为什么分手的？', options: ['性格不合', '其他原因'], answer: 1 },
-      { id: 'e2', text: 'TA认为爱情中最重要的是信任吗？', options: ['是', '不是'], answer: 0 },
-      { id: 'e3', text: 'TA能接受伴侣有异性朋友吗？', options: ['能', '不能'], answer: 0 },
-      { id: 'e4', text: 'TA认为婚前同居是可以的吗？', options: ['可以', '不可以'], answer: 0 },
-      { id: 'e5', text: 'TA对婚前性行为的态度是开放的吗？', options: ['是', '不是'], answer: 0 },
-      { id: 'e6', text: 'TA认为结婚是必须的吗？', options: ['是', '不是'], answer: 1 },
-      { id: 'e7', text: 'TA最不能接受伴侣出轨吗？', options: ['是', '不是'], answer: 0 },
-      { id: 'e8', text: 'TA认为吵架后应该先道歉吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'e9', text: 'TA认为冷战是解决问题的方式吗？', options: ['是', '不是'], answer: 1 },
-      { id: 'e10', text: 'TA认为爱情应该保持新鲜感吗？', options: ['是', '不是'], answer: 0 },
-      { id: 'e11', text: 'TA最难忘的感情维持了超过半年吗？', options: ['是', '不是'], answer: 0 },
-      { id: 'e12', text: 'TA认为恋人之间应该保留个人空间吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'e13', text: 'TA会主动告诉伴侣自己的性经历吗？', options: ['会', '不会'], answer: 1 },
-      { id: 'e14', text: 'TA认为一见钟情是存在的吗？', options: ['是', '不是'], answer: 0 },
-      { id: 'e15', text: 'TA认为网恋能发展成现实吗？', options: ['能', '不能'], answer: 0 },
-      { id: 'e16', text: 'TA认为年龄差很重要吗？', options: ['重要', '不重要'], answer: 1 },
-      { id: 'e17', text: 'TA能接受异地恋吗？', options: ['能', '不能'], answer: 0 },
-      { id: 'e18', text: 'TA认为前任应该完全断联吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'e19', text: 'TA认为爱情需要经营吗？', options: ['需要', '不需要'], answer: 0 },
-      { id: 'e20', text: 'TA认为伴侣应该比自己大吗？', options: ['应该', '无所谓'], answer: 1 },
-      { id: 'e21', text: 'TA认为同居会破坏感情吗？', options: ['会', '不会'], answer: 1 },
-      { id: 'e22', text: 'TA认为吵架是正常的吗？', options: ['正常', '不正常'], answer: 0 },
-      { id: 'e23', text: 'TA认为应该AA制吗？', options: ['应该', '看情况'], answer: 1 },
-      { id: 'e24', text: 'TA认为约会应该男方付钱吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'e25', text: 'TA认为应该主动追求喜欢的人吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'e26', text: 'TA认为表白应该由男生做吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'e27', text: 'TA认为恋爱应该公开吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'e28', text: 'TA认为应该经常查岗吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'e29', text: 'TA认为应该看对方手机吗？', options: ['可以', '不可以'], answer: 1 },
-      { id: 'e30', text: 'TA认为应该和前任保持联系吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'e31', text: 'TA认为爱情需要激情吗？', options: ['需要', '不需要'], answer: 0 },
-      { id: 'e32', text: 'TA认为婚姻需要爱情的吗？', options: ['需要', '不需要'], answer: 0 },
-      { id: 'e33', text: 'TA认为应该为了爱情放弃一切吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'e34', text: 'TA认为爱情可以跨越阶层吗？', options: ['可以', '不可以'], answer: 0 },
-      { id: 'e35', text: 'TA认为应该结婚后才同居吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'e36', text: 'TA认为应该为了伴侣改变自己吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'e37', text: 'TA认为爱情应该是平等的吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'e38', text: 'TA认为应该经常说"我爱你"吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'e39', text: 'TA认为应该纪念日都送礼物吗？', options: ['应该', '没必要'], answer: 1 },
-      { id: 'e40', text: 'TA认为应该每天联系吗？', options: ['应该', '没必要'], answer: 0 },
-    ],
-  },
-  {
-    id: 'values',
-    name: '价值观',
-    icon: Target,
-    color: 'from-green-400 to-emerald-500',
-    description: '了解TA的人生观',
-    difficulty: '⭐⭐⭐⭐⭐',
-    questions: [
-      { id: 'v1', text: 'TA认为人生最重要的是什么？', options: ['事业', '家庭'], answer: 1 },
-      { id: 'v2', text: 'TA认为金钱很重要吗？', options: ['重要', '不重要'], answer: 0 },
-      { id: 'v3', text: 'TA认为成功就是有钱吗？', options: ['是', '不是'], answer: 1 },
-      { id: 'v4', text: 'TA愿意为感情放弃事业吗？', options: ['愿意', '不愿意'], answer: 1 },
-      { id: 'v5', text: 'TA认为应该听父母的话吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v6', text: 'TA认为孩子应该由谁带？', options: ['父母', '祖父母'], answer: 0 },
-      { id: 'v7', text: 'TA认为应该给孩子报很多班吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v8', text: 'TA认为婚前应该查对方征信吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'v9', text: 'TA认为应该存很多钱吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'v10', text: 'TA认为应该及时行乐吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v11', text: 'TA认为人生苦短，应该享受吗？', options: ['是', '不是'], answer: 0 },
-      { id: 'v12', text: 'TA认为应该努力工作吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'v13', text: 'TA认为应该为了买房拼命吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v14', text: 'TA认为应该结婚吗？', options: ['应该', '不一定'], answer: 1 },
-      { id: 'v15', text: 'TA认为友谊比爱情重要吗？', options: ['是', '不是'], answer: 1 },
-      { id: 'v16', text: 'TA认为应该和父母同住吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v17', text: 'TA认为应该给父母养老吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'v18', text: 'TA认为应该买保险吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'v19', text: 'TA认为应该投资理财吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'v20', text: 'TA认为应该提前规划养老吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'v21', text: 'TA认为应该买房吗？', options: ['应该', '租房也行'], answer: 1 },
-      { id: 'v22', text: 'TA认为应该买车吗？', options: ['应该', '没必要'], answer: 1 },
-      { id: 'v23', text: 'TA认为应该生孩子吗？', options: ['应该', '不一定'], answer: 1 },
-      { id: 'v24', text: 'TA认为应该要二胎吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v25', text: 'TA认为应该重视教育吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'v26', text: 'TA认为应该让孩子自由发展吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'v27', text: 'TA认为应该给孩子最好的教育吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'v28', text: 'TA认为应该尊重孩子吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'v29', text: 'TA认为应该严厉管教孩子吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v30', text: 'TA认为应该和朋友保持距离吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v31', text: 'TA认为应该帮助朋友吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'v32', text: 'TA认为应该借钱给朋友吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v33', text: 'TA认为应该为了朋友得罪人吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v34', text: 'TA认为应该和同事保持距离吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v35', text: 'TA认为应该工作第一吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v36', text: 'TA认为应该享受生活吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'v37', text: 'TA认为应该追求完美吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'v38', text: 'TA认为应该接受不完美吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'v39', text: 'TA认为应该追求成功吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'v40', text: 'TA认为应该接受平庸吗？', options: ['应该', '不应该'], answer: 1 },
-    ],
-  },
-  {
-    id: 'personality',
-    name: '性格特点',
-    icon: Star,
-    color: 'from-purple-400 to-violet-500',
-    description: '深入了解TA的性格',
-    difficulty: '⭐⭐⭐⭐',
-    questions: [
-      { id: 'p1', text: 'TA是内向还是外向？', options: ['内向', '外向'], answer: 0 },
-      { id: 'p2', text: 'TA喜欢独处吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p3', text: 'TA喜欢热闹吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p4', text: 'TA喜欢交朋友吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p5', text: 'TA喜欢社交吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p6', text: 'TA喜欢安静的环境吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p7', text: 'TA容易嫉妒吗？', options: ['容易', '不容易'], answer: 1 },
-      { id: 'p8', text: 'TA容易生气吗？', options: ['容易', '不容易'], answer: 1 },
-      { id: 'p9', text: 'TA容易焦虑吗？', options: ['容易', '不容易'], answer: 1 },
-      { id: 'p10', text: 'TA容易冲动吗？', options: ['容易', '不容易'], answer: 1 },
-      { id: 'p11', text: 'TA容易抑郁吗？', options: ['容易', '不容易'], answer: 1 },
-      { id: 'p12', text: 'TA喜欢冒险吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p13', text: 'TA喜欢挑战吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p14', text: 'TA喜欢新鲜感吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p15', text: 'TA喜欢稳定吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p16', text: 'TA喜欢变化吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p17', text: 'TA喜欢计划吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p18', text: 'TA喜欢自由吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p19', text: 'TA喜欢控制吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p20', text: 'TA喜欢依赖吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p21', text: 'TA喜欢独立吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p22', text: 'TA喜欢被人照顾吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p23', text: 'TA喜欢照顾别人吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p24', text: 'TA喜欢被人夸奖吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p25', text: 'TA喜欢批评别人吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p26', text: 'TA喜欢被批评吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p27', text: 'TA喜欢竞争吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p28', text: 'TA喜欢合作吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p29', text: 'TA喜欢领导吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p30', text: 'TA喜欢被领导吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p31', text: 'TA喜欢说话吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p32', text: 'TA喜欢倾听吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p33', text: 'TA喜欢表达吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p34', text: 'TA喜欢隐藏吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p35', text: 'TA喜欢分享吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p36', text: 'TA喜欢独占吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p37', text: 'TA喜欢分享秘密吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p38', text: 'TA喜欢保守秘密吗？', options: ['喜欢', '不喜欢'], answer: 0 },
-      { id: 'p39', text: 'TA喜欢八卦吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-      { id: 'p40', text: 'TA喜欢被八卦吗？', options: ['喜欢', '不喜欢'], answer: 1 },
-    ],
-  },
-  {
-    id: 'private',
-    name: '私密话题',
-    icon: Coffee,
-    color: 'from-amber-400 to-orange-500',
-    description: '那些不敢问但想知道的',
-    difficulty: '⭐⭐⭐⭐⭐',
-    questions: [
-      { id: 'pr1', text: 'TA有过一夜情吗？', options: ['有', '没有'], answer: 1 },
-      { id: 'pr2', text: 'TA能接受伴侣有多次性经历吗？', options: ['能', '不能'], answer: 0 },
-      { id: 'pr3', text: 'TA认为性生活重要吗？', options: ['重要', '不重要'], answer: 0 },
-      { id: 'pr4', text: 'TA会主动说性经历吗？', options: ['会', '不会'], answer: 1 },
-      { id: 'pr5', text: 'TA能接受伴侣和前任做朋友吗？', options: ['能', '不能'], answer: 0 },
-      { id: 'pr6', text: 'TA认为应该看伴侣手机吗？', options: ['应该', '不应该'], answer: 1 },
-      { id: 'pr7', text: 'TA能接受伴侣有异性闺蜜吗？', options: ['能', '不能'], answer: 0 },
-      { id: 'pr8', text: 'TA想改变身体的哪里？', options: ['体重', '其他'], answer: 0 },
-      { id: 'pr9', text: 'TA最怕伴侣发现什么？', options: ['过往', '其他'], answer: 0 },
-      { id: 'pr10', text: 'TA认为什么是成熟？', options: ['年龄', '其他'], answer: 1 },
-      { id: 'pr11', text: 'TA有过同居经历吗？', options: ['有', '没有'], answer: 1 },
-      { id: 'pr12', text: 'TA能接受伴侣有同居经历吗？', options: ['能', '不能'], answer: 0 },
-      { id: 'pr13', text: 'TA认为性经历越多越好吗？', options: ['是', '不是'], answer: 1 },
-      { id: 'pr14', text: 'TA会在意伴侣的性经历吗？', options: ['在意', '不在意'], answer: 1 },
-      { id: 'pr15', text: 'TA会和伴侣分享性幻想吗？', options: ['会', '不会'], answer: 0 },
-      { id: 'pr16', text: 'TA能接受伴侣看色情片吗？', options: ['能', '不能'], answer: 0 },
-      { id: 'pr17', text: 'TA会看色情片吗？', options: ['会', '不会'], answer: 0 },
-      { id: 'pr18', text: 'TA认为性应该有新鲜感吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'pr19', text: 'TA认为应该尝试新姿势吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'pr20', text: 'TA认为性应该很频繁吗？', options: ['应该', '没必要'], answer: 1 },
-      { id: 'pr21', text: 'TA能在性方面主动吗？', options: ['能', '不能'], answer: 0 },
-      { id: 'pr22', text: 'TA会拒绝性行为吗？', options: ['会', '不会'], answer: 0 },
-      { id: 'pr23', text: 'TA认为性是爱的表达吗？', options: ['是', '不是'], answer: 0 },
-      { id: 'pr24', text: 'TA认为性应该有趣吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'pr25', text: 'TA认为性应该满足吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'pr26', text: 'TA会在性上比较吗？', options: ['会', '不会'], answer: 1 },
-      { id: 'pr27', text: 'TA会在性上自卑吗？', options: ['会', '不会'], answer: 1 },
-      { id: 'pr28', text: 'TA认为性能力很重要吗？', options: ['重要', '不重要'], answer: 0 },
-      { id: 'pr29', text: 'TA会在意对方的性能力吗？', options: ['在意', '不在意'], answer: 1 },
-      { id: 'pr30', text: 'TA认为应该讨论性吗？', options: ['应该', '不应该'], answer: 0 },
-      { id: 'pr31', text: 'TA认为性应该有前戏吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'pr32', text: 'TA认为性应该有后戏吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'pr34', text: 'TA认为性应该安全吗？', options: ['应该', '无所谓'], answer: 0 },
-      { id: 'pr35', text: 'TA会用安全措施吗？', options: ['会', '不会'], answer: 0 },
-      { id: 'pr36', text: 'TA认为应该用安全措施吗？', options: ['应该', '没必要'], answer: 0 },
-      { id: 'pr37', text: 'TA会在性上尊重对方吗？', options: ['会', '不会'], answer: 0 },
-      { id: 'pr38', text: 'TA认为性应该是自愿的吗？', options: ['应该', '无所谓'], answer: 0 },
-      { id: 'pr39', text: 'TA会在性上强迫对方吗？', options: ['会', '不会'], answer: 1 },
-      { id: 'pr40', text: 'TA认为性应该是快乐的吗？', options: ['应该', '无所谓'], answer: 0 },
-    ],
-  },
-]
+const iconMap: Record<string, any> = {
+  Heart,
+  Target,
+  Star,
+  Coffee,
+}
 
 const QuickPage: FC = () => {
+  const [categories, setCategories] = useState<Category[]>([])
   const [step, setStep] = useState<'select' | 'play' | 'result'>('select')
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -236,6 +43,40 @@ const QuickPage: FC = () => {
   const [isTimerActive, setIsTimerActive] = useState(false)
   const [totalTimeUsed, setTotalTimeUsed] = useState(0)
   const [answeredCount, setAnsweredCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  const fetchGameData = async () => {
+    try {
+      console.log('[Quick] Fetching game data from API...')
+      const res = await Network.request({
+        url: '/api/game-data/content?gameKey=quick',
+        method: 'GET',
+      })
+      console.log('[Quick] Game data response:', res.data)
+      const items = res.data?.data || []
+      const cats: Category[] = items.map((item: any) => {
+        const d = item?.content_data || {}
+        return {
+          id: d.id || item.category,
+          name: d.name || '',
+          icon: iconMap[d.icon] || Zap,
+          color: d.color || 'from-purple-400 to-violet-500',
+          description: d.description || '',
+          difficulty: d.difficulty || '',
+          questions: d.questions || [],
+        }
+      })
+      if (cats.length > 0) setCategories(cats)
+    } catch (err) {
+      console.error('[Quick] Failed to fetch game data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchGameData()
+  }, [])
 
   useLoad(() => {
     console.log('Quick game loaded.')
@@ -334,6 +175,17 @@ const QuickPage: FC = () => {
     if (rate >= 60) return { text: '心有灵犀', color: 'text-blue-600', icon: '💙' }
     if (rate >= 40) return { text: '还需磨合', color: 'text-amber-600', icon: '💛' }
     return { text: '继续探索', color: 'text-rose-600', icon: '💜' }
+  }
+
+  if (loading) {
+    return (
+      <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <View className="bg-gradient-to-r from-purple-500 to-violet-500 px-4 py-6">
+          <Text className="block text-2xl font-bold text-white mb-2">快速问答</Text>
+          <Text className="block text-sm text-gray-200">加载中...</Text>
+        </View>
+      </View>
+    )
   }
 
   return (
