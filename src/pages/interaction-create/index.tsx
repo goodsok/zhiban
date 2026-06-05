@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Picker } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { Network } from '@/network'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -126,23 +126,16 @@ interface ChatRecordCard {
   uploading: boolean
 }
 
-function formatDisplayDate(date: Date): string {
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit',
-  })
-}
-
 export default function InteractionCreatePage() {
   const router = useRouter()
-  const matchId = Number(router.params.matchId)
+  const matchId = Number(router.params.matchId) || 0
 
   const [submitting, setSubmitting] = useState(false)
+  const tempIdCounter = useRef(0)
 
   // 表单状态
   const [interactionType, setInteractionType] = useState<InteractionType>('date')
   const [startedAt, setStartedAt] = useState(new Date())
-  const [showTimePicker, setShowTimePicker] = useState(false)
   const [durationMinutes, setDurationMinutes] = useState<number | null>(null)
   const [customDuration, setCustomDuration] = useState('')
   const [showCustomDuration, setShowCustomDuration] = useState(false)
@@ -152,6 +145,10 @@ export default function InteractionCreatePage() {
   const [description, setDescription] = useState('')
   const [mood, setMood] = useState<Mood>('good')
   const [breakthroughMoment, setBreakthroughMoment] = useState('')
+  const [issuesEncountered, setIssuesEncountered] = useState('')
+
+  // 对方名称
+  const [matchName, setMatchName] = useState('')
 
   // 活动标签
   const [activities, setActivities] = useState<string[]>([])
@@ -176,13 +173,28 @@ export default function InteractionCreatePage() {
   // 是否展示聊天记录上传区域（聊天/消息/通话/视频类型时展示）
   const showChatUpload = ['chat', 'message', 'call', 'video'].includes(interactionType)
 
+  // 表单是否已填写内容（用于返回确认）
+  const hasContent = !!(title || description || location || breakthroughMoment || issuesEncountered || activities.length > 0 || chatRecords.length > 0)
+
   // 初始化：从路由参数读取 type
   useEffect(() => {
     const type = router.params.type as InteractionType
     if (type && INTERACTION_TYPES.some(t => t.type === type)) {
       setInteractionType(type)
     }
-  }, [router.params.type])
+  }, []) // 仅初始化时执行一次
+
+  // 加载对方名称
+  useEffect(() => {
+    if (!matchId) return
+    Network.request({ url: `/api/match/${matchId}` })
+      .then(res => {
+        if (res.data?.code === 200 && res.data?.data) {
+          setMatchName(res.data.data.name || '')
+        }
+      })
+      .catch(() => { /* 静默处理 */ })
+  }, [matchId])
 
   // 获取当前选中的类型配置
   const currentType = INTERACTION_TYPES.find(t => t.type === interactionType) || INTERACTION_TYPES[0]
@@ -191,10 +203,13 @@ export default function InteractionCreatePage() {
   // 自动推断互动分类
   const interactionCategory = currentType.category
 
-  // 获取实际时长
-  const actualDuration = showCustomDuration && customDuration
-    ? parseInt(customDuration, 10) || null
-    : durationMinutes
+  // 获取实际时长（useMemo 稳定引用，避免 useEffect 重复触发）
+  const actualDuration = useMemo(() => {
+    if (showCustomDuration && customDuration) {
+      return parseInt(customDuration, 10) || null
+    }
+    return durationMinutes
+  }, [showCustomDuration, customDuration, durationMinutes])
 
   // 能量预览请求
   useEffect(() => {
@@ -302,7 +317,7 @@ export default function InteractionCreatePage() {
       console.log('Selected chat image:', tempFilePath)
 
       // 先在列表中添加一个上传中的占位
-      const tempId = -Date.now()
+      const tempId = -(++tempIdCounter.current)
       setChatRecords(prev => [...prev, {
         id: tempId,
         contentType: 'image',
@@ -360,12 +375,19 @@ export default function InteractionCreatePage() {
 
   // 删除聊天记录
   const handleDeleteChatRecord = useCallback((recordId: number) => {
-    setChatRecords(prev => prev.filter(r => r.id !== recordId))
-    // 也调用后端删除
-    Network.request({
-      url: `/api/chat-record/${recordId}`,
-      method: 'DELETE',
-    }).catch(err => console.error('Delete chat record error:', err))
+    Taro.showModal({
+      title: '删除聊天记录',
+      content: '确定要删除这条聊天记录吗？',
+      confirmText: '删除',
+      confirmColor: '#EF4444',
+    }).then(res => {
+      if (!res.confirm) return
+      setChatRecords(prev => prev.filter(r => r.id !== recordId))
+      Network.request({
+        url: `/api/chat-record/${recordId}`,
+        method: 'DELETE',
+      }).catch(err => console.error('Delete chat record error:', err))
+    })
   }, [])
 
   // ========== 提交表单 ==========
@@ -397,6 +419,7 @@ export default function InteractionCreatePage() {
         activities: activities.length > 0 ? activities : undefined,
         mood,
         breakthroughMoment: breakthroughMoment || null,
+        issuesEncountered: issuesEncountered || null,
         chatRecordIds: chatRecordIds.length > 0 ? chatRecordIds : undefined,
       }
 
@@ -424,12 +447,26 @@ export default function InteractionCreatePage() {
     } finally {
       setSubmitting(false)
     }
-  }, [matchId, interactionType, interactionCategory, startedAt, actualDuration, initiator, location, title, description, activities, mood, breakthroughMoment, chatRecords])
+  }, [matchId, interactionType, interactionCategory, startedAt, actualDuration, initiator, location, title, description, activities, mood, breakthroughMoment, issuesEncountered, chatRecords])
 
   return (
     <View className="min-h-screen bg-gray-50" style={{ paddingBottom: '100px' }}>
       <CustomHeader
-        title="记录互动"
+        title={matchName ? `和${matchName}的互动` : '记录互动'}
+        onBack={() => {
+          if (hasContent) {
+            Taro.showModal({
+              title: '放弃编辑',
+              content: '你已填写的内容将不会保存，确定要离开吗？',
+              confirmText: '离开',
+              confirmColor: '#EF4444',
+            }).then(res => {
+              if (res.confirm) Taro.navigateBack()
+            })
+          } else {
+            Taro.navigateBack()
+          }
+        }}
         rightAction={
           <View onClick={() => Taro.navigateTo({ url: `/pages/interactions/index?matchId=${matchId}` })}>
             <History size={20} color="#6B7280" />
@@ -474,47 +511,45 @@ export default function InteractionCreatePage() {
         <Card className="border border-gray-100">
           <CardContent className="p-4">
             {/* 时间选择 */}
-            <View className="flex items-center gap-3 pb-4 border-b border-gray-100" onClick={() => setShowTimePicker(true)}>
-              <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                <Clock size={18} color="#6B7280" />
+            <View className="pb-4 border-b border-gray-100">
+              <View className="flex items-center gap-3 mb-2">
+                <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                  <Clock size={18} color="#6B7280" />
+                </View>
+                <Text className="block text-sm font-medium text-gray-700">互动时间</Text>
               </View>
-              <View className="flex-1">
-                <Text className="block text-xs text-gray-400 mb-1">互动时间</Text>
-                <Text className="block text-sm font-medium text-gray-900">{formatDisplayDate(startedAt)}</Text>
+              <View className="flex flex-row gap-2" style={{ marginLeft: '52px' }}>
+                <Picker
+                  mode="date"
+                  value={startedAt.toISOString().split('T')[0]}
+                  onChange={e => {
+                    const d = new Date(e.detail.value)
+                    d.setHours(startedAt.getHours(), startedAt.getMinutes())
+                    setStartedAt(d)
+                  }}
+                >
+                  <View className="px-3 py-2 bg-gray-50 rounded-lg flex items-center gap-1">
+                    <Calendar size={14} color="#6B7280" />
+                    <Text className="block text-xs text-gray-700">{startedAt.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}</Text>
+                  </View>
+                </Picker>
+                <Picker
+                  mode="time"
+                  value={`${String(startedAt.getHours()).padStart(2, '0')}:${String(startedAt.getMinutes()).padStart(2, '0')}`}
+                  onChange={e => {
+                    const [h, m] = (e.detail.value as string).split(':').map(Number)
+                    const d = new Date(startedAt)
+                    d.setHours(h, m)
+                    setStartedAt(d)
+                  }}
+                >
+                  <View className="px-3 py-2 bg-gray-50 rounded-lg flex items-center gap-1">
+                    <Clock size={14} color="#6B7280" />
+                    <Text className="block text-xs text-gray-700">{`${String(startedAt.getHours()).padStart(2, '0')}:${String(startedAt.getMinutes()).padStart(2, '0')}`}</Text>
+                  </View>
+                </Picker>
               </View>
-              <Text className="block text-xs text-indigo-500">修改</Text>
             </View>
-            {showTimePicker && (
-              <Picker
-                mode="date"
-                value={startedAt.toISOString().split('T')[0]}
-                onChange={e => {
-                  const d = new Date(e.detail.value)
-                  d.setHours(startedAt.getHours(), startedAt.getMinutes())
-                  setStartedAt(d)
-                }}
-              >
-                <View className="py-2 px-3 bg-gray-50 rounded-lg mt-2">
-                  <Text className="block text-xs text-gray-500">选择日期</Text>
-                </View>
-              </Picker>
-            )}
-            {showTimePicker && (
-              <Picker
-                mode="time"
-                value={`${String(startedAt.getHours()).padStart(2, '0')}:${String(startedAt.getMinutes()).padStart(2, '0')}`}
-                onChange={e => {
-                  const [h, m] = (e.detail.value as string).split(':').map(Number)
-                  const d = new Date(startedAt)
-                  d.setHours(h, m)
-                  setStartedAt(d)
-                }}
-              >
-                <View className="py-2 px-3 bg-gray-50 rounded-lg mt-2">
-                  <Text className="block text-xs text-gray-500">选择时间</Text>
-                </View>
-              </Picker>
-            )}
 
             {/* 时长选择 */}
             <View className="pt-4 pb-4 border-b border-gray-100">
@@ -664,7 +699,7 @@ export default function InteractionCreatePage() {
                     <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
                       <Input
                         style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
-                        placeholder="输入自定义活动..."
+                        placeholder="输入后按回车或点添加"
                         value={customActivity}
                         onInput={e => setCustomActivity(e.detail.value)}
                         onConfirm={() => {
@@ -824,9 +859,10 @@ export default function InteractionCreatePage() {
                       placeholder="粘贴聊天记录，格式示例：&#10;我: 你今天怎么样？&#10;她: 还不错呀，刚下班~&#10;我: 辛苦啦，要不要一起吃饭？"
                       value={chatTextInput}
                       onInput={e => setChatTextInput(e.detail.value)}
+                      maxlength={5000}
                     />
                     <View className="flex items-center justify-between mt-2">
-                      <Text className="block text-xs text-gray-400">{chatTextInput.length} 字</Text>
+                      <Text className="block text-xs text-gray-400">{chatTextInput.length}/5000 字</Text>
                       <Button
                         className="bg-blue-500 text-white px-4 py-2 rounded-lg"
                         onClick={handleUploadChatText}
@@ -939,10 +975,31 @@ export default function InteractionCreatePage() {
         </Card>
       </View>
 
+      {/* 遇到的问题 */}
+      <View className="px-4 pb-4">
+        <Card className="border border-gray-100">
+          <CardContent className="p-4">
+            <View className="flex items-center gap-2 mb-3">
+              <Text className="block text-base">⚠️</Text>
+              <Text className="block text-sm font-medium text-gray-700">遇到的问题</Text>
+              <Text className="block text-xs text-gray-400">可选</Text>
+            </View>
+            <View className="bg-gray-50 rounded-xl p-3">
+              <Textarea
+                style={{ width: '100%', minHeight: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
+                placeholder="有没有什么尴尬、误会或问题？比如冷场了、说错话了..."
+                value={issuesEncountered}
+                onInput={e => setIssuesEncountered(e.detail.value)}
+              />
+            </View>
+          </CardContent>
+        </Card>
+      </View>
+
       {/* 底部提交按钮 */}
       <View
         style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0,
+          position: 'fixed', bottom: 50, left: 0, right: 0,
           display: 'flex', flexDirection: 'row',
           padding: '12px 16px', backgroundColor: '#fff',
           borderTop: '1px solid #f3f4f6', zIndex: 100,
