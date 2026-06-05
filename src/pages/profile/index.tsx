@@ -9,21 +9,16 @@ import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
 import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   User,
-  Settings,
-  Bell,
-  Shield,
-  MessageCircleQuestionMark,
   ChevronRight,
   Heart,
   Users,
   FileText,
   Target,
   Trophy,
-  Lock,
+  Sparkles,
 } from 'lucide-react-taro'
 
 interface UserProfile {
@@ -32,8 +27,10 @@ interface UserProfile {
 }
 
 interface MatchItem {
+  id: number
+  name: string
   impression?: number
-  compatibility?: number
+  progressScore?: number
 }
 
 interface AchievementItem {
@@ -41,21 +38,44 @@ interface AchievementItem {
   title: string
   bgColor: string
   iconColor: string
+  unlockedIconColor: string
   unlocked: boolean
 }
 
-const menuItems = [
-  { icon: Bell, title: '通知设置', desc: '管理消息提醒' },
-  { icon: Shield, title: '隐私设置', desc: '保护你的隐私' },
-  { icon: MessageCircleQuestionMark, title: '帮助与反馈', desc: '遇到问题？' },
-  { icon: Settings, title: '通用设置', desc: '语言、主题等' },
-]
-
-const defaultAchievements: AchievementItem[] = [
-  { icon: Target, title: '破冰达人', bgColor: 'bg-amber-100', iconColor: '#F0C75E', unlocked: true },
-  { icon: Heart, title: '心动记录', bgColor: 'bg-pink-100', iconColor: '#EC4899', unlocked: true },
-  { icon: Trophy, title: '默契大师', bgColor: 'bg-gray-100', iconColor: '#9CA3AF', unlocked: false },
-  { icon: Lock, title: '待解锁', bgColor: 'bg-gray-100', iconColor: '#D1D5DB', unlocked: false },
+// 成就定义：unlockCondition 在运行时根据 stats 判断
+const achievementDefinitions = [
+  {
+    icon: Target,
+    title: '破冰达人',
+    bgColor: 'bg-amber-100',
+    unlockedIconColor: '#F0C75E',
+    lockedIconColor: '#D1D5DB',
+    check: (s: { matches: number; interactions: number; avgProgress: number }) => s.matches >= 1,
+  },
+  {
+    icon: Heart,
+    title: '心动记录',
+    bgColor: 'bg-pink-100',
+    unlockedIconColor: '#EC4899',
+    lockedIconColor: '#D1D5DB',
+    check: (s: { matches: number; interactions: number; avgProgress: number }) => s.interactions >= 1,
+  },
+  {
+    icon: Trophy,
+    title: '默契大师',
+    bgColor: 'bg-green-100',
+    unlockedIconColor: '#4ECB71',
+    lockedIconColor: '#D1D5DB',
+    check: (s: { matches: number; interactions: number; avgProgress: number }) => s.avgProgress >= 50,
+  },
+  {
+    icon: Sparkles,
+    title: '关系专家',
+    bgColor: 'bg-violet-100',
+    unlockedIconColor: '#A78BFA',
+    lockedIconColor: '#D1D5DB',
+    check: (s: { matches: number; interactions: number; avgProgress: number }) => s.avgProgress >= 80,
+  },
 ]
 
 const ProfilePage: FC = () => {
@@ -66,10 +86,11 @@ const ProfilePage: FC = () => {
   const [stats, setStats] = useState({
     matches: 0,
     interactions: 0,
-    compatibility: 0
+    avgProgress: 0
   })
   const [statsLoading, setStatsLoading] = useState(true)
   const [statsError, setStatsError] = useState(false)
+  const [achievements, setAchievements] = useState<AchievementItem[]>([])
 
   // 是否为小程序环境（微信 + 抖音）
   const currentEnv = Taro.getEnv()
@@ -81,12 +102,24 @@ const ProfilePage: FC = () => {
     loadStats()
   })
 
-  // 加载用户信息
-  const loadProfile = () => {
+  // 加载用户信息（优先后端，回退本地缓存）
+  const loadProfile = async () => {
     try {
+      // 先用本地缓存快速渲染
       const saved = Taro.getStorageSync('user_profile')
       if (saved) {
         setProfile(saved)
+      }
+      // 再从后端获取最新昵称
+      const res = await Network.request({ url: '/api/user-profile' })
+      console.log('Load profile response:', res.data)
+      if (res.data?.code === 200 && res.data?.data) {
+        const serverProfile = res.data.data
+        if (serverProfile.nickname) {
+          const newProfile = { ...saved, nickname: serverProfile.nickname }
+          setProfile(newProfile)
+          Taro.setStorageSync('user_profile', newProfile)
+        }
       }
     } catch (error) {
       console.error('Load profile error:', error)
@@ -101,23 +134,67 @@ const ProfilePage: FC = () => {
       const res = await Network.request({ url: '/api/match/list' })
       console.log('Load stats response:', res.data)
       if (res.data?.code === 200 && res.data?.data) {
-        const matches: MatchItem[] = res.data.data
-        const totalCompatibility = matches.reduce(
-          (sum, m) => sum + (m.compatibility || 0), 0
+        const matchData = res.data.data
+        // 后端返回 { list, total } 结构
+        const matchList: MatchItem[] = matchData.list || matchData || []
+
+        // 计算平均推进值
+        const totalProgress = matchList.reduce(
+          (sum, m) => sum + (m.progressScore || 0), 0
         )
-        setStats({
-          matches: matches.length,
-          interactions: matches.reduce((sum, m) => sum + (m.impression || 0), 0),
-          compatibility: matches.length > 0
-            ? Math.round(totalCompatibility / matches.length)
-            : 0
-        })
+        const avgProgress = matchList.length > 0
+          ? Math.round(totalProgress / matchList.length)
+          : 0
+
+        // 计算互动总数（用 impression 近似，后续可接入 interaction 接口）
+        const totalInteractions = matchList.reduce(
+          (sum, m) => sum + (m.impression || 0), 0
+        )
+
+        const newStats = {
+          matches: matchList.length,
+          interactions: totalInteractions,
+          avgProgress
+        }
+        setStats(newStats)
+
+        // 基于统计数据计算成就
+        updateAchievements(newStats)
       }
     } catch (error) {
       console.error('Load stats error:', error)
       setStatsError(true)
     } finally {
       setStatsLoading(false)
+    }
+  }
+
+  // 根据统计数据动态计算成就解锁状态
+  const updateAchievements = (currentStats: { matches: number; interactions: number; avgProgress: number }) => {
+    const items: AchievementItem[] = achievementDefinitions.map(def => ({
+      icon: def.icon,
+      title: def.title,
+      bgColor: def.check(currentStats) ? def.bgColor : 'bg-gray-100',
+      iconColor: def.check(currentStats) ? def.unlockedIconColor : def.lockedIconColor,
+      unlockedIconColor: def.unlockedIconColor,
+      unlocked: def.check(currentStats),
+    }))
+    setAchievements(items)
+  }
+
+  // 同步用户资料到后端
+  const syncProfileToServer = async (data: Partial<UserProfile>) => {
+    try {
+      const updateData: Record<string, unknown> = {}
+      if (data.nickname !== undefined) updateData.nickname = data.nickname
+      await Network.request({
+        url: '/api/user-profile',
+        method: 'POST',
+        data: updateData
+      })
+      console.log('Profile synced to server:', updateData)
+    } catch (error) {
+      console.error('Sync profile error:', error)
     }
   }
 
@@ -152,20 +229,11 @@ const ProfilePage: FC = () => {
     setProfile(prev => ({ ...prev, nickname }))
   }
 
-  // 失焦时保存昵称
+  // 失焦时保存昵称（本地 + 后端）
   const handleSaveNickname = () => {
     Taro.setStorageSync('user_profile', profile)
+    syncProfileToServer({ nickname: profile.nickname })
     Taro.showToast({ title: '昵称已保存', icon: 'success' })
-  }
-
-  // 菜单项点击
-  const handleMenuClick = (title: string) => {
-    Taro.showToast({ title: `${title}开发中，敬请期待`, icon: 'none' })
-  }
-
-  // 查看全部成就
-  const handleViewAllAchievements = () => {
-    Taro.showToast({ title: '成就系统开发中，敬请期待', icon: 'none' })
   }
 
   return (
@@ -295,8 +363,8 @@ const ProfilePage: FC = () => {
             </Card>
             <Card className="shadow-soft border-0">
               <CardContent className="p-3 text-center">
-                <Text className="block text-2xl font-bold text-green-500">{stats.compatibility}%</Text>
-                <Text className="block text-xs text-gray-500">平均契合度</Text>
+                <Text className="block text-2xl font-bold text-green-500">{stats.avgProgress}%</Text>
+                <Text className="block text-xs text-gray-500">平均推进值</Text>
               </CardContent>
             </Card>
           </View>
@@ -309,15 +377,12 @@ const ProfilePage: FC = () => {
           <CardContent className="p-4">
             <View className="flex items-center justify-between mb-4">
               <Text className="block font-semibold text-gray-800">我的成就</Text>
-              <Text
-                className="block text-sm text-green-500"
-                onClick={handleViewAllAchievements}
-              >
-                查看全部
+              <Text className="block text-xs text-gray-400">
+                {achievements.filter(a => a.unlocked).length}/{achievements.length} 已解锁
               </Text>
             </View>
             <View className="flex gap-4">
-              {defaultAchievements.map((item) => (
+              {achievements.map((item) => (
                 <View className="text-center" key={item.title}>
                   <View className={`w-12 h-12 rounded-full ${item.bgColor} flex items-center justify-center mb-1`}>
                     <item.icon
@@ -352,36 +417,6 @@ const ProfilePage: FC = () => {
               </View>
               <ChevronRight size={20} color="#9CA3AF" />
             </View>
-          </CardContent>
-        </Card>
-      </View>
-
-      {/* 功能菜单 */}
-      <View className="p-4">
-        <Card className="shadow-soft border-0">
-          <CardContent className="p-0">
-            {menuItems.map((item, index) => (
-              <View key={item.title}>
-                <View
-                  className="flex items-center gap-4 p-4"
-                  onClick={() => handleMenuClick(item.title)}
-                >
-                  <View className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
-                    <item.icon size={20} color="#374151" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="block font-medium text-gray-800">{item.title}</Text>
-                    <Text className="block text-sm text-gray-500">{item.desc}</Text>
-                  </View>
-                  <ChevronRight size={20} color="#9CA3AF" />
-                </View>
-                {index < menuItems.length - 1 && (
-                  <View className="ml-16">
-                    <Separator />
-                  </View>
-                )}
-              </View>
-            ))}
           </CardContent>
         </Card>
       </View>
