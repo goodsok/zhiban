@@ -2,7 +2,7 @@ import Taro from '@tarojs/taro'
 import { View, Text, ScrollView } from '@tarojs/components'
 import { useState, useEffect, useCallback } from 'react'
 import { Network } from '@/network'
-import { ArrowLeft, Send, Ghost, Trash2 } from 'lucide-react-taro'
+import { ArrowLeft, Send, Ghost, Trash2, Heart, Shield } from 'lucide-react-taro'
 import { Input } from '@/components/ui/input'
 import {
   AlertDialog,
@@ -23,11 +23,61 @@ interface TwinMessage {
   createdAt?: string
 }
 
+// 关系状态
+interface RelationshipState {
+  stage: string
+  trust: number
+  intimacy: number
+  interaction_count: number
+}
+
+// 情感状态
+interface EmotionalState {
+  primary: string
+  intensity: number
+  towards_user: string
+  reason: string | null
+}
+
+// 关系阶段中文映射
+const STAGE_LABELS: Record<string, string> = {
+  stranger: '陌生人',
+  acquaintance: '认识的人',
+  friend: '朋友',
+  close: '好朋友',
+  intimate: '暧昧中',
+  partner: '在一起',
+}
+
+// 情感状态中文映射+颜色
+const EMOTION_CONFIG: Record<string, { label: string; color: string }> = {
+  neutral: { label: '平静', color: '#71767B' },
+  warm: { label: '温暖', color: '#F59E0B' },
+  happy: { label: '开心', color: '#4ECB71' },
+  touched: { label: '感动', color: '#EC4899' },
+  anxious: { label: '不安', color: '#EF4444' },
+  defensive: { label: '防备', color: '#8B5CF6' },
+  hurt: { label: '受伤', color: '#DC2626' },
+  cold: { label: '冷淡', color: '#6B7280' },
+  playful: { label: '调皮', color: '#10B981' },
+  longing: { label: '想念', color: '#F472B6' },
+}
+
+// 对方态度中文映射
+const TOWARDS_LABELS: Record<string, string> = {
+  neutral: '中立',
+  curious: '好奇',
+  fond: '有好感',
+  attached: '依赖',
+  guarded: '防备',
+  resentful: '抗拒',
+  longing: '想念',
+}
+
 const TwinChatPage = () => {
   const router = Taro.useRouter()
   const matchId = Number(router.params.matchId) || 0
   const matchName = decodeURIComponent(router.params.matchName || 'TA')
-  const matchTags = decodeURIComponent(router.params.matchTags || '')
 
   const [messages, setMessages] = useState<TwinMessage[]>([])
   const [inputValue, setInputValue] = useState('')
@@ -36,6 +86,9 @@ const TwinChatPage = () => {
   const [statusBarHeight, setStatusBarHeight] = useState(0)
   const [showClearDialog, setShowClearDialog] = useState(false)
   const [scrollTop, setScrollTop] = useState(0)
+  const [relationship, setRelationship] = useState<RelationshipState | null>(null)
+  const [emotionalState, setEmotionalState] = useState<EmotionalState | null>(null)
+  const [showStatusPanel, setShowStatusPanel] = useState(false)
 
   // 获取状态栏高度
   useEffect(() => {
@@ -63,13 +116,33 @@ const TwinChatPage = () => {
         data: { matchId, limit: 100 }
       })
       console.log('[TwinChat] loadHistory response:', res.data)
-      const history = res.data?.data?.history || []
+      const data = res.data?.data
+      const history = data?.history || []
       setMessages(history.map((m: any) => ({
         id: m.id,
         role: m.role,
         content: m.content,
         createdAt: m.created_at
       })))
+
+      // 恢复关系和情感状态
+      if (data?.relationship) {
+        setRelationship(data.relationship)
+      }
+      if (data?.emotionalState) {
+        setEmotionalState(data.emotionalState)
+      }
+
+      // 主动消息
+      if (data?.proactiveMessages && data.proactiveMessages.length > 0) {
+        for (const msg of data.proactiveMessages) {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: msg,
+            createdAt: new Date().toISOString()
+          }])
+        }
+      }
     } catch (err) {
       console.error('[TwinChat] loadHistory error:', err)
     } finally {
@@ -100,8 +173,28 @@ const TwinChatPage = () => {
         data: { matchId, message: text }
       })
       console.log('[TwinChat] sendMessage response:', res.data)
-      const reply = res.data?.data?.reply || '...'
+      const data = res.data?.data
+      const reply = data?.reply || '...'
       setMessages(prev => [...prev, { role: 'assistant', content: reply, createdAt: new Date().toISOString() }])
+
+      // 更新关系和情感状态
+      if (data?.relationship) {
+        setRelationship(data.relationship)
+      }
+      if (data?.emotionalState) {
+        setEmotionalState(data.emotionalState)
+      }
+
+      // 主动消息
+      if (data?.proactiveMessage) {
+        setTimeout(() => {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: data.proactiveMessage,
+            createdAt: new Date().toISOString()
+          }])
+        }, 2000)
+      }
     } catch (err) {
       console.error('[TwinChat] sendMessage error:', err)
       setMessages(prev => [...prev, { role: 'assistant', content: '抱歉，我暂时无法回复，请稍后再试~', createdAt: new Date().toISOString() }])
@@ -119,6 +212,8 @@ const TwinChatPage = () => {
         data: { matchId }
       })
       setMessages([])
+      setRelationship(null)
+      setEmotionalState(null)
     } catch (err) {
       console.error('[TwinChat] clearHistory error:', err)
     }
@@ -146,6 +241,24 @@ const TwinChatPage = () => {
     return diff > 5 * 60 * 1000
   }
 
+  // 获取情感状态颜色
+  const getEmotionColor = () => {
+    if (!emotionalState) return '#71767B'
+    return EMOTION_CONFIG[emotionalState.primary]?.color || '#71767B'
+  }
+
+  // 获取情感状态标签
+  const getEmotionLabel = () => {
+    if (!emotionalState) return '平静'
+    return EMOTION_CONFIG[emotionalState.primary]?.label || '平静'
+  }
+
+  // 获取关系阶段标签
+  const getStageLabel = () => {
+    if (!relationship) return '陌生人'
+    return STAGE_LABELS[relationship.stage] || '陌生人'
+  }
+
   return (
     <View style={{ backgroundColor: '#0F1419', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* 顶栏 */}
@@ -162,19 +275,95 @@ const TwinChatPage = () => {
           <View onClick={() => Taro.navigateBack()} style={{ padding: '8px' }}>
             <ArrowLeft size={20} color="#E7E9EA" />
           </View>
-          <View style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <View
+            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            onClick={() => setShowStatusPanel(!showStatusPanel)}
+          >
             <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '6px' }}>
-              <View style={{ width: '6px', height: '6px', borderRadius: '3px', backgroundColor: '#4ECB71' }} />
+              <View style={{ width: '6px', height: '6px', borderRadius: '3px', backgroundColor: getEmotionColor() }} />
               <Text style={{ color: '#E7E9EA', fontSize: '16px', fontWeight: '600' }}>{matchName}</Text>
             </View>
-            {matchTags ? (
-              <Text style={{ color: '#71767B', fontSize: '11px', marginTop: '1px' }}>{matchTags}</Text>
-            ) : null}
+            <Text style={{ color: '#71767B', fontSize: '11px', marginTop: '1px' }}>
+              {getStageLabel()} · {getEmotionLabel()}
+            </Text>
           </View>
           <View onClick={() => setShowClearDialog(true)} style={{ padding: '8px' }}>
             <Trash2 size={18} color="#71767B" />
           </View>
         </View>
+
+        {/* 关系&情感面板（可展开） */}
+        {showStatusPanel && relationship && (
+          <View
+            style={{
+              margin: '0 16px 12px',
+              padding: '12px 16px',
+              backgroundColor: '#1E2A3A',
+              borderRadius: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            }}
+          >
+            {/* 关系阶段 */}
+            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+              <Heart size={14} color="#4ECB71" />
+              <Text style={{ color: '#E7E9EA', fontSize: '13px', fontWeight: '500' }}>关系：{getStageLabel()}</Text>
+            </View>
+
+            {/* 信任值 */}
+            <View style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ color: '#71767B', fontSize: '11px' }}>信任</Text>
+                <Text style={{ color: '#71767B', fontSize: '11px' }}>{relationship.trust}/100</Text>
+              </View>
+              <View style={{ height: '4px', backgroundColor: '#202327', borderRadius: '2px' }}>
+                <View style={{ width: `${relationship.trust}%`, height: '4px', backgroundColor: '#4ECB71', borderRadius: '2px' }} />
+              </View>
+            </View>
+
+            {/* 亲密度 */}
+            <View style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ color: '#71767B', fontSize: '11px' }}>亲密</Text>
+                <Text style={{ color: '#71767B', fontSize: '11px' }}>{relationship.intimacy}/100</Text>
+              </View>
+              <View style={{ height: '4px', backgroundColor: '#202327', borderRadius: '2px' }}>
+                <View style={{ width: `${relationship.intimacy}%`, height: '4px', backgroundColor: '#F472B6', borderRadius: '2px' }} />
+              </View>
+            </View>
+
+            {/* 情感状态 */}
+            {emotionalState && (
+              <View style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+                  <Shield size={14} color={getEmotionColor()} />
+                  <Text style={{ color: '#E7E9EA', fontSize: '13px', fontWeight: '500' }}>
+                    情绪：{getEmotionLabel()}
+                  </Text>
+                  <Text style={{ color: '#71767B', fontSize: '11px' }}>
+                    强度 {emotionalState.intensity}%
+                  </Text>
+                </View>
+                {emotionalState.towards_user && emotionalState.towards_user !== 'neutral' && (
+                  <Text style={{ color: '#71767B', fontSize: '11px', paddingLeft: '22px' }}>
+                    对你：{TOWARDS_LABELS[emotionalState.towards_user] || emotionalState.towards_user}
+                  </Text>
+                )}
+                {emotionalState.reason && (
+                  <Text style={{ color: '#52525B', fontSize: '11px', paddingLeft: '22px' }}>
+                    {emotionalState.reason}
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {/* 互动次数 */}
+            <Text style={{ color: '#52525B', fontSize: '10px' }}>
+              已互动 {relationship.interaction_count} 次
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* 消息区 */}
@@ -321,7 +510,7 @@ const TwinChatPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>清空对话记录</AlertDialogTitle>
             <AlertDialogDescription>
-              {`确定要清空与${matchName}的所有对话记录吗？此操作不可撤销。`}
+              {`确定要清空与${matchName}的所有对话记录吗？关系进度和情感状态也将重置。此操作不可撤销。`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

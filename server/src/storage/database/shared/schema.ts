@@ -784,6 +784,56 @@ export const twinChatHistory = pgTable("twin_chat_history", {
 	pgPolicy("twin_chat_history_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
 ]);
 
+export const twinRelationship = pgTable("twin_relationship", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	stage: varchar({ length: 32 }).notNull().default('stranger'), // stranger, acquaintance, friend, close, intimate, partner
+	trust: integer().notNull().default(30), // 0-100
+	intimacy: integer().notNull().default(0), // 0-100
+	interactionCount: integer("interaction_count").notNull().default(0),
+	lastInteractionAt: timestamp("last_interaction_at", { withTimezone: true, mode: 'string' }),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("twin_relationship_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	pgPolicy("twin_relationship_允许公开写入", { as: "permissive", for: "insert", to: ["public"], withCheck: sql`true` }),
+	pgPolicy("twin_relationship_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("twin_relationship_允许公开更新", { as: "permissive", for: "update", to: ["public"], using: sql`true` }),
+	pgPolicy("twin_relationship_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
+export const twinEmotionalState = pgTable("twin_emotional_state", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	primary: varchar({ length: 32 }).notNull().default('neutral'), // neutral, warm, happy, touched, anxious, defensive, hurt, cold, playful
+	intensity: integer().notNull().default(50), // 0-100
+	towardsUser: varchar("towards_user", { length: 32 }).notNull().default('neutral'), // neutral, curious, fond, attached, guarded, resentful, longing
+	reason: text(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("twin_emotional_state_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	pgPolicy("twin_emotional_state_允许公开写入", { as: "permissive", for: "insert", to: ["public"], withCheck: sql`true` }),
+	pgPolicy("twin_emotional_state_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("twin_emotional_state_允许公开更新", { as: "permissive", for: "update", to: ["public"], using: sql`true` }),
+	pgPolicy("twin_emotional_state_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
+export const twinProactiveMessages = pgTable("twin_proactive_messages", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	message: text().notNull(),
+	triggerType: varchar("trigger_type", { length: 32 }).notNull(), // absence, milestone, emotional_shift, daily, memory
+	isSent: boolean("is_sent").notNull().default(false),
+	sentAt: timestamp("sent_at", { withTimezone: true, mode: 'string' }),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("twin_proactive_messages_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	pgPolicy("twin_proactive_messages_允许公开写入", { as: "permissive", for: "insert", to: ["public"], withCheck: sql`true` }),
+	pgPolicy("twin_proactive_messages_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
+	pgPolicy("twin_proactive_messages_允许公开更新", { as: "permissive", for: "update", to: ["public"], using: sql`true` }),
+	pgPolicy("twin_proactive_messages_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
 export const gameContent = pgTable("game_content", {
 	id: serial().primaryKey().notNull(),
 	gameKey: varchar("game_key", { length: 64 }).notNull(),
