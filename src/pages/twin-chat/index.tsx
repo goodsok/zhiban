@@ -21,6 +21,7 @@ interface TwinMessage {
   role: 'user' | 'assistant'
   content: string
   createdAt?: string
+  interactionStyle?: string  // 用户这条消息的交互风格
 }
 
 // 距离-渴望模型：关系状态
@@ -53,6 +54,26 @@ interface TwinHint {
     desire: number
     closeness: number
   }
+}
+
+/** 交互风格标签配置 */
+const STYLE_CONFIG: Record<string, { label: string; emoji: string; color: string }> = {
+  humor: { label: '幽默', emoji: '😄', color: '#F59E0B' },
+  teasing: { label: '挑逗', emoji: '😏', color: '#EC4899' },
+  flirting: { label: '调情', emoji: '💕', color: '#E11D48' },
+  caring: { label: '关心', emoji: '🤗', color: '#10B981' },
+  vulnerable: { label: '脆弱展示', emoji: '🫠', color: '#8B5CF6' },
+  challenging: { label: '激将', emoji: '🔥', color: '#EF4444' },
+  pressuring: { label: '施压', emoji: '⚡', color: '#DC2626' },
+  cold: { label: '冷淡', emoji: '❄️', color: '#6B7280' },
+  empathetic: { label: '共情', emoji: '💛', color: '#06B6D4' },
+  probing: { label: '试探', emoji: '🔍', color: '#F97316' },
+  compliment: { label: '赞美', emoji: '⭐', color: '#8B5CF6' },
+  apologetic: { label: '道歉', emoji: '🙏', color: '#059669' },
+  nostalgic: { label: '回忆', emoji: '📷', color: '#7C3AED' },
+  jealous: { label: '醋意', emoji: '😤', color: '#BE185D' },
+  assertive: { label: '强势', emoji: '💪', color: '#B91C1C' },
+  neutral: { label: '日常', emoji: '💬', color: '#9CA3AF' },
 }
 
 // 提示级别配色
@@ -248,7 +269,18 @@ const TwinChatPage = () => {
       console.log('[TwinChat] sendMessage response:', res.data)
       const data = res.data?.data
       const reply = data?.reply || '...'
+      const interactionStyle = data?.interactionStyle || 'neutral'
       setMessages(prev => [...prev, { role: 'assistant', content: reply, createdAt: new Date().toISOString() }])
+
+      // 回填用户消息的交互风格标签
+      setMessages(prev => {
+        const updated = [...prev]
+        const lastUserIdx = updated.map((m, i) => m.role === 'user' ? i : -1).filter(i => i >= 0).pop()
+        if (lastUserIdx !== undefined) {
+          updated[lastUserIdx] = { ...updated[lastUserIdx], interactionStyle }
+        }
+        return updated
+      })
 
       if (data?.relationship) setRelationship(data.relationship)
       if (data?.emotionalState) setEmotionalState(data.emotionalState)
@@ -609,10 +641,18 @@ const TwinChatPage = () => {
               )}
 
               {msg.role === 'user' ? (
-                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginBottom: '8px' }}>
+                <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginBottom: '8px' }}>
                   <View style={{ maxWidth: '75%', backgroundColor: '#4ECB71', borderRadius: '16px 16px 4px 16px', padding: '10px 14px' }}>
                     <Text style={{ color: '#FFFFFF', fontSize: '14px', lineHeight: '1.5' }}>{msg.content}</Text>
                   </View>
+                  {msg.interactionStyle && msg.interactionStyle !== 'neutral' && (() => {
+                    const sc = STYLE_CONFIG[msg.interactionStyle]
+                    return sc ? (
+                      <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '3px', marginTop: '3px', marginRight: '2px' }}>
+                        <Text style={{ fontSize: '11px', color: sc.color, opacity: 0.8 }}>{sc.emoji} {sc.label}</Text>
+                      </View>
+                    ) : null
+                  })()}
                 </View>
               ) : (
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', marginBottom: '8px' }}>
@@ -649,7 +689,7 @@ const TwinChatPage = () => {
                   gap: '6px',
                 }}
               >
-                {/* 标题行：图标+标签+变化量 */}
+                {/* 标题行：图标+标签+风格标签+变化量 */}
                 <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '5px' }}>
                     <Lightbulb size={13} color={cfg.color} />
