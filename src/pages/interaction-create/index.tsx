@@ -155,12 +155,19 @@ const formatLocalTime = (date: Date): string => {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
+// 设计指南主色：选中态统一使用
+const PRIMARY_COLOR = '#4ECB71'
+
 export default function InteractionCreatePage() {
   const router = useRouter()
   const matchId = Number(router.params.matchId) || 0
 
   const [submitting, setSubmitting] = useState(false)
   const tempIdCounter = useRef(0)
+  // 追踪聊天文本是否已入库（防止重复入库）
+  const chatTextSavedRef = useRef(false)
+  // 分析请求的 AbortController（用于取消分析）
+  const analyzeAbortRef = useRef<AbortController | null>(null)
 
   // 表单状态
   const [interactionType, setInteractionType] = useState<InteractionType>('date')
@@ -320,8 +327,25 @@ export default function InteractionCreatePage() {
     }
     if (!matchId) return
 
+    // 取消之前可能还在进行中的分析
+    if (analyzeAbortRef.current) {
+      analyzeAbortRef.current.abort()
+    }
+    const abortController = new AbortController()
+    analyzeAbortRef.current = abortController
+
     setAnalyzing(true)
     setChatStep('analyzing')
+
+    // 30 秒超时
+    const timeoutId = setTimeout(() => {
+      if (abortController.signal.aborted) return
+      abortController.abort()
+      Taro.showToast({ title: '分析超时，请重试', icon: 'none' })
+      setChatStep('input')
+      setAnalyzing(false)
+    }, 30000)
+
     try {
       const res = await Network.request({
         url: `/api/chat-record/match/${matchId}/analyze`,
@@ -331,15 +355,25 @@ export default function InteractionCreatePage() {
           source: chatSource,
         },
       })
+
+      // 检查是否已被取消
+      if (abortController.signal.aborted) return
+
       console.log('Chat analyze response:', res.data)
       if (res.data?.code === 200 && res.data?.data) {
         const data = res.data.data as AnalysisResult
-        setAnalysisResult(data)
+
+        // 校验 inferredMood 是否合法
+        const validMoods: Mood[] = ['excellent', 'good', 'neutral', 'awkward', 'bad']
+        const safeMood = data.inferredMood && validMoods.includes(data.inferredMood)
+          ? data.inferredMood
+          : null
+
+        setAnalysisResult({ ...data, inferredMood: safeMood })
 
         // 自动填充推断结果
-        if (data.inferredMood) setMood(data.inferredMood)
+        if (safeMood) setMood(safeMood)
         if (data.inferredActivities?.length > 0) {
-          // 匹配预设活动标签
           const presets = ACTIVITY_PRESETS.chat || []
           const matched = data.inferredActivities.filter(a => presets.includes(a))
           setActivities(matched.length > 0 ? matched : data.inferredActivities.slice(0, 3))
@@ -358,18 +392,32 @@ export default function InteractionCreatePage() {
         setChatStep('input')
       }
     } catch (error) {
+      // 如果是取消导致的，不提示
+      if (abortController.signal.aborted) return
       console.error('Chat analyze error:', error)
       Taro.showToast({ title: '分析失败，请重试', icon: 'none' })
       setChatStep('input')
     } finally {
-      setAnalyzing(false)
+      clearTimeout(timeoutId)
+      if (!abortController.signal.aborted) {
+        setAnalyzing(false)
+      }
     }
   }, [matchId, chatTextInput, chatSource])
 
-  // 重新分析
+  // 重新分析：重置 AI 自动填充的状态
   const handleReAnalyze = useCallback(() => {
     setChatStep('input')
     setAnalysisResult(null)
+    chatTextSavedRef.current = false
+    // 重置 AI 自动填充的状态，避免残留
+    setMood('good')
+    setActivities([])
+    setTitle('')
+    setDescription('')
+    setDurationMinutes(null)
+    setShowCustomDuration(false)
+    setCustomDuration('')
   }, [])
 
   // ========== 聊天记录相关操作（非 chat 类型用） ==========
@@ -533,7 +581,7 @@ export default function InteractionCreatePage() {
 
       // chat 类型：先把聊天内容入库，再创建互动
       let finalChatRecordIds = chatRecordIds
-      if (interactionType === 'chat' && chatTextInput.trim() && chatStep === 'confirm') {
+      if (interactionType === 'chat' && chatTextInput.trim() && chatStep === 'confirm' && !chatTextSavedRef.current) {
         try {
           const textRes = await Network.request({
             url: `/api/chat-record/match/${matchId}/text`,
@@ -546,6 +594,7 @@ export default function InteractionCreatePage() {
           })
           if (textRes.data?.code === 200 && textRes.data?.data?.id) {
             finalChatRecordIds = [...finalChatRecordIds, textRes.data.data.id]
+            chatTextSavedRef.current = true
           }
         } catch (err) {
           console.error('Save chat text error:', err)
@@ -580,6 +629,8 @@ export default function InteractionCreatePage() {
 
       if (res.data?.code === 200) {
         Taro.showToast({ title: '记录成功', icon: 'success' })
+        // 通知列表页刷新数据
+        Taro.eventCenter.trigger('interaction:created')
         setTimeout(() => {
           Taro.navigateBack()
         }, 1500)
@@ -599,10 +650,30 @@ export default function InteractionCreatePage() {
 
   // 聊天类型：返回确认需要考虑步骤
   const handleBack = useCallback(() => {
-    if (interactionType === 'chat' && chatStep === 'confirm') {
-      // 从确认页返回到录入页
-      setChatStep('input')
-      return
+    if (interactionType === 'chat') {
+      if (chatStep === 'confirm') {
+        // 从确认页返回到录入页
+        setChatStep('input')
+        return
+      }
+      if (chatStep === 'analyzing') {
+        // 分析中返回：取消分析，回到录入页
+        setAnalyzing(false)
+        setChatStep('input')
+        return
+      }
+      // input 步骤：检查是否有内容
+      if (chatTextInput.trim() || chatRecords.length > 0) {
+        Taro.showModal({
+          title: '放弃编辑',
+          content: '你已填写的内容将不会保存，确定要离开吗？',
+          confirmText: '离开',
+          confirmColor: '#EF4444',
+        }).then(res => {
+          if (res.confirm) Taro.navigateBack()
+        })
+        return
+      }
     }
     if (hasContent) {
       Taro.showModal({
@@ -616,7 +687,7 @@ export default function InteractionCreatePage() {
     } else {
       Taro.navigateBack()
     }
-  }, [hasContent, interactionType, chatStep])
+  }, [hasContent, interactionType, chatStep, chatTextInput, chatRecords])
 
   // ========== 聊天类型：Step 1 - 录入 ==========
   const renderChatInput = () => (
@@ -644,7 +715,7 @@ export default function InteractionCreatePage() {
       {/* 聊天内容输入 */}
       <View className="px-4 pb-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-4 flex flex-col gap-5">
             <View className="flex items-center gap-3 mb-3">
               <View className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                 <MessageCircle size={16} color="#3B82F6" />
@@ -670,7 +741,7 @@ export default function InteractionCreatePage() {
       {/* 也可以上传截图 */}
       <View className="px-4 pb-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-4 flex flex-col gap-5">
             <View className="flex items-center gap-3 mb-3">
               <View className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
                 <Image size={16} color="#8B5CF6" />
@@ -773,7 +844,7 @@ export default function InteractionCreatePage() {
       {analysisResult && (
         <View className="p-4 pb-2">
           <Card style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)' }}>
-            <CardContent className="p-4">
+            <CardContent className="p-4 flex flex-col gap-5">
               <View className="flex items-center gap-3 mb-4">
                 <View className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                   <Sparkles size={16} color="#3B82F6" />
@@ -794,19 +865,21 @@ export default function InteractionCreatePage() {
                 <View className="mb-3">
                   <Text className="block text-xs text-gray-500 mb-2">识别到的话题</Text>
                   <View className="flex flex-row flex-wrap gap-2">
-                    {analysisResult.keyTopics.map(topic => (
-                      <View
-                        key={topic}
-                        className={`px-3 py-1 rounded-full ${
-                          activities.includes(topic) ? 'bg-blue-500' : 'bg-gray-200'
-                        }`}
-                        onClick={() => toggleActivity(topic)}
-                      >
-                        <Text className={`block text-xs ${activities.includes(topic) ? 'text-white' : 'text-gray-600'}`}>
-                          {activities.includes(topic) ? '✓ ' : ''}{topic}
-                        </Text>
-                      </View>
-                    ))}
+                    {analysisResult.keyTopics.map(topic => {
+                      const isSelected = activities.includes(topic)
+                      return (
+                        <View
+                          key={topic}
+                          className="px-3 py-1 rounded-full bg-gray-200"
+                          style={isSelected ? { backgroundColor: PRIMARY_COLOR } : undefined}
+                          onClick={() => toggleActivity(topic)}
+                        >
+                          <Text className={`block text-xs ${isSelected ? 'text-white' : 'text-gray-600'}`}>
+                            {isSelected ? '✓ ' : ''}{topic}
+                          </Text>
+                        </View>
+                      )
+                    })}
                   </View>
                 </View>
               )}
@@ -845,7 +918,7 @@ export default function InteractionCreatePage() {
       {/* 心情确认 */}
       <View className="px-4 pb-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-4 flex flex-col gap-5">
             <View className="flex items-center gap-3 mb-4">
               <View className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
                 <Sparkles size={16} color="#F59E0B" />
@@ -855,24 +928,25 @@ export default function InteractionCreatePage() {
                 <Text className="block text-xs text-blue-500">AI 推断: {MOOD_OPTIONS.find(m => m.value === analysisResult.inferredMood)?.label}</Text>
               )}
             </View>
-            <View className="flex flex-row gap-2">
+            <View className="flex flex-row flex-wrap gap-2">
               {MOOD_OPTIONS.map(opt => {
                 const isActive = mood === opt.value
                 const isInferred = analysisResult?.inferredMood === opt.value
                 return (
                   <View
                     key={opt.value}
-                    className={`relative flex-1 flex flex-col items-center py-3 rounded-xl border-2 ${
-                      isActive ? opt.color : isInferred ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'
+                    className={`flex flex-col items-center py-2 px-3 rounded-xl border-2 ${
+                      isActive ? opt.color : isInferred ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-transparent'
                     }`}
+                    style={{ minWidth: '56px' }}
                     onClick={() => setMood(opt.value)}
                   >
                     {isActive && (
-                      <View style={{ position: 'absolute', top: '4px', right: '4px' }}>
-                        <Check size={12} color="#4ECB71" />
+                      <View style={{ position: 'absolute', top: '2px', right: '2px' }}>
+                        <Check size={10} color="#4ECB71" />
                       </View>
                     )}
-                    <Text className="block text-xl mb-1">{opt.emoji}</Text>
+                    <Text className="block text-lg mb-1">{opt.emoji}</Text>
                     <Text className={`block text-xs ${isActive ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
                       {opt.label}
                     </Text>
@@ -882,17 +956,23 @@ export default function InteractionCreatePage() {
             </View>
 
             {/* 能量预览条 */}
-            {energyPreview && (
+            {(energyPreview || energyLoading) && (
               <View className="mt-4 flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: '#F0FDF4' }}>
                 <Zap size={16} color="#4ECB71" />
-                <Text className="block text-xs text-emerald-700 font-medium">
-                  预计获得 {energyPreview.totalEnergy} 能量
-                </Text>
-                {energyPreview.bonusEnergy > 0 && (
-                  <Text className="block text-xs text-green-500">
-                    (+{energyPreview.bonusEnergy} 加成)
-                  </Text>
-                )}
+                {energyLoading ? (
+                  <Text className="block text-xs text-gray-400">能量计算中...</Text>
+                ) : energyPreview ? (
+                  <>
+                    <Text className="block text-xs text-emerald-700 font-medium">
+                      预计获得 {energyPreview.totalEnergy} 能量
+                    </Text>
+                    {energyPreview.bonusEnergy > 0 && (
+                      <Text className="block text-xs text-green-500">
+                        (+{energyPreview.bonusEnergy} 加成)
+                      </Text>
+                    )}
+                  </>
+                ) : null}
               </View>
             )}
           </CardContent>
@@ -902,9 +982,9 @@ export default function InteractionCreatePage() {
       {/* 补充信息：时间/发起方/时长/突破性时刻 */}
       <View className="px-4 pb-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-4 flex flex-col gap-5">
             {/* 互动时间 */}
-            <View className="pb-4 mb-4 border-b border-gray-100">
+            <View>
               <View className="flex items-center gap-3 mb-3">
                 <View className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                   <Clock size={16} color="#6B7280" />
@@ -949,7 +1029,7 @@ export default function InteractionCreatePage() {
             </View>
 
             {/* 时长 */}
-            <View className="pb-4 mb-4 border-b border-gray-100">
+            <View>
               <View className="flex items-center gap-3 mb-3">
                 <View className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                   <Clock size={16} color="#6B7280" />
@@ -960,26 +1040,27 @@ export default function InteractionCreatePage() {
                 )}
               </View>
               <View style={{ marginLeft: '44px' }} className="flex flex-row flex-wrap gap-2">
-                {DURATION_OPTIONS.map(opt => (
-                  <View
-                    key={opt.value}
-                    className={`px-3 py-2 rounded-lg ${
-                      !showCustomDuration && durationMinutes === opt.value
-                        ? 'bg-blue-500'
-                        : 'bg-gray-100'
-                    }`}
-                    onClick={() => {
-                      setDurationMinutes(opt.value)
-                      setShowCustomDuration(false)
-                    }}
-                  >
-                    <Text className={`block text-xs ${!showCustomDuration && durationMinutes === opt.value ? 'text-white' : 'text-gray-600'}`}>
-                      {opt.label}
-                    </Text>
-                  </View>
-                ))}
+                {DURATION_OPTIONS.map(opt => {
+                  const isSelected = !showCustomDuration && durationMinutes === opt.value
+                  return (
+                    <View
+                      key={opt.value}
+                      className="px-3 py-2 rounded-lg bg-gray-100"
+                      style={isSelected ? { backgroundColor: PRIMARY_COLOR } : undefined}
+                      onClick={() => {
+                        setDurationMinutes(opt.value)
+                        setShowCustomDuration(false)
+                      }}
+                    >
+                      <Text className={`block text-xs ${isSelected ? 'text-white' : 'text-gray-600'}`}>
+                        {opt.label}
+                      </Text>
+                    </View>
+                  )
+                })}
                 <View
-                  className={`px-3 py-2 rounded-lg ${showCustomDuration ? 'bg-blue-500' : 'bg-gray-100'}`}
+                  className="px-3 py-2 rounded-lg bg-gray-100"
+                  style={showCustomDuration ? { backgroundColor: PRIMARY_COLOR } : undefined}
                   onClick={() => setShowCustomDuration(!showCustomDuration)}
                 >
                   <Text className={`block text-xs ${showCustomDuration ? 'text-white' : 'text-gray-600'}`}>
@@ -1004,7 +1085,7 @@ export default function InteractionCreatePage() {
             </View>
 
             {/* 发起方 */}
-            <View className="pb-4 mb-4 border-b border-gray-100">
+            <View>
               <View className="flex items-center gap-3 mb-3">
                 <View className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                   <User size={16} color="#6B7280" />
@@ -1018,9 +1099,8 @@ export default function InteractionCreatePage() {
                   return (
                     <View
                       key={opt.value}
-                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg ${
-                        isActive ? 'bg-blue-500' : 'bg-gray-100'
-                      }`}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-100"
+                      style={isActive ? { backgroundColor: PRIMARY_COLOR } : undefined}
                       onClick={() => setInitiator(opt.value)}
                     >
                       <IconComponent size={14} color={isActive ? '#fff' : '#6B7280'} />
@@ -1133,9 +1213,9 @@ export default function InteractionCreatePage() {
       {/* 主要信息卡片 */}
       <View className="p-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-4 flex flex-col gap-5">
             {/* 时间选择 */}
-            <View className="pb-4 mb-4 border-b border-gray-100">
+            <View>
               <View className="flex items-center gap-4 mb-2">
                 <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                   <Clock size={18} color="#6B7280" />
@@ -1180,7 +1260,7 @@ export default function InteractionCreatePage() {
             </View>
 
             {/* 时长选择 */}
-            <View className="pt-4 pb-4 mb-4 border-b border-gray-100">
+            <View>
               <View className="flex items-center gap-4 mb-4">
                 <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                   <Calendar size={18} color="#6B7280" />
@@ -1188,27 +1268,28 @@ export default function InteractionCreatePage() {
                 <Text className="block text-sm font-medium text-gray-700">持续时长</Text>
               </View>
               <View className="flex flex-row flex-wrap gap-3" style={{ marginLeft: '52px' }}>
-                {DURATION_OPTIONS.map(opt => (
-                  <View
-                    key={opt.value}
-                    className={`px-3 py-2 rounded-lg ${
-                      !showCustomDuration && durationMinutes === opt.value
-                        ? 'bg-green-500'
-                        : 'bg-gray-100'
-                    }`}
-                    onClick={() => {
-                      setDurationMinutes(opt.value)
-                      setShowCustomDuration(false)
-                    }}
-                  >
-                    <Text className={`block text-xs ${!showCustomDuration && durationMinutes === opt.value ? 'text-white' : 'text-gray-600'}`}>
-                      {opt.label}
-                    </Text>
-                  </View>
-                ))}
+                {DURATION_OPTIONS.map(opt => {
+                  const isSelected = !showCustomDuration && durationMinutes === opt.value
+                  return (
+                    <View
+                      key={opt.value}
+                      className="px-3 py-2 rounded-lg bg-gray-100"
+                      style={isSelected ? { backgroundColor: PRIMARY_COLOR } : undefined}
+                      onClick={() => {
+                        setDurationMinutes(opt.value)
+                        setShowCustomDuration(false)
+                      }}
+                    >
+                      <Text className={`block text-xs ${isSelected ? 'text-white' : 'text-gray-600'}`}>
+                        {opt.label}
+                      </Text>
+                    </View>
+                  )
+                })}
                 {/* 自定义时长 */}
                 <View
-                  className={`px-3 py-2 rounded-lg ${showCustomDuration ? 'bg-green-500' : 'bg-gray-100'}`}
+                  className="px-3 py-2 rounded-lg bg-gray-100"
+                  style={showCustomDuration ? { backgroundColor: PRIMARY_COLOR } : undefined}
                   onClick={() => setShowCustomDuration(!showCustomDuration)}
                 >
                   <Text className={`block text-xs ${showCustomDuration ? 'text-white' : 'text-gray-600'}`}>
@@ -1233,7 +1314,7 @@ export default function InteractionCreatePage() {
             </View>
 
             {/* 发起方选择 */}
-            <View className="pb-4 mb-4 border-b border-gray-100">
+            <View>
               <View className="flex items-center gap-4 mb-4">
                 <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                   <User size={18} color="#6B7280" />
@@ -1247,9 +1328,8 @@ export default function InteractionCreatePage() {
                   return (
                     <View
                       key={opt.value}
-                      className={`flex-1 flex items-center justify-center gap-3 px-3 py-2 rounded-lg ${
-                        isActive ? 'bg-green-500' : 'bg-gray-100'
-                      }`}
+                      className="flex-1 flex items-center justify-center gap-3 px-3 py-2 rounded-lg bg-gray-100"
+                      style={isActive ? { backgroundColor: PRIMARY_COLOR } : undefined}
                       onClick={() => setInitiator(opt.value)}
                     >
                       <IconComponent size={14} color={isActive ? '#fff' : '#6B7280'} />
@@ -1264,7 +1344,7 @@ export default function InteractionCreatePage() {
 
             {/* 地点（约会/社交时显示） */}
             {(interactionType === 'date' || interactionType === 'social') && (
-              <View className="pb-4 mb-4 border-b border-gray-100">
+              <View>
                 <View className="flex items-center gap-4 mb-4">
                   <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                     <MapPin size={18} color="#6B7280" />
@@ -1286,7 +1366,7 @@ export default function InteractionCreatePage() {
 
             {/* 活动标签 */}
             {ACTIVITY_PRESETS[interactionType]?.length > 0 && (
-              <View className="pb-4 mb-4 border-b border-gray-100">
+              <View>
                 <View className="flex items-center gap-4 mb-4">
                   <View
                     className="w-10 h-10 rounded-full flex items-center justify-center"
@@ -1302,9 +1382,8 @@ export default function InteractionCreatePage() {
                     return (
                       <View
                         key={tag}
-                        className={`px-3 py-2 rounded-full ${
-                          isActive ? 'bg-green-500' : 'bg-gray-100'
-                        }`}
+                        className="px-3 py-2 rounded-full bg-gray-100"
+                        style={isActive ? { backgroundColor: PRIMARY_COLOR } : undefined}
                         onClick={() => toggleActivity(tag)}
                       >
                         <Text className={`block text-xs ${isActive ? 'text-white' : 'text-gray-600'}`}>
@@ -1339,7 +1418,8 @@ export default function InteractionCreatePage() {
                       />
                     </View>
                     <View
-                      className="px-4 py-2 bg-green-500 rounded-lg"
+                      className="px-4 py-2 rounded-lg"
+                      style={{ backgroundColor: PRIMARY_COLOR }}
                       onClick={() => {
                         if (customActivity.trim() && !activities.includes(customActivity.trim())) {
                           setActivities([...activities, customActivity.trim()])
@@ -1386,7 +1466,7 @@ export default function InteractionCreatePage() {
       {showChatUpload && (
         <View className="px-4 pb-4">
           <Card style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0F9FF 100%)' }}>
-            <CardContent className="p-4">
+            <CardContent className="p-4 flex flex-col gap-5">
               <View className="flex items-center gap-4 mb-4">
                 <View className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                   <Paperclip size={18} color="#3B82F6" />
@@ -1512,7 +1592,7 @@ export default function InteractionCreatePage() {
       {/* 心情评价 + 能量预览 */}
       <View className="px-4 pb-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-4 flex flex-col gap-5">
             <View className="flex items-center gap-4 mb-4">
               <View className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
                 <Sparkles size={18} color="#F59E0B" />
@@ -1520,23 +1600,24 @@ export default function InteractionCreatePage() {
               <Text className="block text-sm font-medium text-gray-700">这次感觉怎么样？</Text>
             </View>
 
-            <View className="flex flex-row gap-3">
+            <View className="flex flex-row flex-wrap gap-2">
               {MOOD_OPTIONS.map(opt => {
                 const isActive = mood === opt.value
                 return (
                   <View
                     key={opt.value}
-                    className={`relative flex-1 flex flex-col items-center py-3 rounded-xl border-2 ${
-                      isActive ? opt.color : 'bg-gray-50'
+                    className={`flex flex-col items-center py-2 px-3 rounded-xl border-2 ${
+                      isActive ? opt.color : 'bg-gray-50 border-transparent'
                     }`}
+                    style={{ minWidth: '56px' }}
                     onClick={() => setMood(opt.value)}
                   >
                     {isActive && (
-                      <View style={{ position: 'absolute', top: '4px', right: '4px' }}>
-                        <Check size={12} color="#4ECB71" />
+                      <View style={{ position: 'absolute', top: '2px', right: '2px' }}>
+                        <Check size={10} color="#4ECB71" />
                       </View>
                     )}
-                    <Text className="block text-xl mb-1">{opt.emoji}</Text>
+                    <Text className="block text-lg mb-1">{opt.emoji}</Text>
                     <Text className={`block text-xs ${isActive ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
                       {opt.label}
                     </Text>
@@ -1569,7 +1650,7 @@ export default function InteractionCreatePage() {
       {/* 详细描述 */}
       <View className="px-4 pb-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-4 flex flex-col gap-5">
             <View className="flex items-center gap-3 mb-4">
               <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                 <FileText size={18} color="#6B7280" />
@@ -1591,7 +1672,7 @@ export default function InteractionCreatePage() {
       {/* 突破性时刻 */}
       <View className="px-4 pb-4">
         <Card style={{ background: 'linear-gradient(135deg, #FFFBEB 0%, #FFF7ED 100%)' }}>
-          <CardContent className="p-4">
+          <CardContent className="p-4 flex flex-col gap-5">
             <View className="flex items-center gap-3 mb-4">
               <View className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
                 <Sparkles size={18} color="#F59E0B" />
@@ -1613,7 +1694,7 @@ export default function InteractionCreatePage() {
       {/* 遇到的问题 */}
       <View className="px-4 pb-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-4 flex flex-col gap-5">
             <View className="flex items-center gap-3 mb-4">
               <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                 <FileText size={18} color="#6B7280" />

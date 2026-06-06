@@ -100,6 +100,8 @@ export interface RelationshipState {
   intimacy: number
   interaction_count: number
   last_interaction_at: string | null
+  trust_trend?: number[]
+  intimacy_trend?: number[]
 }
 
 // 情感状态格式
@@ -498,6 +500,11 @@ ${emotionalPrompt}
 
   /**
    * 使用 LLM 分析关系与情感变化（每轮对话后调用，合并分析）
+   * 
+   * 三大机制：
+   * 1. 亲密度门控：亲密不能超过信任×1.2，超出触发依恋类型防御反弹
+   * 2. 惯性+恢复不对称：信任跌快涨慢 + 连续同方向递增 + 回避型"墙"机制
+   * 3. 情绪领先：先算情绪，情绪作为关系值调整系数
    */
   private async analyzeAndUpdateState(
     matchId: number,
@@ -513,11 +520,20 @@ ${emotionalPrompt}
     const attachmentStyle = dims.attachmentStyle || 'secure'
     const emotionalExpression = dims.emotionalExpression || 50
 
-    const prompt = `你是关系与情感分析师。根据以下对话，分析${matchName}在此次互动后的关系与情感变化。
+    // ===== 机制3：情绪领先 - 先算情绪，再算关系 =====
+    // 情绪是"领先指标"，关系值是"滞后指标"
+    // 情绪先变，关系后跟
+
+    // 读取历史趋势（机制2：惯性）
+    const trustTrend: number[] = (currentRel as any).trust_trend || []
+    const intimacyTrend: number[] = (currentRel as any).intimacy_trend || []
+
+    const prompt = `你是关系与情感分析师。根据以下对话，分析${matchName}在此次互动后的情感与关系变化。
 
 ## 当前状态
 - 关系阶段：${currentRel.stage}（信任${currentRel.trust}/100，亲密度${currentRel.intimacy}/100，互动${currentRel.interaction_count}次）
 - 情感：${currentEmo.primary}（强度${currentEmo.intensity}/100，对对方：${currentEmo.towards_user}）
+- 近期信任变化趋势：${trustTrend.length > 0 ? trustTrend.slice(-5).join(', ') : '无历史'}
 - ${matchName}的依恋类型：${attachmentStyle}
 - ${matchName}的情感表达：${emotionalExpression < 40 ? '内敛' : emotionalExpression > 60 ? '直接' : '适中'}
 
@@ -525,8 +541,36 @@ ${emotionalPrompt}
 对方说：${userMessage}
 ${matchName}回复：${twinReply}
 
-## 分析要求
-请综合分析此轮互动对关系和情感的影响，返回JSON：
+## 分析原则（必须遵守）
+
+### 情绪领先原则
+情绪是实时反应，应先于关系值变化。例如：
+- 对方冒犯 → 情绪先变为defensive/hurt → 然后信任下降
+- 对方关心 → 情绪先变为warm/touched → 然后信任上升
+- 速推（在信任不足时过度亲密表达）→ 情绪先变为guarded/anxious → 然后亲密度反弹下降
+
+### 恢复不对称原则
+- 信任跌得快、涨得慢：冒犯扣5~15，道歉只回2~5
+- 亲密度跌得更快：被冒犯或被速推时亲密度可骤降5~15
+- 伤害越深，恢复越慢（严重冒犯可能需要5轮以上正常互动才能恢复到之前水平）
+
+### 惯性原则
+- 连续3次以上正向互动，效果递增（每次+1额外加成）
+- 连续2次以上负向互动，效果暴跌（信任跌幅翻倍）
+- 近期趋势若已持续上升，则一次冒犯的伤害加倍；若已持续下降，一次善意的效果减半
+
+### 依恋类型核心规则
+- 回避型/混乱型：当亲密表达超过当前信任水平时（速推），亲密度反而下降-5~-15，信任也下降-3~-8。这是"防御性反弹"
+- 焦虑型：对方的任何冷淡信号（含糊回复、回避话题）导致信任大幅下降-5~-10，亲密度反而上升（越焦虑越想靠近）
+- 安全型：变化温和，但边界清晰
+
+### 回避型"墙"机制
+- 当信任达到50~65区间时，回避型会出现本能后退：
+  · 对方试图推进关系 → 信任-5~-10，亲密度-5~-10
+  · 对方保持稳定 → 信任缓慢上升
+  · 需要对方持续稳定一段时间（3轮+），才能突破"墙"
+
+## 返回JSON
 {
   "trustDelta": 数字（-15到+10），
   "intimacyDelta": 数字（-15到+15），
@@ -535,16 +579,6 @@ ${matchName}回复：${twinReply}
   "towardsUser": "neutral/curious/fond/attached/guarded/resentful/longing",
   "reason": "一句话说明变化原因"
 }
-
-## 变化幅度参考
-- 信任变化较慢（-5~+5），但严重冒犯可达-10~-15
-- 亲密度变化更快（-5~+8），暧昧表达可达+10~+15
-- 依恋类型影响：
-  · 回避型/混乱型：对方过于热情（如突然表白）反而会降低亲密度-3~-8
-  · 焦虑型：对方冷淡或不回复会大幅降低信任-5~-10
-  · 安全型：变化相对温和
-- 情感强度：温和对话维持50左右，被触动时60-75，强烈情绪80-95
-- 不要害怕给出较大变化！真实的人际互动中，一句话可以改变很多
 
 只返回JSON，不要其他内容。`
 
@@ -582,7 +616,6 @@ ${matchName}回复：${twinReply}
       }
     } catch (err) {
       console.error('[TwinService] analyzeAndUpdateState LLM error:', err)
-      // 降级到规则
       const heuristic = this.heuristicStateShift(currentRel, currentEmo, userMessage, dims)
       trustDelta = heuristic.trustDelta
       intimacyDelta = heuristic.intimacyDelta
@@ -592,15 +625,87 @@ ${matchName}回复：${twinReply}
       newReason = heuristic.reason
     }
 
+    // ===== 机制3：情绪领先 - 情绪作为关系值调整系数 =====
+    // 如果当前情绪是防御性的，所有信任/亲密增长打折
+    const defensiveEmotions = ['defensive', 'hurt', 'cold', 'resentful']
+    const isOpenEmotions = ['warm', 'touched', 'happy', 'fond', 'longing']
+    const currentEmotionStr = (currentEmo.primary || '').toLowerCase()
+    
+    if (defensiveEmotions.some(e => currentEmotionStr.includes(e))) {
+      // 防御情绪下：信任增长×0.5，亲密增长×0.3，下跌不变
+      if (trustDelta > 0) trustDelta = Math.round(trustDelta * 0.5)
+      if (intimacyDelta > 0) intimacyDelta = Math.round(intimacyDelta * 0.3)
+    } else if (isOpenEmotions.some(e => currentEmotionStr.includes(e) || newPrimary.includes(e))) {
+      // 开放情绪下：信任增长×1.2，亲密增长×1.3
+      if (trustDelta > 0) trustDelta = Math.round(trustDelta * 1.2)
+      if (intimacyDelta > 0) intimacyDelta = Math.round(intimacyDelta * 1.3)
+    }
+
+    // ===== 机制2：惯性 + 恢复不对称 =====
+    // 恢复不对称：信任下跌时放大，上涨时缩小
+    if (trustDelta < 0) {
+      trustDelta = Math.round(trustDelta * 1.3) // 跌幅放大30%
+    } else if (trustDelta > 0) {
+      trustDelta = Math.round(trustDelta * 0.8) // 涨幅缩小20%
+    }
+
+    // 惯性效应：基于近期趋势方向
+    const recentTrustTrend = trustTrend.slice(-5)
+    const recentPositive = recentTrustTrend.filter(d => d > 0).length
+    const recentNegative = recentTrustTrend.filter(d => d < 0).length
+    
+    if (trustDelta > 0 && recentPositive >= 3) {
+      // 连续正向，效果递增
+      trustDelta = Math.round(trustDelta * 1.3)
+    } else if (trustDelta < 0 && recentNegative >= 2) {
+      // 连续负向，跌幅加重
+      trustDelta = Math.round(trustDelta * 1.5)
+    }
+
     // 计算新值
-    const newTrust = Math.max(0, Math.min(100, currentRel.trust + trustDelta))
-    const newIntimacy = Math.max(0, Math.min(100, currentRel.intimacy + intimacyDelta))
-    const newStage = this.determineStage(newTrust, newIntimacy)
+    let newTrust = Math.max(0, Math.min(100, currentRel.trust + trustDelta))
+    let newIntimacy = Math.max(0, Math.min(100, currentRel.intimacy + intimacyDelta))
     const newCount = currentRel.interaction_count + 1
+
+    // ===== 机制1：亲密度门控 =====
+    // 亲密不能超过信任×1.2，超出触发防御性反弹
+    const intimacyCeiling = Math.round(newTrust * 1.2)
+    if (newIntimacy > intimacyCeiling) {
+      const overflow = newIntimacy - intimacyCeiling
+      // 依恋类型决定反弹力度
+      const isAvoidant = ['avoidant', 'disorganized'].includes(attachmentStyle)
+      if (isAvoidant) {
+        // 回避型：亲密超限 → 强烈反弹，亲密回到天花板以下，信任也下降
+        const rebound = Math.round(overflow * 1.5)
+        newIntimacy = Math.max(0, intimacyCeiling - rebound)
+        newTrust = Math.max(0, newTrust - Math.round(overflow * 0.5))
+        newPrimary = 'defensive'
+        newTowardsUser = 'guarded'
+        newReason = '亲密表达超出信任基础，触发防御性反弹'
+      } else {
+        // 安全型/焦虑型：亲密被限制在天花板，但不会反弹
+        newIntimacy = intimacyCeiling
+      }
+    }
+
+    // 回避型"墙"机制：信任在50~65区间时，推进关系触发后退
+    if (this.isAvoidantAttachment(attachmentStyle) && newTrust >= 50 && newTrust <= 65 && intimacyDelta > 3) {
+      newTrust = Math.max(0, newTrust - 5)
+      newIntimacy = Math.max(0, newIntimacy - 5)
+      newPrimary = 'anxious'
+      newTowardsUser = 'guarded'
+      newReason = '回避型依恋的"墙"：关系接近时本能后退'
+    }
+
+    const newStage = this.determineStage(newTrust, newIntimacy)
 
     if (newStage !== currentRel.stage) {
       console.log(`[TwinService] 关系阶段变化: ${currentRel.stage} → ${newStage} (信任:${currentRel.trust}→${newTrust}, 亲密度:${currentRel.intimacy}→${newIntimacy})`)
     }
+
+    // 更新趋势记录（保留最近10条）
+    const updatedTrustTrend = [...trustTrend, trustDelta].slice(-10)
+    const updatedIntimacyTrend = [...intimacyTrend, intimacyDelta].slice(-10)
 
     // 更新关系数据库
     await client
@@ -611,6 +716,8 @@ ${matchName}回复：${twinReply}
         intimacy: newIntimacy,
         interaction_count: newCount,
         last_interaction_at: new Date().toISOString(),
+        trust_trend: updatedTrustTrend,
+        intimacy_trend: updatedIntimacyTrend,
       })
       .eq('match_id', matchId)
 
@@ -634,7 +741,7 @@ ${matchName}回复：${twinReply}
         intimacy: newIntimacy,
         interaction_count: newCount,
         last_interaction_at: new Date().toISOString(),
-      },
+      } as RelationshipState,
       emotionalState: {
         ...currentEmo,
         primary: newPrimary,
@@ -644,6 +751,11 @@ ${matchName}回复：${twinReply}
         updated_at: new Date().toISOString(),
       },
     }
+  }
+
+  /** 判断是否为回避型依恋 */
+  private isAvoidantAttachment(attachmentStyle: string): boolean {
+    return ['avoidant', 'disorganized', 'fearful_avoidant', 'dismissive_avoidant'].includes(attachmentStyle)
   }
 
   /**
