@@ -47,6 +47,20 @@ interface EmotionalStateRecord {
 interface TwinHint {
   insight: string
   suggestion?: string
+  severity: 'positive' | 'info' | 'warning' | 'critical'
+  deltas: {
+    safety: number
+    desire: number
+    closeness: number
+  }
+}
+
+// 提示级别配色
+const HINT_SEVERITY_CONFIG: Record<string, { color: string; bgColor: string; borderColor: string; label: string }> = {
+  positive: { color: '#4ECB71', bgColor: 'rgba(78, 203, 113, 0.08)', borderColor: '#4ECB71', label: '好信号' },
+  info: { color: '#71767B', bgColor: 'rgba(113, 118, 123, 0.06)', borderColor: '#71767B', label: '提示' },
+  warning: { color: '#F59E0B', bgColor: 'rgba(245, 158, 11, 0.08)', borderColor: '#F59E0B', label: '注意' },
+  critical: { color: '#EF4444', bgColor: 'rgba(239, 68, 68, 0.08)', borderColor: '#EF4444', label: '警示' },
 }
 
 // 关系阶段中文映射
@@ -619,33 +633,61 @@ const TwinChatPage = () => {
           )}
 
           {/* AI 提示卡片 */}
-          {hintsEnabled && latestHint && !loading && (
-            <View
-              style={{
-                margin: '8px 0',
-                padding: '10px 14px',
-                backgroundColor: 'rgba(245, 158, 11, 0.08)',
-                borderRadius: '12px',
-                borderLeft: '3px solid #F59E0B',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
-              }}
-            >
-              <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '6px' }}>
-                <Lightbulb size={14} color="#F59E0B" />
-                <Text style={{ color: '#F59E0B', fontSize: '11px', fontWeight: '600' }}>AI 提示</Text>
-              </View>
-              <Text style={{ color: '#D4D4D8', fontSize: '12px', lineHeight: '1.6' }}>
-                {latestHint.insight}
-              </Text>
-              {latestHint.suggestion && (
-                <Text style={{ color: '#F59E0B', fontSize: '11px', lineHeight: '1.5', opacity: 0.85 }}>
-                  💡 {latestHint.suggestion}
+          {hintsEnabled && latestHint && !loading && (() => {
+            const cfg = HINT_SEVERITY_CONFIG[latestHint.severity] || HINT_SEVERITY_CONFIG.info
+            const d = latestHint.deltas
+            return (
+              <View
+                style={{
+                  margin: '8px 0',
+                  padding: '10px 14px',
+                  backgroundColor: cfg.bgColor,
+                  borderRadius: '12px',
+                  borderLeft: `3px solid ${cfg.borderColor}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                }}
+              >
+                {/* 标题行：图标+标签+变化量 */}
+                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '5px' }}>
+                    <Lightbulb size={13} color={cfg.color} />
+                    <Text style={{ color: cfg.color, fontSize: '11px', fontWeight: '600' }}>{cfg.label}</Text>
+                  </View>
+                  <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+                    {d.safety !== 0 && (
+                      <Text style={{ color: d.safety > 0 ? '#4ECB71' : '#EF4444', fontSize: '10px', fontWeight: '500' }}>
+                        安全{d.safety > 0 ? '↑' : '↓'}{Math.abs(d.safety)}
+                      </Text>
+                    )}
+                    {d.desire !== 0 && (
+                      <Text style={{ color: d.desire > 0 ? '#F97316' : '#6B7280', fontSize: '10px', fontWeight: '500' }}>
+                        渴望{d.desire > 0 ? '↑' : '↓'}{Math.abs(d.desire)}
+                      </Text>
+                    )}
+                    {d.closeness !== 0 && (
+                      <Text style={{ color: d.closeness > 0 ? '#F472B6' : '#6B7280', fontSize: '10px', fontWeight: '500' }}>
+                        亲密{d.closeness > 0 ? '↑' : '↓'}{Math.abs(d.closeness)}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+
+                {/* 解读内容 */}
+                <Text style={{ color: '#D4D4D8', fontSize: '12px', lineHeight: '1.6' }}>
+                  {latestHint.insight}
                 </Text>
-              )}
-            </View>
-          )}
+
+                {/* 策略建议 */}
+                {latestHint.suggestion && (
+                  <Text style={{ color: cfg.color, fontSize: '11px', lineHeight: '1.5', opacity: 0.85 }}>
+                    💡 {latestHint.suggestion}
+                  </Text>
+                )}
+              </View>
+            )
+          })()}
         </View>
       </ScrollView>
 
