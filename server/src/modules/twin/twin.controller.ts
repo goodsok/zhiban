@@ -8,10 +8,10 @@ export class TwinController {
 
   @Post('chat')
   async chat(
-    @Body() body: { matchId: number; message: string },
+    @Body() body: { matchId: number; message: string; hintsEnabled?: boolean },
     @Req() req: Request,
   ) {
-    const result = await this.twinService.chat(body.matchId, body.message, req)
+    const result = await this.twinService.chat(body.matchId, body.message, req, body.hintsEnabled !== false)
     return { code: 200, msg: 'success', data: result }
   }
 

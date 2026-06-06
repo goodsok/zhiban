@@ -2,7 +2,7 @@ import Taro from '@tarojs/taro'
 import { View, Text, ScrollView } from '@tarojs/components'
 import React, { useState, useEffect, useCallback } from 'react'
 import { Network } from '@/network'
-import { ArrowLeft, Send, Ghost, Trash2, Shield, Flame, Handshake, SlidersHorizontal, ChevronDown, ChevronUp, Zap } from 'lucide-react-taro'
+import { ArrowLeft, Send, Ghost, Trash2, Shield, Flame, Handshake, SlidersHorizontal, ChevronDown, ChevronUp, Zap, Lightbulb, LightbulbOff } from 'lucide-react-taro'
 import { Input } from '@/components/ui/input'
 import {
   AlertDialog,
@@ -41,6 +41,12 @@ interface EmotionalStateRecord {
   emotionIntensity: number
   attitudeAnchor: string
   tension: number
+}
+
+// AI 提示
+interface TwinHint {
+  insight: string
+  suggestion?: string
 }
 
 // 关系阶段中文映射
@@ -106,6 +112,11 @@ const TwinChatPage = () => {
   const [emotionalState, setEmotionalState] = useState<EmotionalStateRecord | null>(null)
   const [showStatusPanel, setShowStatusPanel] = useState(false)
   const [showAdjustPanel, setShowAdjustPanel] = useState(false)
+  const [hintsEnabled, setHintsEnabled] = useState(() => {
+    const stored = Taro.getStorageSync('twin_hints_enabled')
+    return stored === '' ? true : stored === 'true'
+  })
+  const [latestHint, setLatestHint] = useState<TwinHint | null>(null)
 
   // 调整面板本地状态
   const [adjustSafety, setAdjustSafety] = useState(30)
@@ -139,6 +150,14 @@ const TwinChatPage = () => {
       setAdjustAnchor(emotionalState.attitudeAnchor)
     }
   }, [emotionalState])
+
+  // 切换 AI 提示
+  const toggleHints = () => {
+    const next = !hintsEnabled
+    setHintsEnabled(next)
+    Taro.setStorageSync('twin_hints_enabled', String(next))
+    if (!next) setLatestHint(null)
+  }
 
   // 加载聊天历史
   useEffect(() => {
@@ -204,12 +223,13 @@ const TwinChatPage = () => {
     setMessages(prev => [...prev, userMsg])
     setInputValue('')
     setLoading(true)
+    setLatestHint(null)
 
     try {
       const res = await Network.request({
         url: '/api/twin/chat',
         method: 'POST',
-        data: { matchId, message: text }
+        data: { matchId, message: text, hintsEnabled }
       })
       console.log('[TwinChat] sendMessage response:', res.data)
       const data = res.data?.data
@@ -218,6 +238,7 @@ const TwinChatPage = () => {
 
       if (data?.relationship) setRelationship(data.relationship)
       if (data?.emotionalState) setEmotionalState(data.emotionalState)
+      if (data?.hint) setLatestHint(data.hint)
 
       // 主动消息
       if (data?.proactiveMessage) {
@@ -405,8 +426,13 @@ const TwinChatPage = () => {
               {getStageLabel()} · {getEmotionLabel()}
             </Text>
           </View>
-          <View onClick={() => setShowClearDialog(true)} style={{ padding: '8px' }}>
-            <Trash2 size={18} color="#71767B" />
+          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px' }}>
+            <View onClick={toggleHints} style={{ padding: '8px' }}>
+              {hintsEnabled ? <Lightbulb size={18} color="#F59E0B" /> : <LightbulbOff size={18} color="#71767B" />}
+            </View>
+            <View onClick={() => setShowClearDialog(true)} style={{ padding: '8px' }}>
+              <Trash2 size={18} color="#71767B" />
+            </View>
           </View>
         </View>
 
@@ -589,6 +615,35 @@ const TwinChatPage = () => {
               <View style={{ backgroundColor: '#1E2A3A', borderRadius: '16px 16px 16px 4px', padding: '12px 18px', display: 'flex', flexDirection: 'row', gap: '4px', alignItems: 'center' }}>
                 <Text style={{ color: '#71767B', fontSize: '13px' }}>正在输入...</Text>
               </View>
+            </View>
+          )}
+
+          {/* AI 提示卡片 */}
+          {hintsEnabled && latestHint && !loading && (
+            <View
+              style={{
+                margin: '8px 0',
+                padding: '10px 14px',
+                backgroundColor: 'rgba(245, 158, 11, 0.08)',
+                borderRadius: '12px',
+                borderLeft: '3px solid #F59E0B',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+              }}
+            >
+              <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '6px' }}>
+                <Lightbulb size={14} color="#F59E0B" />
+                <Text style={{ color: '#F59E0B', fontSize: '11px', fontWeight: '600' }}>AI 提示</Text>
+              </View>
+              <Text style={{ color: '#D4D4D8', fontSize: '12px', lineHeight: '1.6' }}>
+                {latestHint.insight}
+              </Text>
+              {latestHint.suggestion && (
+                <Text style={{ color: '#F59E0B', fontSize: '11px', lineHeight: '1.5', opacity: 0.85 }}>
+                  💡 {latestHint.suggestion}
+                </Text>
+              )}
             </View>
           )}
         </View>
