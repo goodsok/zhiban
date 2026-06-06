@@ -497,100 +497,113 @@ ${emotionalPrompt}
   }
 
   /**
-   * 更新关系状态（每轮对话后调用）
+   * 使用 LLM 分析关系与情感变化（每轮对话后调用，合并分析）
    */
-  private async updateRelationship(
+  private async analyzeAndUpdateState(
     matchId: number,
-    current: RelationshipState,
+    matchName: string,
+    currentRel: RelationshipState,
+    currentEmo: EmotionalStateRecord,
     userMessage: string,
     twinReply: string,
     dims: Record<string, any>,
-  ): Promise<RelationshipState> {
+    req: Request,
+  ): Promise<{ relationship: RelationshipState; emotionalState: EmotionalStateRecord }> {
     const client = getSupabaseClient()
+    const attachmentStyle = dims.attachmentStyle || 'secure'
+    const emotionalExpression = dims.emotionalExpression || 50
 
-    let trustDelta = 0
+    const prompt = `你是关系与情感分析师。根据以下对话，分析${matchName}在此次互动后的关系与情感变化。
+
+## 当前状态
+- 关系阶段：${currentRel.stage}（信任${currentRel.trust}/100，亲密度${currentRel.intimacy}/100，互动${currentRel.interaction_count}次）
+- 情感：${currentEmo.primary}（强度${currentEmo.intensity}/100，对对方：${currentEmo.towards_user}）
+- ${matchName}的依恋类型：${attachmentStyle}
+- ${matchName}的情感表达：${emotionalExpression < 40 ? '内敛' : emotionalExpression > 60 ? '直接' : '适中'}
+
+## 此轮对话
+对方说：${userMessage}
+${matchName}回复：${twinReply}
+
+## 分析要求
+请综合分析此轮互动对关系和情感的影响，返回JSON：
+{
+  "trustDelta": 数字（-15到+10），
+  "intimacyDelta": 数字（-15到+15），
+  "primary": "neutral/warm/happy/touched/anxious/defensive/hurt/cold/playful/longing",
+  "intensity": 数字0-100,
+  "towardsUser": "neutral/curious/fond/attached/guarded/resentful/longing",
+  "reason": "一句话说明变化原因"
+}
+
+## 变化幅度参考
+- 信任变化较慢（-5~+5），但严重冒犯可达-10~-15
+- 亲密度变化更快（-5~+8），暧昧表达可达+10~+15
+- 依恋类型影响：
+  · 回避型/混乱型：对方过于热情（如突然表白）反而会降低亲密度-3~-8
+  · 焦虑型：对方冷淡或不回复会大幅降低信任-5~-10
+  · 安全型：变化相对温和
+- 情感强度：温和对话维持50左右，被触动时60-75，强烈情绪80-95
+- 不要害怕给出较大变化！真实的人际互动中，一句话可以改变很多
+
+只返回JSON，不要其他内容。`
+
+    let trustDelta = 1
     let intimacyDelta = 0
+    let newPrimary: EmotionalState = currentEmo.primary
+    let newIntensity = currentEmo.intensity
+    let newTowardsUser = currentEmo.towards_user
+    let newReason = ''
 
-    // === 信任值变化规则 ===
-    // 基础：每次互动微量增加信任（人都会慢慢信任常聊天的人）
-    trustDelta += 1
+    try {
+      const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
+      const config = new Config()
+      const llmClient = new LLMClient(config, customHeaders)
 
-    // 正向信号
-    if (/想你了|喜欢你|在乎|关心你|担心你|陪你/.test(userMessage)) {
-      trustDelta += 3
-    }
-    if (/谢谢|感谢|你真好|你懂我/.test(userMessage)) {
-      trustDelta += 2
-    }
-    // 倾诉类消息说明信任
-    if (userMessage.length > 50 && /我|感觉|觉得|心情|压力/.test(userMessage)) {
-      trustDelta += 2
-    }
+      const response = await llmClient.invoke(
+        [{ role: 'system', content: prompt }],
+        {
+          model: 'doubao-seed-2-0-mini-260215',
+          temperature: 0.3,
+          thinking: 'disabled',
+        }
+      )
 
-    // 负向信号
-    if (/无聊|烦|别烦|不想聊|算了|随便/.test(userMessage)) {
-      trustDelta -= 3
-    }
-    if (/骗|不信|撒谎|虚伪/.test(userMessage)) {
-      trustDelta -= 5
-    }
-    // 侵入性问题（陌生人阶段问隐私会降信任）
-    if (current.stage === 'stranger' || current.stage === 'acquaintance') {
-      if (/住哪|工资|前男|前女|分手原因/.test(userMessage)) {
-        trustDelta -= 2
+      const content = this.cleanLLMContent(response.content)
+      const jsonMatch = content.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0])
+        trustDelta = parsed.trustDelta ?? 1
+        intimacyDelta = parsed.intimacyDelta ?? 0
+        newPrimary = parsed.primary || 'neutral'
+        newIntensity = Math.max(0, Math.min(100, parsed.intensity ?? 50))
+        newTowardsUser = parsed.towardsUser || 'neutral'
+        newReason = parsed.reason || ''
       }
+    } catch (err) {
+      console.error('[TwinService] analyzeAndUpdateState LLM error:', err)
+      // 降级到规则
+      const heuristic = this.heuristicStateShift(currentRel, currentEmo, userMessage, dims)
+      trustDelta = heuristic.trustDelta
+      intimacyDelta = heuristic.intimacyDelta
+      newPrimary = heuristic.primary
+      newIntensity = heuristic.intensity
+      newTowardsUser = heuristic.towardsUser
+      newReason = heuristic.reason
     }
 
-    // === 亲密度变化规则 ===
-    // 基础互动微增
-    intimacyDelta += 1
-
-    // 暧昧信号
-    if (/想你|喜欢|暧昧|心动|恋爱|在一起|做我/.test(userMessage)) {
-      intimacyDelta += 5
-    }
-    // 情感分享
-    if (/我给你说|跟你说个秘密|只有你能/.test(userMessage)) {
-      intimacyDelta += 3
-    }
-    // 日常分享（说明愿意带入生活）
-    if (/今天|刚吃了|在干嘛|你看这个/.test(userMessage)) {
-      intimacyDelta += 2
-    }
-
-    // 冷却信号
-    if (/不用了|随便|嗯|哦|好吧|拜/.test(userMessage) && userMessage.length < 5) {
-      intimacyDelta -= 2
-    }
-
-    // === 依恋类型修正 ===
-    const attachmentStyle = dims.attachmentStyle
-    if (attachmentStyle === 'avoidant' || attachmentStyle === 'disorganized') {
-      // 回避型：亲密度上升更慢，但到了暧昧阶段会有反弹
-      intimacyDelta = Math.floor(intimacyDelta * 0.6)
-      // 如果对方太热情反而降
-      if (/想你了|好爱你|离不开你/.test(userMessage) && current.intimacy < 40) {
-        intimacyDelta -= 3
-      }
-    } else if (attachmentStyle === 'anxious') {
-      // 焦虑型：亲密度上升快但信任慢
-      intimacyDelta = Math.floor(intimacyDelta * 1.3)
-      trustDelta = Math.floor(trustDelta * 0.8)
-    }
-
-    // === 计算新值 ===
-    const newTrust = Math.max(0, Math.min(100, current.trust + trustDelta))
-    const newIntimacy = Math.max(0, Math.min(100, current.intimacy + intimacyDelta))
+    // 计算新值
+    const newTrust = Math.max(0, Math.min(100, currentRel.trust + trustDelta))
+    const newIntimacy = Math.max(0, Math.min(100, currentRel.intimacy + intimacyDelta))
     const newStage = this.determineStage(newTrust, newIntimacy)
-    const newCount = current.interaction_count + 1
+    const newCount = currentRel.interaction_count + 1
 
-    // 阶段变化日志
-    if (newStage !== current.stage) {
-      console.log(`[TwinService] 关系阶段变化: ${current.stage} → ${newStage} (信任:${newTrust}, 亲密度:${newIntimacy})`)
+    if (newStage !== currentRel.stage) {
+      console.log(`[TwinService] 关系阶段变化: ${currentRel.stage} → ${newStage} (信任:${currentRel.trust}→${newTrust}, 亲密度:${currentRel.intimacy}→${newIntimacy})`)
     }
 
-    // 更新数据库
-    const { error } = await client
+    // 更新关系数据库
+    await client
       .from('twin_relationship')
       .update({
         stage: newStage,
@@ -601,18 +614,98 @@ ${emotionalPrompt}
       })
       .eq('match_id', matchId)
 
-    if (error) {
-      console.error('[TwinService] updateRelationship error:', error)
-    }
+    // 更新情感数据库
+    await client
+      .from('twin_emotional_state')
+      .update({
+        primary: newPrimary,
+        intensity: newIntensity,
+        towards_user: newTowardsUser,
+        reason: newReason,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('match_id', matchId)
 
     return {
-      ...current,
-      stage: newStage,
-      trust: newTrust,
-      intimacy: newIntimacy,
-      interaction_count: newCount,
-      last_interaction_at: new Date().toISOString(),
+      relationship: {
+        ...currentRel,
+        stage: newStage,
+        trust: newTrust,
+        intimacy: newIntimacy,
+        interaction_count: newCount,
+        last_interaction_at: new Date().toISOString(),
+      },
+      emotionalState: {
+        ...currentEmo,
+        primary: newPrimary,
+        intensity: newIntensity,
+        towards_user: newTowardsUser,
+        reason: newReason,
+        updated_at: new Date().toISOString(),
+      },
     }
+  }
+
+  /**
+   * 基于规则的降级方案（LLM 不可用时）
+   */
+  private heuristicStateShift(
+    currentRel: RelationshipState,
+    currentEmo: EmotionalStateRecord,
+    userMessage: string,
+    dims: Record<string, any>,
+  ): { trustDelta: number; intimacyDelta: number; primary: EmotionalState; intensity: number; towardsUser: string; reason: string } {
+    let trustDelta = 1
+    let intimacyDelta = 0
+    let primary: EmotionalState = 'neutral'
+    let intensity = currentEmo.intensity
+    let towardsUser: string = currentEmo.towards_user
+    let reason = ''
+
+    // 正向
+    if (/想你了|喜欢你|在乎|关心你|担心你|陪你/.test(userMessage)) {
+      trustDelta += 3; intimacyDelta += 5
+      primary = 'touched'; intensity = Math.min(100, currentEmo.intensity + 15)
+      towardsUser = 'fond'; reason = '对方表达了关心或想念'
+    } else if (/谢谢|感谢|你真好|你懂我/.test(userMessage)) {
+      trustDelta += 2; intimacyDelta += 1
+      primary = 'warm'; intensity = Math.min(100, currentEmo.intensity + 10)
+      reason = '被认可或感谢'
+    }
+    // 负向
+    else if (/骗|不信|撒谎|虚伪|看不起|敷衍/.test(userMessage)) {
+      trustDelta -= 8; intimacyDelta -= 5
+      primary = 'defensive'; intensity = Math.min(100, currentEmo.intensity + 20)
+      towardsUser = 'guarded'; reason = '被质疑或冒犯'
+    } else if (/烦|别烦|不想聊|算了|无聊/.test(userMessage)) {
+      trustDelta -= 3; intimacyDelta -= 3
+      primary = 'cold'; intensity = Math.min(100, currentEmo.intensity + 10)
+      towardsUser = 'guarded'; reason = '对方表现不耐烦'
+    }
+    // 侵入性
+    else if (currentRel.stage === 'stranger' && /住哪|工资|前男|前女|分手/.test(userMessage)) {
+      trustDelta -= 5; intimacyDelta -= 3
+      primary = 'defensive'; towardsUser = 'guarded'; reason = '陌生人问隐私，感到不适'
+    }
+    // 日常正向
+    else if (/今天|在干嘛|吃饭|天气/.test(userMessage)) {
+      trustDelta += 1; intimacyDelta += 2
+      reason = '日常交流'
+    }
+
+    // 依恋类型修正
+    const attachmentStyle = dims.attachmentStyle
+    if ((attachmentStyle === 'avoidant' || attachmentStyle === 'disorganized') && /想你了|好爱你|离不开/.test(userMessage) && currentRel.intimacy < 40) {
+      intimacyDelta -= 5
+      reason = '对方太热情，回避型感到压力'
+    }
+
+    // 向中性回归
+    if (intensity > 60 && !primary.includes('warm') && !primary.includes('happy')) {
+      intensity = Math.max(50, intensity - 5)
+    }
+
+    return { trustDelta, intimacyDelta, primary, intensity, towardsUser, reason }
   }
 
   // ==================== 情感状态管理 ====================
@@ -658,188 +751,6 @@ ${emotionalPrompt}
     return data as EmotionalStateRecord
   }
 
-  /**
-   * 使用 LLM 分析情感变化（轻量级调用）
-   */
-  private async analyzeEmotionalShift(
-    matchName: string,
-    currentState: EmotionalStateRecord,
-    userMessage: string,
-    twinReply: string,
-    dims: Record<string, any>,
-    req: Request,
-  ): Promise<{ primary: EmotionalState; intensity: number; towardsUser: string; reason: string }> {
-    const attachmentStyle = dims.attachmentStyle || 'secure'
-    const emotionalExpression = dims.emotionalExpression || 50
-
-    const prompt = `你是情感分析师。根据以下对话内容，分析${matchName}在回复后的情感状态变化。
-
-当前情感：${currentState.primary}（强度${currentState.intensity}/100，对对方态度：${currentState.towards_user}）
-${matchName}的依恋类型：${attachmentStyle}
-${matchName}的情感表达倾向：${emotionalExpression < 40 ? '内敛' : emotionalExpression > 60 ? '直接' : '适中'}
-
-对方说：${userMessage}
-${matchName}回复：${twinReply}
-
-请分析${matchName}回复后的情感状态，返回JSON格式：
-{
-  "primary": "neutral/warm/happy/touched/anxious/defensive/hurt/cold/playful/longing",
-  "intensity": 数字0-100,
-  "towardsUser": "neutral/curious/fond/attached/guarded/resentful/longing",
-  "reason": "一句话说明情感变化原因"
-}
-
-注意：
-- 情感变化应该是渐进的，不要剧烈跳变
-- 回避型依恋的人即使内心波动，外在表现也偏冷淡
-- 焦虑型依恋的人更容易因为对方的言行产生强烈情绪
-- 只返回JSON，不要其他内容`
-
-    try {
-      const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
-      const config = new Config()
-      const client = new LLMClient(config, customHeaders)
-
-      const response = await client.invoke(
-        [{ role: 'system', content: prompt }],
-        {
-          model: 'doubao-seed-2-0-mini-260215',
-          temperature: 0.3,
-          thinking: 'disabled',
-        }
-      )
-
-      const content = this.cleanLLMContent(response.content)
-      // 提取 JSON
-      const jsonMatch = content.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0])
-        return {
-          primary: parsed.primary || 'neutral',
-          intensity: Math.max(0, Math.min(100, parsed.intensity ?? 50)),
-          towardsUser: parsed.towardsUser || 'neutral',
-          reason: parsed.reason || '',
-        }
-      }
-    } catch (err) {
-      console.error('[TwinService] analyzeEmotionalShift error:', err)
-    }
-
-    // 降级：基于简单规则的启发式
-    return this.heuristicEmotionalShift(currentState, userMessage, dims)
-  }
-
-  /**
-   * 基于规则的启发式情感分析（降级方案）
-   */
-  private heuristicEmotionalShift(
-    currentState: EmotionalStateRecord,
-    userMessage: string,
-    dims: Record<string, any>,
-  ): { primary: EmotionalState; intensity: number; towardsUser: string; reason: string } {
-    let primary: EmotionalState = currentState.primary
-    let intensity = currentState.intensity
-    let towardsUser = currentState.towards_user
-    let reason = ''
-
-    // 温暖信号
-    if (/想你了|在乎|喜欢你|想你|想念/.test(userMessage)) {
-      primary = 'touched'
-      intensity = Math.min(100, currentState.intensity + 20)
-      towardsUser = 'fond'
-      reason = '对方表达了想念或喜欢'
-    } else if (/你真好|谢谢|感谢|你懂/.test(userMessage)) {
-      primary = 'warm'
-      intensity = Math.min(100, currentState.intensity + 10)
-      towardsUser = currentState.towards_user === 'neutral' ? 'fond' : currentState.towards_user
-      reason = '被对方认可或感谢'
-    } else if (/哈哈|好玩|有趣|逗/.test(userMessage)) {
-      primary = 'playful'
-      intensity = Math.min(100, currentState.intensity + 10)
-      reason = '轻松愉快的对话氛围'
-    }
-    // 冷淡信号
-    else if (/随便|算了|哦|嗯$|好吧/.test(userMessage) && userMessage.length < 5) {
-      primary = 'cold'
-      intensity = Math.min(100, currentState.intensity + 15)
-      towardsUser = 'guarded'
-      reason = '对方表现冷淡'
-    }
-    // 刺激信号
-    else if (/你烦|离我远|不想见|别理我/.test(userMessage)) {
-      primary = 'hurt'
-      intensity = Math.min(100, currentState.intensity + 25)
-      towardsUser = 'resentful'
-      reason = '对方说了伤人的话'
-    }
-    // 正常对话：缓慢回归平静
-    else {
-      // 向中性回归
-      if (currentState.intensity > 50) {
-        intensity = currentState.intensity - 5
-      }
-      if (currentState.primary !== 'neutral' && !(/想你了|喜欢你/.test(userMessage))) {
-        // 非激烈情绪下逐步回归
-        if (intensity < 40) {
-          primary = 'neutral'
-          towardsUser = currentState.towards_user === 'resentful' ? 'guarded' : currentState.towards_user
-        }
-      }
-    }
-
-    // 依恋类型修正
-    if (dims.attachmentStyle === 'avoidant' || dims.attachmentStyle === 'disorganized') {
-      // 回避型：外在情绪强度更低
-      intensity = Math.floor(intensity * 0.7)
-    } else if (dims.attachmentStyle === 'anxious') {
-      // 焦虑型：情绪反应更强
-      intensity = Math.min(100, Math.floor(intensity * 1.2))
-    }
-
-    return { primary, intensity, towardsUser, reason }
-  }
-
-  /**
-   * 更新情感状态
-   */
-  private async updateEmotionalState(matchId: number, newState: {
-    primary: EmotionalState
-    intensity: number
-    towardsUser: string
-    reason: string
-  }): Promise<void> {
-    const client = getSupabaseClient()
-
-    // 检查是否已有记录
-    const { data: existing } = await client
-      .from('twin_emotional_state')
-      .select('id')
-      .eq('match_id', matchId)
-      .single()
-
-    if (existing) {
-      await client
-        .from('twin_emotional_state')
-        .update({
-          primary: newState.primary,
-          intensity: newState.intensity,
-          towards_user: newState.towardsUser,
-          reason: newState.reason,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('match_id', matchId)
-    } else {
-      await client
-        .from('twin_emotional_state')
-        .insert({
-          match_id: matchId,
-          primary: newState.primary,
-          intensity: newState.intensity,
-          towards_user: newState.towardsUser,
-          reason: newState.reason,
-        })
-    }
-  }
 
   // ==================== 手动调整关系状态 ====================
 
@@ -1180,24 +1091,12 @@ ${matchName}回复：${twinReply}
       await this.saveMessage(matchId, 'user', message)
       await this.saveMessage(matchId, 'assistant', reply)
 
-      // 9. 更新关系状态
-      const newRelationship = await this.updateRelationship(
-        matchId, relationship, message, reply, dimensionValues,
+      // 9. 更新关系与情感状态（合并 LLM 分析）
+      const stateUpdate = await this.analyzeAndUpdateState(
+        matchId, matchInfo.name, relationship, emotionalState, message, reply, dimensionValues, req,
       )
-
-      // 10. 更新情感状态
-      const emotionalShift = await this.analyzeEmotionalShift(
-        matchInfo.name, emotionalState, message, reply, dimensionValues, req,
-      )
-      await this.updateEmotionalState(matchId, emotionalShift)
-      const newEmotionalState: EmotionalStateRecord = {
-        match_id: matchId,
-        primary: emotionalShift.primary,
-        intensity: emotionalShift.intensity,
-        towards_user: emotionalShift.towardsUser,
-        reason: emotionalShift.reason,
-        updated_at: new Date().toISOString(),
-      }
+      const newRelationship = stateUpdate.relationship
+      const newEmotionalState = stateUpdate.emotionalState
 
       // 11. 检查是否触发主动消息
       const proactiveMessage = await this.checkAndGenerateProactiveMessage(
