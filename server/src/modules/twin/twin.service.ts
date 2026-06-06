@@ -11,13 +11,31 @@ const CATEGORY_LABELS: Record<string, string> = {
   family: '家庭',
   appearance: '外貌',
   contact: '联系方式',
+  location: '所在地区',
+  skills: '技能特长',
+  life_stage: '人生阶段',
+  core_personality: '核心性格',
   personality: '性格',
-  emotion: '情感',
-  interest: '兴趣',
-  lifestyle: '生活方式',
-  relationship: '恋爱关系',
-  communication: '沟通方式',
   values: '价值观',
+  relationship_intent: '恋爱意向',
+  emotion: '情感',
+  social: '社交',
+  communication: '沟通方式',
+  communication_pref: '联系偏好',
+  life_attitude: '生活态度',
+  love_style: '恋爱风格',
+  interests: '兴趣爱好',
+  lifestyle: '生活方式',
+  dating: '约会偏好',
+  current: '当前状态',
+  current_status: '当前状态',
+  sexual_intimacy: '亲密关系',
+  relationship_form: '关系形式',
+  emotional_investment: '情感投入',
+  time_availability: '时间可用性',
+  privacy_public: '隐私与公开',
+  short_term_patterns: '短期关系模式',
+  dating_dynamics: '约会动态',
   behavior: '行为习惯',
 }
 
@@ -82,18 +100,43 @@ export class TwinService {
       readableDimensions.push(`【${categoryLabel}】${dim.display_name}：${displayVal}`)
     }
 
-    // 构建画像摘要
+    // 构建画像摘要（数据库字段为 snake_case）
     let portraitSummary = ''
     if (portraitData) {
       const traits: string[] = []
-      if (portraitData.personalityOpenness !== undefined) {
-        traits.push(`开放性${portraitData.personalityOpenness > 60 ? '高' : portraitData.personalityOpenness < 40 ? '低' : '中等'}`)
+      const p = portraitData
+      if (p.personality_openness !== undefined && p.personality_openness !== null) {
+        traits.push(`开放性${p.personality_openness > 60 ? '高' : p.personality_openness < 40 ? '低' : '中等'}`)
       }
-      if (portraitData.personalityExtraversion !== undefined) {
-        traits.push(`外向性${portraitData.personalityExtraversion > 60 ? '高' : portraitData.personalityExtraversion < 40 ? '低' : '中等'}`)
+      if (p.personality_extraversion !== undefined && p.personality_extraversion !== null) {
+        traits.push(`外向性${p.personality_extraversion > 60 ? '高' : p.personality_extraversion < 40 ? '低' : '中等'}`)
       }
-      if (portraitData.communicationHumor !== undefined) {
-        traits.push(`幽默感${portraitData.communicationHumor > 60 ? '强' : portraitData.communicationHumor < 40 ? '弱' : '一般'}`)
+      if (p.personality_conscientiousness !== undefined && p.personality_conscientiousness !== null) {
+        traits.push(`尽责性${p.personality_conscientiousness > 60 ? '高' : p.personality_conscientiousness < 40 ? '低' : '中等'}`)
+      }
+      if (p.personality_agreeableness !== undefined && p.personality_agreeableness !== null) {
+        traits.push(`宜人性${p.personality_agreeableness > 60 ? '高' : p.personality_agreeableness < 40 ? '低' : '中等'}`)
+      }
+      if (p.personality_neuroticism !== undefined && p.personality_neuroticism !== null) {
+        traits.push(`神经质${p.personality_neuroticism > 60 ? '高' : p.personality_neuroticism < 40 ? '低' : '中等'}`)
+      }
+      if (p.emotional_stability !== undefined && p.emotional_stability !== null) {
+        traits.push(`情绪稳定性${p.emotional_stability > 60 ? '高' : p.emotional_stability < 40 ? '低' : '中等'}`)
+      }
+      if (p.emotional_expression !== undefined && p.emotional_expression !== null) {
+        traits.push(`情感表达${p.emotional_expression > 60 ? '直接' : p.emotional_expression < 40 ? '内敛' : '适中'}`)
+      }
+      if (p.emotional_empathy !== undefined && p.emotional_empathy !== null) {
+        traits.push(`共情能力${p.emotional_empathy > 60 ? '强' : p.emotional_empathy < 40 ? '弱' : '一般'}`)
+      }
+      if (p.social_activity !== undefined && p.social_activity !== null) {
+        traits.push(`社交活跃度${p.social_activity > 60 ? '高' : p.social_activity < 40 ? '低' : '中等'}`)
+      }
+      if (p.communication_humor !== undefined && p.communication_humor !== null) {
+        traits.push(`幽默感${p.communication_humor > 60 ? '强' : p.communication_humor < 40 ? '弱' : '一般'}`)
+      }
+      if (p.communication_directness !== undefined && p.communication_directness !== null) {
+        traits.push(`沟通直接度${p.communication_directness > 60 ? '高' : p.communication_directness < 40 ? '低' : '中等'}`)
       }
       if (traits.length > 0) {
         portraitSummary = `\n\n性格画像：${traits.join('，')}`
