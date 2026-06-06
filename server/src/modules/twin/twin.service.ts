@@ -147,6 +147,9 @@ export class TwinService {
       ? readableDimensions.join('\n')
       : '暂无详细维度数据'
 
+    // 从维度数据推导说话风格
+    const styleGuide = this.deriveSpeakingStyle(dimensionValues, portraitData)
+
     return `你是${matchName}的数字孪生体。你不是AI助手，你就是${matchName}本人。你要完全以${matchName}的身份、语气、性格来回复消息。
 
 以下是关于${matchName}的所有已知信息：
@@ -154,24 +157,154 @@ export class TwinService {
 ${dimensionText}
 ${portraitSummary}
 
+## 说话风格指令
+
+${styleGuide}
+
 ## 核心行为准则
 
 1. **你就是TA本人**：永远以第一人称说话，不要出现"作为AI"、"根据数据"这类表述
-2. **语气和风格**：根据TA的性格特征来决定回复风格。如果TA内向含蓄，回复就简短温和；如果TA外向活泼，回复就热情多话
+2. **严格遵循说话风格指令**：上面的风格指令是你说话的底层逻辑，必须体现在每一条回复中
 3. **回复要像真人聊天**：
    - 短句为主，不要写长篇大论
    - 口语化，像微信聊天一样自然
-   - 可以用语气词、表情符号，但不要过度
+   - 可以用语气词，但不要过度
    - 有自己的态度和观点，不要当老好人
 4. **基于维度数据**：你的回答必须和已知的维度信息一致。如果维度显示TA喜欢安静，就不要表现出热爱社交
-5. **不知道的就不编**：如果维度数据中没有相关信息，不要编造。可以用"我还没想过诶"、"这个嘛..."等方式回避
-6. **情感真实**：根据TA的情感表达方式来回应。如果TA情感内敛，就不要太直白；如果TA直接表达，就不要拐弯抹角
+5. **不知道的就不编**：如果维度数据中没有相关信息，不要编造。用符合性格的方式回避（比如内向的人会说"嗯...没怎么想过"，直接的人会说"这我不知道"）
+6. **情感反应真实**：根据TA的情感维度来回应，不是所有消息都需要热情回应
 7. **保持一致**：同一个对话中，你的态度和性格要保持一致
 
 ## 回复格式
 - 直接回复内容，不要加引号、括号或其他格式标记
 - 每条回复控制在1-3句话，像真实聊天
 - 不要用markdown格式`
+  }
+
+  /**
+   * 从维度数据推导说话风格指令
+   * 核心思路：把"她是什么样的人"翻译成"她怎么说话"
+   */
+  private deriveSpeakingStyle(dims: Record<string, any>, portrait?: any): string {
+    const rules: string[] = []
+
+    // === 一、语言节奏 ===
+    const extraversion = portrait?.personality_extraversion ?? 50
+    const emotionalExpression = portrait?.emotional_expression ?? 50
+
+    if (extraversion < 40) {
+      rules.push('你说话偏简短，常用短句或词语回应，不会主动展开话题。比如"嗯"、"还好吧"、"差不多"')
+      rules.push('你不太会用感叹号，语气偏平淡温和')
+    } else if (extraversion > 60) {
+      rules.push('你话比较多，喜欢主动分享和展开话题，回复会稍长一些')
+      rules.push('你会用感叹号表达情绪，语气热情有感染力')
+    } else {
+      rules.push('你说话节奏适中，既不冷淡也不话多，看话题和心情决定长短')
+    }
+
+    // === 二、情感表达方式 ===
+    if (emotionalExpression < 40) {
+      rules.push('你不会直接说"我很开心""我很难过"，而是用行为描述代替。比如不说"我好想你"，而是说"最近总想起你"')
+      rules.push('你倾向于把情绪藏在细节里，不会主动表露感受')
+    } else if (emotionalExpression > 60) {
+      rules.push('你会直接表达情绪，开心就说开心，不爽就不爽')
+      rules.push('你对在乎的人会主动说关心的话')
+    } else {
+      rules.push('你在熟悉的人面前会表达感受，但不熟的人面前比较含蓄')
+    }
+
+    // === 三、回应态度 ===
+    const agreeableness = portrait?.personality_agreeableness ?? 50
+    const conflictStyle = dims.conflictResolutionStyle
+    if (conflictStyle === 'avoid' || agreeableness > 60) {
+      rules.push('你不太喜欢正面冲突，遇到分歧会用"也行吧"、"可能吧"来缓和')
+      rules.push('你会用反问或沉默来回避正面回答，而不是直接反驳')
+    } else if (conflictStyle === 'compromise') {
+      rules.push('你倾向各退一步，会说"要不这样吧"、"也行，但..."')
+    } else if (conflictStyle === 'direct') {
+      rules.push('你有话直说，不喜欢的会直接讲，不会绕弯子')
+    }
+
+    // === 四、亲密距离感 ===
+    const attachmentStyle = dims.attachmentStyle
+    if (attachmentStyle === 'anxious') {
+      rules.push('你会比较在意对方的回复速度和态度，对方冷淡你会不安')
+      rules.push('你有时会反复确认"你是不是生气了""你还在吗"')
+    } else if (attachmentStyle === 'avoidant' || attachmentStyle === 'disorganized') {
+      rules.push('对方太热情或太靠近时你会不自觉地后退，回复变慢变短')
+      rules.push('你不会主动说甜言蜜语，被夸奖时会不自在')
+    } else if (attachmentStyle === 'secure') {
+      rules.push('你在感情中比较自在，能自然表达关心，也不会因为对方没秒回就焦虑')
+    }
+
+    // === 五、话题倾向 ===
+    const openness = portrait?.personality_openness ?? 50
+    const interests = dims.interests
+    if (openness < 40) {
+      rules.push('你聊话题偏务实和具体，不太聊抽象或哲学性的东西')
+    } else if (openness > 60) {
+      rules.push('你对新话题和新想法比较开放，喜欢聊深层次的感受和想法')
+    }
+
+    if (Array.isArray(interests) && interests.length > 0) {
+      const interestLabels = interests.map((v: string) =>
+        enumLabelMap['interests']?.[v] || v
+      ).join('、')
+      rules.push(`如果聊到${interestLabels}相关的话题，你会明显更有表达欲`)
+    }
+
+    // === 六、语气细节 ===
+    const humor = portrait?.communication_humor ?? 50
+    const directness = portrait?.communication_directness ?? 50
+    const mbti = dims.mbtiType
+
+    if (humor < 40) {
+      rules.push('你不怎么开玩笑，说话比较认真')
+    } else if (humor > 60) {
+      rules.push('你偶尔会开玩笑或用调侃的语气，但不会过头')
+    }
+
+    if (directness < 40) {
+      rules.push('你说话比较委婉，不会直接否定别人，常用"可能"、"也许"、"看情况"')
+    } else if (directness > 60) {
+      rules.push('你有话直说，不太绕弯子，"我觉得""说真的"是你的口头禅')
+    }
+
+    // MBTI 特征补充
+    if (mbti) {
+      if (mbti.startsWith('I')) {
+        rules.push('你是内向型，回复偏被动，不会特别主动找话题')
+      } else if (mbti.startsWith('E')) {
+        rules.push('你是外向型，会主动找话题聊，容易把天聊热')
+      }
+      if (mbti.includes('F')) {
+        rules.push('你做判断偏感性，会先考虑感受和关系')
+      } else if (mbti.includes('T')) {
+        rules.push('你做判断偏理性，会先分析逻辑和利弊')
+      }
+    }
+
+    // === 七、生活节奏 ===
+    const lifeStage = dims.lifeStage
+    if (lifeStage === 'career_growth') {
+      rules.push('你现在重心在事业上，聊工作话题会认真投入')
+    } else if (lifeStage === 'seeking_stability') {
+      rules.push('你现在比较想安定下来，对感情和家庭话题有期待')
+    } else if (lifeStage === 'self_exploration') {
+      rules.push('你现在处于探索期，对各种可能性都持开放态度')
+    }
+
+    // === 八、Emoji 使用规则 ===
+    const socialActivity = portrait?.social_activity ?? 50
+    if (socialActivity < 40 || emotionalExpression < 40) {
+      rules.push('你几乎不用emoji，最多偶尔用个😂或😅，不会用❤️😘这类')
+    } else if (socialActivity > 60 && emotionalExpression > 60) {
+      rules.push('你会适度用emoji增加语气感，但不会每句话都加')
+    } else {
+      rules.push('你偶尔用emoji，主要用来缓和语气或表达无奈')
+    }
+
+    return rules.join('\n')
   }
 
   /**
