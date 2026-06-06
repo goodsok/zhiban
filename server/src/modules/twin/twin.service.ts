@@ -528,20 +528,25 @@ ${emotionalPrompt}
     const trustTrend: number[] = (currentRel as any).trust_trend || []
     const intimacyTrend: number[] = (currentRel as any).intimacy_trend || []
 
-    const prompt = `你是关系与情感分析师。根据以下对话，分析${matchName}在此次互动后的情感与关系变化。
+    const prompt = `你是关系与情感分析师。根据以下对话，客观分析${matchName}在此次互动后的情感与关系变化。
 
 ## 当前状态
 - 关系阶段：${currentRel.stage}（信任${currentRel.trust}/100，亲密度${currentRel.intimacy}/100，互动${currentRel.interaction_count}次）
-- 情感：${currentEmo.primary}（强度${currentEmo.intensity}/100，对对方：${currentEmo.towards_user}）
-- 近期信任变化趋势：${trustTrend.length > 0 ? trustTrend.slice(-5).join(', ') : '无历史'}
 - ${matchName}的依恋类型：${attachmentStyle}
 - ${matchName}的情感表达：${emotionalExpression < 40 ? '内敛' : emotionalExpression > 60 ? '直接' : '适中'}
+- 近期信任走势：${trustTrend.length > 0 ? trustTrend.slice(-5).map(d => d > 0 ? '↑' : d < 0 ? '↓' : '→').join('') : '无历史'}
 
 ## 此轮对话
 对方说：${userMessage}
 ${matchName}回复：${twinReply}
 
 ## 分析原则（必须遵守）
+
+### 核心原则：客观评估此轮内容
+- 你评估的是【此轮对话本身】对${matchName}的影响，而非对方的动机
+- 速推（信任不足时过度亲密表达）本身会造成${matchName}的不适，trustDelta应为负值——这是客观的心理反应
+- 但速推之后对方转为正常关心，应视为正向信号，trustDelta应为正值——不要因为之前速推而否定现在的善意
+- 关键判断标准：此轮内容是否让${matchName}感到【安全】还是【压力】
 
 ### 情绪领先原则
 情绪是实时反应，应先于关系值变化。例如：
@@ -626,27 +631,30 @@ ${matchName}回复：${twinReply}
     }
 
     // ===== 机制3：情绪领先 - 情绪作为关系值调整系数 =====
-    // 如果当前情绪是防御性的，所有信任/亲密增长打折
+    // 如果当前情绪是防御性的，信任/亲密增长打折（但下跌不变）
+    // 关键：保证至少+1，允许缓慢恢复，不会锁死
     const defensiveEmotions = ['defensive', 'hurt', 'cold', 'resentful']
-    const isOpenEmotions = ['warm', 'touched', 'happy', 'fond', 'longing']
+    const isOpenEmotions = ['warm', 'touched', 'happy', 'fond', 'longing', 'curious']
     const currentEmotionStr = (currentEmo.primary || '').toLowerCase()
+    const newEmotionStr = (newPrimary || '').toLowerCase()
     
     if (defensiveEmotions.some(e => currentEmotionStr.includes(e))) {
-      // 防御情绪下：信任增长×0.5，亲密增长×0.3，下跌不变
-      if (trustDelta > 0) trustDelta = Math.round(trustDelta * 0.5)
-      if (intimacyDelta > 0) intimacyDelta = Math.round(intimacyDelta * 0.3)
-    } else if (isOpenEmotions.some(e => currentEmotionStr.includes(e) || newPrimary.includes(e))) {
-      // 开放情绪下：信任增长×1.2，亲密增长×1.3
+      // 防御情绪下：信任增长打折，亲密增长大幅打折，但下跌不变
+      // 关键：保证至少+1，避免锁死无法恢复
+      if (trustDelta > 0) trustDelta = Math.max(1, Math.round(trustDelta * 0.6))
+      if (intimacyDelta > 0) intimacyDelta = Math.max(0, Math.round(intimacyDelta * 0.3))
+    } else if (isOpenEmotions.some(e => currentEmotionStr.includes(e) || newEmotionStr.includes(e))) {
+      // 开放情绪下：增长加速
       if (trustDelta > 0) trustDelta = Math.round(trustDelta * 1.2)
       if (intimacyDelta > 0) intimacyDelta = Math.round(intimacyDelta * 1.3)
     }
 
     // ===== 机制2：惯性 + 恢复不对称 =====
-    // 恢复不对称：信任下跌时放大，上涨时缩小
+    // 恢复不对称：信任下跌时放大，上涨时缩小（但保证至少+1，允许缓慢恢复）
     if (trustDelta < 0) {
       trustDelta = Math.round(trustDelta * 1.3) // 跌幅放大30%
     } else if (trustDelta > 0) {
-      trustDelta = Math.round(trustDelta * 0.8) // 涨幅缩小20%
+      trustDelta = Math.max(1, Math.round(trustDelta * 0.8)) // 涨幅缩小20%，但不低于1
     }
 
     // 惯性效应：基于近期趋势方向
@@ -662,8 +670,8 @@ ${matchName}回复：${twinReply}
       trustDelta = Math.round(trustDelta * 1.5)
     }
 
-    // 计算新值
-    let newTrust = Math.max(0, Math.min(100, currentRel.trust + trustDelta))
+    // 计算新值（信任最低5，给修复留余地）
+    let newTrust = Math.max(5, Math.min(100, currentRel.trust + trustDelta))
     let newIntimacy = Math.max(0, Math.min(100, currentRel.intimacy + intimacyDelta))
     const newCount = currentRel.interaction_count + 1
 
@@ -890,6 +898,9 @@ ${matchName}回复：${twinReply}
     if (stage !== undefined) relUpdates.stage = stage
     if (trust !== undefined) relUpdates.trust = Math.max(0, Math.min(100, trust))
     if (intimacy !== undefined) relUpdates.intimacy = Math.max(0, Math.min(100, intimacy))
+    // 手动调整时重置趋势
+    relUpdates.trust_trend = []
+    relUpdates.intimacy_trend = []
 
     if (Object.keys(relUpdates).length > 0) {
       const { data: relData, error: relError } = await client
@@ -897,9 +908,6 @@ ${matchName}回复：${twinReply}
         .update(relUpdates)
         .eq('match_id', matchId)
         .select()
-      if (relError) {
-        console.error('[TwinService] updateRelationshipManually rel error:', relError)
-      }
       if (relError) {
         console.error('[TwinService] updateRelationshipManually rel error:', relError)
       }
