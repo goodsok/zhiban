@@ -48,7 +48,8 @@ import {
   Search,
   BookOpen,
   Gamepad2,
-  Theater
+  Theater,
+  Ghost
 } from 'lucide-react-taro'
 
 // 关系类型
@@ -114,6 +115,7 @@ interface MatchDetail {
   id: number
   name: string
   gender: string
+  occupation?: string
   relationshipType: RelationshipType
   notes: string
   status: string
@@ -487,10 +489,23 @@ const DetailPage: FC = () => {
 
       {/* 快捷操作：网格布局 */}
       <View className="px-4 pb-4">
-        <View className="grid grid-cols-4 gap-3">
+        <View className="grid grid-cols-5 gap-2">
+          {/* 数字孪生体 */}
+          <View 
+            className="flex flex-col items-center justify-center p-2 bg-white rounded-xl"
+            onClick={() => {
+              const tags = [detail.gender, detail.occupation].filter(Boolean).join(' · ')
+              navigateTo({ url: `/pages/twin-chat/index?matchId=${detail.id}&matchName=${encodeURIComponent(detail.name)}&matchTags=${encodeURIComponent(tags)}` })
+            }}
+          >
+            <View className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-1">
+              <Ghost size={20} color="#4ECB71" />
+            </View>
+            <Text className="block text-xs text-gray-700">孪生体</Text>
+          </View>
           {/* 记录互动 */}
           <View 
-            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl"
+            className="flex flex-col items-center justify-center p-2 bg-white rounded-xl"
             onClick={() => navigateTo({ url: `/pages/interaction-create/index?matchId=${detail.id}` })}
           >
             <View className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-1">
@@ -501,7 +516,7 @@ const DetailPage: FC = () => {
           
           {/* 互动任务 */}
           <View 
-            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl"
+            className="flex flex-col items-center justify-center p-2 bg-white rounded-xl"
             onClick={goToTasks}
           >
             <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1">
@@ -517,7 +532,7 @@ const DetailPage: FC = () => {
           
           {/* 人物画像 */}
           <View 
-            className="flex flex-col items-center justify-center p-3 bg-white rounded-xl"
+            className="flex flex-col items-center justify-center p-2 bg-white rounded-xl"
             onClick={goToPortrait}
           >
             <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1">
@@ -529,7 +544,7 @@ const DetailPage: FC = () => {
           {/* 周期追踪 */}
           {cycleInfo ? (
             <View 
-              className="flex flex-col items-center justify-center p-3 bg-white rounded-xl"
+              className="flex flex-col items-center justify-center p-2 bg-white rounded-xl"
               onClick={() => navigateTo({ url: `/pages/cycle/index?matchId=${detail.id}` })}
             >
               <View className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center mb-1">
@@ -540,7 +555,7 @@ const DetailPage: FC = () => {
             </View>
           ) : (
             <View 
-              className="flex flex-col items-center justify-center p-3 bg-white rounded-xl"
+              className="flex flex-col items-center justify-center p-2 bg-white rounded-xl"
               onClick={() => navigateTo({ url: `/pages/cycle/index?matchId=${detail.id}` })}
             >
               <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1">

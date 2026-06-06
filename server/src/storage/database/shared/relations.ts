@@ -24,17 +24,9 @@ export const speedPlansRelations = relations(speedPlans, ({one, many}) => ({
 	speedPlanMessages_planId: many(speedPlanMessages, {
 		relationName: "speedPlanMessages_planId_speedPlans_id"
 	}),
-	speedPlanMessages_planId: many(speedPlanMessages, {
-		relationName: "speedPlanMessages_planId_speedPlans_id"
-	}),
 }));
 
 export const speedPlanMessagesRelations = relations(speedPlanMessages, ({one}) => ({
-	speedPlan_planId: one(speedPlans, {
-		fields: [speedPlanMessages.planId],
-		references: [speedPlans.id],
-		relationName: "speedPlanMessages_planId_speedPlans_id"
-	}),
 	speedPlan_planId: one(speedPlans, {
 		fields: [speedPlanMessages.planId],
 		references: [speedPlans.id],

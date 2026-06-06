@@ -9,6 +9,20 @@ export class ChatRecordController {
   constructor(private readonly chatRecordService: ChatRecordService) {}
 
   /**
+   * 同步分析聊天内容（不入库，返回推断的话题/心情/摘要/时长）
+   * POST /api/chat-record/match/:matchId/analyze
+   */
+  @Post('match/:matchId/analyze')
+  @HttpCode(200)
+  async analyzeContent(
+    @Param('matchId') matchId: string,
+    @Body() body: { rawContent: string },
+    @Req() req: Request,
+  ) {
+    return this.chatRecordService.analyzeContent(body.rawContent, req)
+  }
+
+  /**
    * 创建聊天记录（文本粘贴）
    * POST /api/chat-record/match/:matchId/text
    */

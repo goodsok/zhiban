@@ -49,6 +49,7 @@ export default defineAppConfig({
     'pages/chat-review/index',
     'pages/date-plan/index',
     'pages/sweet-talk/index',
+    'pages/twin-chat/index',
   ],
   window: {
     backgroundTextStyle: 'light',

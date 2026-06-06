@@ -255,6 +255,124 @@ export class ChatRecordService {
     return { code: 200, data: null, message: 'success' }
   }
 
+  // 心情映射：sentiment → mood
+  private static SENTIMENT_MOOD_MAP: Record<string, string> = {
+    positive: 'good',
+    neutral: 'neutral',
+    mixed: 'neutral',
+    negative: 'bad',
+  }
+
+  // 话题 → 活动标签映射
+  private static TOPIC_ACTIVITY_MAP: Record<string, string[]> = {
+    '日常闲聊': ['日常闲聊'],
+    '暧昧': ['暧昧调情'],
+    '调情': ['暧昧调情'],
+    '倾诉': ['倾诉心事'],
+    '心事': ['倾诉心事'],
+    '趣事': ['分享趣事'],
+    '计划': ['讨论计划'],
+    '往事': ['回忆往事'],
+    '梦想': ['聊梦想'],
+    '烦恼': ['聊烦恼'],
+    '童年': ['聊童年'],
+    '未来': ['聊未来'],
+    '约饭': ['日常闲聊'],
+    '约': ['讨论计划'],
+    '工作': ['日常闲聊'],
+    '感情': ['谈心'],
+    '吃': ['日常闲聊'],
+    '玩': ['日常闲聊'],
+  }
+
+  /**
+   * 同步分析聊天内容（不入库，仅供预览）
+   */
+  async analyzeContent(rawContent: string, req: Request) {
+    if (!rawContent?.trim()) {
+      return { code: 400, data: null, message: '聊天内容不能为空' }
+    }
+
+    try {
+      const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
+      const config = new Config()
+      const client = new LLMClient(config, customHeaders)
+
+      const prompt = `你是一个聊天记录分析专家。请分析以下聊天记录，并按 JSON 格式返回分析结果。
+
+聊天记录：
+${rawContent.slice(0, 3000)}
+
+请严格按以下 JSON 格式返回（不要其他文字）：
+{
+  "parsedMessages": [
+    { "sender": "发送者名称", "content": "消息内容", "timestamp": "时间（如有）" }
+  ],
+  "summary": "50字以内的聊天摘要",
+  "keyTopics": ["话题1", "话题2"],
+  "sentiment": "positive | neutral | mixed | negative",
+  "messageCount": 消息总条数,
+  "inferredMood": "excellent | good | neutral | awkward | bad",
+  "inferredActivities": ["活动标签1", "活动标签2"],
+  "inferredDurationMinutes": 推断的聊天时长分钟数（如无法判断则为null）,
+  "interestSignals": ["对方表现出的兴趣信号，如主动分享、快速回复等"]
+}`
+
+      const response = await client.invoke([
+        { role: 'user', content: prompt }
+      ], { temperature: 0.1 })
+
+      console.log('Analyze chat content LLM response:', response.content?.slice(0, 200))
+
+      // 解析 JSON
+      const jsonMatch = response.content.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        return { code: 500, data: null, message: 'AI 分析结果解析失败' }
+      }
+
+      const analysis = JSON.parse(jsonMatch[0])
+
+      // 映射活动标签：AI 推断 + 话题关键词匹配
+      const mappedActivities = new Set<string>()
+      if (analysis.inferredActivities?.length) {
+        analysis.inferredActivities.forEach((a: string) => mappedActivities.add(a))
+      }
+      if (analysis.keyTopics?.length) {
+        for (const topic of analysis.keyTopics) {
+          for (const [keyword, tags] of Object.entries(ChatRecordService.TOPIC_ACTIVITY_MAP)) {
+            if (topic.includes(keyword)) {
+              tags.forEach(t => mappedActivities.add(t))
+            }
+          }
+        }
+      }
+
+      // 映射心情：AI 推断优先，否则从 sentiment 映射
+      const inferredMood = analysis.inferredMood
+        || ChatRecordService.SENTIMENT_MOOD_MAP[analysis.sentiment]
+        || 'neutral'
+
+      return {
+        code: 200,
+        data: {
+          parsedMessages: analysis.parsedMessages || [],
+          summary: analysis.summary || '',
+          keyTopics: analysis.keyTopics || [],
+          sentiment: analysis.sentiment || 'neutral',
+          messageCount: analysis.messageCount || 0,
+          inferredMood,
+          inferredActivities: Array.from(mappedActivities).slice(0, 5),
+          inferredDurationMinutes: analysis.inferredDurationMinutes || null,
+          interestSignals: analysis.interestSignals || [],
+        },
+        message: 'success',
+      }
+    } catch (error) {
+      console.error('Analyze chat content error:', error)
+      return { code: 500, data: null, message: 'AI 分析失败，请稍后重试' }
+    }
+  }
+
   /**
    * AI 分析聊天内容：解析消息、生成摘要、提取话题、判断情感
    */

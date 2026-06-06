@@ -628,8 +628,8 @@ export const interactionProfileCache = pgTable("interaction_profile_cache", {
 export const datingOpenerHistory = pgTable("dating_opener_history", {
 	id: serial().primaryKey().notNull(),
 	platform: varchar({ length: 50 }).default('tantan'),
-	targetProfile: text("target_profile").default('),
-	selfProfile: text("self_profile").default('),
+	targetProfile: text("target_profile").default(''),
+		selfProfile: text("self_profile").default(''),
 	result: jsonb(),
 	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 });
