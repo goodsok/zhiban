@@ -787,10 +787,11 @@ export const twinChatHistory = pgTable("twin_chat_history", {
 export const twinRelationship = pgTable("twin_relationship", {
 	id: serial().primaryKey().notNull(),
 	matchId: integer("match_id").notNull(),
-	stage: varchar({ length: 32 }).notNull().default('stranger'), // stranger, acquaintance, friend, close, intimate, partner
-	trust: integer().notNull().default(30), // 0-100
-	intimacy: integer().notNull().default(0), // 0-100
-	interactionCount: integer("interaction_count").notNull().default(0),
+	safety: integer().notNull().default(30), // 安全感 0-100：靠近时有多安心
+	desire: integer().notNull().default(0), // 渴望度 0-100：有多想让你走近
+	closeness: integer().notNull().default(0), // 亲密度 0-100：实际上有多近
+	safetyTrend: integer("safety_trend").array().default([]),
+	desireTrend: integer("desire_trend").array().default([]),
 	lastInteractionAt: timestamp("last_interaction_at", { withTimezone: true, mode: 'string' }),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
@@ -805,10 +806,10 @@ export const twinRelationship = pgTable("twin_relationship", {
 export const twinEmotionalState = pgTable("twin_emotional_state", {
 	id: serial().primaryKey().notNull(),
 	matchId: integer("match_id").notNull(),
-	primary: varchar({ length: 32 }).notNull().default('neutral'), // neutral, warm, happy, touched, anxious, defensive, hurt, cold, playful
-	intensity: integer().notNull().default(50), // 0-100
-	towardsUser: varchar("towards_user", { length: 32 }).notNull().default('neutral'), // neutral, curious, fond, attached, guarded, resentful, longing
-	reason: text(),
+	emotion: varchar({ length: 30 }).notNull().default('neutral'), // 即时情绪（快变）
+	emotionIntensity: integer("emotion_intensity").notNull().default(50), // 情绪强度 0-100
+	attitudeAnchor: varchar("attitude_anchor", { length: 30 }).notNull().default('neutral'), // 态度锚点（慢变）
+	tension: integer().notNull().default(0), // 关系张力 = |desire - closeness|
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
 }, (table) => [
 	index("twin_emotional_state_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),

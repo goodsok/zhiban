@@ -1,8 +1,8 @@
 import Taro from '@tarojs/taro'
 import { View, Text, ScrollView } from '@tarojs/components'
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Network } from '@/network'
-import { ArrowLeft, Send, Ghost, Trash2, Heart, Shield, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react-taro'
+import { ArrowLeft, Send, Ghost, Trash2, Shield, Flame, Handshake, SlidersHorizontal, ChevronDown, ChevronUp, Zap } from 'lucide-react-taro'
 import { Input } from '@/components/ui/input'
 import {
   AlertDialog,
@@ -23,95 +23,72 @@ interface TwinMessage {
   createdAt?: string
 }
 
-// 关系状态
+// 距离-渴望模型：关系状态
 interface RelationshipState {
+  safety: number
+  desire: number
+  closeness: number
   stage: string
-  trust: number
-  intimacy: number
-  interaction_count: number
+  tension: number
+  attitudeAnchor: string
+  safetyTrend: number[]
+  desireTrend: number[]
 }
 
-// 情感状态
-interface EmotionalState {
-  primary: string
-  intensity: number
-  towards_user: string
-  reason: string | null
+// 情绪状态
+interface EmotionalStateRecord {
+  emotion: string
+  emotionIntensity: number
+  attitudeAnchor: string
+  tension: number
 }
 
 // 关系阶段中文映射
 const STAGE_LABELS: Record<string, string> = {
   stranger: '陌生人',
-  acquaintance: '认识的人',
-  friend: '朋友',
-  close: '好朋友',
-  intimate: '暧昧中',
-  partner: '在一起',
+  acquaintance: '点头之交',
+  familiar: '熟悉的朋友',
+  close: '亲密好友',
+  intimate: '恋人般亲密',
 }
 
-// 关系阶段列表（用于选择器）
-const STAGE_OPTIONS = [
-  { value: 'stranger', label: '陌生人' },
-  { value: 'acquaintance', label: '认识的人' },
-  { value: 'friend', label: '朋友' },
-  { value: 'close', label: '好朋友' },
-  { value: 'intimate', label: '暧昧中' },
-  { value: 'partner', label: '在一起' },
-]
+// 态度锚点中文映射
+const ANCHOR_LABELS: Record<string, string> = {
+  cold: '冷淡疏远',
+  guarded: '警惕防备',
+  neutral: '不冷不热',
+  curious: '有点好奇',
+  longing: '渴望靠近但不敢',
+  fond: '有好感',
+  attached: '深深依恋',
+}
 
-// 情感状态中文映射+颜色
+// 情绪中文映射+颜色
 const EMOTION_CONFIG: Record<string, { label: string; color: string }> = {
   neutral: { label: '平静', color: '#71767B' },
   warm: { label: '温暖', color: '#F59E0B' },
   happy: { label: '开心', color: '#4ECB71' },
   touched: { label: '感动', color: '#EC4899' },
-  anxious: { label: '不安', color: '#EF4444' },
-  defensive: { label: '防备', color: '#8B5CF6' },
+  anxious: { label: '焦虑', color: '#EF4444' },
+  defensive: { label: '防御', color: '#8B5CF6' },
   hurt: { label: '受伤', color: '#DC2626' },
   cold: { label: '冷淡', color: '#6B7280' },
+  guarded: { label: '警惕', color: '#8B5CF6' },
   playful: { label: '调皮', color: '#10B981' },
   longing: { label: '想念', color: '#F472B6' },
-  slight_hurt: { label: '微微受伤', color: '#F97316' },
-  embarrassed: { label: '害羞', color: '#FBBF24' },
+  fond: { label: '有好感', color: '#F59E0B' },
+  attached: { label: '依恋', color: '#EC4899' },
+  content: { label: '满足', color: '#4ECB71' },
+  excited: { label: '兴奋', color: '#F97316' },
+  confused: { label: '困惑', color: '#8B5CF6' },
+  annoyed: { label: '烦躁', color: '#EF4444' },
 }
 
-// 情感选项列表
-const EMOTION_OPTIONS = [
-  { value: 'neutral', label: '平静' },
-  { value: 'warm', label: '温暖' },
-  { value: 'happy', label: '开心' },
-  { value: 'touched', label: '感动' },
-  { value: 'playful', label: '调皮' },
-  { value: 'longing', label: '想念' },
-  { value: 'anxious', label: '不安' },
-  { value: 'defensive', label: '防备' },
-  { value: 'hurt', label: '受伤' },
-  { value: 'cold', label: '冷淡' },
-  { value: 'slight_hurt', label: '微微受伤' },
-  { value: 'embarrassed', label: '害羞' },
-]
+// 情绪选项（调整面板用）
+const EMOTION_OPTIONS = Object.entries(EMOTION_CONFIG).map(([value, { label }]) => ({ value, label }))
 
-// 对方态度中文映射
-const TOWARDS_LABELS: Record<string, string> = {
-  neutral: '中立',
-  curious: '好奇',
-  fond: '有好感',
-  attached: '依赖',
-  guarded: '防备',
-  resentful: '抗拒',
-  longing: '想念',
-}
-
-// 对方态度选项
-const TOWARDS_OPTIONS = [
-  { value: 'neutral', label: '中立' },
-  { value: 'curious', label: '好奇' },
-  { value: 'fond', label: '有好感' },
-  { value: 'attached', label: '依赖' },
-  { value: 'guarded', label: '防备' },
-  { value: 'resentful', label: '抗拒' },
-  { value: 'longing', label: '想念' },
-]
+// 态度锚点选项
+const ANCHOR_OPTIONS = Object.entries(ANCHOR_LABELS).map(([value, label]) => ({ value, label }))
 
 const TwinChatPage = () => {
   const router = Taro.useRouter()
@@ -126,17 +103,17 @@ const TwinChatPage = () => {
   const [showClearDialog, setShowClearDialog] = useState(false)
   const [scrollTop, setScrollTop] = useState(0)
   const [relationship, setRelationship] = useState<RelationshipState | null>(null)
-  const [emotionalState, setEmotionalState] = useState<EmotionalState | null>(null)
+  const [emotionalState, setEmotionalState] = useState<EmotionalStateRecord | null>(null)
   const [showStatusPanel, setShowStatusPanel] = useState(false)
   const [showAdjustPanel, setShowAdjustPanel] = useState(false)
 
   // 调整面板本地状态
-  const [adjustStage, setAdjustStage] = useState('')
-  const [adjustTrust, setAdjustTrust] = useState(30)
-  const [adjustIntimacy, setAdjustIntimacy] = useState(0)
+  const [adjustSafety, setAdjustSafety] = useState(30)
+  const [adjustDesire, setAdjustDesire] = useState(0)
+  const [adjustCloseness, setAdjustCloseness] = useState(0)
   const [adjustEmotion, setAdjustEmotion] = useState('neutral')
   const [adjustIntensity, setAdjustIntensity] = useState(50)
-  const [adjustTowards, setAdjustTowards] = useState('neutral')
+  const [adjustAnchor, setAdjustAnchor] = useState('neutral')
   const [saving, setSaving] = useState(false)
 
   // 获取状态栏高度
@@ -148,18 +125,18 @@ const TwinChatPage = () => {
   // 同步 relationship → adjust 面板
   useEffect(() => {
     if (relationship) {
-      setAdjustStage(relationship.stage)
-      setAdjustTrust(relationship.trust)
-      setAdjustIntimacy(relationship.intimacy)
+      setAdjustSafety(relationship.safety)
+      setAdjustDesire(relationship.desire)
+      setAdjustCloseness(relationship.closeness)
     }
   }, [relationship])
 
   // 同步 emotionalState → adjust 面板
   useEffect(() => {
     if (emotionalState) {
-      setAdjustEmotion(emotionalState.primary)
-      setAdjustIntensity(emotionalState.intensity)
-      setAdjustTowards(emotionalState.towards_user)
+      setAdjustEmotion(emotionalState.emotion)
+      setAdjustIntensity(emotionalState.emotionIntensity)
+      setAdjustAnchor(emotionalState.attitudeAnchor)
     }
   }, [emotionalState])
 
@@ -192,13 +169,8 @@ const TwinChatPage = () => {
         createdAt: m.created_at
       })))
 
-      // 恢复关系和情感状态
-      if (data?.relationship) {
-        setRelationship(data.relationship)
-      }
-      if (data?.emotionalState) {
-        setEmotionalState(data.emotionalState)
-      }
+      if (data?.relationship) setRelationship(data.relationship)
+      if (data?.emotionalState) setEmotionalState(data.emotionalState)
 
       // 主动消息
       if (data?.proactiveMessages && data.proactiveMessages.length > 0) {
@@ -244,13 +216,8 @@ const TwinChatPage = () => {
       const reply = data?.reply || '...'
       setMessages(prev => [...prev, { role: 'assistant', content: reply, createdAt: new Date().toISOString() }])
 
-      // 更新关系和情感状态
-      if (data?.relationship) {
-        setRelationship(data.relationship)
-      }
-      if (data?.emotionalState) {
-        setEmotionalState(data.emotionalState)
-      }
+      if (data?.relationship) setRelationship(data.relationship)
+      if (data?.emotionalState) setEmotionalState(data.emotionalState)
 
       // 主动消息
       if (data?.proactiveMessage) {
@@ -287,7 +254,7 @@ const TwinChatPage = () => {
     setShowClearDialog(false)
   }
 
-  // 保存手动调整的关系状态
+  // 保存手动调整
   const saveAdjustment = async () => {
     setSaving(true)
     try {
@@ -296,12 +263,12 @@ const TwinChatPage = () => {
         method: 'PATCH',
         data: {
           matchId,
-          stage: adjustStage,
-          trust: adjustTrust,
-          intimacy: adjustIntimacy,
-          emotionalPrimary: adjustEmotion,
-          emotionalIntensity: adjustIntensity,
-          emotionalTowardsUser: adjustTowards,
+          safety: adjustSafety,
+          desire: adjustDesire,
+          closeness: adjustCloseness,
+          emotion: adjustEmotion,
+          emotionIntensity: adjustIntensity,
+          attitudeAnchor: adjustAnchor,
         }
       })
       console.log('[TwinChat] saveAdjustment response:', res.data)
@@ -327,7 +294,6 @@ const TwinChatPage = () => {
     return `${d.getMonth() + 1}/${d.getDate()} ${timeStr}`
   }
 
-  // 是否需要显示时间戳
   const shouldShowTime = (index: number) => {
     if (index === 0) return true
     const prev = messages[index - 1]
@@ -337,25 +303,63 @@ const TwinChatPage = () => {
     return diff > 5 * 60 * 1000
   }
 
-  // 获取情感状态颜色
   const getEmotionColor = () => {
     if (!emotionalState) return '#71767B'
-    return EMOTION_CONFIG[emotionalState.primary]?.color || '#71767B'
+    return EMOTION_CONFIG[emotionalState.emotion]?.color || '#71767B'
   }
 
-  // 获取情感状态标签
   const getEmotionLabel = () => {
     if (!emotionalState) return '平静'
-    return EMOTION_CONFIG[emotionalState.primary]?.label || '平静'
+    return EMOTION_CONFIG[emotionalState.emotion]?.label || '平静'
   }
 
-  // 获取关系阶段标签
   const getStageLabel = () => {
     if (!relationship) return '陌生人'
     return STAGE_LABELS[relationship.stage] || '陌生人'
   }
 
-  // 选择器按钮组
+  // 状态条：渐变色+数值
+  const renderStateBar = (icon: React.ReactNode, label: string, value: number, color: string, maxVal: number = 100) => (
+    <View style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '6px' }}>
+          {icon}
+          <Text style={{ color: '#71767B', fontSize: '11px' }}>{label}</Text>
+        </View>
+        <Text style={{ color, fontSize: '11px', fontWeight: '600' }}>{value}/{maxVal}</Text>
+      </View>
+      <View style={{ height: '4px', backgroundColor: '#202327', borderRadius: '2px' }}>
+        <View style={{ width: `${Math.min(100, (value / maxVal) * 100)}%`, height: '4px', backgroundColor: color, borderRadius: '2px' }} />
+      </View>
+    </View>
+  )
+
+  // 滑条
+  const renderSlider = (label: string, value: number, onChange: (v: number) => void, color: string = '#4ECB71') => (
+    <View style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Text style={{ color: '#71767B', fontSize: '12px' }}>{label}</Text>
+        <Text style={{ color, fontSize: '12px', fontWeight: '600' }}>{value}</Text>
+      </View>
+      <View style={{ position: 'relative', height: '20px', display: 'flex', alignItems: 'center' }}>
+        <View style={{ width: '100%', height: '4px', backgroundColor: '#202327', borderRadius: '2px' }}>
+          <View style={{ width: `${value}%`, height: '4px', backgroundColor: color, borderRadius: '2px' }} />
+        </View>
+        <View style={{ position: 'absolute', left: 0, right: 0, height: '20px', display: 'flex', flexDirection: 'row' }}>
+          {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(v => (
+            <View key={v} style={{ flex: 1, height: '20px' }} onClick={() => onChange(v)} />
+          ))}
+        </View>
+      </View>
+      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Text style={{ color: '#52525B', fontSize: '10px' }}>0</Text>
+        <Text style={{ color: '#52525B', fontSize: '10px' }}>50</Text>
+        <Text style={{ color: '#52525B', fontSize: '10px' }}>100</Text>
+      </View>
+    </View>
+  )
+
+  // 选择器
   const renderSelector = (options: { value: string; label: string }[], current: string, onChange: (v: string) => void) => (
     <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '6px' }}>
       {options.map(opt => (
@@ -375,37 +379,6 @@ const TwinChatPage = () => {
     </View>
   )
 
-  // 滑条
-  const renderSlider = (label: string, value: number, onChange: (v: number) => void, color: string = '#4ECB71') => (
-    <View style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ color: '#71767B', fontSize: '12px' }}>{label}</Text>
-        <Text style={{ color: color, fontSize: '12px', fontWeight: '600' }}>{value}</Text>
-      </View>
-      <View style={{ position: 'relative', height: '20px', display: 'flex', alignItems: 'center' }}>
-        <View style={{ width: '100%', height: '4px', backgroundColor: '#202327', borderRadius: '2px' }}>
-          <View style={{ width: `${value}%`, height: '4px', backgroundColor: color, borderRadius: '2px' }} />
-        </View>
-        {/* 滑块点击区域 */}
-        <View style={{ position: 'absolute', left: 0, right: 0, height: '20px', display: 'flex', flexDirection: 'row' }}>
-          {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(v => (
-            <View
-              key={v}
-              style={{ flex: 1, height: '20px' }}
-              onClick={() => onChange(v)}
-            />
-          ))}
-        </View>
-      </View>
-      {/* 快捷值 */}
-      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={{ color: '#52525B', fontSize: '10px' }}>0</Text>
-        <Text style={{ color: '#52525B', fontSize: '10px' }}>50</Text>
-        <Text style={{ color: '#52525B', fontSize: '10px' }}>100</Text>
-      </View>
-    </View>
-  )
-
   return (
     <View style={{ backgroundColor: '#0F1419', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* 顶栏 */}
@@ -416,9 +389,7 @@ const TwinChatPage = () => {
           borderBottom: '1px solid rgba(255,255,255,0.06)'
         }}
       >
-        <View
-          style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', height: '44px', padding: '0 12px' }}
-        >
+        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', height: '44px', padding: '0 12px' }}>
           <View onClick={() => Taro.navigateBack()} style={{ padding: '8px' }}>
             <ArrowLeft size={20} color="#E7E9EA" />
           </View>
@@ -439,7 +410,7 @@ const TwinChatPage = () => {
           </View>
         </View>
 
-        {/* 关系&情感面板（可展开 - 只读展示） */}
+        {/* 状态面板 */}
         {showStatusPanel && relationship && (
           <View
             style={{
@@ -452,74 +423,63 @@ const TwinChatPage = () => {
               gap: '10px',
             }}
           >
-            {/* 关系阶段 */}
+            {/* 关系阶段 + 张力 */}
             <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ color: '#E7E9EA', fontSize: '13px', fontWeight: '500' }}>
+                {getStageLabel()}
+              </Text>
               <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
-                <Heart size={14} color="#4ECB71" />
-                <Text style={{ color: '#E7E9EA', fontSize: '13px', fontWeight: '500' }}>关系：{getStageLabel()}</Text>
-              </View>
-              {/* 调整按钮 */}
-              <View
-                onClick={() => setShowAdjustPanel(!showAdjustPanel)}
-                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px', padding: '4px 8px', backgroundColor: '#202327', borderRadius: '8px' }}
-              >
-                <SlidersHorizontal size={12} color="#4ECB71" />
-                <Text style={{ color: '#4ECB71', fontSize: '11px' }}>调整</Text>
-                {showAdjustPanel ? <ChevronUp size={12} color="#4ECB71" /> : <ChevronDown size={12} color="#4ECB71" />}
+                {relationship.tension > 30 && (
+                  <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '3px' }}>
+                    <Zap size={12} color="#F59E0B" />
+                    <Text style={{ color: '#F59E0B', fontSize: '10px' }}>张力{relationship.tension}</Text>
+                  </View>
+                )}
+                <View
+                  onClick={() => setShowAdjustPanel(!showAdjustPanel)}
+                  style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px', padding: '4px 8px', backgroundColor: '#202327', borderRadius: '8px' }}
+                >
+                  <SlidersHorizontal size={12} color="#4ECB71" />
+                  <Text style={{ color: '#4ECB71', fontSize: '11px' }}>调整</Text>
+                  {showAdjustPanel ? <ChevronUp size={12} color="#4ECB71" /> : <ChevronDown size={12} color="#4ECB71" />}
+                </View>
               </View>
             </View>
 
-            {/* 信任值 */}
-            <View style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ color: '#71767B', fontSize: '11px' }}>信任</Text>
-                <Text style={{ color: '#71767B', fontSize: '11px' }}>{relationship.trust}/100</Text>
-              </View>
-              <View style={{ height: '4px', backgroundColor: '#202327', borderRadius: '2px' }}>
-                <View style={{ width: `${relationship.trust}%`, height: '4px', backgroundColor: '#4ECB71', borderRadius: '2px' }} />
-              </View>
-            </View>
+            {/* 安全感 */}
+            {renderStateBar(<Shield size={12} color="#4ECB71" />, '安全感', relationship.safety, '#4ECB71')}
+
+            {/* 渴望度 */}
+            {renderStateBar(<Flame size={12} color="#F97316" />, '渴望度', relationship.desire, '#F97316')}
 
             {/* 亲密度 */}
-            <View style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ color: '#71767B', fontSize: '11px' }}>亲密</Text>
-                <Text style={{ color: '#71767B', fontSize: '11px' }}>{relationship.intimacy}/100</Text>
-              </View>
-              <View style={{ height: '4px', backgroundColor: '#202327', borderRadius: '2px' }}>
-                <View style={{ width: `${relationship.intimacy}%`, height: '4px', backgroundColor: '#F472B6', borderRadius: '2px' }} />
-              </View>
-            </View>
+            {renderStateBar(<Handshake size={12} color="#F472B6" />, '亲密度', relationship.closeness, '#F472B6')}
 
-            {/* 情感状态 */}
+            {/* 态度锚点 */}
             {emotionalState && (
-              <View style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
-                  <Shield size={14} color={getEmotionColor()} />
-                  <Text style={{ color: '#E7E9EA', fontSize: '13px', fontWeight: '500' }}>
-                    情绪：{getEmotionLabel()}
-                  </Text>
-                  <Text style={{ color: '#71767B', fontSize: '11px' }}>
-                    强度 {emotionalState.intensity}%
-                  </Text>
-                </View>
-                {emotionalState.towards_user && emotionalState.towards_user !== 'neutral' && (
-                  <Text style={{ color: '#71767B', fontSize: '11px', paddingLeft: '22px' }}>
-                    对你：{TOWARDS_LABELS[emotionalState.towards_user] || emotionalState.towards_user}
-                  </Text>
-                )}
-                {emotionalState.reason && (
-                  <Text style={{ color: '#52525B', fontSize: '11px', paddingLeft: '22px' }}>
-                    {emotionalState.reason}
-                  </Text>
-                )}
+              <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '6px' }}>
+                <Text style={{ color: '#71767B', fontSize: '11px' }}>态度：</Text>
+                <Text style={{ color: '#E7E9EA', fontSize: '11px' }}>
+                  {ANCHOR_LABELS[emotionalState.attitudeAnchor] || emotionalState.attitudeAnchor}
+                </Text>
+                <Text style={{ color: '#52525B', fontSize: '11px' }}>|</Text>
+                <Text style={{ color: '#71767B', fontSize: '11px' }}>情绪：</Text>
+                <Text style={{ color: getEmotionColor(), fontSize: '11px' }}>
+                  {getEmotionLabel()} {emotionalState.emotionIntensity}%
+                </Text>
               </View>
             )}
 
-            {/* 互动次数 */}
-            <Text style={{ color: '#52525B', fontSize: '10px' }}>
-              已互动 {relationship.interaction_count} 次
-            </Text>
+            {/* 张力说明 */}
+            {relationship.tension > 20 && (
+              <Text style={{ color: '#52525B', fontSize: '10px' }}>
+                {relationship.tension > 50
+                  ? '内心非常纠结，渴望和距离差距巨大'
+                  : relationship.desire > relationship.closeness
+                    ? '渴望靠近，但实际距离还不够近'
+                    : '距离比渴望更近，有些不自在'}
+              </Text>
+            )}
 
             {/* ===== 调整面板 ===== */}
             {showAdjustPanel && (
@@ -535,36 +495,24 @@ const TwinChatPage = () => {
                   borderTop: '1px solid rgba(255,255,255,0.06)',
                 }}
               >
-                <Text style={{ color: '#4ECB71', fontSize: '12px', fontWeight: '600' }}>调整关系和情感状态</Text>
+                <Text style={{ color: '#4ECB71', fontSize: '12px', fontWeight: '600' }}>调整关系状态</Text>
 
-                {/* 关系阶段选择 */}
+                {renderSlider('安全感', adjustSafety, setAdjustSafety, '#4ECB71')}
+                {renderSlider('渴望度', adjustDesire, setAdjustDesire, '#F97316')}
+                {renderSlider('亲密度', adjustCloseness, setAdjustCloseness, '#F472B6')}
+
                 <View style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <Text style={{ color: '#71767B', fontSize: '12px' }}>关系阶段</Text>
-                  {renderSelector(STAGE_OPTIONS, adjustStage, setAdjustStage)}
-                </View>
-
-                {/* 信任值 */}
-                {renderSlider('信任值', adjustTrust, setAdjustTrust, '#4ECB71')}
-
-                {/* 亲密度 */}
-                {renderSlider('亲密度', adjustIntimacy, setAdjustIntimacy, '#F472B6')}
-
-                {/* 情感状态选择 */}
-                <View style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <Text style={{ color: '#71767B', fontSize: '12px' }}>情感状态</Text>
+                  <Text style={{ color: '#71767B', fontSize: '12px' }}>情绪</Text>
                   {renderSelector(EMOTION_OPTIONS, adjustEmotion, setAdjustEmotion)}
                 </View>
 
-                {/* 情感强度 */}
-                {renderSlider('情感强度', adjustIntensity, setAdjustIntensity, EMOTION_CONFIG[adjustEmotion]?.color || '#71767B')}
+                {renderSlider('情绪强度', adjustIntensity, setAdjustIntensity, EMOTION_CONFIG[adjustEmotion]?.color || '#71767B')}
 
-                {/* 对你态度 */}
                 <View style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <Text style={{ color: '#71767B', fontSize: '12px' }}>对你的态度</Text>
-                  {renderSelector(TOWARDS_OPTIONS, adjustTowards, setAdjustTowards)}
+                  <Text style={{ color: '#71767B', fontSize: '12px' }}>态度锚点</Text>
+                  {renderSelector(ANCHOR_OPTIONS, adjustAnchor, setAdjustAnchor)}
                 </View>
 
-                {/* 保存按钮 */}
                 <View
                   onClick={saveAdjustment}
                   style={{
@@ -591,17 +539,11 @@ const TwinChatPage = () => {
       </View>
 
       {/* 消息区 */}
-      <ScrollView
-        scrollY
-        style={{ flex: 1, height: '0' }}
-        scrollTop={scrollTop}
-      >
+      <ScrollView scrollY style={{ flex: 1, height: '0' }} scrollTop={scrollTop}>
         <View style={{ padding: '16px', paddingBottom: '24px' }}>
           {/* 空状态引导 */}
           {messages.length === 0 && !historyLoading && (
-            <View
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '80px' }}
-            >
+            <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '80px' }}>
               <Ghost size={48} color="#4ECB71" />
               <Text
                 className="block text-center"
@@ -612,51 +554,29 @@ const TwinChatPage = () => {
             </View>
           )}
 
-          {/* 加载历史 */}
           {historyLoading && (
             <View style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
               <Text style={{ color: '#71767B', fontSize: '13px' }}>加载中...</Text>
             </View>
           )}
 
-          {/* 消息列表 */}
           {messages.map((msg, idx) => (
             <View key={msg.id || idx}>
-              {/* 时间戳 */}
               {shouldShowTime(idx) && msg.createdAt && (
                 <View style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 12px' }}>
                   <Text style={{ color: '#71767B', fontSize: '11px' }}>{formatTime(msg.createdAt)}</Text>
                 </View>
               )}
 
-              {/* 用户消息 */}
               {msg.role === 'user' ? (
-                <View
-                  style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginBottom: '8px' }}
-                >
-                  <View
-                    style={{
-                      maxWidth: '75%',
-                      backgroundColor: '#4ECB71',
-                      borderRadius: '16px 16px 4px 16px',
-                      padding: '10px 14px',
-                    }}
-                  >
+                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginBottom: '8px' }}>
+                  <View style={{ maxWidth: '75%', backgroundColor: '#4ECB71', borderRadius: '16px 16px 4px 16px', padding: '10px 14px' }}>
                     <Text style={{ color: '#FFFFFF', fontSize: '14px', lineHeight: '1.5' }}>{msg.content}</Text>
                   </View>
                 </View>
               ) : (
-                <View
-                  style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', marginBottom: '8px' }}
-                >
-                  <View
-                    style={{
-                      maxWidth: '75%',
-                      backgroundColor: '#1E2A3A',
-                      borderRadius: '16px 16px 16px 4px',
-                      padding: '10px 14px',
-                    }}
-                  >
+                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', marginBottom: '8px' }}>
+                  <View style={{ maxWidth: '75%', backgroundColor: '#1E2A3A', borderRadius: '16px 16px 16px 4px', padding: '10px 14px' }}>
                     <Text style={{ color: '#E7E9EA', fontSize: '14px', lineHeight: '1.5' }}>{msg.content}</Text>
                   </View>
                 </View>
@@ -664,22 +584,9 @@ const TwinChatPage = () => {
             </View>
           ))}
 
-          {/* 打字指示器 */}
           {loading && (
-            <View
-              style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', marginBottom: '8px' }}
-            >
-              <View
-                style={{
-                  backgroundColor: '#1E2A3A',
-                  borderRadius: '16px 16px 16px 4px',
-                  padding: '12px 18px',
-                  display: 'flex',
-                  flexDirection: 'row',
-                  gap: '4px',
-                  alignItems: 'center',
-                }}
-              >
+            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', marginBottom: '8px' }}>
+              <View style={{ backgroundColor: '#1E2A3A', borderRadius: '16px 16px 16px 4px', padding: '12px 18px', display: 'flex', flexDirection: 'row', gap: '4px', alignItems: 'center' }}>
                 <Text style={{ color: '#71767B', fontSize: '13px' }}>正在输入...</Text>
               </View>
             </View>
