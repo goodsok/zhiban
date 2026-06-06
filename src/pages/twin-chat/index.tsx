@@ -2,7 +2,7 @@ import Taro from '@tarojs/taro'
 import { View, Text, ScrollView } from '@tarojs/components'
 import React, { useState, useEffect, useCallback } from 'react'
 import { Network } from '@/network'
-import { ArrowLeft, Send, Ghost, Trash2, Shield, Flame, Handshake, SlidersHorizontal, ChevronDown, ChevronUp, Zap, Lightbulb, LightbulbOff } from 'lucide-react-taro'
+import { ArrowLeft, Send, Ghost, Trash2, Shield, Flame, Handshake, SlidersHorizontal, ChevronDown, ChevronUp, Zap, Lightbulb, LightbulbOff, Trophy, TriangleAlert } from 'lucide-react-taro'
 import { Input } from '@/components/ui/input'
 import {
   AlertDialog,
@@ -34,6 +34,8 @@ interface RelationshipState {
   attitudeAnchor: string
   safetyTrend: number[]
   desireTrend: number[]
+  totalRounds?: number
+  firstInteractionAt?: string
 }
 
 // 情绪状态
@@ -161,6 +163,8 @@ const TwinChatPage = () => {
   const [adjustIntensity, setAdjustIntensity] = useState(50)
   const [adjustAnchor, setAdjustAnchor] = useState('neutral')
   const [saving, setSaving] = useState(false)
+  const [newMilestones, setNewMilestones] = useState<Array<{ title: string; description?: string }>>([])
+  const [topicSensitivity, setTopicSensitivity] = useState<string | null>(null)
 
   // 获取状态栏高度
   useEffect(() => {
@@ -259,6 +263,8 @@ const TwinChatPage = () => {
     setInputValue('')
     setLoading(true)
     setLatestHint(null)
+    setNewMilestones([])
+    setTopicSensitivity(null)
 
     try {
       const res = await Network.request({
@@ -285,6 +291,8 @@ const TwinChatPage = () => {
       if (data?.relationship) setRelationship(data.relationship)
       if (data?.emotionalState) setEmotionalState(data.emotionalState)
       if (data?.hint) setLatestHint(data.hint)
+      if (data?.milestones && data.milestones.length > 0) setNewMilestones(data.milestones)
+      if (data?.topicSensitivity) setTopicSensitivity(data.topicSensitivity)
 
       // 主动消息
       if (data?.proactiveMessage) {
@@ -501,6 +509,9 @@ const TwinChatPage = () => {
                 {getStageLabel()}
               </Text>
               <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+                {(relationship.totalRounds ?? 0) > 0 && (
+                  <Text style={{ color: '#52525B', fontSize: '10px' }}>第{relationship.totalRounds}轮</Text>
+                )}
                 {relationship.tension > 30 && (
                   <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '3px' }}>
                     <Zap size={12} color="#F59E0B" />
@@ -728,6 +739,60 @@ const TwinChatPage = () => {
               </View>
             )
           })()}
+
+          {/* 里程碑通知 */}
+          {newMilestones.length > 0 && !loading && (
+            <View
+              style={{
+                margin: '8px 0',
+                padding: '10px 14px',
+                backgroundColor: 'rgba(250,204,21,0.08)',
+                borderRadius: '12px',
+                borderLeft: '3px solid #FACC15',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+              }}
+            >
+              <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '5px' }}>
+                <Trophy size={13} color="#FACC15" />
+                <Text style={{ color: '#FACC15', fontSize: '11px', fontWeight: '600' }}>关系里程碑</Text>
+              </View>
+              {newMilestones.map((m, i) => (
+                <View key={i} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <Text style={{ color: '#E7E9EA', fontSize: '12px', fontWeight: '500' }}>🎉 {m.title}</Text>
+                  {m.description && (
+                    <Text style={{ color: '#71767B', fontSize: '11px' }}>{m.description}</Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* 话题敏感提示 */}
+          {topicSensitivity && !loading && (
+            <View
+              style={{
+                margin: '4px 0',
+                padding: '6px 10px',
+                backgroundColor: 'rgba(239,68,68,0.06)',
+                borderRadius: '8px',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <TriangleAlert size={11} color="#EF4444" />
+              <Text style={{ color: '#EF4444', fontSize: '10px', opacity: 0.85 }}>
+                敏感话题：{topicSensitivity === 'romantic_past' ? '过去感情' :
+                  topicSensitivity === 'commitment' ? '承诺压力' :
+                  topicSensitivity === 'privacy' ? '个人隐私' :
+                  topicSensitivity === 'family' ? '家庭话题' :
+                  topicSensitivity === 'financial' ? '金钱话题' : topicSensitivity}
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 

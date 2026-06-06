@@ -792,6 +792,8 @@ export const twinRelationship = pgTable("twin_relationship", {
 	closeness: integer().notNull().default(0), // 亲密度 0-100：实际上有多近
 	safetyTrend: integer("safety_trend").array().default([]),
 	desireTrend: integer("desire_trend").array().default([]),
+	totalRounds: integer("total_rounds").default(0),
+	firstInteractionAt: timestamp("first_interaction_at", { withTimezone: true, mode: 'string' }),
 	lastInteractionAt: timestamp("last_interaction_at", { withTimezone: true, mode: 'string' }),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
@@ -810,6 +812,7 @@ export const twinEmotionalState = pgTable("twin_emotional_state", {
 	emotionIntensity: integer("emotion_intensity").notNull().default(50), // 情绪强度 0-100
 	attitudeAnchor: varchar("attitude_anchor", { length: 30 }).notNull().default('neutral'), // 态度锚点（慢变）
 	tension: integer().notNull().default(0), // 关系张力 = |desire - closeness|
+	wantsToContinue: boolean("wants_to_continue").default(true), // 是否想继续对话
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
 }, (table) => [
 	index("twin_emotional_state_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
@@ -833,6 +836,43 @@ export const twinProactiveMessages = pgTable("twin_proactive_messages", {
 	pgPolicy("twin_proactive_messages_允许公开删除", { as: "permissive", for: "delete", to: ["public"], using: sql`true` }),
 	pgPolicy("twin_proactive_messages_允许公开更新", { as: "permissive", for: "update", to: ["public"], using: sql`true` }),
 	pgPolicy("twin_proactive_messages_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+]);
+
+export const twinKeyMoments = pgTable("twin_key_moments", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	momentType: varchar("moment_type", { length: 32 }).notNull(),
+	content: text().notNull(),
+	triggerMessage: text("trigger_message"),
+	emotionalWeight: integer("emotional_weight").default(50),
+	isPromise: boolean("is_promise").default(false),
+	promiseFulfilled: boolean("promise_fulfilled").default(false),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("twin_key_moments_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+]);
+
+export const twinMilestones = pgTable("twin_milestones", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	milestoneType: varchar("milestone_type", { length: 32 }).notNull(),
+	title: varchar("title", { length: 100 }).notNull(),
+	description: text(),
+	occurredAt: timestamp("occurred_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("twin_milestones_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+]);
+
+export const twinLifeEvents = pgTable("twin_life_events", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	eventType: varchar("event_type", { length: 32 }).notNull(),
+	eventDescription: text("event_description").notNull(),
+	moodModifier: varchar("mood_modifier", { length: 32 }),
+	expiresAt: timestamp("expires_at", { withTimezone: true, mode: 'string' }),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("twin_life_events_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
 ]);
 
 export const gameContent = pgTable("game_content", {
