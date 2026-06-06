@@ -869,18 +869,14 @@ ${matchName}回复：${twinReply}
     if (intimacy !== undefined) relUpdates.intimacy = Math.max(0, Math.min(100, intimacy))
 
     if (Object.keys(relUpdates).length > 0) {
-      console.log('[TwinService] about to update relationship, matchId:', matchId, 'type:', typeof matchId)
-      const { data: beforeData } = await client
-        .from('twin_relationship')
-        .select('*')
-        .eq('match_id', matchId)
-      console.log('[TwinService] rows before update:', beforeData)
       const { data: relData, error: relError } = await client
         .from('twin_relationship')
         .update(relUpdates)
         .eq('match_id', matchId)
         .select()
-      console.log('[TwinService] updateRelationshipManually rel:', { relUpdates, relData, relError })
+      if (relError) {
+        console.error('[TwinService] updateRelationshipManually rel error:', relError)
+      }
       if (relError) {
         console.error('[TwinService] updateRelationshipManually rel error:', relError)
       }
