@@ -841,6 +841,75 @@ ${matchName}回复：${twinReply}
     }
   }
 
+  // ==================== 手动调整关系状态 ====================
+
+  /**
+   * 手动调整关系状态（用户可自由设定阶段/信任/亲密度/情感来测试不同反应）
+   */
+  async updateRelationshipManually(params: {
+    matchId: number
+    stage?: string
+    trust?: number
+    intimacy?: number
+    emotionalPrimary?: string
+    emotionalIntensity?: number
+    emotionalTowardsUser?: string
+  }): Promise<{
+    relationship: RelationshipState
+    emotionalState: EmotionalStateRecord
+  }> {
+    const { matchId, stage, trust, intimacy, emotionalPrimary, emotionalIntensity, emotionalTowardsUser } = params
+    const client = getSupabaseClient()
+
+    // 更新关系状态
+    const relationship = await this.getOrCreateRelationship(matchId)
+    const relUpdates: Record<string, any> = {}
+    if (stage !== undefined) relUpdates.stage = stage
+    if (trust !== undefined) relUpdates.trust = Math.max(0, Math.min(100, trust))
+    if (intimacy !== undefined) relUpdates.intimacy = Math.max(0, Math.min(100, intimacy))
+
+    if (Object.keys(relUpdates).length > 0) {
+      console.log('[TwinService] about to update relationship, matchId:', matchId, 'type:', typeof matchId)
+      const { data: beforeData } = await client
+        .from('twin_relationship')
+        .select('*')
+        .eq('match_id', matchId)
+      console.log('[TwinService] rows before update:', beforeData)
+      const { data: relData, error: relError } = await client
+        .from('twin_relationship')
+        .update(relUpdates)
+        .eq('match_id', matchId)
+        .select()
+      console.log('[TwinService] updateRelationshipManually rel:', { relUpdates, relData, relError })
+      if (relError) {
+        console.error('[TwinService] updateRelationshipManually rel error:', relError)
+      }
+    }
+
+    // 更新情感状态
+    const emotionalState = await this.getOrCreateEmotionalState(matchId)
+    const emoUpdates: Record<string, any> = {}
+    if (emotionalPrimary !== undefined) emoUpdates.primary = emotionalPrimary
+    if (emotionalIntensity !== undefined) emoUpdates.intensity = Math.max(0, Math.min(100, emotionalIntensity))
+    if (emotionalTowardsUser !== undefined) emoUpdates.towards_user = emotionalTowardsUser
+
+    if (Object.keys(emoUpdates).length > 0) {
+      const { error: emoError } = await client
+        .from('twin_emotional_state')
+        .update(emoUpdates)
+        .eq('match_id', matchId)
+      if (emoError) {
+        console.error('[TwinService] updateRelationshipManually emo error:', emoError)
+      }
+    }
+
+    // 重新获取更新后的数据
+    const updatedRel = await this.getOrCreateRelationship(matchId)
+    const updatedEmo = await this.getOrCreateEmotionalState(matchId)
+
+    return { relationship: updatedRel, emotionalState: updatedEmo }
+  }
+
   // ==================== 主动消息机制 ====================
 
   /**

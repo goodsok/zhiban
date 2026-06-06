@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, Body, Query, Req } from '@nestjs/common'
+import { Controller, Post, Get, Delete, Patch, Body, Query, Req } from '@nestjs/common'
 import { TwinService } from './twin.service'
 import { Request } from 'express'
 
@@ -52,6 +52,30 @@ export class TwinController {
     }
 
     const result = await this.twinService.clearHistory(body.matchId)
+    return { code: 200, msg: 'success', data: result }
+  }
+
+  /**
+   * PATCH /api/twin/relationship
+   * 手动调整关系状态（用于测试不同阶段的反应）
+   */
+  @Patch('relationship')
+  async updateRelationship(
+    @Body() body: {
+      matchId: number
+      stage?: string
+      trust?: number
+      intimacy?: number
+      emotionalPrimary?: string
+      emotionalIntensity?: number
+      emotionalTowardsUser?: string
+    },
+  ) {
+    if (!body.matchId) {
+      return { code: 400, msg: '参数错误', data: null }
+    }
+
+    const result = await this.twinService.updateRelationshipManually(body)
     return { code: 200, msg: 'success', data: result }
   }
 }

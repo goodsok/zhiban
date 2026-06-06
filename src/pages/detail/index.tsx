@@ -397,112 +397,119 @@ const DetailPage: FC = () => {
       <View className="p-4">
         <Card className="border">
           <CardContent className="p-4">
-            {/* 姓名可编辑 */}
-            {editingName ? (
-              <View className="flex items-center gap-3 mb-4">
-                <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
-                  <Input
-                    className="w-full text-xl font-bold"
-                    value={nameValue}
-                    onInput={(e) => setNameValue(e.detail.value)}
-                    autoFocus
-                  />
-                </View>
-                <View className="flex gap-1">
-                  <View 
-                    className="p-2 bg-green-500 rounded-lg"
-                    onClick={saveName}
-                  >
-                    {saving ? <Loader size={14} color="#fff" className="animate-spin" /> : <Check size={14} color="#fff" />}
-                  </View>
-                  <View 
-                    className="p-2 bg-gray-200 rounded-lg"
-                    onClick={() => { setEditingName(false); setNameValue(detail.name) }}
-                  >
-                    <X size={14} color="#666" />
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <View className="flex items-center gap-3 mb-4" onClick={() => setEditingName(true)}>
-                <Text className="block text-xl font-bold text-gray-900">{detail.name}</Text>
-                <Pencil size={14} color="#9CA3AF" />
-              </View>
-            )}
-            
-            {/* 关系类型标签 */}
-            {selectingRelationshipType ? (
-              <View className="mt-2">
-                <Text className="block text-xs text-gray-500 mb-2">选择关系类型</Text>
-                <View className="flex flex-wrap gap-3">
-                  {(['long_term', 'short_term', 'both'] as RelationshipType[]).map(type => {
-                    const config = RELATIONSHIP_TYPE_CONFIG[type]
-                    const isSelected = detail?.relationshipType === type
-                    return (
-                      <View
-                        key={type}
-                        className={`px-3 py-2 rounded-full border-2 ${
-                          isSelected ? 'border-green-500' : 'bg-gray-50'
-                        }`}
-                        style={{ backgroundColor: isSelected ? config.bgColor.replace('bg-', '') : 'transparent' }}
-                        onClick={() => saveRelationshipType(type)}
+            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+              {/* 左侧：姓名 + 关系类型 */}
+              <View style={{ flex: 1 }}>
+                {/* 姓名可编辑 */}
+                {editingName ? (
+                  <View className="flex items-center gap-3 mb-4">
+                    <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                      <Input
+                        className="w-full text-xl font-bold"
+                        value={nameValue}
+                        onInput={(e) => setNameValue(e.detail.value)}
+                        autoFocus
+                      />
+                    </View>
+                    <View className="flex gap-1">
+                      <View 
+                        className="p-2 bg-green-500 rounded-lg"
+                        onClick={saveName}
                       >
-                        <Text 
-                          className="block text-xs font-medium"
-                          style={{ color: isSelected ? config.color : '#6B7280' }}
-                        >
-                          {config.label}
-                        </Text>
+                        {saving ? <Loader size={14} color="#fff" className="animate-spin" /> : <Check size={14} color="#fff" />}
                       </View>
-                    )
-                  })}
-                  <View 
-                    className="px-3 py-2 rounded-full"
-                    onClick={() => setSelectingRelationshipType(false)}
-                  >
-                    <Text className="block text-xs text-gray-400">取消</Text>
+                      <View 
+                        className="p-2 bg-gray-200 rounded-lg"
+                        onClick={() => { setEditingName(false); setNameValue(detail.name) }}
+                      >
+                        <X size={14} color="#666" />
+                      </View>
+                    </View>
                   </View>
-                </View>
-              </View>
-            ) : (
-              <View 
-                className="flex items-center gap-3"
-                onClick={() => setSelectingRelationshipType(true)}
-              >
-                <View 
-                  className="px-2 py-1 rounded-full"
-                  style={{ backgroundColor: relationTypeConfig.bgColor.replace('bg-', '') }}
-                >
-                  <Text 
-                    className="block text-xs font-medium"
-                    style={{ color: relationTypeConfig.color }}
+                ) : (
+                  <View className="flex items-center gap-3 mb-4" onClick={() => setEditingName(true)}>
+                    <Text className="block text-xl font-bold text-gray-900">{detail.name}</Text>
+                    <Pencil size={14} color="#9CA3AF" />
+                  </View>
+                )}
+                
+                {/* 关系类型标签 */}
+                {selectingRelationshipType ? (
+                  <View className="mt-2">
+                    <Text className="block text-xs text-gray-500 mb-2">选择关系类型</Text>
+                    <View className="flex flex-wrap gap-3">
+                      {(['long_term', 'short_term', 'both'] as RelationshipType[]).map(type => {
+                        const config = RELATIONSHIP_TYPE_CONFIG[type]
+                        const isSelected = detail?.relationshipType === type
+                        return (
+                          <View
+                            key={type}
+                            className={`px-3 py-2 rounded-full border-2 ${
+                              isSelected ? 'border-green-500' : 'bg-gray-50'
+                            }`}
+                            style={{ backgroundColor: isSelected ? config.bgColor.replace('bg-', '') : 'transparent' }}
+                            onClick={() => saveRelationshipType(type)}
+                          >
+                            <Text 
+                              className="block text-xs font-medium"
+                              style={{ color: isSelected ? config.color : '#6B7280' }}
+                            >
+                              {config.label}
+                            </Text>
+                          </View>
+                        )
+                      })}
+                      <View 
+                        className="px-3 py-2 rounded-full"
+                        onClick={() => setSelectingRelationshipType(false)}
+                      >
+                        <Text className="block text-xs text-gray-400">取消</Text>
+                      </View>
+                    </View>
+                  </View>
+                ) : (
+                  <View 
+                    className="flex items-center gap-3"
+                    onClick={() => setSelectingRelationshipType(true)}
                   >
-                    {relationTypeConfig.label}
-                  </Text>
-                </View>
-                <Pencil size={12} color="#9CA3AF" />
+                    <View 
+                      className="px-2 py-1 rounded-full"
+                      style={{ backgroundColor: relationTypeConfig.bgColor.replace('bg-', '') }}
+                    >
+                      <Text 
+                        className="block text-xs font-medium"
+                        style={{ color: relationTypeConfig.color }}
+                      >
+                        {relationTypeConfig.label}
+                      </Text>
+                    </View>
+                    <Pencil size={12} color="#9CA3AF" />
+                  </View>
+                )}
               </View>
-            )}
+              
+              {/* 右侧：孪生体按钮 */}
+              <View 
+                style={{ flexShrink: 0, marginLeft: '12px' }}
+                className="flex flex-col items-center justify-center"
+                onClick={() => {
+                  const tags = [detail.gender, detail.occupation].filter(Boolean).join(' · ')
+                  navigateTo({ url: `/pages/twin-chat/index?matchId=${detail.id}&matchName=${encodeURIComponent(detail.name)}&matchTags=${encodeURIComponent(tags)}` })
+                }}
+              >
+                <View className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mb-1">
+                  <Ghost size={24} color="#4ECB71" />
+                </View>
+                <Text className="block text-xs text-gray-700 font-medium">孪生体</Text>
+              </View>
+            </View>
           </CardContent>
         </Card>
       </View>
 
       {/* 快捷操作：网格布局 */}
       <View className="px-4 pb-4">
-        <View className="grid grid-cols-5 gap-2">
-          {/* 数字孪生体 */}
-          <View 
-            className="flex flex-col items-center justify-center p-2 bg-white rounded-xl"
-            onClick={() => {
-              const tags = [detail.gender, detail.occupation].filter(Boolean).join(' · ')
-              navigateTo({ url: `/pages/twin-chat/index?matchId=${detail.id}&matchName=${encodeURIComponent(detail.name)}&matchTags=${encodeURIComponent(tags)}` })
-            }}
-          >
-            <View className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-1">
-              <Ghost size={20} color="#4ECB71" />
-            </View>
-            <Text className="block text-xs text-gray-700">孪生体</Text>
-          </View>
+        <View className="grid grid-cols-4 gap-2">
           {/* 记录互动 */}
           <View 
             className="flex flex-col items-center justify-center p-2 bg-white rounded-xl"
