@@ -628,8 +628,8 @@ export const interactionProfileCache = pgTable("interaction_profile_cache", {
 export const datingOpenerHistory = pgTable("dating_opener_history", {
 	id: serial().primaryKey().notNull(),
 	platform: varchar({ length: 50 }).default('tantan'),
-	targetProfile: text("target_profile").default(''),
-	selfProfile: text("self_profile").default(''),
+	targetProfile: text("target_profile").default('),
+	selfProfile: text("self_profile").default('),
 	result: jsonb(),
 	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 });
@@ -762,10 +762,26 @@ export const gameList = pgTable("game_list", {
 	index("game_list_category_idx").using("btree", table.category.asc().nullsLast().op("text_ops")),
 	index("game_list_sort_order_idx").using("btree", table.sortOrder.asc().nullsLast().op("int4_ops")),
 	unique("game_list_game_key_unique").on(table.gameKey),
-	pgPolicy("game_list_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
-	pgPolicy("game_list_允许公开删除", { as: "permissive", for: "delete", to: ["public"] }),
-	pgPolicy("game_list_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
-	pgPolicy("game_list_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+	pgPolicy("anon_delete_game_list", { as: "permissive", for: "delete", to: ["anon"], using: sql`true` }),
+	pgPolicy("anon_insert_game_list", { as: "permissive", for: "insert", to: ["anon"] }),
+	pgPolicy("anon_select_game_list", { as: "permissive", for: "select", to: ["anon"] }),
+	pgPolicy("anon_update_game_list", { as: "permissive", for: "update", to: ["anon"] }),
+	pgPolicy("auth_select_game_list", { as: "permissive", for: "select", to: ["authenticated"] }),
+]);
+
+export const twinChatHistory = pgTable("twin_chat_history", {
+	id: serial().primaryKey().notNull(),
+	matchId: integer("match_id").notNull(),
+	role: varchar({ length: 16 }).notNull(),
+	content: text().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("twin_chat_history_match_id_idx").using("btree", table.matchId.asc().nullsLast().op("int4_ops")),
+	index("twin_chat_history_created_at_idx").using("btree", table.createdAt.asc().nullsLast().op("timestamptz_ops")),
+	pgPolicy("twin_chat_history_允许公开写入", { as: "permissive", for: "insert", to: ["public"], withCheck: sql`true`  }),
+	pgPolicy("twin_chat_history_允许公开删除", { as: "permissive", for: "delete", to: ["public"] }),
+	pgPolicy("twin_chat_history_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("twin_chat_history_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
 ]);
 
 export const gameContent = pgTable("game_content", {
@@ -780,8 +796,9 @@ export const gameContent = pgTable("game_content", {
 	index("game_content_category_idx").using("btree", table.category.asc().nullsLast().op("text_ops")),
 	index("game_content_game_key_idx").using("btree", table.gameKey.asc().nullsLast().op("text_ops")),
 	index("game_content_sort_order_idx").using("btree", table.sortOrder.asc().nullsLast().op("int4_ops")),
-	pgPolicy("game_content_允许公开写入", { as: "permissive", for: "insert", to: ["public"] }),
-	pgPolicy("game_content_允许公开删除", { as: "permissive", for: "delete", to: ["public"] }),
-	pgPolicy("game_content_允许公开更新", { as: "permissive", for: "update", to: ["public"] }),
-	pgPolicy("game_content_允许公开读取", { as: "permissive", for: "select", to: ["public"] }),
+	pgPolicy("anon_delete_game_content", { as: "permissive", for: "delete", to: ["anon"], using: sql`true` }),
+	pgPolicy("anon_insert_game_content", { as: "permissive", for: "insert", to: ["anon"] }),
+	pgPolicy("anon_select_game_content", { as: "permissive", for: "select", to: ["anon"] }),
+	pgPolicy("anon_update_game_content", { as: "permissive", for: "update", to: ["anon"] }),
+	pgPolicy("auth_select_game_content", { as: "permissive", for: "select", to: ["authenticated"] }),
 ]);
