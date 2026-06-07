@@ -38,6 +38,12 @@ const DimensionEditPage: FC = () => {
   const [editingName, setEditingName] = useState('')
   const [savingName, setSavingName] = useState(false)
 
+  // 自定义维度选项编辑（多选/单选）
+  const [isEditingOptions, setIsEditingOptions] = useState(false)
+  const [editingOptions, setEditingOptions] = useState<string[]>([])
+  const [newOptionInput, setNewOptionInput] = useState('')
+  const [savingOptions, setSavingOptions] = useState(false)
+
   useLoad(() => {
     if (matchId && dimensionKey) {
       fetchData()
@@ -152,6 +158,32 @@ const DimensionEditPage: FC = () => {
     } finally {
       setSavingName(false)
     }
+  }
+
+  const handleSaveOptions = async () => {
+    if (!definition?.is_custom) return
+    try {
+      setSavingOptions(true)
+      const enumOptions = editingOptions.map(opt => ({ value: opt, label: opt }))
+      const res = await updateCustomDimension(dimensionKey, { enum_options: enumOptions })
+      if (res.code === 200) {
+        setDefinition({ ...definition, enum_options: enumOptions })
+        setIsEditingOptions(false)
+      } else {
+        console.error('修改维度选项失败:', res.msg)
+      }
+    } catch (err) {
+      console.error('修改维度选项异常:', err)
+    } finally {
+      setSavingOptions(false)
+    }
+  }
+
+  const startEditingOptions = () => {
+    const currentOptions = definition?.enum_options?.map(o => o.value) || []
+    setEditingOptions(currentOptions)
+    setNewOptionInput('')
+    setIsEditingOptions(true)
   }
 
   const handleAddCustomValue = () => {
@@ -596,6 +628,98 @@ const DimensionEditPage: FC = () => {
       <View className="p-4">
         {renderInput()}
       </View>
+
+      {/* 自定义维度选项管理（多选/单选类型） */}
+      {definition.is_custom && (definition.input_type === 'multiselect' || definition.input_type === 'select') && (
+        <View className="px-4 mt-2">
+          {!isEditingOptions ? (
+            <View 
+              className="flex items-center gap-2 py-2"
+              onClick={startEditingOptions}
+            >
+              <Pencil size={14} color="#9CA3AF" />
+              <Text className="text-sm text-gray-500">
+                {(definition.enum_options?.length || 0) > 0 ? `管理可选选项（${definition.enum_options?.length || 0}个）` : '添加可选选项'}
+              </Text>
+            </View>
+          ) : (
+            <View className="bg-white rounded-xl border border-gray-200 p-4">
+              <View className="flex items-center justify-between mb-3">
+                <Text className="text-sm font-medium text-gray-700">可选选项</Text>
+                <View className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsEditingOptions(false)}
+                  >
+                    <Text className="text-xs">取消</Text>
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-green-500"
+                    onClick={handleSaveOptions}
+                    disabled={savingOptions}
+                  >
+                    {savingOptions ? (
+                      <Loader size={14} color="#fff" className="animate-spin" />
+                    ) : (
+                      <Text className="text-white text-xs">保存</Text>
+                    )}
+                  </Button>
+                </View>
+              </View>
+
+              {/* 已有选项列表 */}
+              {editingOptions.length > 0 && (
+                <View className="flex flex-wrap gap-2 mb-3">
+                  {editingOptions.map((opt, idx) => (
+                    <View
+                      key={idx}
+                      className="flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-full px-3 py-1"
+                    >
+                      <Text className="text-sm text-blue-700">{opt}</Text>
+                      <View onClick={() => setEditingOptions(prev => prev.filter((_, i) => i !== idx))}>
+                        <X size={12} color="#3b82f6" />
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* 新增选项输入 */}
+              <View style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
+                <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                  <Input
+                    value={newOptionInput}
+                    onInput={(e) => setNewOptionInput(e.detail.value)}
+                    placeholder="输入新选项..."
+                    className="w-full bg-transparent text-sm"
+                    onConfirm={() => {
+                      if (newOptionInput.trim() && !editingOptions.includes(newOptionInput.trim())) {
+                        setEditingOptions(prev => [...prev, newOptionInput.trim()])
+                        setNewOptionInput('')
+                      }
+                    }}
+                  />
+                </View>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!newOptionInput.trim() || editingOptions.includes(newOptionInput.trim())}
+                  onClick={() => {
+                    if (newOptionInput.trim() && !editingOptions.includes(newOptionInput.trim())) {
+                      setEditingOptions(prev => [...prev, newOptionInput.trim()])
+                      setNewOptionInput('')
+                    }
+                  }}
+                >
+                  <Text className="text-xs">添加</Text>
+                </Button>
+              </View>
+            </View>
+          )}
+        </View>
+      )}
       
       {/* 历史值 */}
       {currentValue !== null && currentValue !== undefined && (

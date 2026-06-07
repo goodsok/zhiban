@@ -29,7 +29,6 @@ import {
   getMatchDimensions,
   createCustomDimension,
   deleteCustomDimension,
-  setDimensionValue,
   layerNames,
   layerDescriptions,
   categoryNames,
@@ -282,23 +281,21 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
       const data_type = createInputType === 'slider' ? 'int' : (createInputType === 'multiselect' ? 'string[]' : 'string')
       const validation_rules = createInputType === 'slider' ? { min: 0, max: 100 } : undefined
       
+      // 多选/单选：标签作为可选选项 (enum_options)
+      const enum_options = (createInputType === 'multiselect' || createInputType === 'select') && createTags.length > 0
+        ? createTags.map(tag => ({ value: tag, label: tag }))
+        : undefined
+
       const res = await createCustomDimension({
         display_name: createName.trim(),
         data_type,
         input_type: createInputType,
         category: 'custom',
         validation_rules,
+        enum_options,
       })
       
       if (res.code === 200) {
-        // 如果是多选且有标签，立即保存值
-        if (createInputType === 'multiselect' && createTags.length > 0) {
-          try {
-            await setDimensionValue(matchId, res.data!.dimension_key, createTags)
-          } catch (e) {
-            console.error('保存多选初始值失败:', e)
-          }
-        }
         // 清除缓存并刷新
         clearDimensionCache(matchId)
         fetchDimensions()
@@ -672,33 +669,38 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
               </Text>
             </View>
 
-            {/* 多选标签输入区域 */}
-            {createInputType === 'multiselect' && (
+            {/* 多选/单选：添加可选选项 */}
+            {(createInputType === 'multiselect' || createInputType === 'select') && (
               <View>
-                <Text className="block text-sm font-medium text-gray-700 mb-2">添加标签（可选）</Text>
-                {/* 已添加的标签 */}
+                <Text className="block text-sm font-medium text-gray-700 mb-2">
+                  {createInputType === 'multiselect' ? '添加可选选项' : '添加可选选项'}
+                </Text>
+                <Text className="block text-xs text-gray-400 mb-2">
+                  {createInputType === 'multiselect' ? '用户可从中选择多个标签' : '用户可从中选择一项'}
+                </Text>
+                {/* 已添加的选项 */}
                 {createTags.length > 0 && (
                   <View className="flex flex-wrap gap-2 mb-3">
                     {createTags.map(tag => (
                       <View
                         key={tag}
-                        className="flex items-center gap-1 bg-green-500 rounded-full px-3 py-1"
+                        className="flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-full px-3 py-1"
                       >
-                        <Text className="text-sm text-white">{tag}</Text>
+                        <Text className="text-sm text-blue-700">{tag}</Text>
                         <View onClick={() => setCreateTags(prev => prev.filter(t => t !== tag))}>
-                          <X size={12} color="#fff" />
+                          <X size={12} color="#3b82f6" />
                         </View>
                       </View>
                     ))}
                   </View>
                 )}
-                {/* 标签输入框 */}
+                {/* 选项输入框 */}
                 <View style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
                   <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
                     <Input
                       value={createTagInput}
                       onInput={(e) => setCreateTagInput(e.detail.value)}
-                      placeholder="输入标签后点击添加..."
+                      placeholder="输入选项后点击添加..."
                       className="w-full bg-transparent text-sm"
                       onConfirm={() => {
                         if (createTagInput.trim() && !createTags.includes(createTagInput.trim())) {
@@ -710,7 +712,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                   </View>
                   <Button
                     size="sm"
-                    className="bg-green-500"
+                    variant="outline"
                     disabled={!createTagInput.trim() || createTags.includes(createTagInput.trim())}
                     onClick={() => {
                       if (createTagInput.trim() && !createTags.includes(createTagInput.trim())) {
@@ -719,7 +721,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                       }
                     }}
                   >
-                    <Text className="text-white text-xs">添加</Text>
+                    <Text className="text-xs">添加</Text>
                   </Button>
                 </View>
               </View>
