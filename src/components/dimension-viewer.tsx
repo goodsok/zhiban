@@ -23,12 +23,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { ChevronRight, ChevronDown, ChevronUp, Database, Info, Plus, Trash2, Loader } from 'lucide-react-taro'
+import { ChevronRight, ChevronDown, ChevronUp, Database, Info, Plus, Trash2, Loader, X } from 'lucide-react-taro'
 import { SkeletonDimensionLayer } from '@/components/skeleton'
 import {
   getMatchDimensions,
   createCustomDimension,
   deleteCustomDimension,
+  setDimensionValue,
   layerNames,
   layerDescriptions,
   categoryNames,
@@ -137,6 +138,9 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
   const [createName, setCreateName] = useState('')
   const [createInputType, setCreateInputType] = useState<string>('text')
   const [creating, setCreating] = useState(false)
+  // 多选标签输入状态
+  const [createTags, setCreateTags] = useState<string[]>([])
+  const [createTagInput, setCreateTagInput] = useState('')
 
   // 删除确认弹窗状态
   const [deleteTarget, setDeleteTarget] = useState<{ key: string; name: string } | null>(null)
@@ -287,12 +291,18 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
       })
       
       if (res.code === 200) {
+        // 如果是多选且有标签，立即保存值
+        if (createInputType === 'multiselect' && createTags.length > 0) {
+          try {
+            await setDimensionValue(matchId, res.data!.dimension_key, createTags)
+          } catch (e) {
+            console.error('保存多选初始值失败:', e)
+          }
+        }
         // 清除缓存并刷新
         clearDimensionCache(matchId)
         fetchDimensions()
-        setShowCreateDialog(false)
-        setCreateName('')
-        setCreateInputType('text')
+        resetCreateDialog()
         onDimensionChange?.()
       } else {
         console.error('创建自定义维度失败:', res.msg)
@@ -302,7 +312,15 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
     } finally {
       setCreating(false)
     }
-  }, [createName, createInputType, matchId, onDimensionChange])
+  }, [createName, createInputType, createTags, matchId, onDimensionChange])
+
+  const resetCreateDialog = useCallback(() => {
+    setShowCreateDialog(false)
+    setCreateName('')
+    setCreateInputType('text')
+    setCreateTags([])
+    setCreateTagInput('')
+  }, [])
 
   // 删除自定义维度
   const handleDeleteCustom = useCallback(async (dimensionKey: string) => {
@@ -600,7 +618,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
       )}
 
       {/* 创建自定义维度弹窗 */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+      <Dialog open={showCreateDialog} onOpenChange={(open) => { if (!open) resetCreateDialog() }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -653,10 +671,63 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                 {createInputType === 'textarea' && '长文本：适合详细描述，如备注、故事'}
               </Text>
             </View>
+
+            {/* 多选标签输入区域 */}
+            {createInputType === 'multiselect' && (
+              <View>
+                <Text className="block text-sm font-medium text-gray-700 mb-2">添加标签（可选）</Text>
+                {/* 已添加的标签 */}
+                {createTags.length > 0 && (
+                  <View className="flex flex-wrap gap-2 mb-3">
+                    {createTags.map(tag => (
+                      <View
+                        key={tag}
+                        className="flex items-center gap-1 bg-green-500 rounded-full px-3 py-1"
+                      >
+                        <Text className="text-sm text-white">{tag}</Text>
+                        <View onClick={() => setCreateTags(prev => prev.filter(t => t !== tag))}>
+                          <X size={12} color="#fff" />
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+                {/* 标签输入框 */}
+                <View style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
+                  <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                    <Input
+                      value={createTagInput}
+                      onInput={(e) => setCreateTagInput(e.detail.value)}
+                      placeholder="输入标签后点击添加..."
+                      className="w-full bg-transparent text-sm"
+                      onConfirm={() => {
+                        if (createTagInput.trim() && !createTags.includes(createTagInput.trim())) {
+                          setCreateTags(prev => [...prev, createTagInput.trim()])
+                          setCreateTagInput('')
+                        }
+                      }}
+                    />
+                  </View>
+                  <Button
+                    size="sm"
+                    className="bg-green-500"
+                    disabled={!createTagInput.trim() || createTags.includes(createTagInput.trim())}
+                    onClick={() => {
+                      if (createTagInput.trim() && !createTags.includes(createTagInput.trim())) {
+                        setCreateTags(prev => [...prev, createTagInput.trim()])
+                        setCreateTagInput('')
+                      }
+                    }}
+                  >
+                    <Text className="text-white text-xs">添加</Text>
+                  </Button>
+                </View>
+              </View>
+            )}
           </View>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+            <Button variant="outline" onClick={resetCreateDialog}>
               <Text className="block">取消</Text>
             </Button>
             <Button 
