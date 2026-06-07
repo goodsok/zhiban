@@ -155,4 +155,59 @@ export class DimensionController {
   async updateDimensionEnumOptions() {
     return await this.dimensionService.updateDimensionEnumOptions()
   }
+
+  /**
+   * 创建自定义维度定义
+   * POST /api/dimension/custom-definitions
+   */
+  @Post('custom-definitions')
+  async createCustomDimension(
+    @Body() body: {
+      display_name: string
+      description?: string
+      category?: string
+      data_type: string
+      input_type?: string
+      enum_options?: Array<{ value: string; label: string }>
+      validation_rules?: { min?: number; max?: number; pattern?: string; required?: boolean }
+      placeholder?: string
+      help_text?: string
+      importance?: string
+    }
+  ) {
+    return await this.dimensionService.createCustomDimension(body)
+  }
+
+  /**
+   * 更新自定义维度定义
+   * PUT /api/dimension/custom-definitions/:dimensionKey
+   */
+  @Post('custom-definitions/:dimensionKey')
+  async updateCustomDimension(
+    @Param('dimensionKey') dimensionKey: string,
+    @Body() body: {
+      display_name?: string
+      description?: string
+      data_type?: string
+      input_type?: string
+      enum_options?: Array<{ value: string; label: string }>
+      validation_rules?: { min?: number; max?: number; pattern?: string; required?: boolean }
+      placeholder?: string
+      help_text?: string
+      importance?: string
+    }
+  ) {
+    return await this.dimensionService.updateCustomDimension(dimensionKey, body)
+  }
+
+  /**
+   * 删除自定义维度定义
+   * DELETE /api/dimension/custom-definitions/:dimensionKey
+   */
+  @Delete('custom-definitions/:dimensionKey')
+  async deleteCustomDimension(
+    @Param('dimensionKey') dimensionKey: string
+  ) {
+    return await this.dimensionService.deleteCustomDimension(dimensionKey)
+  }
 }

@@ -789,7 +789,7 @@ const DetailPage: FC = () => {
           <Text className="block text-sm font-semibold text-gray-900">档案维度</Text>
           <Text className="block text-xs text-gray-400">点击编辑</Text>
         </View>
-        <DimensionViewer matchId={detail.id} relationshipType={detail.relationshipType} refreshKey={dimensionRefreshKey} onEdit={handleDimensionEdit} />
+        <DimensionViewer matchId={detail.id} relationshipType={detail.relationshipType} refreshKey={dimensionRefreshKey} onEdit={handleDimensionEdit} onDimensionChange={() => setDimensionRefreshKey(prev => prev + 1)} />
       </View>
 
       {/* ==================== 第三屏：备注 ==================== */}

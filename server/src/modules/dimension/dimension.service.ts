@@ -313,6 +313,7 @@ export interface DimensionDefinition {
   source_allowed: string[]
   sort_order: number
   is_active: boolean
+  is_custom: boolean
   created_at: string
   updated_at: string | null
 }
@@ -1105,6 +1106,185 @@ export class DimensionService {
     } catch (err) {
       console.error('更新维度枚举选项异常:', err)
       return { code: 500, msg: String(err), data: { updated: 0, errors: [String(err)] } }
+    }
+  }
+
+  /**
+   * 创建自定义维度定义
+   */
+  async createCustomDimension(body: {
+    display_name: string
+    description?: string
+    category?: string
+    data_type: string
+    input_type?: string
+    enum_options?: Array<{ value: string; label: string }>
+    validation_rules?: { min?: number; max?: number; pattern?: string; required?: boolean }
+    placeholder?: string
+    help_text?: string
+    importance?: string
+  }): Promise<{ code: number; msg: string; data: DimensionDefinition | null }> {
+    try {
+      const supabase = getSupabaseClient()
+
+      // 生成 dimension_key: custom_{timestamp}_{random}
+      const timestamp = Date.now()
+      const random = Math.random().toString(36).substring(2, 6)
+      const dimensionKey = `custom_${timestamp}_${random}`
+
+      // 自定义维度统一放在 Layer 3（生活偏好），默认 category 为 custom
+      const newDef = {
+        dimension_key: dimensionKey,
+        display_name: body.display_name,
+        description: body.description || null,
+        layer: 3,
+        category: body.category || 'custom',
+        subcategory: null,
+        data_type: body.data_type || 'string',
+        enum_options: body.enum_options || null,
+        validation_rules: body.validation_rules || null,
+        default_value: null,
+        input_type: body.input_type || 'text',
+        placeholder: body.placeholder || null,
+        help_text: body.help_text || null,
+        icon: null,
+        weight: 1.00,
+        importance: body.importance || 'optional',
+        source_allowed: ['manual'],
+        sort_order: 9999,
+        is_active: true,
+        is_custom: true,
+        relationship_applicability: 'universal',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
+      const { data, error } = await supabase
+        .from('dimension_definitions')
+        .insert(newDef)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('创建自定义维度失败:', error)
+        return { code: 500, msg: error.message, data: null }
+      }
+
+      return { code: 200, msg: 'success', data }
+    } catch (err) {
+      console.error('创建自定义维度异常:', err)
+      return { code: 500, msg: String(err), data: null }
+    }
+  }
+
+  /**
+   * 更新自定义维度定义
+   */
+  async updateCustomDimension(
+    dimensionKey: string,
+    body: {
+      display_name?: string
+      description?: string
+      data_type?: string
+      input_type?: string
+      enum_options?: Array<{ value: string; label: string }>
+      validation_rules?: { min?: number; max?: number; pattern?: string; required?: boolean }
+      placeholder?: string
+      help_text?: string
+      importance?: string
+    }
+  ): Promise<{ code: number; msg: string; data: DimensionDefinition | null }> {
+    try {
+      const supabase = getSupabaseClient()
+
+      // 验证是自定义维度
+      const { data: existing } = await supabase
+        .from('dimension_definitions')
+        .select('is_custom')
+        .eq('dimension_key', dimensionKey)
+        .single()
+
+      if (!existing) {
+        return { code: 404, msg: '维度定义不存在', data: null }
+      }
+
+      if (!existing.is_custom) {
+        return { code: 403, msg: '系统维度不允许修改', data: null }
+      }
+
+      const updateData: Record<string, any> = { updated_at: new Date().toISOString() }
+      if (body.display_name !== undefined) updateData.display_name = body.display_name
+      if (body.description !== undefined) updateData.description = body.description
+      if (body.data_type !== undefined) updateData.data_type = body.data_type
+      if (body.input_type !== undefined) updateData.input_type = body.input_type
+      if (body.enum_options !== undefined) updateData.enum_options = body.enum_options
+      if (body.validation_rules !== undefined) updateData.validation_rules = body.validation_rules
+      if (body.placeholder !== undefined) updateData.placeholder = body.placeholder
+      if (body.help_text !== undefined) updateData.help_text = body.help_text
+      if (body.importance !== undefined) updateData.importance = body.importance
+
+      const { data, error } = await supabase
+        .from('dimension_definitions')
+        .update(updateData)
+        .eq('dimension_key', dimensionKey)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('更新自定义维度失败:', error)
+        return { code: 500, msg: error.message, data: null }
+      }
+
+      return { code: 200, msg: 'success', data }
+    } catch (err) {
+      console.error('更新自定义维度异常:', err)
+      return { code: 500, msg: String(err), data: null }
+    }
+  }
+
+  /**
+   * 删除自定义维度定义（同时删除关联的维度值）
+   */
+  async deleteCustomDimension(dimensionKey: string): Promise<{ code: number; msg: string }> {
+    try {
+      const supabase = getSupabaseClient()
+
+      // 验证是自定义维度
+      const { data: existing } = await supabase
+        .from('dimension_definitions')
+        .select('is_custom')
+        .eq('dimension_key', dimensionKey)
+        .single()
+
+      if (!existing) {
+        return { code: 404, msg: '维度定义不存在' }
+      }
+
+      if (!existing.is_custom) {
+        return { code: 403, msg: '系统维度不允许删除' }
+      }
+
+      // 删除关联的维度值
+      await supabase
+        .from('profile_dimension_values')
+        .delete()
+        .eq('dimension_key', dimensionKey)
+
+      // 删除维度定义
+      const { error } = await supabase
+        .from('dimension_definitions')
+        .delete()
+        .eq('dimension_key', dimensionKey)
+
+      if (error) {
+        console.error('删除自定义维度失败:', error)
+        return { code: 500, msg: error.message }
+      }
+
+      return { code: 200, msg: 'success' }
+    } catch (err) {
+      console.error('删除自定义维度异常:', err)
+      return { code: 500, msg: String(err) }
     }
   }
 }

@@ -1,6 +1,7 @@
 /**
  * 维度展示组件
  * 按层级展示对象的维度数据，支持折叠展开
+ * 支持自定义维度的创建、编辑和删除
  * 
  * 性能优化：
  * 1. 数据缓存 - 使用 localStorage 缓存维度数据，减少网络请求
@@ -12,11 +13,22 @@ import { View, Text } from '@tarojs/components'
 import type { FC } from 'react'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
-import { ChevronRight, ChevronDown, ChevronUp, Database, Info } from 'lucide-react-taro'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { ChevronRight, ChevronDown, ChevronUp, Database, Info, Plus, Trash2, Loader } from 'lucide-react-taro'
 import { SkeletonDimensionLayer } from '@/components/skeleton'
 import {
   getMatchDimensions,
+  createCustomDimension,
+  deleteCustomDimension,
   layerNames,
   layerDescriptions,
   categoryNames,
@@ -24,7 +36,7 @@ import {
   type DimensionDefinition,
   type DimensionValue
 } from '@/services/dimension'
-import { getDimensionDataWithCache } from '@/utils/cache'
+import { getDimensionDataWithCache, clearDimensionCache } from '@/utils/cache'
 import Taro from '@tarojs/taro'
 
 interface DimensionViewerProps {
@@ -37,6 +49,8 @@ interface DimensionViewerProps {
   enableLazyLoad?: boolean
   /** 刷新触发器，值变化时重新获取数据 */
   refreshKey?: number
+  /** 维度数据变更后的回调 */
+  onDimensionChange?: () => void
 }
 
 interface DimensionGroup {
@@ -87,13 +101,23 @@ const DIMENSION_HELP: Record<string, string> = {
   physicalAffectionStyle: '在公开场合和私下对身体接触的舒适度',
 }
 
+// 自定义维度的输入类型选项
+const INPUT_TYPE_OPTIONS = [
+  { value: 'text', label: '文本' },
+  { value: 'select', label: '单选' },
+  { value: 'multiselect', label: '多选标签' },
+  { value: 'slider', label: '滑块打分' },
+  { value: 'textarea', label: '长文本' },
+] as const
+
 export const DimensionViewer: FC<DimensionViewerProps> = ({ 
   matchId, 
   relationshipType, 
   onEdit,
   enableCache = true,
   enableLazyLoad = true,
-  refreshKey
+  refreshKey,
+  onDimensionChange
 }) => {
   const [loading, setLoading] = useState(true)
   const [dimensionGroups, setDimensionGroups] = useState<DimensionGroup[]>([])
@@ -107,6 +131,16 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
   
   // 延迟加载状态 - 记录已加载的层级
   const [loadedLayers, setLoadedLayers] = useState<Set<number>>(new Set([1]))
+
+  // 自定义维度创建弹窗状态
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [createName, setCreateName] = useState('')
+  const [createInputType, setCreateInputType] = useState<string>('text')
+  const [creating, setCreating] = useState(false)
+
+  // 删除确认弹窗状态
+  const [deleteTarget, setDeleteTarget] = useState<{ key: string; name: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchDimensions()
@@ -168,9 +202,13 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
       })
     }
     
-    // 排序
+    // 排序：系统维度分类在前，custom 分类在后
     const sortedGroups = Object.values(groups).sort((a, b) => {
       if (a.layer !== b.layer) return a.layer - b.layer
+      // custom 分类排在该层级的最后
+      const aIsCustom = a.category === 'custom' ? 1 : 0
+      const bIsCustom = b.category === 'custom' ? 1 : 0
+      if (aIsCustom !== bIsCustom) return aIsCustom - bIsCustom
       return a.category.localeCompare(b.category)
     })
     
@@ -232,6 +270,60 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
     }
   }, [matchId, onEdit])
 
+  // 创建自定义维度
+  const handleCreateCustom = useCallback(async () => {
+    if (!createName.trim()) return
+    try {
+      setCreating(true)
+      const data_type = createInputType === 'slider' ? 'int' : (createInputType === 'multiselect' ? 'string[]' : 'string')
+      const validation_rules = createInputType === 'slider' ? { min: 0, max: 100 } : undefined
+      
+      const res = await createCustomDimension({
+        display_name: createName.trim(),
+        data_type,
+        input_type: createInputType,
+        category: 'custom',
+        validation_rules,
+      })
+      
+      if (res.code === 200) {
+        // 清除缓存并刷新
+        clearDimensionCache(matchId)
+        fetchDimensions()
+        setShowCreateDialog(false)
+        setCreateName('')
+        setCreateInputType('text')
+        onDimensionChange?.()
+      } else {
+        console.error('创建自定义维度失败:', res.msg)
+      }
+    } catch (err) {
+      console.error('创建自定义维度异常:', err)
+    } finally {
+      setCreating(false)
+    }
+  }, [createName, createInputType, matchId, onDimensionChange])
+
+  // 删除自定义维度
+  const handleDeleteCustom = useCallback(async (dimensionKey: string) => {
+    try {
+      setDeleting(true)
+      const res = await deleteCustomDimension(dimensionKey)
+      if (res.code === 200) {
+        clearDimensionCache(matchId)
+        fetchDimensions()
+        setDeleteTarget(null)
+        onDimensionChange?.()
+      } else {
+        console.error('删除自定义维度失败:', res.msg)
+      }
+    } catch (err) {
+      console.error('删除自定义维度异常:', err)
+    } finally {
+      setDeleting(false)
+    }
+  }, [matchId, onDimensionChange])
+
   if (loading) {
     return (
       <View className="dimension-viewer">
@@ -258,7 +350,15 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
     return (
       <View className="flex flex-col items-center justify-center py-8">
         <Database size={48} color="#D1D5DB" className="mb-2" />
-        <Text className="text-gray-500 text-sm">暂无维度数据</Text>
+        <Text className="text-gray-500 text-sm mb-4">暂无维度数据</Text>
+        <Button
+          size="sm"
+          className="bg-green-500"
+          onClick={() => setShowCreateDialog(true)}
+        >
+          <Plus size={14} color="#fff" />
+          <Text className="text-white text-xs ml-1">添加自定义维度</Text>
+        </Button>
       </View>
     )
   }
@@ -330,6 +430,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                   groups.map((group) => {
                     const groupKey = `${group.layer}-${group.category}`
                     const isCategoryExpanded = expandedCategories.has(groupKey)
+                    const isCustomCategory = group.category === 'custom'
                     
                     // 计算该分类下已填写的维度数
                     const filledInCategory = group.dimensions.filter(
@@ -367,6 +468,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                                 ? formatDimensionValue(item.definition, item.value!.value)
                                 : '-'
                               const hasHelp = DIMENSION_HELP[item.definition.dimension_key]
+                              const isCustomDim = item.definition.is_custom
                               
                               return (
                                 <View
@@ -374,9 +476,11 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                                   className={`flex items-center justify-between py-3 px-3 ${
                                     idx < group.dimensions.length - 1 ? 'border-b border-gray-100' : ''
                                   }`}
-                                  onClick={() => handleDimensionClick(item.definition.dimension_key)}
                                 >
-                                  <View className="flex items-center shrink-0 mr-2">
+                                  <View 
+                                    className="flex items-center shrink-0 mr-2 flex-1"
+                                    onClick={() => handleDimensionClick(item.definition.dimension_key)}
+                                  >
                                     {/* 重要性标记 */}
                                     {item.definition.importance === 'critical' && (
                                       <View className="w-1 h-1 rounded-full bg-red-500 mr-2" />
@@ -397,19 +501,46 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                                     )}
                                   </View>
                                   
-                                  <View className="flex items-center flex-1 justify-end min-w-0">
-                                    <Text 
-                                      className={`text-sm ${hasValue ? 'text-gray-800' : 'text-gray-400'} truncate`}
-                                    >
-                                      {displayValue}
-                                    </Text>
-                                    <View className="shrink-0 ml-1">
-                                      <ChevronRight size={14} color="#D1D5DB" />
+                                  <View className="flex items-center justify-end min-w-0 shrink-0">
+                                    <View onClick={() => handleDimensionClick(item.definition.dimension_key)}>
+                                      <Text 
+                                        className={`text-sm ${hasValue ? 'text-gray-800' : 'text-gray-400'} truncate`}
+                                      >
+                                        {displayValue}
+                                      </Text>
                                     </View>
+                                    {/* 自定义维度显示删除按钮 */}
+                                    {isCustomDim && (
+                                      <View 
+                                        className="ml-2"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          setDeleteTarget({ key: item.definition.dimension_key, name: item.definition.display_name })
+                                        }}
+                                      >
+                                        <Trash2 size={14} color="#EF4444" />
+                                      </View>
+                                    )}
+                                    {!isCustomDim && (
+                                      <View className="shrink-0 ml-1" onClick={() => handleDimensionClick(item.definition.dimension_key)}>
+                                        <ChevronRight size={14} color="#D1D5DB" />
+                                      </View>
+                                    )}
                                   </View>
                                 </View>
                               )
                             })}
+
+                            {/* 自定义维度分类底部：添加自定义维度按钮 */}
+                            {isCustomCategory && (
+                              <View 
+                                className="flex items-center justify-center py-3 px-3 border-t border-gray-100"
+                                onClick={() => setShowCreateDialog(true)}
+                              >
+                                <Plus size={14} color="#2E9E5A" />
+                                <Text className="text-sm text-green-600 ml-1">添加自定义维度</Text>
+                              </View>
+                            )}
                           </View>
                         )}
                       </View>
@@ -419,11 +550,129 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                   // 延迟加载骨架
                   <SkeletonDimensionLayer />
                 )}
+
+                {/* 如果该层级没有 custom 分类，也显示添加自定义维度的入口 */}
+                {shouldRenderContent && !groups.some(g => g.category === 'custom') && (
+                  <View 
+                    className="bg-white rounded-lg p-3 flex items-center justify-center"
+                    onClick={() => setShowCreateDialog(true)}
+                  >
+                    <Plus size={14} color="#2E9E5A" />
+                    <Text className="text-sm text-green-600 ml-1">添加自定义维度</Text>
+                  </View>
+                )}
               </View>
             )}
           </View>
         )
       })}
+
+      {/* 创建自定义维度弹窗 */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              <Text className="block text-lg font-semibold">添加自定义维度</Text>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <View className="py-4 space-y-4">
+            {/* 维度名称 */}
+            <View>
+              <Text className="block text-sm font-medium text-gray-700 mb-2">维度名称</Text>
+              <View className="bg-gray-50 rounded-lg px-4 py-3">
+                <Input
+                  value={createName}
+                  onInput={(e) => setCreateName(e.detail.value)}
+                  placeholder="例如：口头禅、社交账号、宠物名..."
+                  className="w-full bg-transparent text-sm"
+                  focus
+                />
+              </View>
+            </View>
+
+            {/* 输入类型 */}
+            <View>
+              <Text className="block text-sm font-medium text-gray-700 mb-2">输入类型</Text>
+              <View className="flex flex-wrap gap-2">
+                {INPUT_TYPE_OPTIONS.map(opt => (
+                  <View
+                    key={opt.value}
+                    className={`px-3 py-2 rounded-lg ${
+                      createInputType === opt.value ? 'bg-green-500' : 'bg-gray-100'
+                    }`}
+                    onClick={() => setCreateInputType(opt.value)}
+                  >
+                    <Text className={`text-sm ${createInputType === opt.value ? 'text-white' : 'text-gray-600'}`}>
+                      {opt.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* 类型说明 */}
+            <View className="bg-gray-50 rounded-lg p-3">
+              <Text className="block text-xs text-gray-500">
+                {createInputType === 'text' && '文本：适合简短内容，如昵称、口头禅'}
+                {createInputType === 'select' && '单选：适合从几个选项中选一个，如血型、风格'}
+                {createInputType === 'multiselect' && '多选标签：适合选多个，如标签、兴趣爱好'}
+                {createInputType === 'slider' && '滑块打分：适合量化评估，如满意度（0-100分）'}
+                {createInputType === 'textarea' && '长文本：适合详细描述，如备注、故事'}
+              </Text>
+            </View>
+          </View>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+              <Text className="block">取消</Text>
+            </Button>
+            <Button 
+              className="bg-green-500" 
+              onClick={handleCreateCustom}
+              disabled={!createName.trim() || creating}
+            >
+              {creating ? (
+                <Loader size={14} color="#fff" className="animate-spin" />
+              ) : (
+                <Text className="text-white">创建</Text>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 删除自定义维度确认弹窗 */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              <Text className="block text-lg font-semibold">删除自定义维度</Text>
+            </DialogTitle>
+          </DialogHeader>
+          <View className="py-4">
+            <Text className="block text-sm text-gray-600">
+              确定要删除自定义维度「{deleteTarget?.name}」吗？删除后该维度的所有数据将无法恢复。
+            </Text>
+          </View>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              <Text className="block">取消</Text>
+            </Button>
+            <Button 
+              className="bg-red-500" 
+              onClick={() => deleteTarget && handleDeleteCustom(deleteTarget.key)}
+              disabled={deleting}
+            >
+              {deleting ? (
+                <Loader size={14} color="#fff" className="animate-spin" />
+              ) : (
+                <Text className="text-white">删除</Text>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </View>
   )
 }

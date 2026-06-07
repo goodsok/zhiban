@@ -26,6 +26,7 @@ export interface DimensionDefinition {
   source_allowed: string[]
   sort_order: number
   is_active: boolean
+  is_custom: boolean
   created_at: string
   updated_at: string | null
 }
@@ -285,5 +286,67 @@ export const categoryNames: Record<string, string> = {
   relationship_form: '关系形式',
   short_term_patterns: '短期模式',
   current_status: '当前状态',
-  time_availability: '时间安排'
+  time_availability: '时间安排',
+  custom: '自定义维度'
+}
+
+/**
+ * 创建自定义维度定义
+ */
+export async function createCustomDimension(data: {
+  display_name: string
+  description?: string
+  category?: string
+  data_type?: string
+  input_type?: string
+  enum_options?: Array<{ value: string; label: string }>
+  validation_rules?: { min?: number; max?: number; pattern?: string; required?: boolean }
+  placeholder?: string
+  help_text?: string
+  importance?: string
+}): Promise<{ code: number; msg: string; data: DimensionDefinition | null }> {
+  const res = await Network.request({
+    url: '/api/dimension/custom-definitions',
+    method: 'POST',
+    data
+  })
+  return res.data
+}
+
+/**
+ * 更新自定义维度定义
+ */
+export async function updateCustomDimension(
+  dimensionKey: string,
+  data: {
+    display_name?: string
+    description?: string
+    data_type?: string
+    input_type?: string
+    enum_options?: Array<{ value: string; label: string }>
+    validation_rules?: { min?: number; max?: number; pattern?: string; required?: boolean }
+    placeholder?: string
+    help_text?: string
+    importance?: string
+  }
+): Promise<{ code: number; msg: string; data: DimensionDefinition | null }> {
+  const res = await Network.request({
+    url: `/api/dimension/custom-definitions/${dimensionKey}`,
+    method: 'POST',
+    data
+  })
+  return res.data
+}
+
+/**
+ * 删除自定义维度定义
+ */
+export async function deleteCustomDimension(
+  dimensionKey: string
+): Promise<{ code: number; msg: string }> {
+  const res = await Network.request({
+    url: `/api/dimension/custom-definitions/${dimensionKey}`,
+    method: 'DELETE'
+  })
+  return res.data
 }
