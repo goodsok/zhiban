@@ -227,7 +227,8 @@ export const layerNames: Record<number, string> = {
   2: '性格特质',
   3: '生活偏好',
   4: '互动策略',
-  5: '近期状态'
+  5: '近期状态',
+  6: '自定义维度'
 }
 
 /**
@@ -238,7 +239,8 @@ export const layerDescriptions: Record<number, string> = {
   2: '缓慢变化的长期特质',
   3: '可改变的中期偏好',
   4: '经常变化的动态状态',
-  5: '实时变化的情境数据'
+  5: '实时变化的情境数据',
+  6: '用户自定义的维度'
 }
 
 /**

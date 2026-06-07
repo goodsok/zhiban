@@ -387,6 +387,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
         const groups = layersData[layer]
         const isLayerExpanded = expandedLayers.has(layer)
         const layerComplete = getCompleteness(layer)
+        const isCustomLayer = layer === 6
         
         // 延迟加载：只渲染已加载的层级或当前展开的层级
         const shouldRenderContent = !enableLazyLoad || loadedLayers.has(layer) || isLayerExpanded
@@ -531,7 +532,7 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                               )
                             })}
 
-                            {/* 自定义维度分类底部：添加自定义维度按钮 */}
+                            {/* 自定义分类底部：添加自定义维度按钮 */}
                             {isCustomCategory && (
                               <View 
                                 className="flex items-center justify-center py-3 px-3 border-t border-gray-100"
@@ -551,21 +552,52 @@ export const DimensionViewer: FC<DimensionViewerProps> = ({
                   <SkeletonDimensionLayer />
                 )}
 
-                {/* 如果该层级没有 custom 分类，也显示添加自定义维度的入口 */}
-                {shouldRenderContent && !groups.some(g => g.category === 'custom') && (
+                {/* 自定义层级底部：添加自定义维度按钮 */}
+                {isCustomLayer && (
                   <View 
-                    className="bg-white rounded-lg p-3 flex items-center justify-center"
+                    className="bg-white rounded-lg p-3 flex items-center justify-center mt-2"
                     onClick={() => setShowCreateDialog(true)}
                   >
                     <Plus size={14} color="#2E9E5A" />
                     <Text className="text-sm text-green-600 ml-1">添加自定义维度</Text>
                   </View>
                 )}
+
+                {/* 非自定义层级不再显示添加自定义维度入口 */}
               </View>
             )}
           </View>
         )
       })}
+
+      {/* 如果没有任何自定义维度，也显示独立的入口 */}
+      {!sortedLayers.includes(6) && (
+        <View className="mb-4">
+          <View 
+            className="bg-white rounded-xl p-3"
+            onClick={() => {
+              setExpandedLayers(prev => new Set(prev).add(6))
+              setLoadedLayers(prev => new Set(prev).add(6))
+              setShowCreateDialog(true)
+            }}
+          >
+            <View className="flex items-center justify-between">
+              <View className="flex items-center gap-3 flex-1">
+                <Text className="block text-sm font-semibold text-gray-900">
+                  自定义维度
+                </Text>
+              </View>
+              <View className="flex items-center gap-2">
+                <Plus size={14} color="#2E9E5A" />
+                <Text className="text-sm text-green-600">添加</Text>
+              </View>
+            </View>
+            <Text className="block text-xs text-gray-400 mt-1">
+              用户自定义的维度
+            </Text>
+          </View>
+        </View>
+      )}
 
       {/* 创建自定义维度弹窗 */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

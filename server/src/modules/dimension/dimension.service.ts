@@ -1132,12 +1132,12 @@ export class DimensionService {
       const random = Math.random().toString(36).substring(2, 6)
       const dimensionKey = `custom_${timestamp}_${random}`
 
-      // 自定义维度统一放在 Layer 3（生活偏好），默认 category 为 custom
+      // 自定义维度使用独立层级 layer=6，与系统层级平级展示
       const newDef = {
         dimension_key: dimensionKey,
         display_name: body.display_name,
         description: body.description || null,
-        layer: 3,
+        layer: 6,
         category: body.category || 'custom',
         subcategory: null,
         data_type: body.data_type || 'string',
