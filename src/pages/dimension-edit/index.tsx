@@ -7,11 +7,12 @@ import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
 import { Badge } from '@/components/ui/badge'
 import CustomHeader from '@/components/custom-header'
-import { Check, Loader, Search, Plus, X } from 'lucide-react-taro'
+import { Check, Loader, Search, Plus, X, Pencil } from 'lucide-react-taro'
 import {
   getDimensionDefinition,
   setDimensionValue,
   getMatchDimensions,
+  updateCustomDimension,
   type DimensionDefinition,
   formatDimensionValue
 } from '@/services/dimension'
@@ -31,6 +32,11 @@ const DimensionEditPage: FC = () => {
   const [customInputValue, setCustomInputValue] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
   const [isCustomSelected, setIsCustomSelected] = useState(false)
+
+  // 自定义维度名称编辑
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editingName, setEditingName] = useState('')
+  const [savingName, setSavingName] = useState(false)
 
   useLoad(() => {
     if (matchId && dimensionKey) {
@@ -128,6 +134,24 @@ const DimensionEditPage: FC = () => {
       }
       return [...prev, optionValue]
     })
+  }
+
+  const handleSaveCustomName = async () => {
+    if (!definition?.is_custom || !editingName.trim()) return
+    try {
+      setSavingName(true)
+      const res = await updateCustomDimension(dimensionKey, { display_name: editingName.trim() })
+      if (res.code === 200) {
+        setDefinition({ ...definition, display_name: editingName.trim() })
+        setIsEditingName(false)
+      } else {
+        console.error('修改维度名称失败:', res.msg)
+      }
+    } catch (err) {
+      console.error('修改维度名称异常:', err)
+    } finally {
+      setSavingName(false)
+    }
   }
 
   const handleAddCustomValue = () => {
@@ -514,7 +538,43 @@ const DimensionEditPage: FC = () => {
       {/* 顶部信息 */}
       <View className="p-4 bg-white border-b">
         <View className="flex items-center gap-3 mb-2">
-          <Text className="text-lg font-semibold text-gray-900">{definition.display_name}</Text>
+          {definition.is_custom && isEditingName ? (
+            <View className="flex items-center gap-2 flex-1">
+              <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                <Input
+                  value={editingName}
+                  onInput={(e) => setEditingName(e.detail.value)}
+                  placeholder="输入维度名称"
+                  className="w-full bg-transparent text-sm"
+                  focus
+                />
+              </View>
+              <Button
+                size="sm"
+                className="bg-green-500"
+                onClick={handleSaveCustomName}
+                disabled={savingName || !editingName.trim()}
+              >
+                {savingName ? (
+                  <Loader size={14} color="#fff" className="animate-spin" />
+                ) : (
+                  <Text className="text-white text-xs">保存</Text>
+                )}
+              </Button>
+              <View onClick={() => { setIsEditingName(false); setEditingName('') }}>
+                <X size={18} color="#9CA3AF" />
+              </View>
+            </View>
+          ) : (
+            <View className="flex items-center gap-2">
+              <Text className="text-lg font-semibold text-gray-900">{definition.display_name}</Text>
+              {definition.is_custom && (
+                <View onClick={() => { setIsEditingName(true); setEditingName(definition.display_name) }}>
+                  <Pencil size={14} color="#9CA3AF" />
+                </View>
+              )}
+            </View>
+          )}
           {definition.importance === 'critical' && (
             <Badge className="bg-red-100 text-red-600 text-xs">必填</Badge>
           )}
