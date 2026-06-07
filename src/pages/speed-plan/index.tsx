@@ -45,13 +45,34 @@ const PROGRESS_GROUPS = [
     levels: [3, 4],
     items: BEHAVIOR_LEVELS.filter(b => b.level === 3 || b.level === 4)
   },
+  {
+    title: '亲密阶段',
+    levels: [5],
+    items: BEHAVIOR_LEVELS.filter(b => b.level === 5)
+  },
+  {
+    title: '关系阶段',
+    levels: [6],
+    items: BEHAVIOR_LEVELS.filter(b => b.level === 6)
+  },
 ]
 
-// 常用目标行为
+// 常用目标行为（按层级递进）
 const TARGET_BEHAVIORS = [
+  { code: 'get_contact', name: '交换联系方式' },
+  { code: 'first_chat', name: '第一次聊天' },
+  { code: 'agree_meet', name: '约定见面' },
   { code: 'first_meet', name: '约出来见面' },
+  { code: 'show_interest', name: '对方表现兴趣' },
+  { code: 'second_meet', name: '同意第二次见面' },
+  { code: 'light_touch', name: '肢体接触' },
   { code: 'hold_hands', name: '牵手' },
+  { code: 'hug', name: '拥抱' },
+  { code: 'pet_name', name: '亲密称呼' },
+  { code: 'cuddle', name: '依偎' },
   { code: 'kiss', name: '接吻' },
+  { code: 'intimate_touch', name: '亲密抚摸' },
+  { code: 'stay_over', name: '过夜' },
   { code: 'sex', name: '发生关系' },
   { code: 'relationship', name: '确认恋爱关系' },
 ]
@@ -1106,8 +1127,8 @@ const SpeedPlanPage: FC = () => {
                 <Text className="block text-gray-600">小时内</Text>
               </View>
               
-              <View className="flex gap-3 mt-2">
-                {[24, 48, 72, 168].map((hours) => (
+              <View className="flex flex-wrap gap-3 mt-2">
+                {[12, 24, 48, 72, 120, 168, 336, 720].map((hours) => (
                   <View
                     key={hours}
                     className={`px-3 py-2 rounded-full ${
