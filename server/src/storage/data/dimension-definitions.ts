@@ -212,7 +212,7 @@ export const layer1Dimensions: DimensionDefinition[] = [
     weight: 0.8,
     importance: 'optional',
     source_allowed: ['manual'],
-    sort_order: 7.5
+    sort_order: 8
   },
   {
     dimension_key: 'bloodType',
@@ -230,7 +230,7 @@ export const layer1Dimensions: DimensionDefinition[] = [
     weight: 0.8,
     importance: 'optional',
     source_allowed: ['manual'],
-    sort_order: 8
+    sort_order: 9
   },
 
   // 1.2 教育职业
