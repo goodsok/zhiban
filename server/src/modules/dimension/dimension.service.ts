@@ -38,6 +38,20 @@ const hardwareToDimensionMap: Record<string, {
       return zodiacMap[String(value)] || String(value).toLowerCase()
     }
   },
+  risingZodiac: {
+    dimensionKey: 'risingZodiac',
+    transform: (value) => {
+      const zodiacMap: Record<string, string> = {
+        '白羊座': 'aries', '金牛座': 'taurus', '双子座': 'gemini', '巨蟹座': 'cancer',
+        '狮子座': 'leo', '处女座': 'virgo', '天秤座': 'libra', '天蝎座': 'scorpio',
+        '射手座': 'sagittarius', '摩羯座': 'capricorn', '水瓶座': 'aquarius', '双鱼座': 'pisces',
+        '白羊': 'aries', '金牛': 'taurus', '双子': 'gemini', '巨蟹': 'cancer',
+        '狮子': 'leo', '处女': 'virgo', '天秤': 'libra', '天蝎': 'scorpio',
+        '射手': 'sagittarius', '摩羯': 'capricorn', '水瓶': 'aquarius', '双鱼': 'pisces'
+      }
+      return zodiacMap[String(value)] || String(value).toLowerCase()
+    }
+  },
   bloodType: {
     dimensionKey: 'bloodType',
     transform: (value) => {
@@ -209,6 +223,17 @@ const dimensionToHardwareMap: Record<string, {
   },
   zodiac: {
     field: 'zodiac',
+    transform: (value) => {
+      const zodiacLabels: Record<string, string> = {
+        'aries': '白羊座', 'taurus': '金牛座', 'gemini': '双子座', 'cancer': '巨蟹座',
+        'leo': '狮子座', 'virgo': '处女座', 'libra': '天秤座', 'scorpio': '天蝎座',
+        'sagittarius': '射手座', 'capricorn': '摩羯座', 'aquarius': '水瓶座', 'pisces': '双鱼座'
+      }
+      return zodiacLabels[String(value)] || String(value)
+    }
+  },
+  risingZodiac: {
+    field: 'risingZodiac',
     transform: (value) => {
       const zodiacLabels: Record<string, string> = {
         'aries': '白羊座', 'taurus': '金牛座', 'gemini': '双子座', 'cancer': '巨蟹座',

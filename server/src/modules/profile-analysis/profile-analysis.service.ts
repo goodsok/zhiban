@@ -10,6 +10,7 @@ export interface ExtractedProfile {
   occupation?: string
   location?: string
   zodiac?: string
+  risingZodiac?: string
   mbti?: string
   personality?: string
   interests?: string[]

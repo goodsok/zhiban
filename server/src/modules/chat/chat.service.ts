@@ -36,6 +36,7 @@ interface ExtractedInfo {
     age?: number
     birthday?: string
     zodiac?: string
+    risingZodiac?: string
     location?: string
     occupation?: string
     height?: string
@@ -153,6 +154,7 @@ export class ChatService {
 - 年龄 (age)
 - 生日 (birthday，格式如 "6月15日")
 - 星座 (zodiac)
+- 上升星座 (risingZodiac)
 - 身高 (height)
 - 所在地 (location)
 - 职业 (occupation)
@@ -174,6 +176,7 @@ export class ChatService {
     "age": 数字或null,
     "birthday": "字符串或null",
     "zodiac": "字符串或null",
+    "risingZodiac": "字符串或null",
     "location": "字符串或null",
     "occupation": "字符串或null",
     "height": "字符串或null"
@@ -833,6 +836,7 @@ ${chatSummary}
       info.push(`年龄：约${age}岁`)
     }
     if (dimMap.get('zodiac')) info.push(`星座：${dimMap.get('zodiac')}`)
+    if (dimMap.get('risingZodiac')) info.push(`上升星座：${dimMap.get('risingZodiac')}`)
     if (dimMap.get('occupation')) info.push(`职业：${dimMap.get('occupation')}`)
     if (dimMap.get('currentCity')) info.push(`所在地：${dimMap.get('currentCity')}`)
     if (dimMap.get('mbti')) info.push(`MBTI：${dimMap.get('mbti')}`)

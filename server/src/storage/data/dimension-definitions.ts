@@ -189,6 +189,32 @@ export const layer1Dimensions: DimensionDefinition[] = [
     sort_order: 7
   },
   {
+    dimension_key: 'risingZodiac',
+    display_name: '上升星座',
+    layer: 1,
+    category: 'identity',
+    data_type: 'enum',
+    enum_options: [
+      { value: 'aries', label: '白羊座' },
+      { value: 'taurus', label: '金牛座' },
+      { value: 'gemini', label: '双子座' },
+      { value: 'cancer', label: '巨蟹座' },
+      { value: 'leo', label: '狮子座' },
+      { value: 'virgo', label: '处女座' },
+      { value: 'libra', label: '天秤座' },
+      { value: 'scorpio', label: '天蝎座' },
+      { value: 'sagittarius', label: '射手座' },
+      { value: 'capricorn', label: '摩羯座' },
+      { value: 'aquarius', label: '水瓶座' },
+      { value: 'pisces', label: '双鱼座' }
+    ],
+    input_type: 'select',
+    weight: 0.8,
+    importance: 'optional',
+    source_allowed: ['manual'],
+    sort_order: 7.5
+  },
+  {
     dimension_key: 'bloodType',
     display_name: '血型',
     layer: 1,
