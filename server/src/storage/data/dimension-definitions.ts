@@ -858,6 +858,7 @@ export const layer1Dimensions: DimensionDefinition[] = [
   {
     dimension_key: 'coreTemperament',
     display_name: '核心气质',
+    description: '古希腊四体液学说中的气质类型，反映一个人与生俱来的行为风格和情绪基调',
     layer: 1,
     category: 'core_personality',
     data_type: 'enum',
@@ -868,6 +869,7 @@ export const layer1Dimensions: DimensionDefinition[] = [
       { value: 'phlegmatic', label: '粘液质' }
     ],
     input_type: 'select',
+    help_text: '抑郁质：敏感细腻、深思熟虑；多血质：活泼开朗、善于社交；胆汁质：果断强势、精力充沛；粘液质：沉稳平静、耐心持久',
     weight: 1.0,
     importance: 'optional',
     source_allowed: ['manual'],
