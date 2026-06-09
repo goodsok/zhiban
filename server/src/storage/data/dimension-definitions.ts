@@ -839,19 +839,18 @@ export const layer1Dimensions: DimensionDefinition[] = [
   {
     dimension_key: 'attachmentStyle',
     display_name: '依恋类型',
-    description: '在亲密关系中的情感联结模式，决定了对亲密和独立的需求平衡',
+    description: '在亲密关系中的情感联结模式，基于 Bartholomew 四象限模型',
     layer: 1,
     category: 'core_personality',
     data_type: 'enum',
     enum_options: [
       { value: 'secure', label: '安全型' },
       { value: 'anxious', label: '焦虑型' },
-      { value: 'avoidant', label: '回避型' },
-      { value: 'disorganized', label: '混乱型' },
-      { value: 'fearful', label: '恐惧型' }
+      { value: 'dismissive_avoidant', label: '疏离-回避型' },
+      { value: 'fearful_avoidant', label: '恐惧-回避型' }
     ],
     input_type: 'select',
-    help_text: '安全型：信任伴侣、舒适亲密；焦虑型：害怕被抛弃、需要反复确认；回避型：保持距离、压抑情感需求；混乱型：忽冷忽热、行为矛盾；恐惧型：渴望亲密又害怕受伤',
+    help_text: '安全型：信任伴侣、舒适亲密；焦虑型：害怕被抛弃、需要反复确认；疏离-回避型：自我依赖、压抑情感需求；恐惧-回避型：渴望亲密又害怕受伤、忽近忽远',
     weight: 1.5,
     importance: 'critical',
     source_allowed: ['manual', 'questionnaire'],

@@ -66,7 +66,7 @@ interface DimensionGroup {
 const DIMENSION_HELP: Record<string, string> = {
   // Layer 1 - 基础档案
   coreTemperament: '抑郁质：敏感细腻；多血质：活泼开朗；胆汁质：果断强势；粘液质：沉稳平静',
-  attachmentStyle: '安全型：舒适亲密；焦虑型：怕被抛弃；回避型：保持距离；混乱型：忽冷忽热；恐惧型：渴望又害怕',
+  attachmentStyle: '安全型：舒适亲密；焦虑型：怕被抛弃；疏离-回避型：自我依赖；恐惧-回避型：渴望又害怕',
   worldview: '看待世界和人生的基本立场，可多选',
 
   // Layer 2 - 性格特质
