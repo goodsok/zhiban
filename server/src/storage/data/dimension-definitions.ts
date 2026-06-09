@@ -839,6 +839,7 @@ export const layer1Dimensions: DimensionDefinition[] = [
   {
     dimension_key: 'attachmentStyle',
     display_name: '依恋类型',
+    description: '在亲密关系中的情感联结模式，决定了对亲密和独立的需求平衡',
     layer: 1,
     category: 'core_personality',
     data_type: 'enum',
@@ -850,6 +851,7 @@ export const layer1Dimensions: DimensionDefinition[] = [
       { value: 'fearful', label: '恐惧型' }
     ],
     input_type: 'select',
+    help_text: '安全型：信任伴侣、舒适亲密；焦虑型：害怕被抛弃、需要反复确认；回避型：保持距离、压抑情感需求；混乱型：忽冷忽热、行为矛盾；恐惧型：渴望亲密又害怕受伤',
     weight: 1.5,
     importance: 'critical',
     source_allowed: ['manual', 'questionnaire'],
