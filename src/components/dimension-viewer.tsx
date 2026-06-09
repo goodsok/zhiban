@@ -66,6 +66,7 @@ interface DimensionGroup {
 const DIMENSION_HELP: Record<string, string> = {
   // Layer 1 - 基础档案
   coreTemperament: '抑郁质：敏感细腻；多血质：活泼开朗；胆汁质：果断强势；粘液质：沉稳平静',
+  worldview: '看待世界和人生的基本立场，可多选',
 
   // Layer 2 - 性格特质
   riskAttitude: '面对不确定性时的倾向：追求冒险还是偏好稳妥',

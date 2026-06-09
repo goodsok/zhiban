@@ -912,6 +912,7 @@ export const layer1Dimensions: DimensionDefinition[] = [
   {
     dimension_key: 'worldview',
     display_name: '世界观倾向',
+    description: '一个人看待世界和人生的基本立场与态度，影响其决策方式和价值判断',
     layer: 1,
     category: 'values',
     data_type: 'string[]',
@@ -929,6 +930,7 @@ export const layer1Dimensions: DimensionDefinition[] = [
     ],
     input_type: 'multiselect',
     placeholder: '请选择世界观倾向',
+    help_text: '乐观积极：相信事情会变好；悲观现实：做好最坏打算；务实理性：关注事实与效用；理想主义：追求应然与完美；怀疑主义：不轻信表面；斯多葛主义：接受命运、控制情绪；存在主义：自己赋予意义；灵性主义：相信超越物质的力量；唯物主义：物质决定意识；人文主义：以人为本、重视人的尊严',
     weight: 1.0,
     importance: 'optional',
     source_allowed: ['manual'],
