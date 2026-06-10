@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { getSupabaseClient } from '../../storage/database/supabase-client'
 import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk'
+import { PortraitEngineService } from '../portrait-engine/portrait-engine.service'
 import type { Request } from 'express'
 
 // ==================== 类型定义 ====================
@@ -328,6 +329,7 @@ function deriveAttitudeAnchor(safety: number, desire: number): string {
 
 @Injectable()
 export class TwinService {
+  constructor(private readonly portraitEngineService: PortraitEngineService) {}
 
   // ==================== 数据获取 ====================
 
@@ -360,7 +362,24 @@ export class TwinService {
       .eq('match_id', matchId)
       .maybeSingle()
     if (error) { console.error('[TwinService] getMatchPortrait error:', error); return null }
-    return data
+    if (data) return data
+
+    // portrait 不存在，通过 portraitEngine 触发创建（从维度数据计算画像）
+    try {
+      const fullPortrait = await this.portraitEngineService.getOrCreatePortrait(matchId)
+      if (fullPortrait) {
+        // 重新查询刚创建的 portrait 行数据
+        const { data: newData } = await client
+          .from('profile_portraits')
+          .select('*')
+          .eq('match_id', matchId)
+          .single()
+        return newData
+      }
+    } catch (e) {
+      console.error('[TwinService] getMatchPortrait create failed:', e)
+    }
+    return null
   }
 
   private async getOrCreateRelationship(matchId: number): Promise<RelationshipState> {
