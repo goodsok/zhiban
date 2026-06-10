@@ -346,7 +346,7 @@ export class TwinService {
     const client = getSupabaseClient()
     const { data, error } = await client
       .from('profile_dimension_values')
-      .select('dimension_key, value, category')
+      .select('dimension_key, value')
       .eq('match_id', matchId)
     if (error) { console.error('[TwinService] getMatchDimensions error:', error); return [] }
     return data || []
@@ -358,7 +358,7 @@ export class TwinService {
       .from('profile_portraits')
       .select('*')
       .eq('match_id', matchId)
-      .single()
+      .maybeSingle()
     if (error) { console.error('[TwinService] getMatchPortrait error:', error); return null }
     return data
   }
