@@ -81,17 +81,13 @@ export class ChatService {
   private cleanLLMContent(content: string): string {
     let cleaned = content
     
-    // 移除 think 标签及其内容
-    cleaned = cleaned.replace(/<think[^>]*>[\s\S]*?<\/think[^>]*>/gi, '')
-    cleaned = cleaned.replace(/<think[^>]*>/gi, '')
-    cleaned = cleaned.replace(/<\/think[^>]*>/gi, '')
+    // 移除豆包模型的内部标签（think/thinking/[SILENT] 等）
+    // doubao-seed 模型在 thinking: disabled 下仍可能输出 <think_xxx>、<[SILENT_xxx]> 等内部标记
+    // 这些是模型推理过程的内部标识，不应展示给用户
+    cleaned = cleaned.replace(/<\[?\s*(think|thinking|SILENT)[^>\]]*\s*\]?>([\s\S]*?)<\[?\s*\/\s*(think|thinking|SILENT)[^>\]]*\s*\]?>/gi, '')
+    cleaned = cleaned.replace(/<\[?\s*(think|thinking|SILENT)[^>\]]*\s*\]?>/gi, '')
     
-    // 移除其他可能的思考标签
-    cleaned = cleaned.replace(/<thinking[^>]*>[\s\S]*?<\/thinking[^>]*>/gi, '')
-    cleaned = cleaned.replace(/<thinking[^>]*>/gi, '')
-    cleaned = cleaned.replace(/<\/thinking[^>]*>/gi, '')
-    
-    // 移除开头可能的标签（没有闭合的情况）
+    // 移除开头可能的孤立标签（没有闭合的情况）
     cleaned = cleaned.replace(/^<[^>]+>/i, '')
     
     // 清理多余空白

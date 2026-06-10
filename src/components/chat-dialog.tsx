@@ -42,14 +42,11 @@ const ROTATE_INTERVAL = 8000
 
 // 简易 markdown 渲染：将 **bold** 转为加粗 Text 节点
 const renderMarkdownText = (content: string) => {
-  // 先清理 LLM 思考标签（<think_xxx>...</think_xxx>、<thinking>...</thinking>）
+  // 清理豆包模型内部标签（think/thinking/[SILENT] 等）
+  // doubao-seed 模型在 thinking: disabled 下仍可能输出这些内部标记
   const noThink = content
-    .replace(/<think[^>]*>[\s\S]*?<\/think[^>]*>/gi, '')
-    .replace(/<think[^>]*>/gi, '')
-    .replace(/<\/think[^>]*>/gi, '')
-    .replace(/<thinking[^>]*>[\s\S]*?<\/thinking[^>]*>/gi, '')
-    .replace(/<thinking[^>]*>/gi, '')
-    .replace(/<\/thinking[^>]*>/gi, '')
+    .replace(/<\[?\s*(think|thinking|SILENT)[^>\]]*\s*\]?>([\s\S]*?)<\[?\s*\/\s*(think|thinking|SILENT)[^>\]]*\s*\]?>/gi, '')
+    .replace(/<\[?\s*(think|thinking|SILENT)[^>\]]*\s*\]?>/gi, '')
   // 再清理 markdown 格式符号，保留内容文本
   const cleaned = noThink
     .replace(/\*\*(.+?)\*\*/g, '$1')  // **bold** -> text
