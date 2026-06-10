@@ -2,7 +2,19 @@ import Taro from '@tarojs/taro'
 import { View, Text, ScrollView, Image, Input } from '@tarojs/components'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Network } from '@/network'
-import { Loader, Send, Sparkles, ImagePlus, X, ArrowLeft, RefreshCw } from 'lucide-react-taro'
+import { Loader, Send, Sparkles, ImagePlus, X, ArrowLeft, RefreshCw, Heart, Flame } from 'lucide-react-taro'
+
+// 助手风格类型
+type AssistantStyle = 'warm' | 'real'
+
+// 风格配置
+const STYLE_CONFIG: Record<AssistantStyle, { label: string; icon: typeof Heart; color: string; activeBg: string }> = {
+  warm: { label: '暖心', icon: Heart, color: '#F472B6', activeBg: 'bg-pink-50' },
+  real: { label: '真实', icon: Flame, color: '#F97316', activeBg: 'bg-orange-50' },
+}
+
+// 风格持久化 key
+const STYLE_STORAGE_KEY = 'assistant_style'
 
 // 消息类型
 interface ChatMessage {
@@ -64,6 +76,22 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
   const [historyLoading, setHistoryLoading] = useState(false)
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [statusBarHeight, setStatusBarHeight] = useState(0)
+  const [assistantStyle, setAssistantStyle] = useState<AssistantStyle>(() => {
+    try {
+      const saved = Taro.getStorageSync(STYLE_STORAGE_KEY)
+      return saved === 'real' ? 'real' : 'warm'
+    } catch {
+      return 'warm'
+    }
+  })
+
+  // 切换风格
+  const handleStyleChange = useCallback((style: AssistantStyle) => {
+    setAssistantStyle(style)
+    try {
+      Taro.setStorageSync(STYLE_STORAGE_KEY, style)
+    } catch {}
+  }, [])
   
   // 推荐问题池和轮换
   const [questionPool, setQuestionPool] = useState<string[]>([])
@@ -151,9 +179,12 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       loadHistory()
       loadQuickQuestions([])
     } else if (open) {
+      const welcomeMsg = assistantStyle === 'real'
+        ? '说吧，什么情况？'
+        : '你好！我是小助手，请先选择一个对象，我才能给你针对性的建议哦~'
       setMessages([{ 
         role: 'assistant', 
-        content: '你好！我是小助手，请先选择一个对象，我才能给你针对性的建议哦~' 
+        content: welcomeMsg
       }])
       setQuestionPool(['如何开始使用？', '怎么创建对象档案？', '这个应用能帮我什么？', '怎么添加对象信息？', '如何获取AI建议？', '怎么记录互动？'])
     }
@@ -238,9 +269,12 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       } else {
         // 服务器无数据，显示欢迎语
         if (!localMessages || localMessages.length === 0) {
+          const welcomeText = assistantStyle === 'real'
+            ? `说吧，关于${context.matchName}什么情况？`
+            : `你好！我是小助手，可以帮你分析${context.matchName}的情况，或者给你一些建议。有什么想聊的吗？`
           const welcomeMsg = [{ 
             role: 'assistant' as const, 
-            content: `你好！我是小助手，可以帮你分析${context.matchName}的情况，或者给你一些建议。有什么想聊的吗？` 
+            content: welcomeText
           }]
           setMessages(welcomeMsg)
         }
@@ -248,9 +282,12 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
     } catch (error) {
       console.error('Load history error:', error)
       if (!localMessages || localMessages.length === 0) {
+        const welcomeText = assistantStyle === 'real'
+          ? `说吧，关于${context.matchName}什么情况？`
+          : `你好！我是小助手，可以帮你分析${context.matchName}的情况，或者给你一些建议。有什么想聊的吗？`
         setMessages([{ 
-          role: 'assistant', 
-          content: `你好！我是小助手，可以帮你分析${context.matchName}的情况，或者给你一些建议。有什么想聊的吗？` 
+          role: 'assistant' as const, 
+          content: welcomeText 
         }])
       }
     } finally {
@@ -345,7 +382,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
             content: m.content + (m.images && m.images.length > 0 ? ' [包含图片]' : '')
           })),
           context,
-          imageContext: imageAnalysisText || undefined
+          imageContext: imageAnalysisText || undefined,
+          style: assistantStyle,
         }
       })
 
@@ -360,7 +398,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       } else {
         const finalMessages = [...newMessages, { 
           role: 'assistant' as const, 
-          content: '抱歉，我暂时无法回应，请稍后再试。' 
+          content: assistantStyle === 'real' ? '暂时没法回复，晚点再说。' : '抱歉，我暂时无法回应，请稍后再试。' 
         }]
         setMessages(finalMessages)
         if (context?.matchId) {
@@ -371,7 +409,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       console.error('Chat error:', error)
       const finalMessages = [...newMessages, { 
         role: 'assistant' as const, 
-        content: '网络出了点问题，请稍后再试。' 
+        content: assistantStyle === 'real' ? '网络有问题，稍后再聊。' : '网络出了点问题，请稍后再试。' 
       }]
       setMessages(finalMessages)
       if (context?.matchId) {
@@ -412,7 +450,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
             role: m.role,
             content: m.content
           })),
-          context
+          context,
+          style: assistantStyle,
         }
       })
 
@@ -427,7 +466,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       } else {
         const finalMessages = [...newMessages, { 
           role: 'assistant' as const, 
-          content: '抱歉，我暂时无法回应，请稍后再试。' 
+          content: assistantStyle === 'real' ? '暂时没法回复，晚点再说。' : '抱歉，我暂时无法回应，请稍后再试。' 
         }]
         setMessages(finalMessages)
         if (context?.matchId) {
@@ -438,7 +477,7 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
       console.error('Chat error:', error)
       const finalMessages = [...newMessages, { 
         role: 'assistant' as const, 
-        content: '网络出了点问题，请稍后再试。' 
+        content: assistantStyle === 'real' ? '网络有问题，稍后再聊。' : '网络出了点问题，请稍后再试。' 
       }]
       setMessages(finalMessages)
       if (context?.matchId) {
@@ -492,7 +531,26 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
             <Sparkles size={18} color="#000" />
             <Text className="text-base font-semibold text-gray-900">AI 助手</Text>
           </View>
-          <View className="w-10 h-10" />
+          {/* 风格切换 */}
+          <View className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
+            {(['warm', 'real'] as AssistantStyle[]).map(style => {
+              const config = STYLE_CONFIG[style]
+              const IconComp = config.icon
+              const isActive = assistantStyle === style
+              return (
+                <View
+                  key={style}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-full ${isActive ? config.activeBg : ''}`}
+                  onClick={() => handleStyleChange(style)}
+                >
+                  <IconComp size={12} color={isActive ? config.color : '#9CA3AF'} />
+                  <Text className={`text-xs ${isActive ? 'font-medium' : ''}`} style={{ color: isActive ? config.color : '#9CA3AF' }}>
+                    {config.label}
+                  </Text>
+                </View>
+              )
+            })}
+          </View>
         </View>
         
         {/* 副标题 */}

@@ -12,6 +12,7 @@ export class ChatController {
       messages: ChatMessage[]
       context?: ChatContext
       imageContext?: string
+      style?: 'warm' | 'real'
     },
     @Req() req: Request
   ) {
@@ -19,7 +20,8 @@ export class ChatController {
       body.messages || [],
       body.context || null,
       req,
-      body.imageContext
+      body.imageContext,
+      body.style || 'warm'
     )
   }
 

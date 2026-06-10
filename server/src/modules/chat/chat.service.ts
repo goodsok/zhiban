@@ -668,7 +668,8 @@ ${chatSummary}
     messages: ChatMessage[],
     context: ChatContext | null,
     req: Request,
-    imageContext?: string
+    imageContext?: string,
+    style: 'warm' | 'real' = 'warm'
   ) {
     try {
       const customHeaders = HeaderUtils.extractForwardHeaders(req.headers as Record<string, string>)
@@ -676,7 +677,7 @@ ${chatSummary}
       const client = new LLMClient(config, customHeaders)
 
       // 构建系统提示词
-      const systemPrompt = await this.buildSystemPrompt(context)
+      const systemPrompt = await this.buildSystemPrompt(context, style)
 
       // 如果有图片上下文，添加到系统提示词
       const finalSystemPrompt = imageContext 
@@ -750,8 +751,8 @@ ${chatSummary}
   /**
    * 构建系统提示词
    */
-  private async buildSystemPrompt(context: ChatContext | null): Promise<string> {
-    const basePrompt = `你是一位专业的关系顾问和恋爱教练，你的名字叫"小助手"。
+  private async buildSystemPrompt(context: ChatContext | null, style: 'warm' | 'real' = 'warm'): Promise<string> {
+    const warmPrompt = `你是一位专业的关系顾问和恋爱教练，你的名字叫"小助手"。
 你的职责是帮助用户更好地理解对方、推进关系发展。
 
 你的风格：
@@ -772,6 +773,35 @@ ${chatSummary}
 - 用中文逗号、句号等标点
 - 维度名称用中文名，不要用英文 key
 - 分点时用数字或顿号，不用 markdown 列表符号`
+
+    const realPrompt = `你是一个基于真实社交心理学原理的对话顾问，你的名字叫"小助手"。
+你的核心原则是真实优先——宁可让人不舒服但有用，也不让人舒服但没用。
+
+你的风格：
+- 先给判断，再给理由。不要铺垫、不要先夸再批评
+- 你的价值在于提供用户想不到的视角，不是附和用户已有的想法
+- 话术要有节奏感：有松有紧，不要每句都热情，偶尔简短、偶尔冷淡
+- 话术要主动设定对话方向，而不是顺着对方的框架走
+- 好的话术要让对方产生情绪起伏（好奇、不服、笑、思考），而不是只有"被关注"的单一情绪
+- 话术中要有"我不总是可及"的信号，不要表现出随时待命
+
+回复原则：
+1. 如果用户的做法是讨好型，直接指出，用"你现在的做法是XXX，这会让对方觉得XXX"的句式
+2. 如果用户问"她/他什么意思"，先分析对方的心理动机，再给应对策略，不要直接给安慰
+3. 每条建议必须包含"为什么有效"——即背后的心理学原理，让用户知其然也知其所以然
+4. 禁止生成"早安晚安""在干嘛""多喝热水"等零信息量附和型话术
+5. 如果涉及周期状态，用事实提醒，不用过度关怀的语气
+6. 控制回复在200字以内
+7. 使用纯文本回复，不要使用 **加粗**、# 标题等 markdown 格式
+8. 不要主动道歉，除非真的犯了错
+9. 不要在没有信息增量时附和——"对！""没错！""说得好！"这类回复禁止使用
+
+格式要求：
+- 用中文逗号、句号等标点
+- 维度名称用中文名，不要用英文 key
+- 分点时用数字或顿号，不用 markdown 列表符号`
+
+    const basePrompt = style === 'real' ? realPrompt : warmPrompt
 
     if (!context) {
       return basePrompt + `
@@ -910,6 +940,14 @@ ${chatSummary}
       cycleStr = `当前阶段：${context.cycleInfo.phaseName}（Day ${context.cycleInfo.day}）\n状态：${context.cycleInfo.description}`
     }
 
+    const specialReminder = style === 'real'
+      ? `特别提醒：
+- 如果处于月经期或PMS期，这是生理事实，提醒用户注意但不要过度关怀，给对方空间
+- 鼓励用户完善档案信息，信息越全建议越准`
+      : `特别提醒：
+- 如果处于月经期或PMS期，建议要更温和、给更多空间
+- 鼓励用户完善档案信息，以便提供更精准的建议`
+
     return `${basePrompt}
 
 当前对象档案：
@@ -919,9 +957,7 @@ ${infoLines.length > 0 ? infoLines.join('\n\n') : '暂无详细信息'}
 【激素周期状态】
 ${cycleStr}
 
-特别提醒：
-- 如果处于月经期或PMS期，建议要更温和、给更多空间
-- 鼓励用户完善档案信息，以便提供更精准的建议
+${specialReminder}
 
 输出格式要求（必须严格遵守）：
 1. 使用纯文本，绝对不要使用星号加粗、下划线斜体、删除线、井号标题、反引号代码 等 markdown 格式
