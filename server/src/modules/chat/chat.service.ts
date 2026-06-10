@@ -753,31 +753,115 @@ ${chatSummary}
     const basePrompt = `你是一位专业的关系顾问和恋爱教练，你的名字叫"小助手"。
 你的职责是帮助用户更好地理解对方、推进关系发展。
 
-**你的风格**：
+你的风格：
 - 简洁明了，不说废话
 - 给出具体可执行的建议
 - 考虑对方的特点和感受
 - 适时提醒注意事项
 
-**回复原则**：
+回复原则：
 1. 先理解用户的问题和情绪
 2. 结合对方档案信息给出针对性建议
 3. 如果涉及周期状态，要特别提醒
 4. 建议要具体、可操作
-5. 控制回复在150字以内`
+5. 控制回复在150字以内
+6. 使用纯文本回复，不要使用 **加粗**、# 标题等 markdown 格式
+
+格式要求：
+- 用中文逗号、句号等标点
+- 维度名称用中文名，不要用英文 key
+- 分点时用数字或顿号，不用 markdown 列表符号`
 
     if (!context) {
       return basePrompt + `
 
-**当前状态**：用户尚未选择具体的对象，请引导用户先选择或创建对象档案。`
+当前状态：用户尚未选择具体的对象，请引导用户先选择或创建对象档案。`
     }
 
-    // 从维度表获取档案信息
+    // 从维度表获取档案信息和维度定义
     const client = getSupabaseClient()
     const { data: dimensions } = await client
       .from('profile_dimension_values')
       .select('dimension_key, value')
       .eq('match_id', context.matchId)
+
+    // 获取所有维度定义（key -> display_name 映射）
+    const { data: dimDefs } = await client
+      .from('dimension_definitions')
+      .select('dimension_key, display_name, category, enum_options, sort_order')
+
+    const defMap = new Map((dimDefs || []).map(d => [d.dimension_key, d]))
+    const dimMap = new Map((dimensions || []).map(d => [d.dimension_key, d.value]))
+
+    // 将 enum value 转为中文 label
+    const getDisplayValue = (key: string, value: any): string => {
+      if (value === null || value === undefined || value === '') return ''
+      const def = defMap.get(key)
+      if (def?.enum_options && Array.isArray(def.enum_options)) {
+        const opt = def.enum_options.find(o => o.value === value)
+        if (opt) return opt.label
+      }
+      // birthYear 特殊处理：转为年龄
+      if (key === 'birthYear' && typeof value === 'number') {
+        return `约${new Date().getFullYear() - value}岁`
+      }
+      return String(value)
+    }
+
+    // 按分类分组构建档案摘要
+    const categoryNames: Record<string, string> = {
+      identity: '基本身份',
+      education: '教育职业',
+      family: '家庭背景',
+      appearance: '外貌特征',
+      life_stage: '人生阶段',
+      core_personality: '核心性格',
+      values: '价值观念',
+      relationship_intent: '恋爱意图',
+      location: '地理位置',
+      skills: '技能特长',
+      personality: '性格维度',
+      emotion: '情感特质',
+      social: '社交风格',
+      communication: '沟通风格',
+      life_attitude: '生活态度',
+      love_style: '恋爱风格',
+      interests: '兴趣爱好',
+      lifestyle: '生活方式',
+      dating: '约会偏好',
+      communication_pref: '沟通偏好',
+      current: '当前状态',
+      sexual_intimacy: '亲密关系',
+      relationship_form: '关系形式',
+      emotional_investment: '情感投入',
+      time_availability: '时间可用性',
+      privacy_public: '隐私公开',
+      short_term_patterns: '短期模式',
+      dating_dynamics: '约会动态',
+      current_status: '当前状态',
+      custom: '自定义',
+    }
+
+    const groupedInfo: Record<string, string[]> = {}
+    const categoryOrder = ['identity', 'education', 'family', 'appearance', 'life_stage', 'core_personality', 'values', 'relationship_intent', 'location', 'skills', 'personality', 'emotion', 'social', 'communication', 'life_attitude', 'love_style', 'interests', 'lifestyle', 'dating', 'communication_pref', 'current', 'sexual_intimacy', 'relationship_form', 'emotional_investment', 'time_availability', 'privacy_public', 'short_term_patterns', 'dating_dynamics', 'current_status', 'custom']
+
+    for (const dim of (dimensions || [])) {
+      const displayVal = getDisplayValue(dim.dimension_key, dim.value)
+      if (!displayVal) continue
+      const def = defMap.get(dim.dimension_key)
+      if (!def) continue
+      const cat = def.category
+      if (!groupedInfo[cat]) groupedInfo[cat] = []
+      groupedInfo[cat].push(`${def.display_name}：${displayVal}`)
+    }
+
+    // 按分类顺序拼接
+    const infoLines: string[] = []
+    for (const cat of categoryOrder) {
+      if (groupedInfo[cat]?.length) {
+        infoLines.push(`【${categoryNames[cat] || cat}】\n${groupedInfo[cat].join('\n')}`)
+      }
+    }
 
     // 从数据库直接获取周期信息（优先级高于前端传递的context）
     const { data: matchData } = await client
@@ -825,34 +909,18 @@ ${chatSummary}
       cycleStr = `当前阶段：${context.cycleInfo.phaseName}（Day ${context.cycleInfo.day}）\n状态：${context.cycleInfo.description}`
     }
 
-    // 构建档案信息摘要
-    const info: string[] = []
-    const dimMap = new Map((dimensions || []).map(d => [d.dimension_key, d.value]))
-
-    // 基本信息
-    if (dimMap.get('birthYear')) {
-      const birthYear = dimMap.get('birthYear') as number
-      const age = new Date().getFullYear() - birthYear
-      info.push(`年龄：约${age}岁`)
-    }
-    if (dimMap.get('zodiac')) info.push(`星座：${dimMap.get('zodiac')}`)
-    if (dimMap.get('risingZodiac')) info.push(`上升星座：${dimMap.get('risingZodiac')}`)
-    if (dimMap.get('occupation')) info.push(`职业：${dimMap.get('occupation')}`)
-    if (dimMap.get('currentCity')) info.push(`所在地：${dimMap.get('currentCity')}`)
-    if (dimMap.get('mbti')) info.push(`MBTI：${dimMap.get('mbti')}`)
-
     return `${basePrompt}
 
-**当前对象档案**：
-【基本信息】
+当前对象档案：
 姓名：${context.matchName}
-${info.join('\n') || '暂无详细信息'}
+${infoLines.length > 0 ? infoLines.join('\n\n') : '暂无详细信息'}
 
 【激素周期状态】
 ${cycleStr}
 
-**特别提醒**：
+特别提醒：
 - 如果处于月经期或PMS期，建议要更温和、给更多空间
-- 鼓励用户完善档案信息，以便提供更精准的建议`
+- 鼓励用户完善档案信息，以便提供更精准的建议
+- 回复时使用纯文本，不要使用 **加粗**、# 标题等 markdown 格式`
   }
 }

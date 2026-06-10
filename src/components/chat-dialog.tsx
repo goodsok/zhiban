@@ -40,6 +40,33 @@ const VISIBLE_COUNT = 3
 // 轮换间隔（毫秒）
 const ROTATE_INTERVAL = 8000
 
+// 简易 markdown 渲染：将 **bold** 转为加粗 Text 节点
+const renderMarkdownText = (content: string) => {
+  const parts: Array<{ text: string; bold: boolean }> = []
+  const regex = /\*\*(.+?)\*\*/g
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+
+  while ((match = regex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ text: content.slice(lastIndex, match.index), bold: false })
+    }
+    parts.push({ text: match[1], bold: true })
+    lastIndex = regex.lastIndex
+  }
+  if (lastIndex < content.length) {
+    parts.push({ text: content.slice(lastIndex), bold: false })
+  }
+
+  if (parts.length === 0) {
+    parts.push({ text: content, bold: false })
+  }
+
+  return parts.map((part, i) => (
+    <Text key={i} className={`text-sm text-gray-800 ${part.bold ? 'font-bold' : ''}`}>{part.text}</Text>
+  ))
+}
+
 const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputValue, setInputValue] = useState('')
@@ -517,8 +544,8 @@ const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) 
                 className={`mb-3 ${msg.role === 'user' ? 'flex justify-end' : ''}`}
               >
                 {msg.role === 'assistant' ? (
-                  <View className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] shadow-sm">
-                    <Text className="text-sm text-gray-800 whitespace-pre-wrap">{msg.content}</Text>
+                  <View className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] shadow-sm whitespace-pre-wrap">
+                    {renderMarkdownText(msg.content)}
                   </View>
                 ) : (
                   <View className="max-w-[85%]">
