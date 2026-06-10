@@ -140,7 +140,7 @@ interface AttachmentParams {
 }
 
 const ATTACHMENT_PROFILES: Record<string, AttachmentParams> = {
-  avoidant: {
+  dismissive_avoidant: {
     gateFactor: 0.8,
     desireOnWarm: 2, desireOnCold: 2, desireOnPressure: -8,
     desireOnUnderstood: 5, desireOnOverIntimate: -6,
@@ -161,7 +161,7 @@ const ATTACHMENT_PROFILES: Record<string, AttachmentParams> = {
     safetyOnPressure: -1, safetyOnCold: -2,
     wallThreshold: 90, wallDrop: 2,
   },
-  fearful: {
+  fearful_avoidant: {
     gateFactor: 0.7,
     desireOnWarm: 3, desireOnCold: 5, desireOnPressure: -10,
     desireOnUnderstood: 7, desireOnOverIntimate: -8,
@@ -178,100 +178,100 @@ const ATTACHMENT_PROFILES: Record<string, AttachmentParams> = {
  */
 const STYLE_MODIFIERS: Record<InteractionStyle, Record<string, { safetyMod: number; desireMod: number; closenessMod: number } | null>> = {
   humor: {
-    avoidant:  { safetyMod: 1.5, desireMod: 1.3, closenessMod: 1.2 },  // 幽默对回避型最安全——无威胁的亲近
+    dismissive_avoidant:  { safetyMod: 1.5, desireMod: 1.3, closenessMod: 1.2 },  // 幽默对回避型最安全——无威胁的亲近
     anxious:   { safetyMod: 1.2, desireMod: 1.0, closenessMod: 1.0 },  // 放松但不特别触动
     secure:    { safetyMod: 1.2, desireMod: 1.1, closenessMod: 1.1 },  // 自然加分
-    fearful:   { safetyMod: 1.4, desireMod: 1.1, closenessMod: 1.1 },  // 幽默降低恐惧型警惕
+    fearful_avoidant:   { safetyMod: 1.4, desireMod: 1.1, closenessMod: 1.1 },  // 幽默降低恐惧型警惕
   },
   teasing: {
-    avoidant:  { safetyMod: 0.8, desireMod: 0.7, closenessMod: 0.6 },  // 回避型不喜欢被挑逗——感觉被侵入
+    dismissive_avoidant:  { safetyMod: 0.8, desireMod: 0.7, closenessMod: 0.6 },  // 回避型不喜欢被挑逗——感觉被侵入
     anxious:   { safetyMod: 0.7, desireMod: 1.4, closenessMod: 0.8 },  // 焦虑型渴望但不安："你到底什么意思？"
     secure:    { safetyMod: 1.0, desireMod: 1.3, closenessMod: 1.1 },  // 安全型享受张力
-    fearful:   { safetyMod: 0.6, desireMod: 0.5, closenessMod: 0.5 },  // 恐惧型最怕挑逗——双重焦虑
+    fearful_avoidant:   { safetyMod: 0.6, desireMod: 0.5, closenessMod: 0.5 },  // 恐惧型最怕挑逗——双重焦虑
   },
   flirting: {
-    avoidant:  { safetyMod: 0.6, desireMod: 0.5, closenessMod: 0.4 },  // 回避型：调情=施压，触发回避
+    dismissive_avoidant:  { safetyMod: 0.6, desireMod: 0.5, closenessMod: 0.4 },  // 回避型：调情=施压，触发回避
     anxious:   { safetyMod: 1.3, desireMod: 1.5, closenessMod: 1.2 },  // 焦虑型：调情=确认！最渴望的信号
     secure:    { safetyMod: 1.0, desireMod: 1.3, closenessMod: 1.2 },  // 安全型：自然回应
-    fearful:   { safetyMod: 0.5, desireMod: 1.2, closenessMod: 0.4 },  // 恐惧型：想靠近但害怕，内心拉扯
+    fearful_avoidant:   { safetyMod: 0.5, desireMod: 1.2, closenessMod: 0.4 },  // 恐惧型：想靠近但害怕，内心拉扯
   },
   caring: {
-    avoidant:  { safetyMod: 1.1, desireMod: 1.0, closenessMod: 1.0 },  // 回避型：关心还行，不太感动
+    dismissive_avoidant:  { safetyMod: 1.1, desireMod: 1.0, closenessMod: 1.0 },  // 回避型：关心还行，不太感动
     anxious:   { safetyMod: 1.5, desireMod: 1.4, closenessMod: 1.2 },  // 焦虑型：最需要关心！安全感暴增
     secure:    { safetyMod: 1.2, desireMod: 1.1, closenessMod: 1.1 },  // 安全型：温暖回应
-    fearful:   { safetyMod: 1.3, desireMod: 1.2, closenessMod: 1.1 },  // 恐惧型：关心比调情安全
+    fearful_avoidant:   { safetyMod: 1.3, desireMod: 1.2, closenessMod: 1.1 },  // 恐惧型：关心比调情安全
   },
   vulnerable: {
-    avoidant:  { safetyMod: 1.3, desireMod: 1.5, closenessMod: 1.4 },  // 回避型的秘密弱点：对方脆弱→她的保护欲
+    dismissive_avoidant:  { safetyMod: 1.3, desireMod: 1.5, closenessMod: 1.4 },  // 回避型的秘密弱点：对方脆弱→她的保护欲
     anxious:   { safetyMod: 1.4, desireMod: 1.3, closenessMod: 1.5 },  // 焦虑型：你信任我→我被需要→安全感+
     secure:    { safetyMod: 1.2, desireMod: 1.2, closenessMod: 1.3 },  // 安全型：真诚=亲密加速
-    fearful:   { safetyMod: 1.5, desireMod: 1.4, closenessMod: 1.3 },  // 恐惧型：你敢脆弱→我也可以
+    fearful_avoidant:   { safetyMod: 1.5, desireMod: 1.4, closenessMod: 1.3 },  // 恐惧型：你敢脆弱→我也可以
   },
   challenging: {
-    avoidant:  { safetyMod: 1.0, desireMod: 1.4, closenessMod: 0.8 },  // 回避型：有挑战性才有兴趣（轻视软柿子）
+    dismissive_avoidant:  { safetyMod: 1.0, desireMod: 1.4, closenessMod: 0.8 },  // 回避型：有挑战性才有兴趣（轻视软柿子）
     anxious:   { safetyMod: 0.6, desireMod: 0.7, closenessMod: 0.5 },  // 焦虑型：你不认可我？→不安
     secure:    { safetyMod: 1.0, desireMod: 1.2, closenessMod: 1.0 },  // 安全型：有趣但不受伤
-    fearful:   { safetyMod: 0.5, desireMod: 0.6, closenessMod: 0.4 },  // 恐惧型：挑战=批评→关闭
+    fearful_avoidant:   { safetyMod: 0.5, desireMod: 0.6, closenessMod: 0.4 },  // 恐惧型：挑战=批评→关闭
   },
   pressuring: {
-    avoidant:  { safetyMod: 0.3, desireMod: 0.2, closenessMod: 0.1 },  // 回避型：压力=逃跑
+    dismissive_avoidant:  { safetyMod: 0.3, desireMod: 0.2, closenessMod: 0.1 },  // 回避型：压力=逃跑
     anxious:   { safetyMod: 0.7, desireMod: 1.2, closenessMod: 0.7 },  // 焦虑型：矛盾——想要但更不安
     secure:    { safetyMod: 0.8, desireMod: 0.8, closenessMod: 0.8 },  // 安全型：不太舒服但能沟通
-    fearful:   { safetyMod: 0.2, desireMod: 0.1, closenessMod: 0.1 },  // 恐惧型：压力=冻住
+    fearful_avoidant:   { safetyMod: 0.2, desireMod: 0.1, closenessMod: 0.1 },  // 恐惧型：压力=冻住
   },
   cold: {
-    avoidant:  { safetyMod: 1.0, desireMod: 0.8, closenessMod: 0.6 },  // 回避型：正合我意但稍失落
+    dismissive_avoidant:  { safetyMod: 1.0, desireMod: 0.8, closenessMod: 0.6 },  // 回避型：正合我意但稍失落
     anxious:   { safetyMod: 0.4, desireMod: 1.6, closenessMod: 0.3 },  // 焦虑型：你冷→我更想要你！安全感崩
     secure:    { safetyMod: 0.8, desireMod: 0.9, closenessMod: 0.8 },  // 安全型：有点不舒服但不会崩
-    fearful:   { safetyMod: 0.5, desireMod: 1.3, closenessMod: 0.3 },  // 恐惧型：确认了"果然没人真心对我"
+    fearful_avoidant:   { safetyMod: 0.5, desireMod: 1.3, closenessMod: 0.3 },  // 恐惧型：确认了"果然没人真心对我"
   },
   empathetic: {
-    avoidant:  { safetyMod: 1.3, desireMod: 1.2, closenessMod: 1.1 },  // 回避型：被理解但不被push→难得的安全感
+    dismissive_avoidant:  { safetyMod: 1.3, desireMod: 1.2, closenessMod: 1.1 },  // 回避型：被理解但不被push→难得的安全感
     anxious:   { safetyMod: 1.5, desireMod: 1.3, closenessMod: 1.3 },  // 焦虑型：终于有人懂我！
     secure:    { safetyMod: 1.2, desireMod: 1.1, closenessMod: 1.2 },  // 安全型：被理解很舒服
-    fearful:   { safetyMod: 1.4, desireMod: 1.3, closenessMod: 1.2 },  // 恐惧型：理解让我放下防备
+    fearful_avoidant:   { safetyMod: 1.4, desireMod: 1.3, closenessMod: 1.2 },  // 恐惧型：理解让我放下防备
   },
   probing: {
-    avoidant:  { safetyMod: 0.7, desireMod: 0.6, closenessMod: 0.5 },  // 回避型：你在打探什么？→警惕
+    dismissive_avoidant:  { safetyMod: 0.7, desireMod: 0.6, closenessMod: 0.5 },  // 回避型：你在打探什么？→警惕
     anxious:   { safetyMod: 0.9, desireMod: 1.2, closenessMod: 0.9 },  // 焦虑型：你在意我才问→又怕答案
     secure:    { safetyMod: 1.0, desireMod: 1.1, closenessMod: 1.0 },  // 安全型：了解彼此正常
-    fearful:   { safetyMod: 0.6, desireMod: 0.7, closenessMod: 0.5 },  // 恐惧型：别探究我
+    fearful_avoidant:   { safetyMod: 0.6, desireMod: 0.7, closenessMod: 0.5 },  // 恐惧型：别探究我
   },
   compliment: {
-    avoidant:  { safetyMod: 1.0, desireMod: 0.9, closenessMod: 0.9 },  // 回避型：还行，别太肉麻
+    dismissive_avoidant:  { safetyMod: 1.0, desireMod: 0.9, closenessMod: 0.9 },  // 回避型：还行，别太肉麻
     anxious:   { safetyMod: 1.4, desireMod: 1.4, closenessMod: 1.2 },  // 焦虑型：被肯定！→安全感暴涨
     secure:    { safetyMod: 1.1, desireMod: 1.2, closenessMod: 1.1 },  // 安全型：开心但不依赖
-    fearful:   { safetyMod: 1.2, desireMod: 1.1, closenessMod: 1.0 },  // 恐惧型：赞美安全比调情高
+    fearful_avoidant:   { safetyMod: 1.2, desireMod: 1.1, closenessMod: 1.0 },  // 恐惧型：赞美安全比调情高
   },
   apologetic: {
-    avoidant:  { safetyMod: 1.3, desireMod: 1.1, closenessMod: 1.2 },  // 回避型：你退一步→我也退一步→双方减压
+    dismissive_avoidant:  { safetyMod: 1.3, desireMod: 1.1, closenessMod: 1.2 },  // 回避型：你退一步→我也退一步→双方减压
     anxious:   { safetyMod: 1.5, desireMod: 1.3, closenessMod: 1.4 },  // 焦虑型：你认错了→你还在意我！修复力极强
     secure:    { safetyMod: 1.2, desireMod: 1.1, closenessMod: 1.2 },  // 安全型：道歉好，能修复
-    fearful:   { safetyMod: 1.4, desireMod: 1.2, closenessMod: 1.3 },  // 恐惧型：认错→安全感回升
+    fearful_avoidant:   { safetyMod: 1.4, desireMod: 1.2, closenessMod: 1.3 },  // 恐惧型：认错→安全感回升
   },
   nostalgic: {
-    avoidant:  { safetyMod: 1.1, desireMod: 1.2, closenessMod: 1.1 },  // 回避型：回忆安全——过去的不会威胁现在
+    dismissive_avoidant:  { safetyMod: 1.1, desireMod: 1.2, closenessMod: 1.1 },  // 回避型：回忆安全——过去的不会威胁现在
     anxious:   { safetyMod: 1.3, desireMod: 1.4, closenessMod: 1.3 },  // 焦虑型：我们曾经那么好→渴望恢复
     secure:    { safetyMod: 1.1, desireMod: 1.2, closenessMod: 1.2 },  // 安全型：温暖回忆
-    fearful:   { safetyMod: 1.2, desireMod: 1.3, closenessMod: 1.1 },  // 恐惧型：美好的过去让我犹豫
+    fearful_avoidant:   { safetyMod: 1.2, desireMod: 1.3, closenessMod: 1.1 },  // 恐惧型：美好的过去让我犹豫
   },
   jealous: {
-    avoidant:  { safetyMod: 0.7, desireMod: 0.6, closenessMod: 0.5 },  // 回避型：占有欲→我被控制了→跑
+    dismissive_avoidant:  { safetyMod: 0.7, desireMod: 0.6, closenessMod: 0.5 },  // 回避型：占有欲→我被控制了→跑
     anxious:   { safetyMod: 1.3, desireMod: 1.5, closenessMod: 1.2 },  // 焦虑型：你在乎我！→但方式不对→又甜又怕
     secure:    { safetyMod: 0.9, desireMod: 1.1, closenessMod: 1.0 },  // 安全型：有点介意但能沟通
-    fearful:   { safetyMod: 0.6, desireMod: 1.0, closenessMod: 0.5 },  // 恐惧型：占有=危险信号
+    fearful_avoidant:   { safetyMod: 0.6, desireMod: 1.0, closenessMod: 0.5 },  // 恐惧型：占有=危险信号
   },
   assertive: {
-    avoidant:  { safetyMod: 0.6, desireMod: 0.5, closenessMod: 0.4 },  // 回避型：被控制→逃离
+    dismissive_avoidant:  { safetyMod: 0.6, desireMod: 0.5, closenessMod: 0.4 },  // 回避型：被控制→逃离
     anxious:   { safetyMod: 1.1, desireMod: 1.3, closenessMod: 1.0 },  // 焦虑型：有人拿主意→省心→但别太过
     secure:    { safetyMod: 1.0, desireMod: 1.1, closenessMod: 1.0 },  // 安全型：可以接受但有边界
-    fearful:   { safetyMod: 0.5, desireMod: 0.6, closenessMod: 0.4 },  // 恐惧型：强势=被压制→关掉
+    fearful_avoidant:   { safetyMod: 0.5, desireMod: 0.6, closenessMod: 0.4 },  // 恐惧型：强势=被压制→关掉
   },
   neutral: {
-    avoidant:  { safetyMod: 1.0, desireMod: 1.0, closenessMod: 1.0 },
+    dismissive_avoidant:  { safetyMod: 1.0, desireMod: 1.0, closenessMod: 1.0 },
     anxious:   { safetyMod: 1.0, desireMod: 1.0, closenessMod: 1.0 },
     secure:    { safetyMod: 1.0, desireMod: 1.0, closenessMod: 1.0 },
-    fearful:   { safetyMod: 1.0, desireMod: 1.0, closenessMod: 1.0 },
+    fearful_avoidant:   { safetyMod: 1.0, desireMod: 1.0, closenessMod: 1.0 },
   },
 }
 
@@ -286,13 +286,11 @@ const STYLE_LABELS: Record<InteractionStyle, string> = {
 const VALID_STYLES = Object.keys(STYLE_LABELS)
 
 function getAttachmentType(dimensionValues: DimensionValue[]): string {
-  const attachment = dimensionValues.find(d => d.dimension_key === 'attachment_type')
+  const attachment = dimensionValues.find(d => d.dimension_key === 'attachmentStyle')
   const val = attachment?.value?.toLowerCase() || ''
-  if (val.includes('回避') || val.includes('avoidant') || val === 'avoidant_dismissive' || val === 'avoidant_fearful') {
-    if (val.includes('fearful') || val.includes('恐惧')) return 'fearful'
-    return 'avoidant'
-  }
-  if (val.includes('焦虑') || val.includes('anxious') || val === 'anxious_preoccupied') return 'anxious'
+  if (val === 'fearful_avoidant' || val.includes('恐惧回避') || val.includes('恐惧')) return 'fearful_avoidant'
+  if (val === 'dismissive_avoidant' || val.includes('疏离回避') || val.includes('回避')) return 'dismissive_avoidant'
+  if (val === 'anxious' || val.includes('焦虑')) return 'anxious'
   return 'secure'
 }
 
@@ -620,7 +618,7 @@ ${relationshipSection}
 
     // 亲密距离感
     const attachment = getAttachmentType(dimensionValues)
-    if (attachment === 'avoidant' || attachment === 'fearful') {
+    if (attachment === 'dismissive_avoidant' || attachment === 'fearful_avoidant') {
       rules.push('当对方过于热情或逼近距离时，你会本能地退缩——回复变短、变冷淡、找借口结束对话。你需要在对方给你空间时才会慢慢靠近')
     } else if (attachment === 'anxious') {
       rules.push('当对方冷淡或疏远时，你会变得焦虑，回复变长、变急切、试图确认关系。你在对方给予确认时才会安心')
@@ -811,9 +809,9 @@ ${relationshipSection}
 ## ${name}的依恋类型：${attachmentType}
 
 依恋类型行为特征：
-- avoidant(回避型)：对方施压→渴望急降；对方给空间→渴望回升；亲密压力降低安全感
+- dismissive_avoidant(回避型)：对方施压→渴望急降；对方给空间→渴望回升；亲密压力降低安全感
 - anxious(焦虑型)：对方疏远→渴望急升+安全感降；对方确认→渴望上升
-- fearful(恐惧型)：类似回避但更极端；渴望和恐惧同时存在
+- fearful_avoidant(恐惧型)：类似回避但更极端；渴望和恐惧同时存在
 - secure(安全型)：正常响应，边界清晰
 
 ## 当前状态
@@ -1155,7 +1153,7 @@ ${name}回复："${twinReply}"
     const closenessDelta = newRel.closeness - prevRel.closeness
     const attachment = getAttachmentType(dimensionValues)
     const attachmentLabel: Record<string, string> = {
-      avoidant: '回避型', anxious: '焦虑型', secure: '安全型', fearful: '恐惧型',
+      dismissive_avoidant: '疏离-回避型', anxious: '焦虑型', secure: '安全型', fearful_avoidant: '恐惧-回避型',
     }
 
     const insights: string[] = []
@@ -1195,7 +1193,7 @@ ${name}回复："${twinReply}"
       }
       if (severity === 'info') severity = 'positive'
     } else if (desireDelta <= -8) {
-      if (attachment === 'avoidant' || attachment === 'fearful') {
+      if (attachment === 'dismissive_avoidant' || attachment === 'fearful_avoidant') {
         insights.push(`${attachmentLabel[attachment]}的本能反应——感受到压力就后退`)
       } else {
         insights.push('她对你的兴趣在明显减退')
@@ -1275,7 +1273,7 @@ ${name}回复："${twinReply}"
       if (severity === 'info') severity = 'warning'
     } else if (newRel.tension > 30 && newRel.desire > newRel.closeness) {
       insights.push('她想靠近但不敢，渴望和实际距离之间有落差')
-      if (attachment === 'avoidant' || attachment === 'fearful') {
+      if (attachment === 'dismissive_avoidant' || attachment === 'fearful_avoidant') {
         suggestions.push('别追问她的感受，用轻松的陪伴让她自己慢慢靠近')
       } else if (attachment === 'anxious') {
         suggestions.push('她需要确认感——简短但确定的关心，比长篇大论更有效')
@@ -1285,7 +1283,7 @@ ${name}回复："${twinReply}"
     // ===== 7. 态度锚点 + 情绪组合 =====
     if (newEmo.attitudeAnchor === 'longing' && newRel.safety > 35) {
       insights.push('她嘴上可能不说，但心里其实想靠近你')
-      if (attachment === 'avoidant') suggestions.push('别逼她承认，用行动靠近比逼她表态更有效')
+      if (attachment === 'dismissive_avoidant') suggestions.push('别逼她承认，用行动靠近比逼她表态更有效')
     } else if (newEmo.attitudeAnchor === 'guarded' && newRel.safety < 40) {
       insights.push('她在防御，不会轻易敞开')
       suggestions.push('少聊感受多聊事，让她在无压力的对话里慢慢卸下来')
@@ -1298,7 +1296,7 @@ ${name}回复："${twinReply}"
     }
 
     // ===== 8. 回避型墙区 =====
-    if (attachment === 'avoidant' && newRel.safety >= 45 && newRel.safety <= 65) {
+    if (attachment === 'dismissive_avoidant' && newRel.safety >= 45 && newRel.safety <= 65) {
       suggestions.push('⚠️ 她可能在墙区——随时会突然冷淡，这不是你的问题，是她的防御机制')
     }
 
@@ -1339,94 +1337,94 @@ ${name}回复："${twinReply}"
 
     const styleTexts: Record<InteractionStyle, Record<string, string>> = {
       humor: {
-        avoidant: `${prefix}，这恰好是她最舒服的互动方式——没有威胁的亲近，她的防线悄悄降低了`,
+        dismissive_avoidant: `${prefix}，这恰好是她最舒服的互动方式——没有威胁的亲近，她的防线悄悄降低了`,
         anxious: `${prefix}，她笑了，但可能还在猜你是不是认真的`,
         secure: `${prefix}，气氛轻松了不少，你们的距离在笑声中拉近了`,
-        fearful: `${prefix}，她笑得有点勉强——幽默让她放松，但也让她不知道你是不是在开玩笑`,
+        fearful_avoidant: `${prefix}，她笑得有点勉强——幽默让她放松，但也让她不知道你是不是在开玩笑`,
       },
       teasing: {
-        avoidant: `${prefix}，她不太喜欢被逗弄——感觉自己被看穿了，本能想往后退`,
+        dismissive_avoidant: `${prefix}，她不太喜欢被逗弄——感觉自己被看穿了，本能想往后退`,
         anxious: `${prefix}，她心动了但更不安——你到底是开玩笑还是认真的？`,
         secure: `${prefix}，制造了一点张力，她不讨厌这种推拉`,
-        fearful: `${prefix}，挑逗让她又想靠近又害怕——内心很纠结`,
+        fearful_avoidant: `${prefix}，挑逗让她又想靠近又害怕——内心很纠结`,
       },
       flirting: {
-        avoidant: `${prefix}，调情对回避型来说等于施压——她开始想逃了`,
+        dismissive_avoidant: `${prefix}，调情对回避型来说等于施压——她开始想逃了`,
         anxious: `${prefix}，这是她最渴望的信号！你确认了你在意她，安全感飙升`,
         secure: `${prefix}，暧昧的气氛升温了，她自然地接住了`,
-        fearful: `${prefix}，她想相信但不敢——心里在说"可能是真的"但身体在抗拒`,
+        fearful_avoidant: `${prefix}，她想相信但不敢——心里在说"可能是真的"但身体在抗拒`,
       },
       caring: {
-        avoidant: `${prefix}，关心还行，她不会特别感动，但也不排斥`,
+        dismissive_avoidant: `${prefix}，关心还行，她不会特别感动，但也不排斥`,
         anxious: `${prefix}，这正是她最需要的！被关心让她觉得被重视，安全感大增`,
         secure: `${prefix}，温暖被接住了，她觉得被理解`,
-        fearful: `${prefix}，关心比调情让她安心多了，她的防备悄悄降低`,
+        fearful_avoidant: `${prefix}，关心比调情让她安心多了，她的防备悄悄降低`,
       },
       vulnerable: {
-        avoidant: `${prefix}，你展示了脆弱——这是回避型的秘密弱点，她的保护欲被激活了`,
+        dismissive_avoidant: `${prefix}，你展示了脆弱——这是回避型的秘密弱点，她的保护欲被激活了`,
         anxious: `${prefix}，你愿意在我面前示弱——你信任我！她觉得自己被需要`,
         secure: `${prefix}，真诚是最好的亲密加速器，她被触动了`,
-        fearful: `${prefix}，你敢脆弱，她也在想也许自己也可以——防备在松动`,
+        fearful_avoidant: `${prefix}，你敢脆弱，她也在想也许自己也可以——防备在松动`,
       },
       challenging: {
-        avoidant: `${prefix}，激将法对回避型意外有效——有挑战性的人才值得靠近`,
+        dismissive_avoidant: `${prefix}，激将法对回避型意外有效——有挑战性的人才值得靠近`,
         anxious: `${prefix}，她觉得你在否定她——不安感上升了`,
         secure: `${prefix}，有点刺激但不伤人，她可以接住`,
-        fearful: `${prefix}，挑战让她觉得自己不够好——她开始退缩了`,
+        fearful_avoidant: `${prefix}，挑战让她觉得自己不够好——她开始退缩了`,
       },
       pressuring: {
-        avoidant: `${prefix}，她感受到压力了——回避型的第一反应是逃跑`,
+        dismissive_avoidant: `${prefix}，她感受到压力了——回避型的第一反应是逃跑`,
         anxious: `${prefix}，她想靠近但更不安——被需要的感觉和被控制的恐惧在打架`,
         secure: `${prefix}，她不太舒服，但还能直接告诉你`,
-        fearful: `${prefix}，压力让她冻住了——完全不知道怎么回应`,
+        fearful_avoidant: `${prefix}，压力让她冻住了——完全不知道怎么回应`,
       },
       cold: {
-        avoidant: `${prefix}，你冷淡她反而稍微松了口气——不用应对了`,
+        dismissive_avoidant: `${prefix}，你冷淡她反而稍微松了口气——不用应对了`,
         anxious: `${prefix}，你一冷她就慌了——安全感急剧下降，但渴望度反而上升`,
         secure: `${prefix}，她注意到了，但不会过度反应`,
-        fearful: `${prefix}，她心想"果然，没人会一直对我好"`,
+        fearful_avoidant: `${prefix}，她心想"果然，没人会一直对我好"`,
       },
       empathetic: {
-        avoidant: `${prefix}，被理解但不被push——这对回避型来说太珍贵了`,
+        dismissive_avoidant: `${prefix}，被理解但不被push——这对回避型来说太珍贵了`,
         anxious: `${prefix}，终于有人理解我了！她觉得被看见了`,
         secure: `${prefix}，被理解的感觉很好，她更愿意敞开了`,
-        fearful: `${prefix}，理解让她放下了一些戒备——被理解比被爱更安全`,
+        fearful_avoidant: `${prefix}，理解让她放下了一些戒备——被理解比被爱更安全`,
       },
       probing: {
-        avoidant: `${prefix}，你在打探什么？她的雷达响了`,
+        dismissive_avoidant: `${prefix}，你在打探什么？她的雷达响了`,
         anxious: `${prefix}，你在意她才问——但答案让她紧张`,
         secure: `${prefix}，了解彼此是正常的，她愿意分享`,
-        fearful: `${prefix}，别探究我——她想把自己藏起来`,
+        fearful_avoidant: `${prefix}，别探究我——她想把自己藏起来`,
       },
       compliment: {
-        avoidant: `${prefix}，赞美还行，但别太肉麻`,
+        dismissive_avoidant: `${prefix}，赞美还行，但别太肉麻`,
         anxious: `${prefix}，被肯定！她的安全感暴涨——原来你觉得我很好`,
         secure: `${prefix}，她开心地收下了`,
-        fearful: `${prefix}，赞美比调情安全，她愿意相信一点点`,
+        fearful_avoidant: `${prefix}，赞美比调情安全，她愿意相信一点点`,
       },
       apologetic: {
-        avoidant: `${prefix}，你退一步她也退一步——双方的压力都减了`,
+        dismissive_avoidant: `${prefix}，你退一步她也退一步——双方的压力都减了`,
         anxious: `${prefix}，你认错了——你还在意我！修复力极强`,
         secure: `${prefix}，道歉是修复的好方式，她接住了`,
-        fearful: `${prefix}，你愿意认错——也许你是认真的，安全感在回升`,
+        fearful_avoidant: `${prefix}，你愿意认错——也许你是认真的，安全感在回升`,
       },
       nostalgic: {
-        avoidant: `${prefix}，回忆是安全的——过去的不会威胁现在，她可以放松`,
+        dismissive_avoidant: `${prefix}，回忆是安全的——过去的不会威胁现在，她可以放松`,
         anxious: `${prefix}，我们曾经那么好——她渴望恢复过去的状态`,
         secure: `${prefix}，美好的回忆让气氛暖了`,
-        fearful: `${prefix}，美好的过去让她犹豫——也许可以再试一次？`,
+        fearful_avoidant: `${prefix}，美好的过去让她犹豫——也许可以再试一次？`,
       },
       jealous: {
-        avoidant: `${prefix}，占有欲让她觉得被控制了——想逃离`,
+        dismissive_avoidant: `${prefix}，占有欲让她觉得被控制了——想逃离`,
         anxious: `${prefix}，你吃醋了说明你在乎我！但方式让她又甜又不安`,
         secure: `${prefix}，有点在意但能沟通——她不想被束缚`,
-        fearful: `${prefix}，醋意=占有=危险信号，她在退缩`,
+        fearful_avoidant: `${prefix}，醋意=占有=危险信号，她在退缩`,
       },
       assertive: {
-        avoidant: `${prefix}，被主导的感觉让她想反抗——她要自己选`,
+        dismissive_avoidant: `${prefix}，被主导的感觉让她想反抗——她要自己选`,
         anxious: `${prefix}，有人拿主意省心——但别太过，她有自己的底线`,
         secure: `${prefix}，她可以接受主导但有边界`,
-        fearful: `${prefix}，强势让她觉得自己被压制——她关上了门`,
+        fearful_avoidant: `${prefix}，强势让她觉得自己被压制——她关上了门`,
       },
       neutral: {},
     }
@@ -1503,7 +1501,7 @@ ${name}回复："${twinReply}"
     if (relationship.tension > 40) {
       const attachment = getAttachmentType(dimensionValues)
       if (attachment === 'anxious') lengthScore += 15 // 焦虑型紧张时话多
-      else if (attachment === 'avoidant') lengthScore -= 20 // 回避型紧张时话少
+      else if (attachment === 'dismissive_avoidant') lengthScore -= 20 // 回避型紧张时话少
     }
 
     const responseLength: 'short' | 'medium' | 'long' =
@@ -1991,22 +1989,22 @@ ${name}回复："${twinReply}"
   private generateDisengagementReply(emotion: string, attachmentType: string): string | null {
     const disengagementMap: Record<string, Record<string, string>> = {
       withdrawn: {
-        avoidant: '我有点累了，改天再聊吧',
+        dismissive_avoidant: '我有点累了，改天再聊吧',
         anxious: '嗯……我可能需要一点时间，不是你的问题',
         secure: '今天先到这里吧，我需要休息一下',
-        fearful: '我……晚点再说好吗',
+        fearful_avoidant: '我……晚点再说好吗',
       },
       tired: {
-        avoidant: '困了，睡了',
+        dismissive_avoidant: '困了，睡了',
         anxious: '好困啊，我先去睡了，明天再聊？',
         secure: '今天好累，明天继续？晚安',
-        fearful: '嗯……有点困了',
+        fearful_avoidant: '嗯……有点困了',
       },
       cold: {
-        avoidant: '没什么好说的',
+        dismissive_avoidant: '没什么好说的',
         anxious: '你说的我听到了，但我现在不太想回应',
         secure: '我现在不太想聊这个',
-        fearful: '……算了',
+        fearful_avoidant: '……算了',
       },
     }
 
@@ -2214,7 +2212,7 @@ ${name}回复："${twinReply}"
 情绪：${emotionalState.emotion}，态度：${emotionalState.attitudeAnchor}
 依恋类型：${attachment}
 
-${attachment === 'avoidant' || attachment === 'fearful' ? '你是回避型，主动消息会很委婉，不会暴露太多需求感——"看到个东西觉得你会喜欢""今天天气不错"' : attachment === 'anxious' ? '你是焦虑型，主动消息可能带着试探——"在吗？""你怎么不理我""我是不是说错什么了"' : '你是安全型，主动消息比较自然——"今天碰到个好玩的事""你在干嘛"'}
+${attachment === 'dismissive_avoidant' || attachment === 'fearful_avoidant' ? '你是回避型，主动消息会很委婉，不会暴露太多需求感——"看到个东西觉得你会喜欢""今天天气不错"' : attachment === 'anxious' ? '你是焦虑型，主动消息可能带着试探——"在吗？""你怎么不理我""我是不是说错什么了"' : '你是安全型，主动消息比较自然——"今天碰到个好玩的事""你在干嘛"'}
 
 ${relationship.tension > 40 ? '你内心很纠结，消息可能有些矛盾——想靠近又怕靠近' : ''}
 
