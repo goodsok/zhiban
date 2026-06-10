@@ -105,7 +105,7 @@ export class TrendPredictor implements IPredictor<TrendPredictionInput, TrendPre
 
     const response = await client.invoke([
       { role: 'user', content: prompt }
-    ], { temperature: 0.5 })
+    ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.5 })
 
     const jsonMatch = response.content.match(/\{[\s\S]*\}/)
     if (jsonMatch) {

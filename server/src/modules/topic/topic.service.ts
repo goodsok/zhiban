@@ -46,7 +46,7 @@ export class TopicService {
       ];
 
       const response = await this.client.invoke(messages, {
-        model: 'doubao-seed-1-6-lite-251015',
+        model: 'doubao-seed-2-0-pro-260215',
         temperature: 0.9,
       });
 

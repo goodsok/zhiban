@@ -130,7 +130,7 @@ ${customContext ? `额外要求：${customContext}` : ''}
     try {
       const response = await client.invoke([
         { role: 'user', content: prompt }
-      ], { temperature: 0.8 })
+      ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.8 })
 
       const jsonMatch = response.content.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {

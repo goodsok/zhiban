@@ -150,7 +150,7 @@ ${chatContent.slice(0, 4000)}
     try {
       const response = await client.invoke([
         { role: 'user', content: prompt }
-      ], { temperature: 0.3 })
+      ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.3 })
 
       const jsonMatch = response.content.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {

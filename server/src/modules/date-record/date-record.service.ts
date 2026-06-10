@@ -428,7 +428,7 @@ export class DateRecordService {
         },
       ]
 
-      const response = await client.invoke(messages, { temperature: 0.3 })
+      const response = await client.invoke(messages, { model: 'doubao-seed-2-0-pro-260215', temperature: 0.3 })
       
       return this.parseExtractResponse(response.content)
     } catch (error) {

@@ -566,7 +566,7 @@ ${PERSONA_TAGS.map(t => `- ${t.name}：${t.description}`).join('\n')}
       const response = await client.invoke([
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
-      ], { temperature: 0.8 })
+      ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.8 })
 
       // 解析 JSON 响应
       const content = response.content
@@ -768,7 +768,7 @@ INFJ特别注意：
       const response = await client.invoke([
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userContent as any },
-      ], { temperature: 0.7 })
+      ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.7 })
 
       const content = response.content
       const jsonMatch = content.match(/\{[\s\S]*\}/)

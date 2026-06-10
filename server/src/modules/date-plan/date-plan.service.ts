@@ -128,7 +128,7 @@ ${preferenceContext}
     try {
       const response = await client.invoke([
         { role: 'user', content: prompt }
-      ], { temperature: 0.7 })
+      ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.7 })
 
       const jsonMatch = response.content.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {

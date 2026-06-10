@@ -826,7 +826,7 @@ ${difficulty.score}/10（${difficulty.level}）
       const response = await client.invoke([
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage }
-      ], { temperature: 0.7 })
+      ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.7 })
 
       return response.content
     } catch (error) {
@@ -904,7 +904,7 @@ ${difficulty.score}/10（${difficulty.level}）
     messages.push({ role: 'user', content: userMessage })
 
     try {
-      const response = await client.invoke(messages, { temperature: 0.7 })
+      const response = await client.invoke(messages, { model: 'doubao-seed-2-0-pro-260215', temperature: 0.7 })
       return response.content
     } catch (error) {
       console.error('LLM continue chat error:', error)

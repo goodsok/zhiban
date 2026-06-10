@@ -198,7 +198,7 @@ export class DatingService {
     const config = new Config()
     const client = new LLMClient(config, customHeaders)
 
-    const response = await client.invoke([{ role: 'user', content: prompt }], { temperature: 0.7 })
+    const response = await client.invoke([{ role: 'user', content: prompt }], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.7 })
     return response.content
   }
 
@@ -217,7 +217,7 @@ export class DatingService {
       })
     }
 
-    const response = await client.invoke([{ role: 'user', content: userContent as any }], { temperature: 0.7 })
+    const response = await client.invoke([{ role: 'user', content: userContent as any }], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.7 })
     return response.content
   }
 
@@ -370,7 +370,7 @@ ${platformGuide}
     ]
 
     try {
-      const response = await client.invoke(conversationMessages, { temperature: 0.7 })
+      const response = await client.invoke(conversationMessages, { model: 'doubao-seed-2-0-pro-260215', temperature: 0.7 })
       return response.content
     } catch (error) {
       console.error('[DatingService] Chat error:', error)

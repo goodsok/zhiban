@@ -203,7 +203,7 @@ export class ChatService {
 
       const response = await client.invoke([
         { role: 'user', content: extractPrompt }
-      ], { temperature: 0.1, thinking: 'disabled' })
+      ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.1, thinking: 'disabled' })
 
       // 解析JSON响应
       try {
@@ -383,7 +383,7 @@ ${chatSummary}
 
           const response = await llmClient.invoke([
             { role: 'user', content: prompt }
-          ], { temperature: 0.7 })
+          ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.7 })
 
           const questions = response.content
             .split('\n')
@@ -637,7 +637,7 @@ ${chatSummary}
       ]
 
       const response = await client.invoke(messages, {
-        model: 'doubao-seed-1-6-vision-250815',
+        model: 'doubao-seed-2-0-pro-260215',
         temperature: 0.3,
         thinking: 'disabled',
       })
@@ -692,7 +692,7 @@ ${chatSummary}
         }))
       ]
 
-      const response = await client.invoke(fullMessages, { temperature: 0.8, thinking: 'disabled' })
+      const response = await client.invoke(fullMessages, { model: 'doubao-seed-2-0-pro-260215', temperature: 0.8, thinking: 'disabled' })
 
       // 清理LLM返回的内容
       const cleanedContent = this.cleanLLMContent(response.content)

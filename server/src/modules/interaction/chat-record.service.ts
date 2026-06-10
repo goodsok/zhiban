@@ -320,7 +320,7 @@ ${rawContent.slice(0, 3000)}
 
       const response = await client.invoke([
         { role: 'user', content: prompt }
-      ], { temperature: 0.1 })
+      ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.1 })
 
       console.log('Analyze chat content LLM response:', response.content?.slice(0, 200))
 
@@ -400,7 +400,7 @@ ${rawContent.slice(0, 3000)}
 
       const response = await client.invoke([
         { role: 'user', content: prompt }
-      ], { temperature: 0.1 })
+      ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.1 })
 
       // 解析 JSON
       const jsonMatch = response.content.match(/\{[\s\S]*\}/)
@@ -455,7 +455,7 @@ ${rawContent.slice(0, 3000)}
     ]
 
     const response = await client.invoke(messages, {
-      model: 'doubao-seed-1-6-vision-250815',
+      model: 'doubao-seed-2-0-pro-260215',
       temperature: 0.1,
     })
 

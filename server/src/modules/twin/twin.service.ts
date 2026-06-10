@@ -839,7 +839,7 @@ ${name}回复："${twinReply}"
 
     const response = await client.invoke(
       [{ role: 'system', content: prompt }],
-      { model: 'doubao-seed-2-0-mini-260215', temperature: 0.5, thinking: 'disabled' },
+      { model: 'doubao-seed-2-0-pro-260215', temperature: 0.5, thinking: 'disabled' },
     )
 
     const content = response.content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
@@ -2195,7 +2195,7 @@ ${relationship.tension > 40 ? '你内心很纠结，消息可能有些矛盾—�
 
       const response = await client.invoke(
         [{ role: 'user', content: prompt }],
-        { model: 'doubao-seed-2-0-mini-260215', temperature: 0.9, thinking: 'disabled' },
+        { model: 'doubao-seed-2-0-pro-260215', temperature: 0.9, thinking: 'disabled' },
       )
 
       const proactiveMsg = this.cleanLLMContent(response.content)
@@ -2293,7 +2293,7 @@ ${relationship.tension > 40 ? '你内心很纠结，消息可能有些矛盾—�
       const client = new LLMClient(config, customHeaders)
 
       const response = await client.invoke(messages, {
-        model: 'doubao-seed-2-0-lite-260215',
+        model: 'doubao-seed-2-0-pro-260215',
         temperature: 0.8,
         thinking: 'disabled',
       })

@@ -115,7 +115,7 @@ export class ChatRecordAnalyzer implements IAnalyzer<ChatRecordAnalysisInput, {
       ]
 
       const response = await client.invoke(messages, {
-        model: 'doubao-seed-1-6-vision-250815',
+        model: 'doubao-seed-2-0-pro-260215',
         temperature: 0.3,
       })
 

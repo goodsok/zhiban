@@ -430,7 +430,7 @@ ${PSYCHOLOGICAL_TECHNIQUES.map(t => `- ${t.name}：${t.description}`).join('\n')
       const response = await client.invoke([
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
-      ], { temperature: 0.7 })
+      ], { model: 'doubao-seed-2-0-pro-260215', temperature: 0.7 })
       
       const content = response.content
       
@@ -525,7 +525,7 @@ ${PSYCHOLOGICAL_TECHNIQUES.map(t => `- ${t.name}：${t.description}`).join('\n')
       // 添加当前用户消息
       messages.push({ role: 'user', content: userMessage })
 
-      const response = await client.invoke(messages, { temperature: 0.7 })
+      const response = await client.invoke(messages, { model: 'doubao-seed-2-0-pro-260215', temperature: 0.7 })
       return response.content
     } catch (error) {
       console.error('Chat with LLM error:', error)
