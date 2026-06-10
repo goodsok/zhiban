@@ -207,7 +207,7 @@ export class ChatService {
 
       const response = await client.invoke([
         { role: 'user', content: extractPrompt }
-      ], { temperature: 0.1 })
+      ], { temperature: 0.1, thinking: 'disabled' })
 
       // 解析JSON响应
       try {
@@ -643,6 +643,7 @@ ${chatSummary}
       const response = await client.invoke(messages, {
         model: 'doubao-seed-1-6-vision-250815',
         temperature: 0.3,
+        thinking: 'disabled',
       })
 
       return {
@@ -695,7 +696,7 @@ ${chatSummary}
         }))
       ]
 
-      const response = await client.invoke(fullMessages, { temperature: 0.8 })
+      const response = await client.invoke(fullMessages, { temperature: 0.8, thinking: 'disabled' })
 
       // 清理LLM返回的内容
       const cleanedContent = this.cleanLLMContent(response.content)
