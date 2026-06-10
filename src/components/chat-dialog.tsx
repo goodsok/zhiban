@@ -42,8 +42,16 @@ const ROTATE_INTERVAL = 8000
 
 // 简易 markdown 渲染：将 **bold** 转为加粗 Text 节点
 const renderMarkdownText = (content: string) => {
-  // 先清理 markdown 格式符号，保留内容文本
-  const cleaned = content
+  // 先清理 LLM 思考标签（<think_xxx>...</think_xxx>、<thinking>...</thinking>）
+  const noThink = content
+    .replace(/<think[^>]*>[\s\S]*?<\/think[^>]*>/gi, '')
+    .replace(/<think[^>]*>/gi, '')
+    .replace(/<\/think[^>]*>/gi, '')
+    .replace(/<thinking[^>]*>[\s\S]*?<\/thinking[^>]*>/gi, '')
+    .replace(/<thinking[^>]*>/gi, '')
+    .replace(/<\/thinking[^>]*>/gi, '')
+  // 再清理 markdown 格式符号，保留内容文本
+  const cleaned = noThink
     .replace(/\*\*(.+?)\*\*/g, '$1')  // **bold** -> text
     .replace(/(?<!\w)_(.+?)_(?!\w)/g, '$1')  // _italic_ -> text（避免误伤英文下划线变量名）
     .replace(/~~(.+?)~~/g, '$1')  // ~~strike~~ -> text

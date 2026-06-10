@@ -82,10 +82,14 @@ export class ChatService {
     let cleaned = content
     
     // 移除 think 标签及其内容
-    cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '')
+    cleaned = cleaned.replace(/<think[^>]*>[\s\S]*?<\/think[^>]*>/gi, '')
+    cleaned = cleaned.replace(/<think[^>]*>/gi, '')
+    cleaned = cleaned.replace(/<\/think[^>]*>/gi, '')
     
     // 移除其他可能的思考标签
-    cleaned = cleaned.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+    cleaned = cleaned.replace(/<thinking[^>]*>[\s\S]*?<\/thinking[^>]*>/gi, '')
+    cleaned = cleaned.replace(/<thinking[^>]*>/gi, '')
+    cleaned = cleaned.replace(/<\/thinking[^>]*>/gi, '')
     
     // 移除开头可能的标签（没有闭合的情况）
     cleaned = cleaned.replace(/^<[^>]+>/i, '')
