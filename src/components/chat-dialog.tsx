@@ -42,29 +42,14 @@ const ROTATE_INTERVAL = 8000
 
 // 简易 markdown 渲染：将 **bold** 转为加粗 Text 节点
 const renderMarkdownText = (content: string) => {
-  const parts: Array<{ text: string; bold: boolean }> = []
-  const regex = /\*\*(.+?)\*\*/g
-  let lastIndex = 0
-  let match: RegExpExecArray | null
+  // 先清理 markdown 格式符号，保留内容文本
+  const cleaned = content
+    .replace(/\*\*(.+?)\*\*/g, '$1')  // **bold** -> text
+    .replace(/(?<!\w)_(.+?)_(?!\w)/g, '$1')  // _italic_ -> text（避免误伤英文下划线变量名）
+    .replace(/~~(.+?)~~/g, '$1')  // ~~strike~~ -> text
+    .replace(/`(.+?)`/g, '$1')  // `code` -> text
 
-  while ((match = regex.exec(content)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push({ text: content.slice(lastIndex, match.index), bold: false })
-    }
-    parts.push({ text: match[1], bold: true })
-    lastIndex = regex.lastIndex
-  }
-  if (lastIndex < content.length) {
-    parts.push({ text: content.slice(lastIndex), bold: false })
-  }
-
-  if (parts.length === 0) {
-    parts.push({ text: content, bold: false })
-  }
-
-  return parts.map((part, i) => (
-    <Text key={i} className={`text-sm text-gray-800 ${part.bold ? 'font-bold' : ''}`}>{part.text}</Text>
-  ))
+  return <Text className="text-sm text-gray-800">{cleaned}</Text>
 }
 
 const ChatDialog: React.FC<ChatDialogProps> = ({ open, onOpenChange, context }) => {
