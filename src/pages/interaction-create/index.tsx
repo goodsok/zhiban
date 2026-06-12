@@ -324,14 +324,15 @@ export default function InteractionCreatePage() {
     try {
       // 先保存文字聊天记录
       let finalChatRecordIds = chatRecords.map(r => r.id).filter(id => id > 0)
-      if (chatTextInput.trim() && !chatTextSavedRef.current) {
+      const cleanChatText = chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim()
+      if (cleanChatText && !chatTextSavedRef.current) {
         try {
           const textRes = await Network.request({
             url: `/api/chat-record/match/${matchId}/text`,
             method: 'POST',
             data: {
               contentType: 'text',
-              rawContent: chatTextInput,
+              rawContent: cleanChatText,
               source: chatSource,
             },
           })
@@ -387,7 +388,10 @@ export default function InteractionCreatePage() {
 
   // AI 分析聊天内容
   const handleAnalyzeChat = useCallback(async () => {
-    if (!chatTextInput.trim()) {
+    console.log('handleAnalyzeChat triggered, chatTextInput:', chatTextInput?.slice(0, 50), 'matchId:', matchId)
+    // 过滤掉 OCR 解析失败的提示文字
+    const cleanContent = chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim()
+    if (!cleanContent) {
       Taro.showToast({ title: '请先输入聊天内容', icon: 'none' })
       return
     }
@@ -415,7 +419,7 @@ export default function InteractionCreatePage() {
         url: `/api/chat-record/match/${matchId}/analyze`,
         method: 'POST',
         data: {
-          rawContent: chatTextInput,
+          rawContent: cleanContent,
           source: chatSource,
         },
       })
@@ -505,7 +509,7 @@ export default function InteractionCreatePage() {
         setChatRecords(prev => [...prev, {
           id: res.data.data.id,
           contentType: 'text',
-          rawContent: chatTextInput,
+          rawContent: chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim(),
           source: chatSource,
           summary: res.data.data.summary,
           imageKey: null,
@@ -568,6 +572,8 @@ export default function InteractionCreatePage() {
 
       if (result?.code === 200 && result?.data) {
         const recognizedText = (result.data.rawContent as string) || ''
+        // 过滤 OCR 解析失败的提示，不填入 textarea
+        const validText = recognizedText.replace(/\[图片解析失败[^\]]*\]/g, '').trim()
         setChatRecords(prev => prev.map(r =>
           r.id === tempId
             ? {
@@ -582,10 +588,12 @@ export default function InteractionCreatePage() {
             : r
         ))
         // 自动将识别内容追加到粘贴聊天记录 textarea
-        if (recognizedText) {
-          setChatTextInput(prev => prev ? `${prev}\n${recognizedText}` : recognizedText)
+        if (validText) {
+          setChatTextInput(prev => prev ? `${prev}\n${validText}` : validText)
+          Taro.showToast({ title: '截图已识别', icon: 'success' })
+        } else {
+          Taro.showToast({ title: '请手动输入聊天内容', icon: 'none' })
         }
-        Taro.showToast({ title: '截图已识别', icon: 'success' })
       } else {
         // 精确移除当前失败的占位
         setChatRecords(prev => prev.filter(r => r.id !== tempId))
@@ -654,7 +662,7 @@ export default function InteractionCreatePage() {
             method: 'POST',
             data: {
               contentType: 'text',
-              rawContent: chatTextInput,
+              rawContent: chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim(),
               source: chatSource,
             },
           })
@@ -1180,7 +1188,7 @@ export default function InteractionCreatePage() {
           <Button
             className="w-full py-3 rounded-xl"
             style={{ backgroundColor: '#F3F4F6' }}
-            disabled={!chatTextInput.trim() && chatRecords.length === 0}
+            disabled={!chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim() && chatRecords.length === 0}
             onClick={handleSaveChatOnly}
           >
             <Text className="block text-base font-medium text-gray-700">保存聊天记录</Text>
@@ -1191,7 +1199,7 @@ export default function InteractionCreatePage() {
           <Button
             className="w-full text-white py-3 rounded-xl"
             style={{ backgroundColor: '#3B82F6' }}
-            disabled={!chatTextInput.trim() || analyzing}
+            disabled={!chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim() || analyzing}
             onClick={handleAnalyzeChat}
           >
             <View className="flex items-center justify-center gap-2">
