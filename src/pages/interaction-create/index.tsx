@@ -14,7 +14,7 @@ import {
 } from 'lucide-react-taro'
 
 // 互动类型
-type InteractionType = 'date' | 'chat' | 'call' | 'video' | 'message' | 'gift' | 'physical' | 'social' | 'other'
+type InteractionType = 'date' | 'chat' | 'call' | 'video' | 'gift' | 'physical' | 'social' | 'other'
 type Mood = 'excellent' | 'good' | 'neutral' | 'awkward' | 'bad'
 type Initiator = 'self' | 'partner' | 'mutual'
 type InteractionCategory = 'online' | 'offline' | 'hybrid'
@@ -44,7 +44,7 @@ const INTERACTION_TYPES: Array<{
   { type: 'chat', label: '聊天', icon: MessageCircle, color: '#3B82F6', bgColor: 'bg-blue-50', category: 'online' },
   { type: 'call', label: '通话', icon: Phone, color: '#10B981', bgColor: 'bg-green-50', category: 'online' },
   { type: 'video', label: '视频', icon: Video, color: '#8B5CF6', bgColor: 'bg-violet-50', category: 'online' },
-  { type: 'message', label: '消息', icon: MessageCircle, color: '#F59E0B', bgColor: 'bg-amber-50', category: 'online' },
+
   { type: 'gift', label: '礼物', icon: Gift, color: '#EF4444', bgColor: 'bg-red-50', category: 'offline' },
   { type: 'physical', label: '亲密', icon: Heart, color: '#EC4899', bgColor: 'bg-rose-50', category: 'offline' },
   { type: 'social', label: '社交', icon: Users, color: '#06B6D4', bgColor: 'bg-cyan-50', category: 'offline' },
@@ -95,11 +95,6 @@ const ACTIVITY_PRESETS: Record<InteractionType, string[]> = {
   video: [
     '视频约会', '一起看电影', '远程陪伴',
     '视频做饭', '云逛街', '连麦学习', '一起打游戏',
-  ],
-  message: [
-    '早晚问候', '分享日常', '表情包互动',
-    '发红包', '分享音乐', '分享文章', '语音条',
-    '位置共享', '拍一拍', '猜谜语',
   ],
   gift: [
     '鲜花', '零食', '饰品', '惊喜快递',
@@ -212,14 +207,14 @@ export default function InteractionCreatePage() {
   const [energyLoading, setEnergyLoading] = useState(false)
 
   // 是否展示聊天记录上传区域（消息/通话/视频类型时展示）
-  const showChatUpload = ['message', 'call', 'video'].includes(interactionType)
+  const showChatUpload = ['call', 'video'].includes(interactionType)
 
   // 表单是否已填写内容（用于返回确认）
   const hasContent = !!(
     title || description || location || breakthroughMoment || issuesEncountered
     || activities.length > 0 || chatRecords.length > 0
     || durationMinutes !== null || customDuration || startedAt !== null
-    || (interactionType === 'chat' && chatTextInput.trim().length > 0)
+    || (interactionType === 'chat' && (chatTextInput.trim().length > 0 || chatRecords.length > 0))
   )
 
   // 是否有上传中的聊天记录
@@ -318,6 +313,12 @@ export default function InteractionCreatePage() {
   }
 
   // ========== 聊天类型：录入驱动流程 ==========
+
+  // 跳过AI分析，直接进入确认填写页（适用于已上传截图、无需粘贴文字的场景）
+  const handleSkipAnalysis = useCallback(() => {
+    setTitle('聊天记录')
+    setChatStep('confirm')
+  }, [])
 
   // AI 分析聊天内容
   const handleAnalyzeChat = useCallback(async () => {
@@ -712,33 +713,7 @@ export default function InteractionCreatePage() {
         </View>
       </View>
 
-      {/* 聊天内容输入 */}
-      <View className="px-4 pb-4">
-        <Card>
-          <CardContent className="p-4 flex flex-col gap-5">
-            <View className="flex items-center gap-3 mb-3">
-              <View className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <MessageCircle size={16} color="#3B82F6" />
-              </View>
-              <Text className="block text-sm font-medium text-gray-700">粘贴聊天记录</Text>
-            </View>
-            <View className="bg-gray-50 rounded-xl p-3">
-              <Textarea
-                style={{ width: '100%', minHeight: '200px', fontSize: '13px', backgroundColor: 'transparent' }}
-                placeholder="把聊天记录粘贴到这里...&#10;&#10;格式示例：&#10;我: 你今天怎么样？&#10;她: 还不错呀，刚下班~&#10;我: 辛苦啦，要不要一起吃饭？&#10;她: 好呀好呀！"
-                value={chatTextInput}
-                onInput={e => setChatTextInput(e.detail.value)}
-                maxlength={5000}
-              />
-            </View>
-            <View className="flex items-center justify-between mt-2">
-              <Text className="block text-xs text-gray-400">{chatTextInput.length}/5000 字</Text>
-            </View>
-          </CardContent>
-        </Card>
-      </View>
-
-      {/* 也可以上传截图 */}
+      {/* 上传聊天截图（优先展示） */}
       <View className="px-4 pb-4">
         <Card>
           <CardContent className="p-4 flex flex-col gap-5">
@@ -747,7 +722,6 @@ export default function InteractionCreatePage() {
                 <Image size={16} color="#8B5CF6" />
               </View>
               <Text className="block text-sm font-medium text-gray-700">上传聊天截图</Text>
-              <Text className="block text-xs text-gray-400">作为补充</Text>
             </View>
             <View
               className="flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50"
@@ -785,7 +759,36 @@ export default function InteractionCreatePage() {
         </Card>
       </View>
 
-      {/* 底部：AI 分析按钮 */}
+      {/* 粘贴聊天记录（有截图时为可选） */}
+      <View className="px-4 pb-4">
+        <Card>
+          <CardContent className="p-4 flex flex-col gap-5">
+            <View className="flex items-center gap-3 mb-3">
+              <View className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <MessageCircle size={16} color="#3B82F6" />
+              </View>
+              <Text className="block text-sm font-medium text-gray-700">粘贴聊天记录</Text>
+              {chatRecords.length > 0 && (
+                <Text className="block text-xs text-gray-400">可选，粘贴后可 AI 智能分析</Text>
+              )}
+            </View>
+            <View className="bg-gray-50 rounded-xl p-3">
+              <Textarea
+                style={{ width: '100%', minHeight: '200px', fontSize: '13px', backgroundColor: 'transparent' }}
+                placeholder="把聊天记录粘贴到这里...&#10;&#10;格式示例：&#10;我: 你今天怎么样？&#10;她: 还不错呀，刚下班~&#10;我: 辛苦啦，要不要一起吃饭？&#10;她: 好呀好呀！"
+                value={chatTextInput}
+                onInput={e => setChatTextInput(e.detail.value)}
+                maxlength={5000}
+              />
+            </View>
+            <View className="flex items-center justify-between mt-2">
+              <Text className="block text-xs text-gray-400">{chatTextInput.length}/5000 字</Text>
+            </View>
+          </CardContent>
+        </Card>
+      </View>
+
+      {/* 底部：操作按钮 */}
       <View
         style={{
           position: 'fixed', bottom: 50, left: 0, right: 0,
@@ -794,19 +797,43 @@ export default function InteractionCreatePage() {
           borderTop: '1px solid #f3f4f6', zIndex: 100,
         }}
       >
-        <Button
-          className="w-full text-white py-3 rounded-xl"
-          style={{ backgroundColor: '#3B82F6' }}
-          onClick={handleAnalyzeChat}
-          disabled={!chatTextInput.trim() || analyzing}
-        >
-          <View className="flex items-center justify-center gap-2">
-            <Sparkles size={16} color="#fff" />
-            <Text className="block text-base font-medium text-white">
-              {analyzing ? 'AI 分析中...' : 'AI 智能分析'}
-            </Text>
-          </View>
-        </Button>
+        {/* 有文字时显示 AI 分析按钮 */}
+        {chatTextInput.trim() ? (
+          <Button
+            className="w-full text-white py-3 rounded-xl"
+            style={{ backgroundColor: '#3B82F6' }}
+            onClick={handleAnalyzeChat}
+            disabled={analyzing}
+          >
+            <View className="flex items-center justify-center gap-2">
+              <Sparkles size={16} color="#fff" />
+              <Text className="block text-base font-medium text-white">
+                {analyzing ? 'AI 分析中...' : 'AI 智能分析'}
+              </Text>
+            </View>
+          </Button>
+        ) : chatRecords.length > 0 ? (
+          /* 有截图但无文字时，直接填写 */
+          <Button
+            className="w-full text-white py-3 rounded-xl"
+            style={{ backgroundColor: '#4ECB71' }}
+            onClick={handleSkipAnalysis}
+          >
+            <View className="flex items-center justify-center gap-2">
+              <Check size={16} color="#fff" />
+              <Text className="block text-base font-medium text-white">直接填写</Text>
+            </View>
+          </Button>
+        ) : (
+          /* 什么都没填时提示 */
+          <Button
+            className="w-full text-white py-3 rounded-xl"
+            style={{ backgroundColor: '#9CA3AF' }}
+            disabled
+          >
+            <Text className="block text-base font-medium text-white">请上传截图或粘贴聊天记录</Text>
+          </Button>
+        )}
       </View>
     </View>
   )

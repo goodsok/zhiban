@@ -11,7 +11,7 @@ import {
 } from 'lucide-react-taro'
 
 // 互动类型
-type InteractionType = 'date' | 'chat' | 'call' | 'video' | 'message' | 'gift' | 'physical' | 'social' | 'other'
+type InteractionType = 'date' | 'chat' | 'call' | 'video' | 'gift' | 'physical' | 'social' | 'other'
 
 // 互动事件接口
 interface InteractionEvent {
@@ -50,7 +50,6 @@ const INTERACTION_TYPE_CONFIG: Record<InteractionType, {
   chat: { label: '聊天', icon: MessageCircle, color: '#3B82F6' },
   call: { label: '通话', icon: Phone, color: '#10B981' },
   video: { label: '视频', icon: Video, color: '#8B5CF6' },
-  message: { label: '消息', icon: MessageCircle, color: '#F59E0B' },
   gift: { label: '礼物', icon: Gift, color: '#EF4444' },
   physical: { label: '亲密', icon: Heart, color: '#EC4899' },
   social: { label: '社交', icon: Users, color: '#06B6D4' },
