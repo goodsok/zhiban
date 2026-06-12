@@ -19,8 +19,7 @@ type Mood = 'excellent' | 'good' | 'neutral' | 'awkward' | 'bad'
 type Initiator = 'self' | 'partner' | 'mutual'
 type InteractionCategory = 'online' | 'offline' | 'hybrid'
 
-// 聊天录入步骤（仅 chat 类型使用）
-type ChatStep = 'input' | 'analyzing' | 'confirm'
+// 聊天录入：单页面模式（不再分步骤）
 
 // 聊天记录来源选项
 const CHAT_SOURCE_OPTIONS = [
@@ -193,8 +192,7 @@ export default function InteractionCreatePage() {
   const [showChatInput, setShowChatInput] = useState(false)
   const [chatUploading, setChatUploading] = useState(false)
 
-  // 聊天类型专用：录入驱动流程
-  const [chatStep, setChatStep] = useState<ChatStep>('input')
+  // 聊天类型专用：分析结果（直接展示在录入页）
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
 
@@ -300,7 +298,6 @@ export default function InteractionCreatePage() {
     setShowCustomDuration(false)
     setLocation('')
     if (interactionType === 'chat') {
-      setChatStep('input')
       setAnalysisResult(null)
     }
   }, [interactionType])
@@ -315,10 +312,78 @@ export default function InteractionCreatePage() {
   // ========== 聊天类型：录入驱动流程 ==========
 
   // 跳过AI分析，直接进入确认填写页（适用于已上传截图、无需粘贴文字的场景）
-  const handleSkipAnalysis = useCallback(() => {
-    setTitle('聊天记录')
-    setChatStep('confirm')
-  }, [])
+  // 仅保存聊天记录（不做 AI 分析）
+  const handleSaveChatOnly = useCallback(async () => {
+    if (!matchId) return
+    if (hasUploadingRecords) {
+      Taro.showToast({ title: '聊天记录上传中，请稍候', icon: 'none' })
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      // 先保存文字聊天记录
+      let finalChatRecordIds = chatRecords.map(r => r.id).filter(id => id > 0)
+      if (chatTextInput.trim() && !chatTextSavedRef.current) {
+        try {
+          const textRes = await Network.request({
+            url: `/api/chat-record/match/${matchId}/text`,
+            method: 'POST',
+            data: {
+              contentType: 'text',
+              rawContent: chatTextInput,
+              source: chatSource,
+            },
+          })
+          if (textRes.data?.code === 200 && textRes.data?.data?.id) {
+            finalChatRecordIds = [...finalChatRecordIds, textRes.data.data.id]
+            chatTextSavedRef.current = true
+          }
+        } catch (err) {
+          console.error('Save chat text error:', err)
+        }
+      }
+
+      const payload = {
+        interactionType,
+        interactionCategory,
+        startedAt: startedAt ? startedAt.toISOString() : new Date().toISOString(),
+        durationMinutes: actualDuration,
+        initiator,
+        location: location || null,
+        title: title || '聊天记录',
+        description: description || null,
+        activities: activities.length > 0 ? activities : undefined,
+        mood,
+        breakthroughMoment: breakthroughMoment || null,
+        issuesEncountered: issuesEncountered || null,
+        chatRecordIds: finalChatRecordIds.length > 0 ? finalChatRecordIds : undefined,
+      }
+
+      console.log('Save chat only payload:', payload)
+
+      const res = await Network.request({
+        url: `/api/interaction/match/${matchId}`,
+        method: 'POST',
+        data: payload,
+      })
+
+      console.log('Save chat only response:', res.data)
+
+      if (res.data?.code === 200) {
+        Taro.showToast({ title: '保存成功', icon: 'success' })
+        Taro.eventCenter.trigger('interaction:created')
+        setTimeout(() => { Taro.navigateBack() }, 1500)
+      } else {
+        Taro.showToast({ title: res.data?.message || res.data?.msg || '保存失败', icon: 'error' })
+      }
+    } catch (error) {
+      console.error('Save chat only error:', error)
+      Taro.showToast({ title: '保存失败', icon: 'error' })
+    } finally {
+      setSubmitting(false)
+    }
+  }, [matchId, interactionType, interactionCategory, startedAt, actualDuration, initiator, location, title, description, activities, mood, breakthroughMoment, issuesEncountered, chatRecords, chatTextInput, chatSource, hasUploadingRecords])
 
   // AI 分析聊天内容
   const handleAnalyzeChat = useCallback(async () => {
@@ -336,14 +401,12 @@ export default function InteractionCreatePage() {
     analyzeAbortRef.current = abortController
 
     setAnalyzing(true)
-    setChatStep('analyzing')
 
     // 30 秒超时
     const timeoutId = setTimeout(() => {
       if (abortController.signal.aborted) return
       abortController.abort()
       Taro.showToast({ title: '分析超时，请重试', icon: 'none' })
-      setChatStep('input')
       setAnalyzing(false)
     }, 30000)
 
@@ -387,17 +450,15 @@ export default function InteractionCreatePage() {
           setDurationMinutes(data.inferredDurationMinutes)
         }
 
-        setChatStep('confirm')
+        Taro.showToast({ title: 'AI 分析完成', icon: 'success' })
       } else {
         Taro.showToast({ title: '分析失败，请重试', icon: 'none' })
-        setChatStep('input')
       }
     } catch (error) {
       // 如果是取消导致的，不提示
       if (abortController.signal.aborted) return
       console.error('Chat analyze error:', error)
       Taro.showToast({ title: '分析失败，请重试', icon: 'none' })
-      setChatStep('input')
     } finally {
       clearTimeout(timeoutId)
       if (!abortController.signal.aborted) {
@@ -408,7 +469,6 @@ export default function InteractionCreatePage() {
 
   // 重新分析：重置 AI 自动填充的状态
   const handleReAnalyze = useCallback(() => {
-    setChatStep('input')
     setAnalysisResult(null)
     chatTextSavedRef.current = false
     // 重置 AI 自动填充的状态，避免残留
@@ -507,12 +567,13 @@ export default function InteractionCreatePage() {
         : uploadRes.data
 
       if (result?.code === 200 && result?.data) {
+        const recognizedText = (result.data.rawContent as string) || ''
         setChatRecords(prev => prev.map(r =>
           r.id === tempId
             ? {
                 id: result.data.id as number,
                 contentType: 'image' as const,
-                rawContent: (result.data.rawContent as string) || null,
+                rawContent: recognizedText || null,
                 source: chatSource,
                 summary: (result.data.summary as string) || null,
                 imageKey: (result.data.imageKey as string) || null,
@@ -520,7 +581,11 @@ export default function InteractionCreatePage() {
               }
             : r
         ))
-        Taro.showToast({ title: '聊天截图已添加', icon: 'success' })
+        // 自动将识别内容追加到粘贴聊天记录 textarea
+        if (recognizedText) {
+          setChatTextInput(prev => prev ? `${prev}\n${recognizedText}` : recognizedText)
+        }
+        Taro.showToast({ title: '截图已识别', icon: 'success' })
       } else {
         // 精确移除当前失败的占位
         setChatRecords(prev => prev.filter(r => r.id !== tempId))
@@ -582,7 +647,7 @@ export default function InteractionCreatePage() {
 
       // chat 类型：先把聊天内容入库，再创建互动
       let finalChatRecordIds = chatRecordIds
-      if (interactionType === 'chat' && chatTextInput.trim() && chatStep === 'confirm' && !chatTextSavedRef.current) {
+      if (interactionType === 'chat' && chatTextInput.trim() && !chatTextSavedRef.current) {
         try {
           const textRes = await Network.request({
             url: `/api/chat-record/match/${matchId}/text`,
@@ -644,26 +709,20 @@ export default function InteractionCreatePage() {
     } finally {
       setSubmitting(false)
     }
-  }, [matchId, interactionType, interactionCategory, startedAt, actualDuration, initiator, location, title, description, activities, mood, breakthroughMoment, issuesEncountered, chatRecords, chatTextInput, chatSource, chatStep, hasUploadingRecords])
+  }, [matchId, interactionType, interactionCategory, startedAt, actualDuration, initiator, location, title, description, activities, mood, breakthroughMoment, issuesEncountered, chatRecords, chatTextInput, chatSource, hasUploadingRecords])
 
   // ========== 渲染辅助 ==========
   const pageTitle = matchName ? `和${matchName}的互动` : '记录互动'
 
-  // 聊天类型：返回确认需要考虑步骤
+  // 聊天类型：返回确认
   const handleBack = useCallback(() => {
     if (interactionType === 'chat') {
-      if (chatStep === 'confirm') {
-        // 从确认页返回到录入页
-        setChatStep('input')
-        return
-      }
-      if (chatStep === 'analyzing') {
-        // 分析中返回：取消分析，回到录入页
+      // 分析中返回：取消分析
+      if (analyzing) {
         setAnalyzing(false)
-        setChatStep('input')
         return
       }
-      // input 步骤：检查是否有内容
+      // 检查是否有内容
       if (chatTextInput.trim() || chatRecords.length > 0) {
         Taro.showModal({
           title: '放弃编辑',
@@ -688,7 +747,7 @@ export default function InteractionCreatePage() {
     } else {
       Taro.navigateBack()
     }
-  }, [hasContent, interactionType, chatStep, chatTextInput, chatRecords])
+  }, [hasContent, interactionType, analyzing, chatTextInput, chatRecords])
 
   // ========== 聊天类型：Step 1 - 录入 ==========
   const renderChatInput = () => (
@@ -788,86 +847,12 @@ export default function InteractionCreatePage() {
         </Card>
       </View>
 
-      {/* 底部：操作按钮 */}
-      <View
-        style={{
-          position: 'fixed', bottom: 50, left: 0, right: 0,
-          display: 'flex', flexDirection: 'row',
-          padding: '12px 16px', backgroundColor: '#fff',
-          borderTop: '1px solid #f3f4f6', zIndex: 100,
-        }}
-      >
-        {/* 有文字时显示 AI 分析按钮 */}
-        {chatTextInput.trim() ? (
-          <Button
-            className="w-full text-white py-3 rounded-xl"
-            style={{ backgroundColor: '#3B82F6' }}
-            onClick={handleAnalyzeChat}
-            disabled={analyzing}
-          >
-            <View className="flex items-center justify-center gap-2">
-              <Sparkles size={16} color="#fff" />
-              <Text className="block text-base font-medium text-white">
-                {analyzing ? 'AI 分析中...' : 'AI 智能分析'}
-              </Text>
-            </View>
-          </Button>
-        ) : chatRecords.length > 0 ? (
-          /* 有截图但无文字时，直接填写 */
-          <Button
-            className="w-full text-white py-3 rounded-xl"
-            style={{ backgroundColor: '#4ECB71' }}
-            onClick={handleSkipAnalysis}
-          >
-            <View className="flex items-center justify-center gap-2">
-              <Check size={16} color="#fff" />
-              <Text className="block text-base font-medium text-white">直接填写</Text>
-            </View>
-          </Button>
-        ) : (
-          /* 什么都没填时提示 */
-          <Button
-            className="w-full text-white py-3 rounded-xl"
-            style={{ backgroundColor: '#9CA3AF' }}
-            disabled
-          >
-            <Text className="block text-base font-medium text-white">请上传截图或粘贴聊天记录</Text>
-          </Button>
-        )}
-      </View>
-    </View>
-  )
-
-  // ========== 聊天类型：Step 2 - 分析中 ==========
-  const renderChatAnalyzing = () => (
-    <View className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F7F8FA' }}>
-      <CustomHeader title="AI 分析中" onBack={handleBack} />
-      <View className="flex flex-col items-center gap-4 p-8">
-        <View className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-          <LoaderCircle size={32} color="#3B82F6" />
-        </View>
-        <Text className="block text-lg font-semibold text-gray-800">AI 正在分析聊天内容</Text>
-        <Text className="block text-sm text-gray-500 text-center">
-          识别话题、推断情绪、提取关键信号...
-        </Text>
-      </View>
-    </View>
-  )
-
-  // ========== 聊天类型：Step 3 - 确认 AI 分析结果 + 补充信息 ==========
-  const renderChatConfirm = () => (
-    <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA', paddingBottom: '100px' }}>
-      <CustomHeader
-        title="确认分析结果"
-        onBack={handleBack}
-      />
-
-      {/* AI 分析结果卡片 */}
+      {/* AI 分析结果（分析完成后直接展示） */}
       {analysisResult && (
-        <View className="p-4 pb-2">
+        <View className="px-4 pb-4">
           <Card style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)' }}>
-            <CardContent className="p-4 flex flex-col gap-5">
-              <View className="flex items-center gap-3 mb-4">
+            <CardContent className="p-4 flex flex-col gap-4">
+              <View className="flex items-center gap-3">
                 <View className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                   <Sparkles size={16} color="#3B82F6" />
                 </View>
@@ -877,7 +862,7 @@ export default function InteractionCreatePage() {
 
               {/* 摘要 */}
               {analysisResult.summary && (
-                <View className="mb-4 p-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                <View className="p-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
                   <Text className="block text-xs text-gray-500 mb-1">对话摘要</Text>
                   <Text className="block text-sm text-gray-800">{analysisResult.summary}</Text>
                 </View>
@@ -885,7 +870,7 @@ export default function InteractionCreatePage() {
 
               {/* 话题标签 */}
               {analysisResult.keyTopics?.length > 0 && (
-                <View className="mb-3">
+                <View>
                   <Text className="block text-xs text-gray-500 mb-2">识别到的话题</Text>
                   <View className="flex flex-row flex-wrap gap-2">
                     {analysisResult.keyTopics.map(topic => {
@@ -898,7 +883,7 @@ export default function InteractionCreatePage() {
                           onClick={() => toggleActivity(topic)}
                         >
                           <Text className={`block text-xs ${isSelected ? 'text-white' : 'text-gray-600'}`}>
-                            {isSelected ? '✓ ' : ''}{topic}
+                            {topic}
                           </Text>
                         </View>
                       )
@@ -907,29 +892,40 @@ export default function InteractionCreatePage() {
                 </View>
               )}
 
-              {/* 关键信号 */}
-              {analysisResult.interestSignals?.length > 0 && (
-                <View className="mb-3">
-                  <Text className="block text-xs text-gray-500 mb-2">关键信号</Text>
-                  {analysisResult.interestSignals.map((signal, idx) => (
-                    <View key={idx} className="flex items-center gap-2 mb-1">
-                      <View className="w-2 h-2 rounded-full bg-blue-400" />
-                      <Text className="block text-xs text-gray-700">{signal}</Text>
-                    </View>
-                  ))}
+              {/* 情感倾向 */}
+              {analysisResult.sentiment && (
+                <View>
+                  <Text className="block text-xs text-gray-500 mb-1">情感倾向</Text>
+                  <Text className="block text-sm text-gray-800">{analysisResult.sentiment}</Text>
                 </View>
               )}
 
-              {/* 消息数 & 推断时长 */}
-              <View className="flex flex-row gap-4">
-                <View className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                  <Text className="block text-xs text-gray-500">消息数</Text>
-                  <Text className="block text-sm font-semibold text-gray-800">{analysisResult.messageCount}</Text>
+              {/* 兴趣信号 */}
+              {analysisResult.interestSignals?.length > 0 && (
+                <View>
+                  <Text className="block text-xs text-gray-500 mb-2">兴趣信号</Text>
+                  <View className="flex flex-row flex-wrap gap-2">
+                    {analysisResult.interestSignals.map((signal, idx) => (
+                      <View key={idx} className="px-3 py-1 rounded-full bg-amber-100">
+                        <Text className="block text-xs text-amber-700">{signal}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
+              )}
+
+              {/* 消息数量和推断时长 */}
+              <View className="flex flex-row gap-4">
+                {analysisResult.messageCount > 0 && (
+                  <View>
+                    <Text className="block text-xs text-gray-500">消息数量</Text>
+                    <Text className="block text-sm font-medium text-gray-800">{analysisResult.messageCount} 条</Text>
+                  </View>
+                )}
                 {analysisResult.inferredDurationMinutes && (
-                  <View className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                  <View>
                     <Text className="block text-xs text-gray-500">推断时长</Text>
-                    <Text className="block text-sm font-semibold text-gray-800">约{analysisResult.inferredDurationMinutes}分钟</Text>
+                    <Text className="block text-sm font-medium text-gray-800">约 {analysisResult.inferredDurationMinutes} 分钟</Text>
                   </View>
                 )}
               </View>
@@ -938,11 +934,25 @@ export default function InteractionCreatePage() {
         </View>
       )}
 
-      {/* 心情确认 */}
+      {/* 分析中提示 */}
+      {analyzing && (
+        <View className="px-4 pb-4">
+          <Card>
+            <CardContent className="p-4 flex flex-col items-center gap-3">
+              <View className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <LoaderCircle size={20} color="#3B82F6" />
+              </View>
+              <Text className="block text-sm text-gray-600">AI 正在分析聊天内容...</Text>
+            </CardContent>
+          </Card>
+        </View>
+      )}
+
+      {/* 心情选择 */}
       <View className="px-4 pb-4">
         <Card>
-          <CardContent className="p-4 flex flex-col gap-5">
-            <View className="flex items-center gap-3 mb-4">
+          <CardContent className="p-4 flex flex-col gap-4">
+            <View className="flex items-center gap-3">
               <View className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
                 <Sparkles size={16} color="#F59E0B" />
               </View>
@@ -964,11 +974,6 @@ export default function InteractionCreatePage() {
                     style={{ minWidth: '56px' }}
                     onClick={() => setMood(opt.value)}
                   >
-                    {isActive && (
-                      <View style={{ position: 'absolute', top: '2px', right: '2px' }}>
-                        <Check size={10} color="#4ECB71" />
-                      </View>
-                    )}
                     <Text className="block text-lg mb-1">{opt.emoji}</Text>
                     <Text className={`block text-xs ${isActive ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
                       {opt.label}
@@ -980,7 +985,7 @@ export default function InteractionCreatePage() {
 
             {/* 能量预览条 */}
             {(energyPreview || energyLoading) && (
-              <View className="mt-4 flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: '#F0FDF4' }}>
+              <View className="mt-2 flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: '#F0FDF4' }}>
                 <Zap size={16} color="#4ECB71" />
                 {energyLoading ? (
                   <Text className="block text-xs text-gray-400">能量计算中...</Text>
@@ -1002,7 +1007,7 @@ export default function InteractionCreatePage() {
         </Card>
       </View>
 
-      {/* 补充信息：时间/发起方/时长/突破性时刻 */}
+      {/* 补充信息：时间/时长/发起方/突破性时刻 */}
       <View className="px-4 pb-4">
         <Card>
           <CardContent className="p-4 flex flex-col gap-5">
@@ -1013,6 +1018,7 @@ export default function InteractionCreatePage() {
                   <Clock size={16} color="#6B7280" />
                 </View>
                 <Text className="block text-sm font-medium text-gray-700">互动时间</Text>
+                <Text className="block text-xs text-gray-400">可选</Text>
               </View>
               <View style={{ marginLeft: '44px' }} className="flex flex-row gap-3">
                 <Picker
@@ -1058,6 +1064,7 @@ export default function InteractionCreatePage() {
                   <Clock size={16} color="#6B7280" />
                 </View>
                 <Text className="block text-sm font-medium text-gray-700">持续时长</Text>
+                <Text className="block text-xs text-gray-400">可选</Text>
                 {analysisResult?.inferredDurationMinutes && !actualDuration && (
                   <Text className="block text-xs text-blue-500">AI 建议: 约{analysisResult.inferredDurationMinutes}分钟</Text>
                 )}
@@ -1114,6 +1121,7 @@ export default function InteractionCreatePage() {
                   <User size={16} color="#6B7280" />
                 </View>
                 <Text className="block text-sm font-medium text-gray-700">谁发起的</Text>
+                <Text className="block text-xs text-gray-400">可选</Text>
               </View>
               <View style={{ marginLeft: '44px' }} className="flex flex-row gap-3">
                 {INITIATOR_OPTIONS.map(opt => {
@@ -1158,34 +1166,49 @@ export default function InteractionCreatePage() {
         </Card>
       </View>
 
-      {/* 底部：保存按钮 */}
+      {/* 底部：双操作按钮 */}
       <View
         style={{
           position: 'fixed', bottom: 50, left: 0, right: 0,
-          display: 'flex', flexDirection: 'row',
+          display: 'flex', flexDirection: 'row', gap: '12px',
           padding: '12px 16px', backgroundColor: '#fff',
           borderTop: '1px solid #f3f4f6', zIndex: 100,
         }}
       >
-        <Button
-          className="w-full text-white py-3 rounded-xl"
-          style={{ backgroundColor: '#4ECB71' }}
-          onClick={handleSubmit}
-          disabled={submitting || hasUploadingRecords}
-        >
-          <Text className="block text-base font-medium text-white">
-            {submitting ? '保存中...' : '保存记录'}
-          </Text>
-        </Button>
+        {/* 保存聊天记录 */}
+        <View style={{ flex: 1 }}>
+          <Button
+            className="w-full py-3 rounded-xl"
+            style={{ backgroundColor: '#F3F4F6' }}
+            disabled={!chatTextInput.trim() && chatRecords.length === 0}
+            onClick={handleSaveChatOnly}
+          >
+            <Text className="block text-base font-medium text-gray-700">保存聊天记录</Text>
+          </Button>
+        </View>
+        {/* AI 分析 */}
+        <View style={{ flex: 1 }}>
+          <Button
+            className="w-full text-white py-3 rounded-xl"
+            style={{ backgroundColor: '#3B82F6' }}
+            disabled={!chatTextInput.trim() || analyzing}
+            onClick={handleAnalyzeChat}
+          >
+            <View className="flex items-center justify-center gap-2">
+              <Sparkles size={16} color="#fff" />
+              <Text className="block text-base font-medium text-white">
+                {analyzing ? '分析中...' : 'AI分析'}
+              </Text>
+            </View>
+          </Button>
+        </View>
       </View>
     </View>
   )
 
   // ========== 聊天类型路由 ==========
   if (interactionType === 'chat') {
-    if (chatStep === 'input') return renderChatInput()
-    if (chatStep === 'analyzing') return renderChatAnalyzing()
-    if (chatStep === 'confirm') return renderChatConfirm()
+    return renderChatInput()
   }
 
   // ========== 非聊天类型：原有表单流程 ==========
