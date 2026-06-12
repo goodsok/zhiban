@@ -108,7 +108,6 @@ const DatesPage: FC = () => {
       {/* 顶部 */}
       <CustomHeader 
         title="约会记录" 
-        rightAction={<Plus size={20} color="#6B7280" />}
         onBack={goBack}
       />
 

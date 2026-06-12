@@ -9,8 +9,8 @@ import { Textarea } from '@/components/ui/textarea'
 import CustomHeader from '@/components/custom-header'
 import {
   Calendar, MessageCircle, Phone, Video, Gift, Heart, Users, MapPin,
-  Clock, User, Sparkles, Check, Zap, Plus, Upload, Image, Paperclip, X, History,
-  LoaderCircle, FileText, RefreshCw
+  Clock, User, Sparkles, Check, Zap, Plus, Upload, Image, Paperclip, X,
+  LoaderCircle, FileText
 } from 'lucide-react-taro'
 
 // 互动类型
@@ -860,11 +860,6 @@ export default function InteractionCreatePage() {
       <CustomHeader
         title="确认分析结果"
         onBack={handleBack}
-        rightAction={
-          <View onClick={handleReAnalyze}>
-            <RefreshCw size={18} color="#6B7280" />
-          </View>
-        }
       />
 
       {/* AI 分析结果卡片 */}
@@ -877,6 +872,7 @@ export default function InteractionCreatePage() {
                   <Sparkles size={16} color="#3B82F6" />
                 </View>
                 <Text className="block text-sm font-semibold text-gray-800">AI 分析结果</Text>
+                <Text className="block text-xs text-blue-500 ml-auto" onClick={handleReAnalyze}>重新分析</Text>
               </View>
 
               {/* 摘要 */}
@@ -1198,11 +1194,6 @@ export default function InteractionCreatePage() {
       <CustomHeader
         title={pageTitle}
         onBack={handleBack}
-        rightAction={
-          <View onClick={() => Taro.navigateTo({ url: `/pages/interactions/index?matchId=${matchId}` })}>
-            <History size={20} color="#6B7280" />
-          </View>
-        }
       />
 
       {/* 互动类型选择 - ScrollView 横向滚动 */}
@@ -1745,13 +1736,21 @@ export default function InteractionCreatePage() {
       <View
         style={{
           position: 'fixed', bottom: 50, left: 0, right: 0,
-          display: 'flex', flexDirection: 'row',
+          display: 'flex', flexDirection: 'row', gap: '12px',
           padding: '12px 16px', backgroundColor: '#fff',
           borderTop: '1px solid #f3f4f6', zIndex: 100,
         }}
       >
         <Button
-          className="w-full text-white py-3 rounded-xl"
+          variant="outline"
+          className="py-3 rounded-xl"
+          onClick={() => Taro.navigateTo({ url: `/pages/interactions/index?matchId=${matchId}` })}
+          disabled={submitting}
+        >
+          <Text className="block text-sm font-medium text-gray-600">历史记录</Text>
+        </Button>
+        <Button
+          className="flex-1 text-white py-3 rounded-xl"
           style={{ backgroundColor: '#4ECB71' }}
           onClick={handleSubmit}
           disabled={submitting || hasUploadingRecords}

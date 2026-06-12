@@ -13,6 +13,16 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Slider } from '@/components/ui/slider'
 import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog'
+import {
   User,
   ChevronDown,
   ChevronUp,
@@ -35,6 +45,8 @@ import {
   Pencil,
   Check,
   X,
+  Trash2,
+  Loader,
 } from 'lucide-react-taro'
 
 // ============ 类型定义 ============
@@ -328,6 +340,10 @@ const ProfilePage: FC = () => {
   const [editingField, setEditingField] = useState<string | null>(null)
   const [tempValue, setTempValue] = useState<string>('')
   const [tempNumber, setTempNumber] = useState<number>(0)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deletingMatchId, setDeletingMatchId] = useState<number | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [matchList, setMatchList] = useState<MatchItem[]>([])
 
   const currentEnv = Taro.getEnv()
   const isMiniApp = currentEnv === Taro.ENV_TYPE.WEAPP || currentEnv === Taro.ENV_TYPE.TT
@@ -404,11 +420,12 @@ const ProfilePage: FC = () => {
       console.log('Load stats response:', res.data)
       if (res.data?.code === 200 && res.data?.data) {
         const matchData = res.data.data
-        const matchList: MatchItem[] = matchData.list || matchData || []
-        const totalProgress = matchList.reduce((sum, m) => sum + (m.progressScore || 0), 0)
-        const avgProgress = matchList.length > 0 ? Math.round(totalProgress / matchList.length) : 0
-        const totalInteractions = matchList.reduce((sum, m) => sum + (m.impression || 0), 0)
-        const newStats = { matches: matchList.length, interactions: totalInteractions, avgProgress }
+        const list: MatchItem[] = matchData.list || matchData || []
+        setMatchList(list)
+        const totalProgress = list.reduce((sum, m) => sum + (m.progressScore || 0), 0)
+        const avgProgress = list.length > 0 ? Math.round(totalProgress / list.length) : 0
+        const totalInteractions = list.reduce((sum, m) => sum + (m.impression || 0), 0)
+        const newStats = { matches: list.length, interactions: totalInteractions, avgProgress }
         setStats(newStats)
         updateAchievements(newStats)
       }
@@ -429,6 +446,27 @@ const ProfilePage: FC = () => {
       unlocked: def.check(currentStats),
     }))
     setAchievements(items)
+  }
+
+  const handleDeleteMatch = async () => {
+    if (!deletingMatchId || deleting) return
+    try {
+      setDeleting(true)
+      const res = await Network.request({
+        url: `/api/match/${deletingMatchId}/delete`,
+        method: 'POST',
+      })
+      console.log('Delete match response:', res?.data)
+      if (res?.data?.code === 200) {
+        setShowDeleteDialog(false)
+        setDeletingMatchId(null)
+        loadStats()
+      }
+    } catch (error) {
+      console.error('Delete match error:', error)
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const syncProfileToServer = async (data: Partial<UserProfile>) => {
@@ -1319,10 +1357,70 @@ const ProfilePage: FC = () => {
         })}
       </View>
 
+      {/* ====== 设置 ====== */}
+      <View className="px-4 pb-4">
+        <Card className="shadow-soft border-0">
+          <CardContent className="p-0">
+            <View className="flex items-center gap-3 p-4" onClick={() => { if (matchList.length > 0) setShowDeleteDialog(true) }}>
+              <View className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+                <Trash2 size={16} color="#EF4444" />
+              </View>
+              <View className="flex-1">
+                <Text className="block text-sm font-semibold text-gray-900">删除关系</Text>
+                <Text className="block text-xs text-gray-400">删除后数据不可恢复</Text>
+              </View>
+              <ChevronDown size={16} color="#D1D5DB" className="rotate-[-90deg]" />
+            </View>
+          </CardContent>
+        </Card>
+      </View>
+
       {/* 版本信息 */}
       <View className="p-4 text-center">
         <Text className="block text-xs text-gray-400">知拌 v1.0.0</Text>
       </View>
+
+      {/* 删除关系选择弹窗 */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deletingMatchId ? '确认删除' : '选择要删除的关系'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletingMatchId
+                ? `确定要删除该关系吗？所有互动记录、维度数据将一并删除，此操作不可恢复。`
+                : '请选择要删除的关系对象'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {!deletingMatchId ? (
+            <View className="max-h-60 overflow-y-auto">
+              {matchList.map(match => (
+                <View
+                  key={match.id}
+                  className="flex items-center justify-between p-3 border-b border-gray-100 last:border-b-0"
+                  onClick={() => setDeletingMatchId(match.id)}
+                >
+                  <Text className="block text-sm text-gray-800">{match.name}</Text>
+                  <Trash2 size={16} color="#EF4444" />
+                </View>
+              ))}
+            </View>
+          ) : null}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setShowDeleteDialog(false); setDeletingMatchId(null) }}>
+              取消
+            </AlertDialogCancel>
+            {deletingMatchId && (
+              <AlertDialogAction onClick={handleDeleteMatch}>
+                {deleting ? <Loader size={14} color="#fff" className="animate-spin" /> : '确认删除'}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </View>
   )
 }

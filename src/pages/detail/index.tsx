@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useDidShow, useRouter, navigateTo, eventCenter, switchTab } from '@tarojs/taro'
+import { useLoad, useDidShow, useRouter, navigateTo, eventCenter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState, useCallback, useEffect } from 'react'
 import { Network } from '@/network'
@@ -13,16 +13,6 @@ import CustomHeader from '@/components/custom-header'
 import { SkeletonProfile } from '@/components/skeleton'
 import { getMatchDetailWithCache, clearDimensionCache } from '@/utils/cache'
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from '@/components/ui/alert-dialog'
-import { 
   ChevronRight,
   ChevronDown,
   ChevronUp,
@@ -43,7 +33,6 @@ import {
   ClipboardList,
   Zap,
   ChartPie,
-  Trash2,
   Sparkles,
   Search,
   BookOpen,
@@ -172,10 +161,6 @@ const DetailPage: FC = () => {
   
   // 维度组件刷新触发器
   const [dimensionRefreshKey, setDimensionRefreshKey] = useState(0)
-
-  // 删除确认状态
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [deleting, setDeleting] = useState(false)
 
   // 处理维度编辑
   const handleDimensionEdit = useCallback((dimensionKey: string) => {
@@ -334,26 +319,6 @@ const DetailPage: FC = () => {
   const goToTasks = () => navigateTo({ url: `/pages/tasks/index?matchId=${detail?.id}` })
   const goToPortrait = () => navigateTo({ url: `/pages/portrait/index?matchId=${detail?.id}` })
 
-  const handleDelete = async () => {
-    if (!detail || deleting) return
-    try {
-      setDeleting(true)
-      const res = await Network.request({
-        url: `/api/match/${detail.id}/delete`,
-        method: 'POST',
-      })
-      console.log('Delete match response:', res?.data)
-      const responseData = res?.data
-      if (responseData?.code === 200) {
-        switchTab({ url: '/pages/index/index' })
-      }
-    } catch (error) {
-      console.error('Delete match error:', error)
-    } finally {
-      setDeleting(false)
-    }
-  }
-
   const getChatContext = () => {
     if (!detail) return null
     return {
@@ -386,9 +351,6 @@ const DetailPage: FC = () => {
     <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader 
         title="档案" 
-        rightAction={
-          <Trash2 size={20} color="#EF4444" onClick={() => setShowDeleteDialog(true)} />
-        }
       />
 
       {/* ==================== 第一屏：核心信息 ==================== */}
@@ -862,28 +824,6 @@ const DetailPage: FC = () => {
         onOpenChange={setChatOpen} 
         context={getChatContext()} 
       />
-
-      {/* 删除确认弹窗 */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              <Text className="block text-lg font-semibold">确认删除</Text>
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              <Text className="block text-sm text-gray-500">确定要删除「{detail?.name}」的档案吗？删除后无法恢复。</Text>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              <Text className="block">取消</Text>
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              <Text className="block text-red-500">{deleting ? '删除中...' : '删除'}</Text>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </View>
   )
 }
