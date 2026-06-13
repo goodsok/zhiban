@@ -47,7 +47,7 @@ const INTERACTION_TYPES: Array<{
 
   { type: 'gift', label: '礼物', icon: Gift, color: '#EF4444', bgColor: 'bg-red-50', category: 'offline' },
   { type: 'physical', label: '亲密', icon: Heart, color: '#EC4899', bgColor: 'bg-rose-50', category: 'offline' },
-  { type: 'social', label: '社交', icon: Users, color: '#06B6D4', bgColor: 'bg-cyan-50', category: 'offline' },
+  { type: 'social', label: '聚会', icon: Users, color: '#06B6D4', bgColor: 'bg-cyan-50', category: 'offline' },
 ]
 
 // 心情选项
@@ -107,7 +107,7 @@ const ACTIVITY_PRESETS: Record<InteractionType, string[]> = {
     '挽臂', '十指紧扣', '额头吻',
   ],
   social: [
-    '朋友聚会', '双人约会', '家庭见面',
+    '朋友聚会', '家庭见面',
     '同学会', '同事聚餐', '生日会',
     '户外活动', '唱K聚会', '旅行团建',
   ],

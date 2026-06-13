@@ -20,7 +20,7 @@ interface SelectedImage {
 const meetingScenes = [
   { id: 'blind_date', label: '相亲' },
   { id: 'app_meetup', label: 'App线下见面' },
-  { id: 'party', label: '聚会社交' },
+  { id: 'party', label: '聚会' },
   { id: 'workplace', label: '职场' },
   { id: 'school', label: '学校' },
   { id: 'activity', label: '兴趣活动' },

@@ -89,7 +89,7 @@ const INTERACTION_TYPE_CONFIG: Record<InteractionType, {
   message: { label: '发消息', defaultCategory: 'online', energyWeight: 0.2, icon: '✉️' },
   gift: { label: '送礼物', defaultCategory: 'offline', energyWeight: 0.7, icon: '🎁' },
   physical: { label: '肢体接触', defaultCategory: 'offline', energyWeight: 0.8, icon: '🤝' },
-  social: { label: '社交场合', defaultCategory: 'offline', energyWeight: 0.5, icon: '👥' },
+  social: { label: '聚会', defaultCategory: 'offline', energyWeight: 0.5, icon: '👥' },
   other: { label: '其他', defaultCategory: 'offline', energyWeight: 0.3, icon: '📝' },
 }
 

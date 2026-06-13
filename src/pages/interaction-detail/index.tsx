@@ -75,7 +75,7 @@ const TYPE_LABELS: Record<string, string> = {
   video: '视频',
   gift: '礼物',
   physical: '亲密',
-  social: '社交',
+  social: '聚会',
   other: '其他',
 }
 

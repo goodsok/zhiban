@@ -52,7 +52,7 @@ const INTERACTION_TYPE_CONFIG: Record<InteractionType, {
   video: { label: '视频', icon: Video, color: '#8B5CF6' },
   gift: { label: '礼物', icon: Gift, color: '#EF4444' },
   physical: { label: '亲密', icon: Heart, color: '#EC4899' },
-  social: { label: '社交', icon: Users, color: '#06B6D4' },
+  social: { label: '聚会', icon: Users, color: '#06B6D4' },
   other: { label: '其他', icon: Calendar, color: '#6B7280' },
 }
 
