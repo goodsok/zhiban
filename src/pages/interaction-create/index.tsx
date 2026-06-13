@@ -792,6 +792,28 @@ export default function InteractionCreatePage() {
     <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA', paddingBottom: '100px' }}>
       <CustomHeader title="记录聊天" onBack={handleBack} />
 
+      {/* 互动类型选择 - ScrollView 横向滚动 */}
+      <View className="bg-white px-4 py-3 border-b">
+        <ScrollView scrollX className="flex flex-row gap-3" style={{ whiteSpace: 'nowrap' }}>
+          {INTERACTION_TYPES.map(item => {
+            const IconComponent = item.icon
+            const isActive = interactionType === item.type
+            return (
+              <View
+                key={item.type}
+                className={`inline-flex flex-col items-center px-3 py-2 rounded-xl ${isActive ? 'bg-blue-50' : ''}`}
+                onClick={() => { setInteractionType(item.type) }}
+              >
+                <IconComponent size={20} color={isActive ? '#3B82F6' : '#9CA3AF'} />
+                <Text className={`block text-xs mt-1 ${isActive ? 'text-blue-500 font-medium' : 'text-gray-500'}`}>
+                  {item.label}
+                </Text>
+              </View>
+            )
+          })}
+        </ScrollView>
+      </View>
+
       {/* 聊天来源 */}
       <View className="p-4 pb-2">
         <Text className="block text-sm font-medium text-gray-700 mb-3">聊天来源</Text>
