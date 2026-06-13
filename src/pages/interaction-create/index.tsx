@@ -11,7 +11,7 @@ import CustomHeader from '@/components/custom-header'
 import {
   Calendar, MessageCircle, Phone, Video, Gift, Heart, Users, MapPin,
   Clock, User, Sparkles, Check, Zap, Plus, Upload, Image, Paperclip, X,
-  LoaderCircle, FileText, ChevronDown
+  LoaderCircle, FileText, ChevronDown, Settings2
 } from 'lucide-react-taro'
 
 // 互动类型
@@ -198,6 +198,7 @@ export default function InteractionCreatePage() {
   // 可选项折叠状态
   const [moodOpen, setMoodOpen] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
+  const [optionalOpen, setOptionalOpen] = useState(false)
 
   // 对方名称
   const [matchName, setMatchName] = useState('')
@@ -239,6 +240,13 @@ export default function InteractionCreatePage() {
 
   // 是否有上传中的聊天记录
   const hasUploadingRecords = chatRecords.some(r => r.uploading)
+
+  // 初始化默认值
+  useEffect(() => {
+    setStartedAt(new Date())
+    setDurationMinutes(30)
+    setInitiator('mutual')
+  }, [])
 
   // 初始化：从路由参数读取 type
   useEffect(() => {
@@ -1399,6 +1407,19 @@ export default function InteractionCreatePage() {
   }
 
   // ========== 非聊天类型：原有表单流程 ==========
+  // 根据互动类型确定必填项
+  const durationIsRequired = ['call', 'video'].includes(interactionType)
+  const activityIsRequired = !durationIsRequired
+
+  // 已选活动标签的摘要文字
+  const optionalSummary = [
+    startedAt ? startedAt.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) + ' ' + formatLocalTime(startedAt) : '',
+    !durationIsRequired && durationMinutes ? `${durationMinutes}分钟` : '',
+    initiator !== 'mutual' ? INITIATOR_OPTIONS.find(o => o.value === initiator)?.label || '' : '',
+    location,
+    mood !== 'good' ? MOOD_OPTIONS.find(o => o.value === mood)?.label || '' : '',
+  ].filter(Boolean).join(' · ') || '点击补充'
+
   return (
     <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA', paddingBottom: '100px' }}>
       <CustomHeader
@@ -1438,162 +1459,71 @@ export default function InteractionCreatePage() {
         </ScrollView>
       </View>
 
-      {/* 主要信息卡片 */}
+      {/* 必填项卡片 */}
       <View className="p-4">
         <Card>
           <CardContent className="p-4 flex flex-col gap-5">
-            {/* 时间选择 */}
-            <View>
-              <View className="flex items-center gap-4 mb-2">
-                <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Clock size={18} color="#6B7280" />
-                </View>
-                <Text className="block text-sm font-medium text-gray-700">互动时间</Text>
-              </View>
-              <View className="flex flex-row gap-3" style={{ marginLeft: '52px' }}>
-                <Picker
-                  mode="date"
-                  value={startedAt ? formatLocalDate(startedAt) : formatLocalDate(new Date())}
-                  onChange={e => {
-                    const d = new Date(e.detail.value)
-                    if (startedAt) d.setHours(startedAt.getHours(), startedAt.getMinutes())
-                    setStartedAt(d)
-                  }}
-                >
-                  <View className="px-3 py-2 bg-gray-50 rounded-lg flex items-center gap-1">
-                    <Calendar size={14} color="#6B7280" />
-                    <Text className="block text-xs text-gray-700">
-                      {startedAt ? startedAt.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : '选择日期'}
-                    </Text>
-                  </View>
-                </Picker>
-                <Picker
-                  mode="time"
-                  value={startedAt ? formatLocalTime(startedAt) : formatLocalTime(new Date())}
-                  onChange={e => {
-                    const [h, m] = (e.detail.value as string).split(':').map(Number)
-                    const d = startedAt ? new Date(startedAt) : new Date()
-                    d.setHours(h, m)
-                    setStartedAt(d)
-                  }}
-                >
-                  <View className="px-3 py-2 bg-gray-50 rounded-lg flex items-center gap-1">
-                    <Clock size={14} color="#6B7280" />
-                    <Text className="block text-xs text-gray-700">
-                      {startedAt ? formatLocalTime(startedAt) : '选择时间'}
-                    </Text>
-                  </View>
-                </Picker>
-              </View>
-            </View>
-
-            {/* 时长选择 */}
-            <View>
-              <View className="flex items-center gap-4 mb-4">
-                <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Calendar size={18} color="#6B7280" />
-                </View>
-                <Text className="block text-sm font-medium text-gray-700">持续时长</Text>
-              </View>
-              <View className="flex flex-row flex-wrap gap-3" style={{ marginLeft: '52px' }}>
-                {DURATION_OPTIONS.map(opt => {
-                  const isSelected = !showCustomDuration && durationMinutes === opt.value
-                  return (
-                    <View
-                      key={opt.value}
-                      className="px-3 py-2 rounded-lg bg-gray-100"
-                      style={isSelected ? { backgroundColor: PRIMARY_COLOR } : undefined}
-                      onClick={() => {
-                        setDurationMinutes(opt.value)
-                        setShowCustomDuration(false)
-                      }}
-                    >
-                      <Text className={`block text-xs ${isSelected ? 'text-white' : 'text-gray-600'}`}>
-                        {opt.label}
-                      </Text>
-                    </View>
-                  )
-                })}
-                {/* 自定义时长 */}
-                <View
-                  className="px-3 py-2 rounded-lg bg-gray-100"
-                  style={showCustomDuration ? { backgroundColor: PRIMARY_COLOR } : undefined}
-                  onClick={() => setShowCustomDuration(!showCustomDuration)}
-                >
-                  <Text className={`block text-xs ${showCustomDuration ? 'text-white' : 'text-gray-600'}`}>
-                    自定义
-                  </Text>
-                </View>
-              </View>
-              {showCustomDuration && (
-                <View className="mt-2" style={{ marginLeft: '52px' }}>
-                  <View className="bg-gray-50 rounded-lg px-3 py-2" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                    <Input
-                      style={{ width: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
-                      type="number"
-                      placeholder="60"
-                      value={customDuration}
-                      onInput={e => setCustomDuration(e.detail.value)}
-                    />
-                    <Text className="block text-xs text-gray-500 ml-1">分钟</Text>
-                  </View>
-                </View>
-              )}
-            </View>
-
-            {/* 发起方选择 */}
-            <View>
-              <View className="flex items-center gap-4 mb-4">
-                <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                  <User size={18} color="#6B7280" />
-                </View>
-                <Text className="block text-sm font-medium text-gray-700">谁发起的</Text>
-              </View>
-              <View className="flex flex-row gap-3" style={{ marginLeft: '52px' }}>
-                {INITIATOR_OPTIONS.map(opt => {
-                  const IconComponent = opt.icon
-                  const isActive = initiator === opt.value
-                  return (
-                    <View
-                      key={opt.value}
-                      className="flex-1 flex items-center justify-center gap-3 px-3 py-2 rounded-lg bg-gray-100"
-                      style={isActive ? { backgroundColor: PRIMARY_COLOR } : undefined}
-                      onClick={() => setInitiator(opt.value)}
-                    >
-                      <IconComponent size={14} color={isActive ? '#fff' : '#6B7280'} />
-                      <Text className={`block text-xs ${isActive ? 'text-white' : 'text-gray-600'}`}>
-                        {opt.label}
-                      </Text>
-                    </View>
-                  )
-                })}
-              </View>
-            </View>
-
-            {/* 地点（约会/社交时显示） */}
-            {(interactionType === 'date' || interactionType === 'social') && (
+            {/* 通话/视频：时长为必填 */}
+            {durationIsRequired && (
               <View>
                 <View className="flex items-center gap-4 mb-4">
-                  <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <MapPin size={18} color="#6B7280" />
+                  <View
+                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: `${currentType.color}15` }}
+                  >
+                    <Clock size={18} color={currentType.color} />
                   </View>
-                  <Text className="block text-sm font-medium text-gray-700">地点</Text>
+                  <Text className="block text-sm font-medium text-gray-700">通话时长</Text>
+                  <Text className="block text-xs text-red-400">必填</Text>
                 </View>
-                <View style={{ marginLeft: '52px' }}>
-                  <View className="bg-gray-50 rounded-lg px-3 py-2">
-                    <Input
-                      style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
-                      placeholder="在哪里呢..."
-                      value={location}
-                      onInput={e => setLocation(e.detail.value)}
-                    />
+                <View className="flex flex-row flex-wrap gap-3" style={{ marginLeft: '52px' }}>
+                  {DURATION_OPTIONS.map(opt => {
+                    const isSelected = !showCustomDuration && durationMinutes === opt.value
+                    return (
+                      <View
+                        key={opt.value}
+                        className="px-3 py-2 rounded-lg bg-gray-100"
+                        style={isSelected ? { backgroundColor: PRIMARY_COLOR } : undefined}
+                        onClick={() => {
+                          setDurationMinutes(opt.value)
+                          setShowCustomDuration(false)
+                        }}
+                      >
+                        <Text className={`block text-xs ${isSelected ? 'text-white' : 'text-gray-600'}`}>
+                          {opt.label}
+                        </Text>
+                      </View>
+                    )
+                  })}
+                  <View
+                    className="px-3 py-2 rounded-lg bg-gray-100"
+                    style={showCustomDuration ? { backgroundColor: PRIMARY_COLOR } : undefined}
+                    onClick={() => setShowCustomDuration(!showCustomDuration)}
+                  >
+                    <Text className={`block text-xs ${showCustomDuration ? 'text-white' : 'text-gray-600'}`}>
+                      自定义
+                    </Text>
                   </View>
                 </View>
+                {showCustomDuration && (
+                  <View className="mt-2" style={{ marginLeft: '52px' }}>
+                    <View className="bg-gray-50 rounded-lg px-3 py-2" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                      <Input
+                        style={{ width: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
+                        type="number"
+                        placeholder="60"
+                        value={customDuration}
+                        onInput={e => setCustomDuration(e.detail.value)}
+                      />
+                      <Text className="block text-xs text-gray-500 ml-1">分钟</Text>
+                    </View>
+                  </View>
+                )}
               </View>
             )}
 
-            {/* 活动标签 */}
-            {ACTIVITY_PRESETS[interactionType]?.length > 0 && (
+            {/* 活动标签（非通话/视频的必填项） */}
+            {activityIsRequired && ACTIVITY_PRESETS[interactionType]?.length > 0 && (
               <View>
                 <View className="flex items-center gap-4 mb-4">
                   <View
@@ -1602,7 +1532,10 @@ export default function InteractionCreatePage() {
                   >
                     <Plus size={18} color={currentType.color} />
                   </View>
-                  <Text className="block text-sm font-medium text-gray-700">活动内容</Text>
+                  <Text className="block text-sm font-medium text-gray-700">
+                    {interactionType === 'gift' ? '送了什么' : interactionType === 'physical' ? '亲密行为' : '活动内容'}
+                  </Text>
+                  <Text className="block text-xs text-red-400">必填</Text>
                 </View>
                 <View className="flex flex-row flex-wrap gap-3" style={{ marginLeft: '52px' }}>
                   {ACTIVITY_PRESETS[interactionType].map(tag => {
@@ -1662,35 +1595,36 @@ export default function InteractionCreatePage() {
               </View>
             )}
 
-            {/* 标题/主题 */}
-            <View>
-              <View className="flex items-center gap-4 mb-4">
-                <View
-                  className="w-10 h-10 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: `${currentType.color}15` }}
-                >
-                  <TypeIcon size={18} color={currentType.color} />
+            {/* 标题/主题（other 类型必填） */}
+            {interactionType === 'other' && (
+              <View>
+                <View className="flex items-center gap-4 mb-4">
+                  <View
+                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: `${currentType.color}15` }}
+                  >
+                    <TypeIcon size={18} color={currentType.color} />
+                  </View>
+                  <Text className="block text-sm font-medium text-gray-700">互动内容</Text>
+                  <Text className="block text-xs text-red-400">必填</Text>
                 </View>
-                <Text className="block text-sm font-medium text-gray-700">
-                  {interactionType === 'date' ? '约会主题' : '互动内容'}
-                </Text>
-              </View>
-              <View style={{ marginLeft: '52px' }}>
-                <View className="bg-gray-50 rounded-lg px-3 py-2">
-                  <Input
-                    style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
-                    placeholder={interactionType === 'date' ? '给这次约会起个名字...' : '简单描述一下...'}
-                    value={title}
-                    onInput={e => setTitle(e.detail.value)}
-                  />
+                <View style={{ marginLeft: '52px' }}>
+                  <View className="bg-gray-50 rounded-lg px-3 py-2">
+                    <Input
+                      style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
+                      placeholder="简单描述一下..."
+                      value={title}
+                      onInput={e => setTitle(e.detail.value)}
+                    />
+                  </View>
                 </View>
               </View>
-            </View>
+            )}
           </CardContent>
         </Card>
       </View>
 
-      {/* 聊天记录上传区域（仅消息/通话/视频类型时展示） */}
+      {/* 聊天记录上传区域（仅通话/视频类型时展示） */}
       {showChatUpload && (
         <View className="px-4 pb-4">
           <Card style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0F9FF 100%)' }}>
@@ -1817,129 +1751,320 @@ export default function InteractionCreatePage() {
         </View>
       )}
 
-      {/* 心情评价 + 能量预览 */}
+      {/* 可选项（默认折叠） */}
       <View className="px-4 pb-4">
-        <Card>
-          <CardContent className="p-4 flex flex-col gap-5">
-            <View className="flex items-center gap-4 mb-4">
-              <View className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
-                <Sparkles size={18} color="#F59E0B" />
-              </View>
-              <Text className="block text-sm font-medium text-gray-700">这次感觉怎么样？</Text>
-            </View>
+        <Collapsible open={optionalOpen} onOpenChange={setOptionalOpen}>
+          <Card>
+            <CollapsibleTrigger className="w-full">
+              <CardContent className="p-4">
+                <View className="flex items-center justify-between">
+                  <View className="flex items-center gap-3">
+                    <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                      <Settings2 size={18} color="#6B7280" />
+                    </View>
+                    <View className="flex flex-col">
+                      <Text className="block text-sm font-medium text-gray-700">补充信息</Text>
+                      <Text className="block text-xs text-gray-400">{optionalSummary}</Text>
+                    </View>
+                  </View>
+                  <ChevronDown
+                    size={18}
+                    color="#9CA3AF"
+                    className={`transition-transform ${optionalOpen ? 'rotate-180' : ''}`}
+                  />
+                </View>
+              </CardContent>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <View className="px-4 pb-4 flex flex-col gap-5">
+                {/* 时间选择 */}
+                <View>
+                  <View className="flex items-center gap-4 mb-2">
+                    <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                      <Clock size={18} color="#6B7280" />
+                    </View>
+                    <Text className="block text-sm font-medium text-gray-700">互动时间</Text>
+                  </View>
+                  <View className="flex flex-row gap-3" style={{ marginLeft: '52px' }}>
+                    <Picker
+                      mode="date"
+                      value={startedAt ? formatLocalDate(startedAt) : formatLocalDate(new Date())}
+                      onChange={e => {
+                        const d = new Date(e.detail.value)
+                        if (startedAt) d.setHours(startedAt.getHours(), startedAt.getMinutes())
+                        setStartedAt(d)
+                      }}
+                    >
+                      <View className="px-3 py-2 bg-gray-50 rounded-lg flex items-center gap-1">
+                        <Calendar size={14} color="#6B7280" />
+                        <Text className="block text-xs text-gray-700">
+                          {startedAt ? startedAt.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : '选择日期'}
+                        </Text>
+                      </View>
+                    </Picker>
+                    <Picker
+                      mode="time"
+                      value={startedAt ? formatLocalTime(startedAt) : formatLocalTime(new Date())}
+                      onChange={e => {
+                        const [h, m] = (e.detail.value as string).split(':').map(Number)
+                        const d = startedAt ? new Date(startedAt) : new Date()
+                        d.setHours(h, m)
+                        setStartedAt(d)
+                      }}
+                    >
+                      <View className="px-3 py-2 bg-gray-50 rounded-lg flex items-center gap-1">
+                        <Clock size={14} color="#6B7280" />
+                        <Text className="block text-xs text-gray-700">
+                          {startedAt ? formatLocalTime(startedAt) : '选择时间'}
+                        </Text>
+                      </View>
+                    </Picker>
+                  </View>
+                </View>
 
-            <View className="flex flex-row flex-wrap gap-2">
-              {MOOD_OPTIONS.map(opt => {
-                const isActive = mood === opt.value
-                return (
-                  <View
-                    key={opt.value}
-                    className={`flex flex-col items-center py-2 px-3 rounded-xl border-2 ${
-                      isActive ? opt.color : 'bg-gray-50 border-transparent'
-                    }`}
-                    style={{ minWidth: '56px' }}
-                    onClick={() => setMood(opt.value)}
-                  >
-                    {isActive && (
-                      <View style={{ position: 'absolute', top: '2px', right: '2px' }}>
-                        <Check size={10} color="#4ECB71" />
+                {/* 时长选择（非通话/视频时显示） */}
+                {!durationIsRequired && (
+                  <View>
+                    <View className="flex items-center gap-4 mb-4">
+                      <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                        <Calendar size={18} color="#6B7280" />
+                      </View>
+                      <Text className="block text-sm font-medium text-gray-700">持续时长</Text>
+                    </View>
+                    <View className="flex flex-row flex-wrap gap-3" style={{ marginLeft: '52px' }}>
+                      {DURATION_OPTIONS.map(opt => {
+                        const isSelected = !showCustomDuration && durationMinutes === opt.value
+                        return (
+                          <View
+                            key={opt.value}
+                            className="px-3 py-2 rounded-lg bg-gray-100"
+                            style={isSelected ? { backgroundColor: PRIMARY_COLOR } : undefined}
+                            onClick={() => {
+                              setDurationMinutes(opt.value)
+                              setShowCustomDuration(false)
+                            }}
+                          >
+                            <Text className={`block text-xs ${isSelected ? 'text-white' : 'text-gray-600'}`}>
+                              {opt.label}
+                            </Text>
+                          </View>
+                        )
+                      })}
+                      <View
+                        className="px-3 py-2 rounded-lg bg-gray-100"
+                        style={showCustomDuration ? { backgroundColor: PRIMARY_COLOR } : undefined}
+                        onClick={() => setShowCustomDuration(!showCustomDuration)}
+                      >
+                        <Text className={`block text-xs ${showCustomDuration ? 'text-white' : 'text-gray-600'}`}>
+                          自定义
+                        </Text>
+                      </View>
+                    </View>
+                    {showCustomDuration && (
+                      <View className="mt-2" style={{ marginLeft: '52px' }}>
+                        <View className="bg-gray-50 rounded-lg px-3 py-2" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                          <Input
+                            style={{ width: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
+                            type="number"
+                            placeholder="60"
+                            value={customDuration}
+                            onInput={e => setCustomDuration(e.detail.value)}
+                          />
+                          <Text className="block text-xs text-gray-500 ml-1">分钟</Text>
+                        </View>
                       </View>
                     )}
-                    <Text className="block text-lg mb-1">{opt.emoji}</Text>
-                    <Text className={`block text-xs ${isActive ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
-                      {opt.label}
-                    </Text>
                   </View>
-                )
-              })}
-            </View>
-
-            {/* 能量预览条 */}
-            {energyPreview && (
-              <View className="mt-4 flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: '#F0FDF4' }}>
-                <Zap size={16} color="#4ECB71" />
-                <Text className="block text-xs text-emerald-700 font-medium">
-                  预计获得 {energyPreview.totalEnergy} 能量
-                </Text>
-                {energyPreview.bonusEnergy > 0 && (
-                  <Text className="block text-xs text-green-500">
-                    (+{energyPreview.bonusEnergy} 加成)
-                  </Text>
                 )}
-                {energyLoading && (
-                  <Text className="block text-xs text-gray-400">计算中...</Text>
+
+                {/* 发起方选择 */}
+                <View>
+                  <View className="flex items-center gap-4 mb-4">
+                    <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                      <User size={18} color="#6B7280" />
+                    </View>
+                    <Text className="block text-sm font-medium text-gray-700">谁发起的</Text>
+                  </View>
+                  <View className="flex flex-row gap-3" style={{ marginLeft: '52px' }}>
+                    {INITIATOR_OPTIONS.map(opt => {
+                      const IconComponent = opt.icon
+                      const isActive = initiator === opt.value
+                      return (
+                        <View
+                          key={opt.value}
+                          className="flex-1 flex items-center justify-center gap-3 px-3 py-2 rounded-lg bg-gray-100"
+                          style={isActive ? { backgroundColor: PRIMARY_COLOR } : undefined}
+                          onClick={() => setInitiator(opt.value)}
+                        >
+                          <IconComponent size={14} color={isActive ? '#fff' : '#6B7280'} />
+                          <Text className={`block text-xs ${isActive ? 'text-white' : 'text-gray-600'}`}>
+                            {opt.label}
+                          </Text>
+                        </View>
+                      )
+                    })}
+                  </View>
+                </View>
+
+                {/* 地点（约会/聚会时显示） */}
+                {(interactionType === 'date' || interactionType === 'social') && (
+                  <View>
+                    <View className="flex items-center gap-4 mb-4">
+                      <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                        <MapPin size={18} color="#6B7280" />
+                      </View>
+                      <Text className="block text-sm font-medium text-gray-700">地点</Text>
+                    </View>
+                    <View style={{ marginLeft: '52px' }}>
+                      <View className="bg-gray-50 rounded-lg px-3 py-2">
+                        <Input
+                          style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
+                          placeholder="在哪里呢..."
+                          value={location}
+                          onInput={e => setLocation(e.detail.value)}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                )}
+
+                {/* 标题/主题（非 other 类型） */}
+                {interactionType !== 'other' && (
+                  <View>
+                    <View className="flex items-center gap-4 mb-4">
+                      <View
+                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: `${currentType.color}15` }}
+                      >
+                        <TypeIcon size={18} color={currentType.color} />
+                      </View>
+                      <Text className="block text-sm font-medium text-gray-700">
+                        {interactionType === 'date' ? '约会主题' : '互动内容'}
+                      </Text>
+                    </View>
+                    <View style={{ marginLeft: '52px' }}>
+                      <View className="bg-gray-50 rounded-lg px-3 py-2">
+                        <Input
+                          style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
+                          placeholder={interactionType === 'date' ? '给这次约会起个名字...' : '简单描述一下...'}
+                          value={title}
+                          onInput={e => setTitle(e.detail.value)}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                )}
+
+                {/* 心情评价 */}
+                <View>
+                  <View className="flex items-center gap-4 mb-4">
+                    <View className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
+                      <Sparkles size={18} color="#F59E0B" />
+                    </View>
+                    <Text className="block text-sm font-medium text-gray-700">这次感觉怎么样？</Text>
+                  </View>
+                  <View className="flex flex-row flex-wrap gap-2">
+                    {MOOD_OPTIONS.map(opt => {
+                      const isActive = mood === opt.value
+                      return (
+                        <View
+                          key={opt.value}
+                          className={`flex flex-col items-center py-2 px-3 rounded-xl border-2 ${
+                            isActive ? opt.color : 'bg-gray-50 border-transparent'
+                          }`}
+                          style={{ minWidth: '56px' }}
+                          onClick={() => setMood(opt.value)}
+                        >
+                          {isActive && (
+                            <View style={{ position: 'absolute', top: '2px', right: '2px' }}>
+                              <Check size={10} color="#4ECB71" />
+                            </View>
+                          )}
+                          <Text className="block text-lg mb-1">{opt.emoji}</Text>
+                          <Text className={`block text-xs ${isActive ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
+                            {opt.label}
+                          </Text>
+                        </View>
+                      )
+                    })}
+                  </View>
+                </View>
+
+                {/* 详细记录 */}
+                <View>
+                  <View className="flex items-center gap-3 mb-3">
+                    <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                      <FileText size={18} color="#6B7280" />
+                    </View>
+                    <Text className="block text-sm font-medium text-gray-700">详细记录</Text>
+                  </View>
+                  <View className="bg-gray-50 rounded-xl p-3">
+                    <Textarea
+                      style={{ width: '100%', minHeight: '80px', fontSize: '14px', backgroundColor: 'transparent' }}
+                      placeholder="记录这次互动的细节、感受、有趣的对话..."
+                      value={description}
+                      onInput={e => setDescription(e.detail.value)}
+                    />
+                  </View>
+                </View>
+
+                {/* 突破性时刻 */}
+                <View>
+                  <View className="flex items-center gap-3 mb-3">
+                    <View className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                      <Sparkles size={18} color="#F59E0B" />
+                    </View>
+                    <Text className="block text-sm font-medium text-gray-700">突破性时刻</Text>
+                  </View>
+                  <View className="bg-amber-50 rounded-xl p-3">
+                    <Textarea
+                      style={{ width: '100%', minHeight: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
+                      placeholder="有没有什么特别的进展？比如第一次牵手、第一次说喜欢..."
+                      value={breakthroughMoment}
+                      onInput={e => setBreakthroughMoment(e.detail.value)}
+                    />
+                  </View>
+                </View>
+
+                {/* 遇到的问题 */}
+                <View>
+                  <View className="flex items-center gap-3 mb-3">
+                    <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                      <FileText size={18} color="#6B7280" />
+                    </View>
+                    <Text className="block text-sm font-medium text-gray-700">遇到的问题</Text>
+                  </View>
+                  <View className="bg-gray-50 rounded-xl p-3">
+                    <Textarea
+                      style={{ width: '100%', minHeight: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
+                      placeholder="有没有什么尴尬、误会或问题？比如冷场了、说错话了..."
+                      value={issuesEncountered}
+                      onInput={e => setIssuesEncountered(e.detail.value)}
+                    />
+                  </View>
+                </View>
+
+                {/* 能量预览条 */}
+                {energyPreview && (
+                  <View className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: '#F0FDF4' }}>
+                    <Zap size={16} color="#4ECB71" />
+                    <Text className="block text-xs text-emerald-700 font-medium">
+                      预计获得 {energyPreview.totalEnergy} 能量
+                    </Text>
+                    {energyPreview.bonusEnergy > 0 && (
+                      <Text className="block text-xs text-green-500">
+                        (+{energyPreview.bonusEnergy} 加成)
+                      </Text>
+                    )}
+                    {energyLoading && (
+                      <Text className="block text-xs text-gray-400">计算中...</Text>
+                    )}
+                  </View>
                 )}
               </View>
-            )}
-          </CardContent>
-        </Card>
-      </View>
-
-      {/* 详细描述 */}
-      <View className="px-4 pb-4">
-        <Card>
-          <CardContent className="p-4 flex flex-col gap-5">
-            <View className="flex items-center gap-3 mb-4">
-              <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                <FileText size={18} color="#6B7280" />
-              </View>
-              <Text className="block text-sm font-medium text-gray-700">详细记录</Text>
-            </View>
-            <View className="bg-gray-50 rounded-xl p-3">
-              <Textarea
-                style={{ width: '100%', minHeight: '80px', fontSize: '14px', backgroundColor: 'transparent' }}
-                placeholder="记录这次互动的细节、感受、有趣的对话..."
-                value={description}
-                onInput={e => setDescription(e.detail.value)}
-              />
-            </View>
-          </CardContent>
-        </Card>
-      </View>
-
-      {/* 突破性时刻 */}
-      <View className="px-4 pb-4">
-        <Card style={{ background: 'linear-gradient(135deg, #FFFBEB 0%, #FFF7ED 100%)' }}>
-          <CardContent className="p-4 flex flex-col gap-5">
-            <View className="flex items-center gap-3 mb-4">
-              <View className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                <Sparkles size={18} color="#F59E0B" />
-              </View>
-              <Text className="block text-sm font-medium text-gray-700">突破性时刻</Text>
-            </View>
-            <View className="bg-white rounded-xl p-3" style={{ backgroundColor: 'rgba(255,255,255,0.6)' }}>
-              <Textarea
-                style={{ width: '100%', minHeight: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
-                placeholder="有没有什么特别的进展？比如第一次牵手、第一次说喜欢..."
-                value={breakthroughMoment}
-                onInput={e => setBreakthroughMoment(e.detail.value)}
-              />
-            </View>
-          </CardContent>
-        </Card>
-      </View>
-
-      {/* 遇到的问题 */}
-      <View className="px-4 pb-4">
-        <Card>
-          <CardContent className="p-4 flex flex-col gap-5">
-            <View className="flex items-center gap-3 mb-4">
-              <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                <FileText size={18} color="#6B7280" />
-              </View>
-              <Text className="block text-sm font-medium text-gray-700">遇到的问题</Text>
-              <Text className="block text-xs text-gray-400">可选</Text>
-            </View>
-            <View className="bg-gray-50 rounded-xl p-3">
-              <Textarea
-                style={{ width: '100%', minHeight: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
-                placeholder="有没有什么尴尬、误会或问题？比如冷场了、说错话了..."
-                value={issuesEncountered}
-                onInput={e => setIssuesEncountered(e.detail.value)}
-              />
-            </View>
-          </CardContent>
-        </Card>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       </View>
 
       {/* 底部提交按钮 */}
@@ -1963,7 +2088,7 @@ export default function InteractionCreatePage() {
           className="flex-1 text-white py-3 rounded-xl"
           style={{ backgroundColor: '#4ECB71' }}
           onClick={handleSubmit}
-          disabled={submitting || hasUploadingRecords}
+          disabled={submitting || hasUploadingRecords || (activityIsRequired && activities.length === 0 && interactionType !== 'other') || (durationIsRequired && !durationMinutes && !customDuration)}
         >
           <Text className="block text-base font-medium text-white">
             {submitting ? '保存中...' : '保存记录'}
