@@ -298,7 +298,11 @@ export class ChatRecordService {
       const config = new Config()
       const client = new LLMClient(config, customHeaders)
 
-      const prompt = `你是一个恋爱聊天记录分析专家，擅长从聊天中洞察双方的关系状态、互动模式和情感走向。请深度分析以下聊天记录，并按 JSON 格式返回分析结果。
+      const prompt = `你是一个恋爱聊天记录分析专家，擅长从聊天中客观洞察双方的关系状态、互动模式和情感走向。
+
+【重要原则】你必须客观中立，如实反映聊天中的问题。如果聊天质量差、对方不热情、互动尴尬，必须如实指出，不要美化。评分要严格：一般的聊天化学反应4-5分，真正有火花才给7分以上。建议要具体可操作，不要空泛的好话。
+
+请深度分析以下聊天记录，并按 JSON 格式返回分析结果。
 
 聊天记录：
 ${rawContent.slice(0, 4000)}
@@ -308,29 +312,30 @@ ${rawContent.slice(0, 4000)}
   "parsedMessages": [
     { "sender": "发送者名称", "content": "消息内容", "timestamp": "时间（如有）" }
   ],
-  "summary": "100字以内的聊天摘要，包含关键内容和情感氛围",
+  "summary": "100字以内的聊天摘要，客观描述关键内容和氛围，有问题要指出",
   "keyTopics": ["话题1", "话题2", "话题3"],
   "sentiment": "positive | neutral | mixed | negative",
   "messageCount": 消息总条数,
   "inferredMood": "excellent | good | neutral | awkward | bad",
   "inferredActivities": ["活动标签1", "活动标签2"],
   "inferredDurationMinutes": 推断的聊天时长分钟数（如无法判断则为null）,
-  "interestSignals": ["对方表现出的兴趣信号，如主动分享、快速回复、关心询问等"],
+  "interestSignals": ["对方表现出的兴趣信号，如实评价，没有就是没有"],
+  "redFlags": ["对方表现出的冷淡或问题信号，如敷衍回复、很久才回、转移话题等，没有则返回空数组"],
   "conversationFlow": {
     "initiator": "我方 | 对方 | 双方均衡",
     "myMessageCount": 我方发送消息数,
     "otherMessageCount": 对方发送消息数,
     "avgResponseHint": "我方回复更快 | 对方回复更快 | 差不多"
   },
-  "emotionalArc": "描述聊天中情感变化轨迹，如：开始平淡→逐渐升温→最后很甜蜜",
-  "chemistryScore": 1到10的化学反应评分,
+  "emotionalArc": "客观描述聊天中情感变化轨迹，如：我方热情但对方冷淡 | 开始还行但逐渐无话可说 | 双方越来越投入",
+  "chemistryScore": 1到10的化学反应评分（严格标准：3分=几乎没互动，5分=普通，7分=有明显火花，9分=非常投缘）,
   "communicationStyle": {
-    "me": "我的沟通风格描述，如热情主动、含蓄内敛等",
-    "other": "对方的沟通风格描述"
+    "me": "我的沟通风格描述，如实分析",
+    "other": "对方的沟通风格描述，如实分析"
   },
-  "keyMoments": ["聊天中的关键转折点或高光时刻"],
-  "suggestions": ["基于这次聊天给出的下一步行动建议"],
-  "warmthLevel": 1到10的温暖亲密度评分,
+  "keyMoments": ["聊天中的关键转折点，包括正面和负面的"],
+  "suggestions": ["基于这次聊天给出的具体可操作建议，如果聊天有问题要指出改进方向"],
+  "warmthLevel": 1到10的温暖亲密度评分（严格标准：3分=冷淡，5分=普通，7分=温暖，9分=非常亲密）,
   "depthLevel": "surface 浅层闲聊 | medium 有一定深度 | deep 深入交流"
 }`
 
@@ -406,7 +411,7 @@ ${rawContent.slice(0, 4000)}
       const config = new Config()
       const client = new LLMClient(config, customHeaders)
 
-      const prompt = `你是一个恋爱聊天记录分析专家。请分析以下聊天记录，并按 JSON 格式返回分析结果。
+      const prompt = `你是一个恋爱聊天记录分析专家，必须客观中立，如实反映聊天中的问题，不要美化。
 
 聊天记录：
 ${rawContent.slice(0, 4000)}
@@ -416,20 +421,21 @@ ${rawContent.slice(0, 4000)}
   "parsedMessages": [
     { "sender": "发送者名称", "content": "消息内容", "timestamp": "时间（如有）" }
   ],
-  "summary": "100字以内的聊天摘要",
+  "summary": "100字以内的聊天摘要，客观描述，有问题要指出",
   "keyTopics": ["话题1", "话题2"],
   "sentiment": "positive | neutral | mixed | negative",
   "messageCount": 消息总条数,
   "inferredMood": "excellent | good | neutral | awkward | bad",
   "inferredActivities": ["活动标签1"],
   "inferredDurationMinutes": 推断时长分钟数,
-  "interestSignals": ["兴趣信号"],
+  "interestSignals": ["兴趣信号，如实评价"],
+  "redFlags": ["冷淡或问题信号，没有则空数组"],
   "conversationFlow": { "initiator": "我方|对方|双方均衡", "myMessageCount": 0, "otherMessageCount": 0 },
-  "emotionalArc": "情感变化轨迹描述",
-  "chemistryScore": 1到10评分,
-  "keyMoments": ["关键转折点"],
-  "suggestions": ["下一步建议"],
-  "warmthLevel": 1到10评分,
+  "emotionalArc": "客观描述情感变化轨迹",
+  "chemistryScore": 1到10评分（严格标准：3=几乎没互动，5=普通，7=有明显火花）,
+  "keyMoments": ["关键转折点，包括正面和负面"],
+  "suggestions": ["具体可操作建议，有问题要指出改进方向"],
+  "warmthLevel": 1到10评分（严格标准：3=冷淡，5=普通，7=温暖）,
   "depthLevel": "surface|medium|deep"
 }`
 

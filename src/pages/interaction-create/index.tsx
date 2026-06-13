@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import CustomHeader from '@/components/custom-header'
 import {
   Calendar, MessageCircle, Phone, Video, Gift, Heart, Users, MapPin,
   Clock, User, Sparkles, Check, Zap, Plus, Upload, Image, Paperclip, X,
-  LoaderCircle, FileText
+  LoaderCircle, FileText, ChevronDown
 } from 'lucide-react-taro'
 
 // 互动类型
@@ -135,6 +136,7 @@ interface AnalysisResult {
   inferredActivities: string[]
   inferredDurationMinutes: number | null
   interestSignals: string[]
+  redFlags: string[]
   conversationFlow: {
     initiator: string
     myMessageCount: number
@@ -192,6 +194,10 @@ export default function InteractionCreatePage() {
   const [mood, setMood] = useState<Mood>('good')
   const [breakthroughMoment, setBreakthroughMoment] = useState('')
   const [issuesEncountered, setIssuesEncountered] = useState('')
+
+  // 可选项折叠状态
+  const [moodOpen, setMoodOpen] = useState(false)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   // 对方名称
   const [matchName, setMatchName] = useState('')
@@ -1023,6 +1029,20 @@ export default function InteractionCreatePage() {
                 </View>
               )}
 
+              {/* 冷淡/问题信号 */}
+              {analysisResult.redFlags?.length > 0 && (
+                <View>
+                  <Text className="block text-xs text-gray-500 mb-2">需要注意</Text>
+                  <View className="flex flex-row flex-wrap gap-2">
+                    {analysisResult.redFlags.map((flag, idx) => (
+                      <View key={idx} className="px-3 py-1 rounded-full bg-red-50">
+                        <Text className="block text-xs text-red-600">{flag}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
               {/* 沟通风格 */}
               {analysisResult.communicationStyle && (
                 <View className="p-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
@@ -1093,69 +1113,89 @@ export default function InteractionCreatePage() {
         </View>
       )}
 
-      {/* 心情选择 */}
+      {/* 心情选择 - 默认折叠 */}
       <View className="px-4 pb-4">
-        <Card>
-          <CardContent className="p-4 flex flex-col gap-4">
-            <View className="flex items-center gap-3">
-              <View className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
-                <Sparkles size={16} color="#F59E0B" />
-              </View>
-              <Text className="block text-sm font-medium text-gray-700">这次感觉怎么样？</Text>
-              {analysisResult?.inferredMood && (
-                <Text className="block text-xs text-blue-500">AI 推断: {MOOD_OPTIONS.find(m => m.value === analysisResult.inferredMood)?.label}</Text>
-              )}
-            </View>
-            <View className="flex flex-row flex-wrap gap-2">
-              {MOOD_OPTIONS.map(opt => {
-                const isActive = mood === opt.value
-                const isInferred = analysisResult?.inferredMood === opt.value
-                return (
-                  <View
-                    key={opt.value}
-                    className={`flex flex-col items-center py-2 px-3 rounded-xl border-2 ${
-                      isActive ? opt.color : isInferred ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-transparent'
-                    }`}
-                    style={{ minWidth: '56px' }}
-                    onClick={() => setMood(opt.value)}
-                  >
-                    <Text className="block text-lg mb-1">{opt.emoji}</Text>
-                    <Text className={`block text-xs ${isActive ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
-                      {opt.label}
-                    </Text>
-                  </View>
-                )
-              })}
-            </View>
+        <Collapsible open={moodOpen} onOpenChange={setMoodOpen}>
+          <Card>
+            <CardContent className="p-4 flex flex-col gap-4">
+              <CollapsibleTrigger className="flex items-center gap-3">
+                <View className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
+                  <Sparkles size={16} color="#F59E0B" />
+                </View>
+                <Text className="block text-sm font-medium text-gray-700">这次感觉怎么样？</Text>
+                {mood && !moodOpen && (
+                  <Text className="block text-xs text-gray-400">{MOOD_OPTIONS.find(m => m.value === mood)?.emoji} {MOOD_OPTIONS.find(m => m.value === mood)?.label}</Text>
+                )}
+                {analysisResult?.inferredMood && !mood && !moodOpen && (
+                  <Text className="block text-xs text-blue-500">AI: {MOOD_OPTIONS.find(m => m.value === analysisResult.inferredMood)?.label}</Text>
+                )}
+                <View className="flex-1" />
+                <ChevronDown size={16} color="#9CA3AF" className={`transition-transform ${moodOpen ? 'rotate-180' : ''}`} />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <View className="flex flex-row flex-wrap gap-2">
+                  {MOOD_OPTIONS.map(opt => {
+                    const isActive = mood === opt.value
+                    const isInferred = analysisResult?.inferredMood === opt.value
+                    return (
+                      <View
+                        key={opt.value}
+                        className={`flex flex-col items-center py-2 px-3 rounded-xl border-2 ${
+                          isActive ? opt.color : isInferred ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-transparent'
+                        }`}
+                        style={{ minWidth: '56px' }}
+                        onClick={() => setMood(opt.value)}
+                      >
+                        <Text className="block text-lg mb-1">{opt.emoji}</Text>
+                        <Text className={`block text-xs ${isActive ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
+                          {opt.label}
+                        </Text>
+                      </View>
+                    )
+                  })}
+                </View>
 
-            {/* 能量预览条 */}
-            {(energyPreview || energyLoading) && (
-              <View className="mt-2 flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: '#F0FDF4' }}>
-                <Zap size={16} color="#4ECB71" />
-                {energyLoading ? (
-                  <Text className="block text-xs text-gray-400">能量计算中...</Text>
-                ) : energyPreview ? (
-                  <>
-                    <Text className="block text-xs text-emerald-700 font-medium">
-                      预计获得 {energyPreview.totalEnergy} 能量
-                    </Text>
-                    {energyPreview.bonusEnergy > 0 && (
-                      <Text className="block text-xs text-green-500">
-                        (+{energyPreview.bonusEnergy} 加成)
-                      </Text>
-                    )}
-                  </>
-                ) : null}
-              </View>
-            )}
-          </CardContent>
-        </Card>
+                {/* 能量预览条 */}
+                {(energyPreview || energyLoading) && (
+                  <View className="mt-2 flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: '#F0FDF4' }}>
+                    <Zap size={16} color="#4ECB71" />
+                    {energyLoading ? (
+                      <Text className="block text-xs text-gray-400">能量计算中...</Text>
+                    ) : energyPreview ? (
+                      <>
+                        <Text className="block text-xs text-emerald-700 font-medium">
+                          预计获得 {energyPreview.totalEnergy} 能量
+                        </Text>
+                        {energyPreview.bonusEnergy > 0 && (
+                          <Text className="block text-xs text-green-500">
+                            (+{energyPreview.bonusEnergy} 加成)
+                          </Text>
+                        )}
+                      </>
+                    ) : null}
+                  </View>
+                )}
+              </CollapsibleContent>
+            </CardContent>
+          </Card>
+        </Collapsible>
       </View>
 
-      {/* 补充信息：时间/时长/发起方/突破性时刻 */}
+      {/* 补充信息：时间/时长/发起方/突破性时刻 - 默认折叠 */}
       <View className="px-4 pb-4">
-        <Card>
-          <CardContent className="p-4 flex flex-col gap-5">
+        <Collapsible open={detailOpen} onOpenChange={setDetailOpen}>
+          <Card>
+            <CardContent className="p-4 flex flex-col gap-5">
+              <CollapsibleTrigger className="flex items-center gap-3">
+                <View className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                  <Clock size={16} color="#6B7280" />
+                </View>
+                <Text className="block text-sm font-medium text-gray-700">补充信息</Text>
+                <Text className="block text-xs text-gray-400">可选</Text>
+                <View className="flex-1" />
+                <ChevronDown size={16} color="#9CA3AF" className={`transition-transform ${detailOpen ? 'rotate-180' : ''}`} />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
             {/* 互动时间 */}
             <View>
               <View className="flex items-center gap-3 mb-3">
@@ -1307,8 +1347,10 @@ export default function InteractionCreatePage() {
                 />
               </View>
             </View>
-          </CardContent>
-        </Card>
+              </CollapsibleContent>
+            </CardContent>
+          </Card>
+        </Collapsible>
       </View>
 
       {/* 底部：双操作按钮 */}
