@@ -135,6 +135,22 @@ interface AnalysisResult {
   inferredActivities: string[]
   inferredDurationMinutes: number | null
   interestSignals: string[]
+  conversationFlow: {
+    initiator: string
+    myMessageCount: number
+    otherMessageCount: number
+    avgResponseHint: string
+  } | null
+  emotionalArc: string
+  chemistryScore: number | null
+  communicationStyle: {
+    me: string
+    other: string
+  } | null
+  keyMoments: string[]
+  suggestions: string[]
+  warmthLevel: number | null
+  depthLevel: string
 }
 
 // 本地日期格式化（避免 UTC 偏移）
@@ -859,7 +875,7 @@ export default function InteractionCreatePage() {
       {analysisResult && (
         <View className="px-4 pb-4">
           <Card style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)' }}>
-            <CardContent className="p-4 flex flex-col gap-4">
+            <CardContent className="p-4 flex flex-col gap-3">
               <View className="flex items-center gap-3">
                 <View className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                   <Sparkles size={16} color="#3B82F6" />
@@ -873,6 +889,82 @@ export default function InteractionCreatePage() {
                 <View className="p-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
                   <Text className="block text-xs text-gray-500 mb-1">对话摘要</Text>
                   <Text className="block text-sm text-gray-800">{analysisResult.summary}</Text>
+                </View>
+              )}
+
+              {/* 评分指标行 */}
+              {(analysisResult.chemistryScore || analysisResult.warmthLevel) && (
+                <View className="flex flex-row gap-3">
+                  {analysisResult.chemistryScore && (
+                    <View className="flex-1 p-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                      <Text className="block text-xs text-gray-500">化学反应</Text>
+                      <View className="flex flex-row items-baseline gap-1 mt-1">
+                        <Text className="block text-xl font-bold text-pink-500">{analysisResult.chemistryScore}</Text>
+                        <Text className="block text-xs text-gray-400">/10</Text>
+                      </View>
+                    </View>
+                  )}
+                  {analysisResult.warmthLevel && (
+                    <View className="flex-1 p-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                      <Text className="block text-xs text-gray-500">亲密温度</Text>
+                      <View className="flex flex-row items-baseline gap-1 mt-1">
+                        <Text className="block text-xl font-bold text-orange-500">{analysisResult.warmthLevel}</Text>
+                        <Text className="block text-xs text-gray-400">/10</Text>
+                      </View>
+                    </View>
+                  )}
+                  {analysisResult.depthLevel && (
+                    <View className="flex-1 p-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                      <Text className="block text-xs text-gray-500">对话深度</Text>
+                      <Text className="block text-sm font-medium text-gray-800 mt-1">
+                        {analysisResult.depthLevel === 'deep' ? '深入交流' : analysisResult.depthLevel === 'medium' ? '有深度' : '浅层闲聊'}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* 对话流向 */}
+              {analysisResult.conversationFlow && (
+                <View className="p-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                  <Text className="block text-xs text-gray-500 mb-2">对话走向</Text>
+                  <View className="flex flex-row gap-4">
+                    <View>
+                      <Text className="block text-xs text-gray-400">谁主导</Text>
+                      <Text className="block text-sm font-medium text-gray-800">
+                        {analysisResult.conversationFlow.initiator === '我方' ? '我方主动' :
+                         analysisResult.conversationFlow.initiator === '对方' ? '对方主动' : '双方均衡'}
+                      </Text>
+                    </View>
+                    {analysisResult.conversationFlow.myMessageCount > 0 && (
+                      <View>
+                        <Text className="block text-xs text-gray-400">我的消息</Text>
+                        <Text className="block text-sm font-medium text-gray-800">{analysisResult.conversationFlow.myMessageCount} 条</Text>
+                      </View>
+                    )}
+                    {analysisResult.conversationFlow.otherMessageCount > 0 && (
+                      <View>
+                        <Text className="block text-xs text-gray-400">对方消息</Text>
+                        <Text className="block text-sm font-medium text-gray-800">{analysisResult.conversationFlow.otherMessageCount} 条</Text>
+                      </View>
+                    )}
+                    {analysisResult.conversationFlow.avgResponseHint && (
+                      <View>
+                        <Text className="block text-xs text-gray-400">回复速度</Text>
+                        <Text className="block text-sm font-medium text-gray-800">
+                          {analysisResult.conversationFlow.avgResponseHint}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              )}
+
+              {/* 情感变化轨迹 */}
+              {analysisResult.emotionalArc && (
+                <View className="p-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                  <Text className="block text-xs text-gray-500 mb-1">情感轨迹</Text>
+                  <Text className="block text-sm text-gray-800">{analysisResult.emotionalArc}</Text>
                 </View>
               )}
 
@@ -900,11 +992,20 @@ export default function InteractionCreatePage() {
                 </View>
               )}
 
-              {/* 情感倾向 */}
-              {analysisResult.sentiment && (
+              {/* 关键时刻 */}
+              {analysisResult.keyMoments?.length > 0 && (
                 <View>
-                  <Text className="block text-xs text-gray-500 mb-1">情感倾向</Text>
-                  <Text className="block text-sm text-gray-800">{analysisResult.sentiment}</Text>
+                  <Text className="block text-xs text-gray-500 mb-2">关键时刻</Text>
+                  <View className="flex flex-col gap-2">
+                    {analysisResult.keyMoments.map((moment, idx) => (
+                      <View key={idx} className="flex flex-row items-start gap-2">
+                        <View className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center shrink-0 mt-1">
+                          <Text className="block text-xs text-purple-600">{idx + 1}</Text>
+                        </View>
+                        <Text className="block text-sm text-gray-800">{moment}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
               )}
 
@@ -916,6 +1017,42 @@ export default function InteractionCreatePage() {
                     {analysisResult.interestSignals.map((signal, idx) => (
                       <View key={idx} className="px-3 py-1 rounded-full bg-amber-100">
                         <Text className="block text-xs text-amber-700">{signal}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* 沟通风格 */}
+              {analysisResult.communicationStyle && (
+                <View className="p-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                  <Text className="block text-xs text-gray-500 mb-2">沟通风格</Text>
+                  <View className="flex flex-row gap-4">
+                    {analysisResult.communicationStyle.me && (
+                      <View className="flex-1">
+                        <Text className="block text-xs text-gray-400">我</Text>
+                        <Text className="block text-sm text-gray-800">{analysisResult.communicationStyle.me}</Text>
+                      </View>
+                    )}
+                    {analysisResult.communicationStyle.other && (
+                      <View className="flex-1">
+                        <Text className="block text-xs text-gray-400">对方</Text>
+                        <Text className="block text-sm text-gray-800">{analysisResult.communicationStyle.other}</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              )}
+
+              {/* AI 建议 */}
+              {analysisResult.suggestions?.length > 0 && (
+                <View className="p-3 rounded-xl bg-blue-50">
+                  <Text className="block text-xs text-blue-500 mb-2">下一步建议</Text>
+                  <View className="flex flex-col gap-1">
+                    {analysisResult.suggestions.map((suggestion, idx) => (
+                      <View key={idx} className="flex flex-row items-start gap-2">
+                        <Text className="block text-xs text-blue-400 shrink-0">•</Text>
+                        <Text className="block text-sm text-blue-800">{suggestion}</Text>
                       </View>
                     ))}
                   </View>

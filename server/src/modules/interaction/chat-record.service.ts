@@ -298,24 +298,40 @@ export class ChatRecordService {
       const config = new Config()
       const client = new LLMClient(config, customHeaders)
 
-      const prompt = `你是一个聊天记录分析专家。请分析以下聊天记录，并按 JSON 格式返回分析结果。
+      const prompt = `你是一个恋爱聊天记录分析专家，擅长从聊天中洞察双方的关系状态、互动模式和情感走向。请深度分析以下聊天记录，并按 JSON 格式返回分析结果。
 
 聊天记录：
-${rawContent.slice(0, 3000)}
+${rawContent.slice(0, 4000)}
 
 请严格按以下 JSON 格式返回（不要其他文字）：
 {
   "parsedMessages": [
     { "sender": "发送者名称", "content": "消息内容", "timestamp": "时间（如有）" }
   ],
-  "summary": "50字以内的聊天摘要",
-  "keyTopics": ["话题1", "话题2"],
+  "summary": "100字以内的聊天摘要，包含关键内容和情感氛围",
+  "keyTopics": ["话题1", "话题2", "话题3"],
   "sentiment": "positive | neutral | mixed | negative",
   "messageCount": 消息总条数,
   "inferredMood": "excellent | good | neutral | awkward | bad",
   "inferredActivities": ["活动标签1", "活动标签2"],
   "inferredDurationMinutes": 推断的聊天时长分钟数（如无法判断则为null）,
-  "interestSignals": ["对方表现出的兴趣信号，如主动分享、快速回复等"]
+  "interestSignals": ["对方表现出的兴趣信号，如主动分享、快速回复、关心询问等"],
+  "conversationFlow": {
+    "initiator": "我方 | 对方 | 双方均衡",
+    "myMessageCount": 我方发送消息数,
+    "otherMessageCount": 对方发送消息数,
+    "avgResponseHint": "我方回复更快 | 对方回复更快 | 差不多"
+  },
+  "emotionalArc": "描述聊天中情感变化轨迹，如：开始平淡→逐渐升温→最后很甜蜜",
+  "chemistryScore": 1到10的化学反应评分,
+  "communicationStyle": {
+    "me": "我的沟通风格描述，如热情主动、含蓄内敛等",
+    "other": "对方的沟通风格描述"
+  },
+  "keyMoments": ["聊天中的关键转折点或高光时刻"],
+  "suggestions": ["基于这次聊天给出的下一步行动建议"],
+  "warmthLevel": 1到10的温暖亲密度评分,
+  "depthLevel": "surface 浅层闲聊 | medium 有一定深度 | deep 深入交流"
 }`
 
       const response = await client.invoke([
@@ -364,6 +380,14 @@ ${rawContent.slice(0, 3000)}
           inferredActivities: Array.from(mappedActivities).slice(0, 5),
           inferredDurationMinutes: analysis.inferredDurationMinutes || null,
           interestSignals: analysis.interestSignals || [],
+          conversationFlow: analysis.conversationFlow || null,
+          emotionalArc: analysis.emotionalArc || '',
+          chemistryScore: analysis.chemistryScore || null,
+          communicationStyle: analysis.communicationStyle || null,
+          keyMoments: analysis.keyMoments || [],
+          suggestions: analysis.suggestions || [],
+          warmthLevel: analysis.warmthLevel || null,
+          depthLevel: analysis.depthLevel || 'surface',
         },
         message: 'success',
       }
@@ -382,20 +406,31 @@ ${rawContent.slice(0, 3000)}
       const config = new Config()
       const client = new LLMClient(config, customHeaders)
 
-      const prompt = `你是一个聊天记录分析专家。请分析以下聊天记录，并按 JSON 格式返回分析结果。
+      const prompt = `你是一个恋爱聊天记录分析专家。请分析以下聊天记录，并按 JSON 格式返回分析结果。
 
 聊天记录：
-${rawContent.slice(0, 3000)}
+${rawContent.slice(0, 4000)}
 
 请严格按以下 JSON 格式返回（不要其他文字）：
 {
   "parsedMessages": [
     { "sender": "发送者名称", "content": "消息内容", "timestamp": "时间（如有）" }
   ],
-  "summary": "50字以内的聊天摘要",
+  "summary": "100字以内的聊天摘要",
   "keyTopics": ["话题1", "话题2"],
   "sentiment": "positive | neutral | mixed | negative",
-  "messageCount": 消息总条数
+  "messageCount": 消息总条数,
+  "inferredMood": "excellent | good | neutral | awkward | bad",
+  "inferredActivities": ["活动标签1"],
+  "inferredDurationMinutes": 推断时长分钟数,
+  "interestSignals": ["兴趣信号"],
+  "conversationFlow": { "initiator": "我方|对方|双方均衡", "myMessageCount": 0, "otherMessageCount": 0 },
+  "emotionalArc": "情感变化轨迹描述",
+  "chemistryScore": 1到10评分,
+  "keyMoments": ["关键转折点"],
+  "suggestions": ["下一步建议"],
+  "warmthLevel": 1到10评分,
+  "depthLevel": "surface|medium|deep"
 }`
 
       const response = await client.invoke([
