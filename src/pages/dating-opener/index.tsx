@@ -19,7 +19,6 @@ interface OpenerResult {
   suggestions: OpenerSuggestion[]
   tips: string[]
   isFallback?: boolean
-  dimensionSummary?: string
 }
 
 interface OpenerHistory {
@@ -50,29 +49,6 @@ const platformOptions = [
 ]
 
 const PAGE_SIZE = 10
-
-// 维度 key → 中文名
-const dimensionLabels: Record<string, string> = {
-  height: '身高', bodyType: '体型', appearance: '外貌', fashionStyle: '穿搭', glasses: '眼镜',
-  distinctiveFeatures: '特征', mbti: 'MBTI', enneagram: '九型', bigFive: '大五',
-  educationLevel: '学历', occupation: '职业', incomeRange: '收入', hometown: '家乡',
-  currentCity: '现居', loveLanguage: '爱语', attachmentStyle: '依恋', communicationStyle: '沟通',
-  conflictStyle: '冲突处理', emotionalExpression: '情感表达', values: '价值观', lifeGoal: '人生目标',
-  marriageView: '婚姻观', childPlan: '生育', pets: '宠物', exercise: '运动', diet: '饮食',
-  smoking: '吸烟', drinking: '饮酒', sleepHabit: '睡眠', travel: '旅行', music: '音乐',
-  movies: '电影', books: '阅读', cooking: '烹饪', socialStyle: '社交', weekend: '周末',
-  hobby: '爱好', annualIncome: '年收入', familyPlan: '家庭规划', religion: '宗教',
-}
-
-// 维度分类
-const dimensionCategories: Record<string, string> = {
-  height: '外貌', bodyType: '外貌', appearance: '外貌', fashionStyle: '外貌', glasses: '外貌', distinctiveFeatures: '外貌',
-  mbti: '性格', enneagram: '性格', bigFive: '性格', loveLanguage: '性格', attachmentStyle: '性格', communicationStyle: '性格', conflictStyle: '性格', emotionalExpression: '性格',
-  educationLevel: '背景', occupation: '背景', incomeRange: '背景', hometown: '背景', currentCity: '背景', annualIncome: '背景',
-  values: '价值观', lifeGoal: '价值观', marriageView: '价值观', childPlan: '价值观', religion: '价值观', familyPlan: '价值观',
-  pets: '生活', exercise: '生活', diet: '生活', smoking: '生活', drinking: '生活', sleepHabit: '生活', travel: '生活', cooking: '生活', socialStyle: '生活', weekend: '生活',
-  music: '兴趣', movies: '兴趣', books: '兴趣', hobby: '兴趣',
-}
 
 const DatingOpenerPage: FC = () => {
   const router = useRouter()
@@ -265,29 +241,6 @@ const DatingOpenerPage: FC = () => {
     return `${month}月${day}日 ${hour}:${minute}`
   }
 
-  // 解析 dimensionSummary 为分组数据
-  const parseDimensionSummary = (summary: string) => {
-    if (!summary) return []
-    const items = summary.split('；').filter(Boolean)
-    const grouped: Record<string, Array<{ key: string; label: string; value: string }>> = {}
-    items.forEach((item) => {
-      const [key, ...rest] = item.split(': ')
-      if (!key || rest.length === 0) return
-      const value = rest.join(': ')
-      const label = dimensionLabels[key] || key
-      const category = dimensionCategories[key] || '其他'
-      if (!grouped[category]) grouped[category] = []
-      grouped[category].push({ key, label, value })
-    })
-    return Object.entries(grouped).map(([category, dimItems]) => ({ category, items: dimItems }))
-  }
-
-  const formatDimensionValue = (value: string) => {
-    return value.replace(/^\[|\]$/g, '').replace(/_/g, ' ')
-  }
-
-  const dimensionGroups = result?.dimensionSummary ? parseDimensionSummary(result.dimensionSummary) : []
-
   // ==================== 渲染 ====================
 
   // 渲染平台选择器
@@ -346,37 +299,13 @@ const DatingOpenerPage: FC = () => {
 
     return (
       <View className="mt-2">
-        {/* 对方画像 + 维度概述 */}
+        {/* 对方画像 */}
         <View className="bg-white rounded-2xl p-4 shadow-soft mb-3">
           <View className="flex flex-row items-center mb-3">
             <User size={14} color="#9333ea" />
             <Text className="block text-sm font-medium text-gray-700 ml-2">对方画像分析</Text>
           </View>
-          <Text className="block text-sm text-gray-600 leading-relaxed mb-3">{result.targetAnalysis}</Text>
-
-          {/* 维度概述 — 紧跟画像分析 */}
-          {dimensionGroups.length > 0 && (
-            <View className="border-t border-gray-100 pt-3">
-              <View className="flex flex-row items-center mb-2">
-                <Sparkles size={12} color="#9333ea" />
-                <Text className="block text-xs font-medium text-purple-600 ml-1">维度数据</Text>
-              </View>
-              {dimensionGroups.map((group) => (
-                <View key={group.category} className="mb-2 last:mb-0">
-                  <Text className="block text-xs text-gray-400 mb-1">{group.category}</Text>
-                  <View className="flex flex-row flex-wrap gap-1">
-                    {group.items.map((item) => (
-                      <View key={item.key} className="bg-purple-50 rounded-full px-2 py-1">
-                        <Text className="text-xs text-purple-700">
-                          {item.label}：{formatDimensionValue(item.value)}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
+          <Text className="block text-sm text-gray-600 leading-relaxed">{result.targetAnalysis}</Text>
         </View>
 
         {/* 平台标签 + 重新生成 */}
