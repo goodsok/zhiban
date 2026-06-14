@@ -100,7 +100,7 @@ export default function InteractionTypeTab({
                 <IconComponent size={20} color={isActive ? item.color : '#9CA3AF'} />
               </View>
               <Text
-                className="block text-xs font-medium"
+                className="block text-sm font-medium"
                 style={{ color: isActive ? item.color : '#6B7280' }}
               >
                 {item.label}

@@ -727,7 +727,7 @@ export default function InteractionCreatePage() {
 
   // ========== 聊天类型：Step 1 - 录入 ==========
   const renderChatInput = () => (
-    <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA', paddingBottom: '100px' }}>
+    <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA', paddingBottom: '120px' }}>
       <CustomHeader title="记录聊天" onBack={handleBack} />
 
       {/* 互动类型选择 */}
@@ -1271,7 +1271,7 @@ export default function InteractionCreatePage() {
       {/* 底部按钮 */}
       <View
         style={{
-          position: 'fixed', bottom: 50, left: 0, right: 0,
+          position: 'fixed', bottom: 0, left: 0, right: 0,
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           padding: '12px 16px', backgroundColor: '#fff',
           borderTop: '1px solid #f3f4f6', zIndex: 100,
@@ -1317,7 +1317,7 @@ export default function InteractionCreatePage() {
   ].filter(Boolean).join(' · ') || '点击补充'
 
   return (
-    <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA', paddingBottom: '100px' }}>
+    <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA', paddingBottom: '120px' }}>
       <CustomHeader
         title={pageTitle}
         onBack={handleBack}
@@ -1644,7 +1644,7 @@ export default function InteractionCreatePage() {
       {/* 底部提交按钮 */}
       <View
         style={{
-          position: 'fixed', bottom: 50, left: 0, right: 0,
+          position: 'fixed', bottom: 0, left: 0, right: 0,
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           padding: '12px 16px', backgroundColor: '#fff',
           borderTop: '1px solid #f3f4f6', zIndex: 100,
