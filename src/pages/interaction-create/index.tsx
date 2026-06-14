@@ -11,7 +11,7 @@ import CustomHeader from '@/components/custom-header'
 import InteractionTypeTab, { InteractionType as InteractionTypeEnum, INTERACTION_TYPE_MAP, INTERACTION_TYPE_CONFIG } from '@/components/interaction-type-tab'
 import {
   Calendar, MessageCircle, Users, MapPin,
-  Clock, User, Sparkles, Check, Zap, Plus, Upload, Image, Paperclip, X,
+  Clock, User, Sparkles, Check, Zap, Plus, Upload, Image, X,
   LoaderCircle, FileText, ChevronDown, Settings2
 } from 'lucide-react-taro'
 
@@ -194,8 +194,7 @@ export default function InteractionCreatePage() {
   const [chatRecords, setChatRecords] = useState<ChatRecordCard[]>([])
   const [chatTextInput, setChatTextInput] = useState('')
   const [chatSource, setChatSource] = useState('wechat')
-  const [showChatInput, setShowChatInput] = useState(false)
-  const [chatUploading, setChatUploading] = useState(false)
+
 
   // 聊天类型专用：分析结果（直接展示在录入页）
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
@@ -210,7 +209,7 @@ export default function InteractionCreatePage() {
   const [energyLoading, setEnergyLoading] = useState(false)
 
   // 是否展示聊天记录上传区域（消息/通话/视频类型时展示）
-  const showChatUpload = ['call', 'video'].includes(interactionType)
+
 
   // 表单是否已填写内容（用于返回确认）
   const hasContent = !!(
@@ -304,7 +303,6 @@ export default function InteractionCreatePage() {
   // 切换类型时重置
   useEffect(() => {
     setActivities([])
-    setShowChatInput(false)
     setChatTextInput('')
     setCustomDuration('')
     setShowCustomDuration(false)
@@ -497,49 +495,7 @@ export default function InteractionCreatePage() {
     setCustomDuration('')
   }, [])
 
-  // ========== 聊天记录相关操作（非 chat 类型用） ==========
-
-  // 上传聊天文本
-  const handleUploadChatText = useCallback(async () => {
-    if (!chatTextInput.trim()) {
-      Taro.showToast({ title: '请输入聊天内容', icon: 'none' })
-      return
-    }
-    setChatUploading(true)
-    try {
-      const res = await Network.request({
-        url: `/api/chat-record/match/${matchId}/text`,
-        method: 'POST',
-        data: {
-          contentType: 'text',
-          rawContent: chatTextInput,
-          source: chatSource,
-        },
-      })
-      console.log('Upload chat text response:', res.data)
-      if (res.data?.code === 200 && res.data?.data) {
-        setChatRecords(prev => [...prev, {
-          id: res.data.data.id,
-          contentType: 'text',
-          rawContent: chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim(),
-          source: chatSource,
-          summary: res.data.data.summary,
-          imageKey: null,
-          uploading: false,
-        }])
-        setChatTextInput('')
-        setShowChatInput(false)
-        Taro.showToast({ title: '聊天记录已添加', icon: 'success' })
-      } else {
-        Taro.showToast({ title: res.data?.message || '添加失败', icon: 'none' })
-      }
-    } catch (error) {
-      console.error('Upload chat text error:', error)
-      Taro.showToast({ title: '添加失败', icon: 'error' })
-    } finally {
-      setChatUploading(false)
-    }
-  }, [matchId, chatTextInput, chatSource])
+  // ========== 聊天记录相关操作 ==========
 
   // 上传聊天截图
   const handleUploadChatImage = useCallback(async () => {
@@ -1577,134 +1533,6 @@ export default function InteractionCreatePage() {
           </CardContent>
         </Card>
       </View>
-
-      {/* 聊天记录上传区域（仅通话/视频类型时展示） */}
-      {showChatUpload && (
-        <View className="px-4 pb-4">
-          <Card style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0F9FF 100%)' }}>
-            <CardContent className="p-4 flex flex-col gap-5">
-              <View className="flex items-center gap-4 mb-4">
-                <View className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Paperclip size={18} color="#3B82F6" />
-                </View>
-                <Text className="block text-sm font-medium text-gray-700">聊天记录</Text>
-                <Text className="block text-xs text-gray-400">可选</Text>
-              </View>
-
-              {/* 已上传的聊天记录列表 */}
-              {chatRecords.length > 0 && (
-                <View className="mb-4" style={{ marginLeft: '52px' }}>
-                  {chatRecords.map(record => (
-                    <View
-                      key={record.id}
-                      className="flex items-center gap-3 p-3 rounded-xl mb-2"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.8)' }}
-                    >
-                      {record.contentType === 'image' ? (
-                        <Image size={16} color="#3B82F6" />
-                      ) : (
-                        <MessageCircle size={16} color="#3B82F6" />
-                      )}
-                      <View className="flex-1" style={{ flex: 1, minWidth: 0 }}>
-                        {record.uploading ? (
-                          <Text className="block text-xs text-gray-400">上传中...</Text>
-                        ) : (
-                          <>
-                            <Text className="block text-xs text-gray-700 font-medium">
-                              {record.contentType === 'image' ? '聊天截图' : '聊天文本'}
-                              <Text className="text-gray-400 font-normal"> · {CHAT_SOURCE_OPTIONS.find(s => s.value === record.source)?.label || record.source}</Text>
-                            </Text>
-                            {record.summary ? (
-                              <Text className="block text-xs text-gray-400 mt-1">
-                                {record.summary.length > 40 ? record.summary.slice(0, 40) + '...' : record.summary}
-                              </Text>
-                            ) : record.rawContent ? (
-                              <Text className="block text-xs text-gray-400 mt-1">
-                                {record.rawContent.slice(0, 40)}...
-                              </Text>
-                            ) : null}
-                          </>
-                        )}
-                      </View>
-                      {!record.uploading && (
-                        <View onClick={() => handleDeleteChatRecord(record.id)} className="p-1">
-                          <X size={14} color="#9CA3AF" />
-                        </View>
-                      )}
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {/* 来源选择 */}
-              <View className="mb-4" style={{ marginLeft: '52px' }}>
-                <Text className="block text-xs text-gray-500 mb-2">聊天来源</Text>
-                <View className="flex flex-row flex-wrap gap-2">
-                  {CHAT_SOURCE_OPTIONS.map(opt => (
-                    <View
-                      key={opt.value}
-                      className={`px-3 py-2 rounded-lg ${chatSource === opt.value ? 'bg-blue-500' : 'bg-gray-100'}`}
-                      onClick={() => setChatSource(opt.value)}
-                    >
-                      <Text className={`block text-xs ${chatSource === opt.value ? 'text-white' : 'text-gray-600'}`}>
-                        {opt.label}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              {/* 操作按钮 */}
-              <View style={{ marginLeft: '52px' }}>
-                <View className="flex flex-row gap-3">
-                  <View
-                    className="flex-1 flex items-center justify-center gap-3 py-3 rounded-xl bg-white border border-blue-200"
-                    onClick={() => setShowChatInput(!showChatInput)}
-                  >
-                    <MessageCircle size={14} color="#3B82F6" />
-                    <Text className="block text-xs text-blue-600 font-medium">粘贴文字</Text>
-                  </View>
-                  <View
-                    className="flex-1 flex items-center justify-center gap-3 py-3 rounded-xl bg-white border border-blue-200"
-                    onClick={handleUploadChatImage}
-                  >
-                    <Upload size={14} color="#3B82F6" />
-                    <Text className="block text-xs text-blue-600 font-medium">上传截图</Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* 文本输入区域 */}
-              {showChatInput && (
-                <View className="mt-3" style={{ marginLeft: '52px' }}>
-                  <View className="rounded-xl border border-blue-100 p-3" style={{ backgroundColor: '#fff' }}>
-                    <Textarea
-                      className="border-0 bg-transparent"
-                      style={{ width: '100%', fontSize: '13px', minHeight: '8rem' }}
-                      placeholder="粘贴聊天记录，格式示例：&#10;我: 你今天怎么样？&#10;她: 还不错呀，刚下班~"
-                      value={chatTextInput}
-                      onInput={e => setChatTextInput(e.detail.value)}
-                      maxlength={5000}
-                    />
-                    <View className="flex items-center justify-between mt-2">
-                      <Text className="block text-xs text-gray-400">{chatTextInput.length}/5000 字</Text>
-                      <Button
-                        className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-                        onClick={handleUploadChatText}
-                        disabled={chatUploading || !chatTextInput.trim()}
-                      >
-                        <Text className="block text-xs text-white font-medium">
-                          {chatUploading ? '添加中...' : '添加'}
-                        </Text>
-                      </Button>
-                    </View>
-                  </View>
-                </View>
-              )}
-            </CardContent>
-          </Card>
-        </View>
-      )}
 
       {/* 可选项（默认折叠） */}
       <View className="px-4 pb-4">
