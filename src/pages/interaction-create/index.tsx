@@ -774,9 +774,6 @@ export default function InteractionCreatePage() {
     <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA', paddingBottom: '100px' }}>
       <CustomHeader title="记录聊天" onBack={handleBack} />
 
-      {/* 互动类型选择 */}
-      <InteractionTypeTab value={interactionType} onChange={(t) => { setInteractionType(t as InteractionType) }} />
-
       {/* 聊天来源 */}
       <View className="p-4 pb-2">
         <Text className="block text-sm font-medium text-gray-700 mb-3">聊天来源</Text>
