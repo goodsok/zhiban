@@ -855,8 +855,8 @@ export default function InteractionCreatePage() {
               )}
             </View>
             <Textarea
-              className="bg-gray-50 border-gray-200 min-h-52"
-              style={{ width: '100%', fontSize: '13px' }}
+              className="bg-gray-50 border-gray-200"
+              style={{ width: '100%', fontSize: '13px', minHeight: '13rem' }}
               placeholder="把聊天记录粘贴到这里...&#10;&#10;格式示例：&#10;我: 你今天怎么样？&#10;她: 还不错呀，刚下班~&#10;我: 辛苦啦，要不要一起吃饭？&#10;她: 好呀好呀！"
               value={chatTextInput}
               onInput={e => setChatTextInput(e.detail.value)}
@@ -1679,8 +1679,8 @@ export default function InteractionCreatePage() {
                 <View className="mt-3" style={{ marginLeft: '52px' }}>
                   <View className="rounded-xl border border-blue-100 p-3" style={{ backgroundColor: '#fff' }}>
                     <Textarea
-                      className="border-0 bg-transparent min-h-32"
-                      style={{ width: '100%', fontSize: '13px' }}
+                      className="border-0 bg-transparent"
+                      style={{ width: '100%', fontSize: '13px', minHeight: '8rem' }}
                       placeholder="粘贴聊天记录，格式示例：&#10;我: 你今天怎么样？&#10;她: 还不错呀，刚下班~"
                       value={chatTextInput}
                       onInput={e => setChatTextInput(e.detail.value)}
@@ -1953,8 +1953,8 @@ export default function InteractionCreatePage() {
                     <Text className="block text-sm font-medium text-gray-700">详细记录</Text>
                   </View>
                   <Textarea
-                    className="bg-gray-50 border-gray-200 min-h-24"
-                    style={{ width: '100%', fontSize: '14px' }}
+                    className="bg-gray-50 border-gray-200"
+                    style={{ width: '100%', fontSize: '14px', minHeight: '6rem' }}
                     placeholder="记录这次互动的细节、感受、有趣的对话..."
                     value={description}
                     onInput={e => setDescription(e.detail.value)}
@@ -1970,8 +1970,8 @@ export default function InteractionCreatePage() {
                     <Text className="block text-sm font-medium text-gray-700">突破性时刻</Text>
                   </View>
                   <Textarea
-                    className="bg-amber-50 border-amber-200 min-h-16"
-                    style={{ width: '100%', fontSize: '14px' }}
+                    className="bg-amber-50 border-amber-200"
+                    style={{ width: '100%', fontSize: '14px', minHeight: '4rem' }}
                     placeholder="有没有什么特别的进展？比如第一次牵手、第一次说喜欢..."
                     value={breakthroughMoment}
                     onInput={e => setBreakthroughMoment(e.detail.value)}
@@ -1987,8 +1987,8 @@ export default function InteractionCreatePage() {
                     <Text className="block text-sm font-medium text-gray-700">遇到的问题</Text>
                   </View>
                   <Textarea
-                    className="bg-gray-50 border-gray-200 min-h-16"
-                    style={{ width: '100%', fontSize: '14px' }}
+                    className="bg-gray-50 border-gray-200"
+                    style={{ width: '100%', fontSize: '14px', minHeight: '4rem' }}
                     placeholder="有没有什么尴尬、误会或问题？比如冷场了、说错话了..."
                     value={issuesEncountered}
                     onInput={e => setIssuesEncountered(e.detail.value)}
