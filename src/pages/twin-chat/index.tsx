@@ -143,6 +143,7 @@ const TwinChatPage = () => {
   const [loading, setLoading] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(true)
   const [statusBarHeight, setStatusBarHeight] = useState(0)
+  const [headerHeight, setHeaderHeight] = useState(0)
   const [showClearDialog, setShowClearDialog] = useState(false)
   const [scrollTop, setScrollTop] = useState(0)
   const [relationship, setRelationship] = useState<RelationshipState | null>(null)
@@ -171,6 +172,22 @@ const TwinChatPage = () => {
     const systemInfo = Taro.getSystemInfoSync()
     setStatusBarHeight(systemInfo.statusBarHeight || 0)
   }, [])
+
+  // 计算顶栏高度（状态栏 + 44px导航栏 + 状态面板高度）
+  useEffect(() => {
+    const baseHeight = (statusBarHeight || 0) + 44
+    if (showStatusPanel && relationship) {
+      // 状态面板展开时增加高度
+      const query = Taro.createSelectorQuery()
+      query.select('#twin-chat-header').boundingClientRect((rect: any) => {
+        if (rect?.height) {
+          setHeaderHeight(rect.height as number)
+        }
+      }).exec()
+    } else {
+      setHeaderHeight(baseHeight)
+    }
+  }, [statusBarHeight, showStatusPanel, relationship])
 
   // 同步 relationship → adjust 面板
   useEffect(() => {
@@ -455,10 +472,16 @@ const TwinChatPage = () => {
   )
 
   return (
-    <View style={{ backgroundColor: '#0F1419', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* 顶栏 */}
+    <View style={{ backgroundColor: '#0F1419', minHeight: '100vh' }}>
+      {/* 顶栏 - fixed 定位 */}
       <View
+        id="twin-chat-header"
         style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
           paddingTop: `${statusBarHeight}px`,
           backgroundColor: '#16181C',
           borderBottom: '1px solid rgba(255,255,255,0.06)'
@@ -622,7 +645,7 @@ const TwinChatPage = () => {
       </View>
 
       {/* 消息区 */}
-      <ScrollView scrollY style={{ flex: 1, height: '0', paddingBottom: '80px' }} scrollTop={scrollTop}>
+      <ScrollView scrollY style={{ paddingTop: `${headerHeight}px`, paddingBottom: '80px', height: '100vh' }} scrollTop={scrollTop}>
         <View style={{ padding: '16px', paddingBottom: '24px' }}>
           {/* 空状态引导 */}
           {messages.length === 0 && !historyLoading && (
