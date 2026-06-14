@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Picker } from '@tarojs/components'
+import { View, Text, Picker } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { Network } from '@/network'
@@ -8,18 +8,17 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import CustomHeader from '@/components/custom-header'
+import InteractionTypeTab, { InteractionType as InteractionTypeEnum, INTERACTION_TYPE_MAP, INTERACTION_TYPE_CONFIG } from '@/components/interaction-type-tab'
 import {
-  Calendar, MessageCircle, Phone, Video, Gift, Heart, Users, MapPin,
+  Calendar, MessageCircle, Users, MapPin,
   Clock, User, Sparkles, Check, Zap, Plus, Upload, Image, Paperclip, X,
   LoaderCircle, FileText, ChevronDown, Settings2
 } from 'lucide-react-taro'
 
 // 互动类型
-type InteractionType = 'date' | 'chat' | 'call' | 'video' | 'gift' | 'physical' | 'social' | 'other'
+type InteractionType = InteractionTypeEnum
 type Mood = 'excellent' | 'good' | 'neutral' | 'awkward' | 'bad'
 type Initiator = 'self' | 'partner' | 'mutual'
-type InteractionCategory = 'online' | 'offline' | 'hybrid'
-
 // 聊天录入：单页面模式（不再分步骤）
 
 // 聊天记录来源选项
@@ -31,24 +30,7 @@ const CHAT_SOURCE_OPTIONS = [
   { value: 'other', label: '其他' },
 ]
 
-// 互动类型配置
-const INTERACTION_TYPES: Array<{
-  type: InteractionType
-  label: string
-  icon: typeof Calendar
-  color: string
-  bgColor: string
-  category: InteractionCategory
-}> = [
-  { type: 'date', label: '约会', icon: Calendar, color: '#EC4899', bgColor: 'bg-pink-50', category: 'offline' },
-  { type: 'chat', label: '聊天', icon: MessageCircle, color: '#3B82F6', bgColor: 'bg-blue-50', category: 'online' },
-  { type: 'call', label: '通话', icon: Phone, color: '#10B981', bgColor: 'bg-green-50', category: 'online' },
-  { type: 'video', label: '视频', icon: Video, color: '#8B5CF6', bgColor: 'bg-violet-50', category: 'online' },
-
-  { type: 'gift', label: '礼物', icon: Gift, color: '#EF4444', bgColor: 'bg-red-50', category: 'offline' },
-  { type: 'physical', label: '亲密', icon: Heart, color: '#EC4899', bgColor: 'bg-rose-50', category: 'offline' },
-  { type: 'social', label: '聚会', icon: Users, color: '#06B6D4', bgColor: 'bg-cyan-50', category: 'offline' },
-]
+// 互动类型配置已移至共享组件 @/components/interaction-type-tab
 
 // 心情选项
 const MOOD_OPTIONS: Array<{ value: Mood; label: string; emoji: string; color: string }> = [
@@ -251,7 +233,7 @@ export default function InteractionCreatePage() {
   // 初始化：从路由参数读取 type
   useEffect(() => {
     const type = router.params.type as InteractionType
-    if (type && INTERACTION_TYPES.some(t => t.type === type)) {
+    if (type && INTERACTION_TYPE_CONFIG.some(t => t.type === type)) {
       setInteractionType(type)
     }
   }, []) // 仅初始化时执行一次
@@ -269,7 +251,7 @@ export default function InteractionCreatePage() {
   }, [matchId])
 
   // 获取当前选中的类型配置
-  const currentType = INTERACTION_TYPES.find(t => t.type === interactionType) || INTERACTION_TYPES[0]
+  const currentType = INTERACTION_TYPE_MAP[interactionType] || INTERACTION_TYPE_CONFIG[0]
   const TypeIcon = currentType.icon
 
   // 自动推断互动分类
@@ -792,27 +774,8 @@ export default function InteractionCreatePage() {
     <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA', paddingBottom: '100px' }}>
       <CustomHeader title="记录聊天" onBack={handleBack} />
 
-      {/* 互动类型选择 - ScrollView 横向滚动 */}
-      <View className="bg-white px-4 py-3 border-b">
-        <ScrollView scrollX className="flex flex-row gap-3" style={{ whiteSpace: 'nowrap' }}>
-          {INTERACTION_TYPES.map(item => {
-            const IconComponent = item.icon
-            const isActive = interactionType === item.type
-            return (
-              <View
-                key={item.type}
-                className={`inline-flex flex-col items-center px-3 py-2 rounded-xl ${isActive ? 'bg-blue-50' : ''}`}
-                onClick={() => { setInteractionType(item.type) }}
-              >
-                <IconComponent size={20} color={isActive ? '#3B82F6' : '#9CA3AF'} />
-                <Text className={`block text-xs mt-1 ${isActive ? 'text-blue-500 font-medium' : 'text-gray-500'}`}>
-                  {item.label}
-                </Text>
-              </View>
-            )
-          })}
-        </ScrollView>
-      </View>
+      {/* 互动类型选择 */}
+      <InteractionTypeTab value={interactionType} onChange={(t) => { setInteractionType(t as InteractionType) }} />
 
       {/* 聊天来源 */}
       <View className="p-4 pb-2">
@@ -1449,37 +1412,8 @@ export default function InteractionCreatePage() {
         onBack={handleBack}
       />
 
-      {/* 互动类型选择 - ScrollView 横向滚动 */}
-      <View className="bg-white px-4 py-4 border-b">
-        <ScrollView scrollX className="flex flex-row gap-3" style={{ whiteSpace: 'nowrap' }}>
-          {INTERACTION_TYPES.map(item => {
-            const IconComponent = item.icon
-            const isActive = interactionType === item.type
-            return (
-              <View
-                key={item.type}
-                className={`flex-shrink-0 flex flex-col items-center justify-center px-4 py-3 rounded-xl border-2 ${
-                  isActive
-                    ? `${item.bgColor} border-current`
-                    : 'bg-gray-50'
-                }`}
-                style={{ borderColor: isActive ? item.color : undefined, minWidth: '72px', display: 'inline-flex', verticalAlign: 'top' }}
-                onClick={() => setInteractionType(item.type)}
-              >
-                <View className="mb-1">
-                  <IconComponent size={20} color={isActive ? item.color : '#9CA3AF'} />
-                </View>
-                <Text
-                  className="block text-xs font-medium"
-                  style={{ color: isActive ? item.color : '#6B7280' }}
-                >
-                  {item.label}
-                </Text>
-              </View>
-            )
-          })}
-        </ScrollView>
-      </View>
+      {/* 互动类型选择 */}
+      <InteractionTypeTab value={interactionType} onChange={(t) => { setInteractionType(t as InteractionType) }} />
 
       {/* 必填项卡片 */}
       <View className="p-4">

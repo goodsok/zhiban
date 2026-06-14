@@ -1,17 +1,14 @@
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import Taro, { useLoad, useRouter, useDidShow } from '@tarojs/taro'
 import { useState, useCallback } from 'react'
 import { Network } from '@/network'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import CustomHeader from '@/components/custom-header'
+import InteractionTypeTab, { InteractionType, INTERACTION_TYPE_MAP } from '@/components/interaction-type-tab'
 import { 
-  Plus, Calendar, MessageCircle, Phone, Video, Gift, Heart, Users, 
-  Clock, MapPin, Sparkles, ChevronRight, TrendingUp, Image
+  Plus, Calendar, Heart, Clock, MapPin, Sparkles, ChevronRight, TrendingUp, Image
 } from 'lucide-react-taro'
-
-// 互动类型
-type InteractionType = 'date' | 'chat' | 'call' | 'video' | 'gift' | 'physical' | 'social' | 'other'
 
 // 互动事件接口
 interface InteractionEvent {
@@ -40,21 +37,7 @@ interface EnergyData {
   totalInteractions: number
 }
 
-// 互动类型配置
-const INTERACTION_TYPE_CONFIG: Record<InteractionType, {
-  label: string
-  icon: typeof Calendar
-  color: string
-}> = {
-  date: { label: '约会', icon: Calendar, color: '#EC4899' },
-  chat: { label: '聊天', icon: MessageCircle, color: '#3B82F6' },
-  call: { label: '通话', icon: Phone, color: '#10B981' },
-  video: { label: '视频', icon: Video, color: '#8B5CF6' },
-  gift: { label: '礼物', icon: Gift, color: '#EF4444' },
-  physical: { label: '亲密', icon: Heart, color: '#EC4899' },
-  social: { label: '聚会', icon: Users, color: '#06B6D4' },
-  other: { label: '其他', icon: Calendar, color: '#6B7280' },
-}
+// 互动类型配置已移至共享组件 @/components/interaction-type-tab
 
 // 心情配置
 const MOOD_CONFIG: Record<string, { label: string; emoji: string }> = {
@@ -205,33 +188,8 @@ export default function InteractionsPage() {
         </View>
       )}
 
-      {/* 类型筛选 - ScrollView 横向滚动 */}
-      <View className="bg-white border-b">
-        <ScrollView scrollX className="flex flex-row px-4 py-3 gap-3" style={{ whiteSpace: 'nowrap' }}>
-          <View
-            className="flex-shrink-0 px-4 py-2 rounded-full"
-            style={{ 
-              backgroundColor: activeType === 'all' ? '#1f2937' : '#f3f4f6',
-            }}
-            onClick={() => setActiveType('all')}
-          >
-            <Text className="block text-sm" style={{ color: activeType === 'all' ? '#fff' : '#4b5563' }}>全部</Text>
-          </View>
-          {Object.entries(INTERACTION_TYPE_CONFIG).map(([type, config]) => {
-            const isActive = activeType === type
-            return (
-              <View
-                key={type}
-                className="flex-shrink-0 px-4 py-2 rounded-full"
-                style={{ backgroundColor: isActive ? '#1f2937' : '#f3f4f6' }}
-                onClick={() => setActiveType(type as InteractionType)}
-              >
-                <Text className="block text-sm" style={{ color: isActive ? '#fff' : '#4b5563' }}>{config.label}</Text>
-              </View>
-            )
-          })}
-        </ScrollView>
-      </View>
+      {/* 类型筛选 */}
+      <InteractionTypeTab value={activeType} onChange={setActiveType} variant="pill" showAll />
 
       {/* 互动列表 */}
       <View className="p-4">
@@ -259,7 +217,7 @@ export default function InteractionsPage() {
 
               {/* 该日期的事件列表 */}
               {dateEvents.map(event => {
-                const typeConfig = INTERACTION_TYPE_CONFIG[event.interactionType] || INTERACTION_TYPE_CONFIG.other
+                const typeConfig = INTERACTION_TYPE_MAP[event.interactionType] || INTERACTION_TYPE_MAP.social
                 const moodConfig = event.mood ? MOOD_CONFIG[event.mood] : null
                 const IconComponent = typeConfig.icon
 
