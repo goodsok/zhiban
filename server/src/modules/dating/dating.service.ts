@@ -498,7 +498,7 @@ ${platformContext}
 
   // ========== 开场白生成 ==========
 
-  async generateOpener(targetProfile: string, req: Request, platform?: string, selfProfile?: string): Promise<OpenerResponse & { isFallback?: boolean }> {
+  async generateOpener(targetProfile: string, req: Request, platform?: string, selfProfile?: string, matchId?: number): Promise<OpenerResponse & { isFallback?: boolean; dimensionSummary?: string }> {
     const platformName = this.getPlatformName(platform)
     const platformContext = platform
       ? `\n\n平台信息：用户使用的是 ${platformName} 平台。${this.platformGuidesBrief[platform] || ''}\n开场白需要符合该平台的聊天文化和用户习惯。`
@@ -508,8 +508,44 @@ ${platformContext}
       ? `\n\n用户自己的资料/风格偏好：${selfProfile}\n请根据用户自身的风格生成贴合其个性的开场白。`
       : ''
 
+    // 如果有 matchId，获取维度数据增强 prompt
+    let dimensionSummary = ''
+    let dimensionContext = ''
+    let matchName = ''
+    if (matchId) {
+      try {
+        // 直接从数据库获取维度数据
+        const dimResult = await this.pool.query(
+          'SELECT dimension_key, value FROM profile_dimension_values WHERE match_id = $1 AND value IS NOT NULL',
+          [matchId],
+        )
+        const dimensions = dimResult.rows || []
+        dimensionSummary = dimensions
+          .map((d: any) => `${d.dimension_key}: ${d.value}`)
+          .join('；')
+
+        if (dimensionSummary) {
+          dimensionContext = `\n\n对象的已知维度信息：${dimensionSummary}\n请结合这些维度信息，生成更有针对性、更个性化的开场白，让对方感觉你真的了解TA。`
+        }
+
+        // 获取对象基本信息
+        const matchResult = await this.pool.query('SELECT name, gender, relationship_type FROM matches WHERE id = $1', [matchId])
+        if (matchResult.rows.length > 0) {
+          const row = matchResult.rows[0]
+          matchName = row.name || ''
+
+          // 如果 targetProfile 为空，用对象基本信息填充
+          if (!targetProfile.trim() && matchName) {
+            targetProfile = `姓名：${matchName}；性别：${row.gender || '未知'}；关系类型：${row.relationship_type || '未知'}`
+          }
+        }
+      } catch (error) {
+        console.error('[DatingService] Fetch match for opener error:', error)
+      }
+    }
+
     const prompt = `你是一位交友软件聊天专家，擅长根据对方资料生成吸引人的开场白。
-${platformContext}${selfContext}
+${platformContext}${selfContext}${dimensionContext}
 
 目标对象资料：
 ${targetProfile}
@@ -549,7 +585,7 @@ ${targetProfile}
         ],
         tips: ['选择合适的时机发送', '保持真诚的态度'],
       })
-      return { ...result, isFallback }
+      return { ...result, isFallback, dimensionSummary: dimensionSummary || undefined }
     } catch (error) {
       console.error('[DatingService] Failed to generate opener:', error)
       return {
@@ -563,6 +599,7 @@ ${targetProfile}
         ],
         tips: ['选择合适的时机发送', '保持真诚的态度'],
         isFallback: true,
+        dimensionSummary: dimensionSummary || undefined,
       }
     }
   }

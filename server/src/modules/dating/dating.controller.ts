@@ -93,11 +93,11 @@ export class DatingController {
   @Post('opener/generate')
   @HttpCode(HttpStatus.OK)
   async generateOpener(
-    @Body() body: { targetProfile: string; platform?: string; selfProfile?: string },
+    @Body() body: { targetProfile: string; platform?: string; selfProfile?: string; matchId?: number },
     @Req() req: Request,
-  ): Promise<{ code: number; msg: string; data: OpenerResponse & { isFallback?: boolean } }> {
-    console.log('[DatingController] generateOpener called with profile length:', body.targetProfile?.length, 'platform:', body.platform)
-    const result = await this.datingService.generateOpener(body.targetProfile, req, body.platform, body.selfProfile)
+  ): Promise<{ code: number; msg: string; data: OpenerResponse & { isFallback?: boolean; dimensionSummary?: string } }> {
+    console.log('[DatingController] generateOpener called with profile length:', body.targetProfile?.length, 'platform:', body.platform, 'matchId:', body.matchId)
+    const result = await this.datingService.generateOpener(body.targetProfile, req, body.platform, body.selfProfile, body.matchId)
     return { code: 200, msg: 'success', data: result }
   }
 
