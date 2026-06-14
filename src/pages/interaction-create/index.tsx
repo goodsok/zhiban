@@ -804,6 +804,22 @@ export default function InteractionCreatePage() {
             maxlength={5000}
           />
           <Text className="block text-xs text-gray-400 mt-1">{chatTextInput.length}/5000 字</Text>
+          {/* AI 分析按钮 - 有内容时显示 */}
+          {chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim() && (
+            <Button
+              className="w-full mt-3 text-white py-2 rounded-xl"
+              style={{ backgroundColor: '#3B82F6' }}
+              disabled={analyzing}
+              onClick={handleAnalyzeChat}
+            >
+              <View className="flex items-center justify-center gap-2">
+                <Sparkles size={16} color="#fff" />
+                <Text className="block text-sm font-medium text-white">
+                  {analyzing ? 'AI 分析中...' : 'AI 智能分析'}
+                </Text>
+              </View>
+            </Button>
+          )}
         </View>
       </View>
 
@@ -1252,42 +1268,31 @@ export default function InteractionCreatePage() {
         </Collapsible>
       </View>
 
-      {/* 底部：双操作按钮 */}
+      {/* 底部按钮 */}
       <View
         style={{
           position: 'fixed', bottom: 50, left: 0, right: 0,
-          display: 'flex', flexDirection: 'row', gap: '12px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
           padding: '12px 16px', backgroundColor: '#fff',
           borderTop: '1px solid #f3f4f6', zIndex: 100,
         }}
       >
-        {/* 保存聊天记录 */}
-        <View style={{ flex: 1 }}>
-          <Button
-            className="w-full py-3 rounded-xl"
-            style={{ backgroundColor: '#F3F4F6' }}
-            disabled={!chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim() && chatRecords.length === 0}
-            onClick={handleSaveChatOnly}
-          >
-            <Text className="block text-base font-medium text-gray-700">保存聊天记录</Text>
-          </Button>
-        </View>
-        {/* AI 分析 */}
-        <View style={{ flex: 1 }}>
-          <Button
-            className="w-full text-white py-3 rounded-xl"
-            style={{ backgroundColor: '#3B82F6' }}
-            disabled={!chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim() || analyzing}
-            onClick={handleAnalyzeChat}
-          >
-            <View className="flex items-center justify-center gap-2">
-              <Sparkles size={16} color="#fff" />
-              <Text className="block text-base font-medium text-white">
-                {analyzing ? '分析中...' : 'AI分析'}
-              </Text>
-            </View>
-          </Button>
-        </View>
+        <Button
+          className="w-full text-white py-3 rounded-xl"
+          style={{ backgroundColor: '#3B82F6' }}
+          disabled={!chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim() && chatRecords.length === 0}
+          onClick={handleSaveChatOnly}
+        >
+          <Text className="block text-base font-medium text-white">
+            {submitting ? '保存中...' : '保存聊天记录'}
+          </Text>
+        </Button>
+        <Text
+          className="block text-xs text-gray-400 mt-2"
+          onClick={() => Taro.navigateTo({ url: `/pages/interactions/index?matchId=${matchId}` })}
+        >
+          查看历史记录 →
+        </Text>
       </View>
     </View>
   )
