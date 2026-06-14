@@ -1,15 +1,21 @@
 import { View, Text } from '@tarojs/components'
-import { useLoad, useDidShow } from '@tarojs/taro'
+import { useLoad, useDidShow, useRouter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
-import { RefreshCw, MessageCircle } from 'lucide-react-taro'
+import { RefreshCw, MessageCircle, User } from 'lucide-react-taro'
 
 interface IcebreakerTopic {
   id: number
   topic: string
   category: string
+}
+
+interface MatchInfo {
+  id: number
+  name: string
+  avatar_url?: string
 }
 
 // 分类配置
@@ -26,27 +32,48 @@ const categoryConfig: Record<string, { icon: typeof MessageCircle; color: string
 }
 
 const KnowledgeIcebreakerPage: FC = () => {
+  const router = useRouter()
+  const matchId = router.params.matchId
   const [topics, setTopics] = useState<IcebreakerTopic[]>([])
   const [loading, setLoading] = useState(true)
+  const [matchInfo, setMatchInfo] = useState<MatchInfo | null>(null)
 
   useLoad(() => {
-    console.log('Knowledge icebreaker page loaded.')
+    console.log('Knowledge icebreaker page loaded, matchId:', matchId)
+    // 如果有 matchId，获取对象基础信息用于展示
+    if (matchId) {
+      fetchMatchInfo(Number(matchId))
+    }
   })
 
   useDidShow(() => {
     fetchTopics()
   })
 
+  const fetchMatchInfo = async (id: number) => {
+    try {
+      const res = await Network.request({ url: `/api/match/${id}` })
+      if (res.data?.code === 200 && res.data?.data) {
+        setMatchInfo({
+          id: res.data.data.id,
+          name: res.data.data.name,
+          avatar_url: res.data.data.avatar_url,
+        })
+      }
+    } catch (error) {
+      console.error('Fetch match info error:', error)
+    }
+  }
+
   const fetchTopics = async () => {
     try {
       setLoading(true)
-      const res = await Network.request({ url: '/api/topic/icebreaker' })
+      // 如果有 matchId，带上 matchId 参数请求个性化话题
+      const url = matchId ? `/api/topic/icebreaker?matchId=${matchId}` : '/api/topic/icebreaker'
+      const res = await Network.request({ url })
       console.log('Icebreaker topics response:', res.data)
       if (res.data?.code === 200 && res.data?.data) {
-        // 获取更多话题（请求多次）
-        const allTopics = [...res.data.data]
-        // 可以多次请求获取更多话题，这里暂时只请求一次
-        setTopics(allTopics)
+        setTopics(res.data.data)
       }
     } catch (error) {
       console.error('Fetch icebreaker topics error:', error)
@@ -58,7 +85,8 @@ const KnowledgeIcebreakerPage: FC = () => {
   const refreshTopics = async () => {
     try {
       setLoading(true)
-      const res = await Network.request({ url: '/api/topic/icebreaker' })
+      const url = matchId ? `/api/topic/icebreaker?matchId=${matchId}` : '/api/topic/icebreaker'
+      const res = await Network.request({ url })
       if (res.data?.code === 200 && res.data?.data) {
         setTopics(res.data.data)
       }
@@ -73,10 +101,25 @@ const KnowledgeIcebreakerPage: FC = () => {
     <View className="min-h-screen pb-6" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title="破冰话题" />
 
+      {/* 对象信息卡片 - 仅从档案页进入时显示 */}
+      {matchInfo && (
+        <View className="px-4 pt-2 pb-2">
+          <View className="bg-white rounded-2xl shadow-soft p-3 flex items-center gap-3">
+            <User size={18} color="#374151" />
+            <Text className="block text-sm text-gray-600">
+              为 <Text className="font-medium text-gray-900">{matchInfo.name}</Text> 推荐的个性化话题
+            </Text>
+          </View>
+        </View>
+      )}
+
       {/* 简介 */}
       <View className="px-4 py-4">
         <Text className="block text-sm text-gray-600 leading-relaxed">
-          不知道聊什么？这里有一些话题建议，帮助你轻松开启对话，了解彼此。
+          {matchId
+            ? '根据对象的已知信息，AI 为你推荐最合适的破冰话题，让聊天更自然。'
+            : '不知道聊什么？这里有一些话题建议，帮助你轻松开启对话，了解彼此。'
+          }
         </Text>
       </View>
 
@@ -95,7 +138,7 @@ const KnowledgeIcebreakerPage: FC = () => {
       <View className="px-4">
         {loading && topics.length === 0 ? (
           <View className="text-center py-12">
-            <Text className="block text-gray-400">加载中...</Text>
+            <Text className="block text-gray-400">{matchId ? 'AI 生成中...' : '加载中...'}</Text>
           </View>
         ) : topics.length === 0 ? (
           <View className="text-center py-12">
@@ -132,7 +175,10 @@ const KnowledgeIcebreakerPage: FC = () => {
         <View className="bg-gray-100 rounded-xl p-4">
           <Text className="block text-xs font-medium text-gray-700 mb-2">使用提示</Text>
           <Text className="block text-xs text-gray-500 leading-relaxed">
-            这些话题适合在约会、聊天时使用。选择一个轻松的话题开始，根据对方的反应自然延续对话。记住，真诚比技巧更重要。
+            {matchId
+              ? '这些话题基于对象的已知信息生成，更容易引起共鸣。选择一个轻松的话题开始，根据对方的反应自然延续对话。'
+              : '这些话题适合在约会、聊天时使用。选择一个轻松的话题开始，根据对方的反应自然延续对话。记住，真诚比技巧更重要。'
+            }
           </Text>
         </View>
       </View>

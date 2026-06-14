@@ -398,19 +398,17 @@ const DetailPage: FC = () => {
                     </View>
                   </View>
                 ) : (
-                  <View className="flex items-center gap-3 mb-3" onClick={() => setEditingName(true)}>
+                  <View className="mb-3" onClick={() => setEditingName(true)}>
                     <Text className="block text-xl font-bold text-gray-900">{detail.name}</Text>
-                    <Pencil size={14} color="#9CA3AF" />
                   </View>
                 )}
                 
                 {/* 关系类型标签 — 点击打开 Drawer 选择 */}
                 <View 
-                  className="flex items-center gap-2"
                   onClick={() => setSelectingRelationshipType(true)}
                 >
                   <View 
-                    className="px-2 py-1 rounded-full"
+                    className="px-2 py-1 rounded-full inline-block"
                     style={{ backgroundColor: relationTypeConfig.bgColor === 'bg-green-50' ? '#ECFDF5' : relationTypeConfig.bgColor === 'bg-gray-100' ? '#F3F4F6' : '#F9FAFB' }}
                   >
                     <Text 
@@ -420,7 +418,6 @@ const DetailPage: FC = () => {
                       {relationTypeConfig.label}
                     </Text>
                   </View>
-                  <Pencil size={12} color="#9CA3AF" />
                 </View>
               </View>
               

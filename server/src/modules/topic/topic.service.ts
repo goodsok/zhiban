@@ -1,10 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { LLMClient, Config } from 'coze-coding-dev-sdk';
+import { Request } from 'express';
+import { MatchService } from '../match/match.service';
 
 @Injectable()
 export class TopicService {
   private config = new Config();
   private client = new LLMClient(this.config);
+
+  constructor(
+    @Inject(forwardRef(() => MatchService))
+    private readonly matchService: MatchService,
+  ) {}
 
   // 预设话题库
   private presetTopics = [
@@ -30,6 +37,84 @@ export class TopicService {
       data: topics,
       message: 'success',
     };
+  }
+
+  async getPersonalizedIcebreakerTopics(req: Request, matchId: number) {
+    try {
+      // 获取对象详情（含维度数据）
+      const matchRes = await this.matchService.getMatchById(req, matchId);
+      if (matchRes.code !== 200 || !matchRes.data) {
+        // 获取失败时降级为普通话题
+        return this.getIcebreakerTopics();
+      }
+
+      const match = matchRes.data;
+      const dimensions = match.dimensions || [];
+
+      // 构建维度摘要
+      const dimensionSummary = dimensions
+        .filter((d: any) => d.value)
+        .map((d: any) => `${d.dimension_key}: ${d.value}`)
+        .join('；');
+
+      const matchInfo = `对象姓名：${match.name || '未知'}；关系类型：${match.relationshipType || '未知'}；${dimensionSummary ? '已知信息：' + dimensionSummary : ''}`;
+
+      const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+        {
+          role: 'system',
+          content: `你是一个恋爱关系顾问，根据对象的已知信息推荐破冰话题。话题要求：
+1. 基于对象的已知信息（如兴趣爱好、性格特点、生活偏好等）推荐话题
+2. 话题要自然、具体，让对方觉得你真的在关注TA
+3. 每个话题要标注分类
+4. 返回JSON数组格式，每个元素包含 topic（话题内容）和 category（分类）
+5. 分类只能是：童年回忆、成长话题、价值观、浪漫话题、旅行梦想、兴趣爱好、生活方式、美食话题 中的一个
+6. 只返回JSON数组，不要其他文字`,
+        },
+        {
+          role: 'user',
+          content: `根据以下对象信息，推荐3个最适合的破冰话题：\n${matchInfo}`,
+        },
+      ];
+
+      const response = await this.client.invoke(messages, {
+        model: 'doubao-seed-2-0-pro-260215',
+        temperature: 0.9,
+      });
+
+      // 解析AI返回的JSON
+      let aiTopics: Array<{ topic: string; category: string }> = [];
+      try {
+        const content = response.content.trim();
+        // 尝试提取JSON数组
+        const jsonMatch = content.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          aiTopics = JSON.parse(jsonMatch[0]);
+        }
+      } catch (parseError) {
+        console.error('Parse AI topics error:', parseError);
+      }
+
+      if (aiTopics.length === 0) {
+        // AI生成失败，降级为普通话题
+        return this.getIcebreakerTopics();
+      }
+
+      const topics = aiTopics.map((t, index) => ({
+        id: Date.now() + index,
+        topic: t.topic,
+        category: t.category || 'AI生成',
+      }));
+
+      return {
+        code: 200,
+        data: topics,
+        message: 'success',
+      };
+    } catch (error) {
+      console.error('Get personalized icebreaker topics error:', error);
+      // 降级为普通话题
+      return this.getIcebreakerTopics();
+    }
   }
 
   async generateTopic() {
