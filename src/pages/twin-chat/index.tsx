@@ -811,8 +811,8 @@ const TwinChatPage = () => {
       >
         <View style={{ flex: 1 }}>
           <Input
-            className="border-0 bg-[#202327] rounded-full px-4 text-white placeholder:text-gray-500"
-            style={{ fontSize: '14px' }}
+            className="border-0 bg-[#202327] rounded-full px-4 placeholder:text-gray-500"
+            style={{ fontSize: '14px', color: '#ffffff' }}
             placeholder={`跟${matchName}说点什么...`}
             value={inputValue}
             onInput={(e) => setInputValue(e.detail.value)}
