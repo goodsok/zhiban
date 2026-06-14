@@ -854,15 +854,14 @@ export default function InteractionCreatePage() {
                 <Text className="block text-xs text-gray-400">可选，粘贴后可 AI 智能分析</Text>
               )}
             </View>
-            <View className="bg-gray-50 rounded-xl p-3">
-              <Textarea
-                style={{ width: '100%', minHeight: '200px', fontSize: '13px', backgroundColor: 'transparent' }}
-                placeholder="把聊天记录粘贴到这里...&#10;&#10;格式示例：&#10;我: 你今天怎么样？&#10;她: 还不错呀，刚下班~&#10;我: 辛苦啦，要不要一起吃饭？&#10;她: 好呀好呀！"
-                value={chatTextInput}
-                onInput={e => setChatTextInput(e.detail.value)}
-                maxlength={5000}
-              />
-            </View>
+            <Textarea
+              className="bg-gray-50 border-gray-200 min-h-52"
+              style={{ width: '100%', fontSize: '13px' }}
+              placeholder="把聊天记录粘贴到这里...&#10;&#10;格式示例：&#10;我: 你今天怎么样？&#10;她: 还不错呀，刚下班~&#10;我: 辛苦啦，要不要一起吃饭？&#10;她: 好呀好呀！"
+              value={chatTextInput}
+              onInput={e => setChatTextInput(e.detail.value)}
+              maxlength={5000}
+            />
             <View className="flex items-center justify-between mt-2">
               <Text className="block text-xs text-gray-400">{chatTextInput.length}/5000 字</Text>
             </View>
@@ -1278,9 +1277,10 @@ export default function InteractionCreatePage() {
               </View>
               {showCustomDuration && (
                 <View className="mt-2" style={{ marginLeft: '44px' }}>
-                  <View className="bg-gray-50 rounded-lg px-3 py-2" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                  <View className="flex flex-row items-center gap-1">
                     <Input
-                      style={{ width: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
+                      className="bg-gray-50 border-gray-200 h-9 w-20"
+                      style={{ fontSize: '14px' }}
                       type="number"
                       placeholder="60"
                       value={customDuration}
@@ -1331,14 +1331,13 @@ export default function InteractionCreatePage() {
                 <Text className="block text-sm font-medium text-gray-700">突破性时刻</Text>
                 <Text className="block text-xs text-gray-400">可选</Text>
               </View>
-              <View style={{ marginLeft: '44px' }} className="bg-gray-50 rounded-xl p-3">
-                <Textarea
-                  style={{ width: '100%', minHeight: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
-                  placeholder="有没有什么特别的进展？"
-                  value={breakthroughMoment}
-                  onInput={e => setBreakthroughMoment(e.detail.value)}
-                />
-              </View>
+              <Textarea
+                className="bg-gray-50 border-gray-200"
+                style={{ width: '100%', minHeight: '60px', marginLeft: '44px', fontSize: '14px' }}
+                placeholder="有没有什么特别的进展？"
+                value={breakthroughMoment}
+                onInput={e => setBreakthroughMoment(e.detail.value)}
+              />
             </View>
               </CollapsibleContent>
             </CardContent>
@@ -1463,9 +1462,10 @@ export default function InteractionCreatePage() {
                 </View>
                 {showCustomDuration && (
                   <View className="mt-2" style={{ marginLeft: '52px' }}>
-                    <View className="bg-gray-50 rounded-lg px-3 py-2" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                    <View className="flex flex-row items-center gap-1">
                       <Input
-                        style={{ width: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
+                        className="bg-gray-50 border-gray-200 h-9 w-20"
+                        style={{ fontSize: '14px' }}
                         type="number"
                         placeholder="60"
                         value={customDuration}
@@ -1520,20 +1520,19 @@ export default function InteractionCreatePage() {
                 {/* 自定义标签输入框 */}
                 {showCustomActivityInput && (
                   <View style={{ marginLeft: '52px', marginTop: '8px' }} className="flex flex-row gap-3">
-                    <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
-                      <Input
-                        style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
-                        placeholder="输入后按回车或点添加"
-                        value={customActivity}
-                        onInput={e => setCustomActivity(e.detail.value)}
-                        onConfirm={() => {
+                    <Input
+                      className="bg-gray-50 border-gray-200 flex-1"
+                      style={{ fontSize: '14px' }}
+                      placeholder="输入后按回车或点添加"
+                      value={customActivity}
+                      onInput={e => setCustomActivity(e.detail.value)}
+                      onConfirm={() => {
                           if (customActivity.trim() && !activities.includes(customActivity.trim())) {
                             setActivities([...activities, customActivity.trim()])
                             setCustomActivity('')
                           }
                         }}
-                      />
-                    </View>
+                    />
                     <View
                       className="px-4 py-2 rounded-lg"
                       style={{ backgroundColor: PRIMARY_COLOR }}
@@ -1565,14 +1564,13 @@ export default function InteractionCreatePage() {
                   <Text className="block text-xs text-red-400">必填</Text>
                 </View>
                 <View style={{ marginLeft: '52px' }}>
-                  <View className="bg-gray-50 rounded-lg px-3 py-2">
-                    <Input
-                      style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
-                      placeholder="简单描述一下..."
-                      value={title}
-                      onInput={e => setTitle(e.detail.value)}
-                    />
-                  </View>
+                  <Input
+                    className="bg-gray-50 border-gray-200"
+                    style={{ fontSize: '14px' }}
+                    placeholder="简单描述一下..."
+                    value={title}
+                    onInput={e => setTitle(e.detail.value)}
+                  />
                 </View>
               </View>
             )}
@@ -1679,9 +1677,10 @@ export default function InteractionCreatePage() {
               {/* 文本输入区域 */}
               {showChatInput && (
                 <View className="mt-3" style={{ marginLeft: '52px' }}>
-                  <View className="bg-white rounded-xl p-3 border border-blue-100">
+                  <View className="rounded-xl border border-blue-100 p-3" style={{ backgroundColor: '#fff' }}>
                     <Textarea
-                      style={{ width: '100%', minHeight: '120px', fontSize: '13px', backgroundColor: 'transparent' }}
+                      className="border-0 bg-transparent min-h-32"
+                      style={{ width: '100%', fontSize: '13px' }}
                       placeholder="粘贴聊天记录，格式示例：&#10;我: 你今天怎么样？&#10;她: 还不错呀，刚下班~"
                       value={chatTextInput}
                       onInput={e => setChatTextInput(e.detail.value)}
@@ -1818,9 +1817,10 @@ export default function InteractionCreatePage() {
                     </View>
                     {showCustomDuration && (
                       <View className="mt-2" style={{ marginLeft: '52px' }}>
-                        <View className="bg-gray-50 rounded-lg px-3 py-2" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                        <View className="flex flex-row items-center gap-1">
                           <Input
-                            style={{ width: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
+                            className="bg-gray-50 border-gray-200 h-9 w-20"
+                            style={{ fontSize: '14px' }}
                             type="number"
                             placeholder="60"
                             value={customDuration}
@@ -1872,14 +1872,13 @@ export default function InteractionCreatePage() {
                       <Text className="block text-sm font-medium text-gray-700">地点</Text>
                     </View>
                     <View style={{ marginLeft: '52px' }}>
-                      <View className="bg-gray-50 rounded-lg px-3 py-2">
-                        <Input
-                          style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
-                          placeholder="在哪里呢..."
-                          value={location}
-                          onInput={e => setLocation(e.detail.value)}
-                        />
-                      </View>
+                      <Input
+                        className="bg-gray-50 border-gray-200"
+                        style={{ fontSize: '14px' }}
+                        placeholder="在哪里呢..."
+                        value={location}
+                        onInput={e => setLocation(e.detail.value)}
+                      />
                     </View>
                   </View>
                 )}
@@ -1899,14 +1898,13 @@ export default function InteractionCreatePage() {
                       </Text>
                     </View>
                     <View style={{ marginLeft: '52px' }}>
-                      <View className="bg-gray-50 rounded-lg px-3 py-2">
-                        <Input
-                          style={{ width: '100%', fontSize: '14px', backgroundColor: 'transparent' }}
-                          placeholder={interactionType === 'date' ? '给这次约会起个名字...' : '简单描述一下...'}
-                          value={title}
-                          onInput={e => setTitle(e.detail.value)}
-                        />
-                      </View>
+                      <Input
+                        className="bg-gray-50 border-gray-200"
+                        style={{ fontSize: '14px' }}
+                        placeholder={interactionType === 'date' ? '给这次约会起个名字...' : '简单描述一下...'}
+                        value={title}
+                        onInput={e => setTitle(e.detail.value)}
+                      />
                     </View>
                   </View>
                 )}
@@ -1954,14 +1952,13 @@ export default function InteractionCreatePage() {
                     </View>
                     <Text className="block text-sm font-medium text-gray-700">详细记录</Text>
                   </View>
-                  <View className="bg-gray-50 rounded-xl p-3">
-                    <Textarea
-                      style={{ width: '100%', minHeight: '80px', fontSize: '14px', backgroundColor: 'transparent' }}
-                      placeholder="记录这次互动的细节、感受、有趣的对话..."
-                      value={description}
-                      onInput={e => setDescription(e.detail.value)}
-                    />
-                  </View>
+                  <Textarea
+                    className="bg-gray-50 border-gray-200 min-h-24"
+                    style={{ width: '100%', fontSize: '14px' }}
+                    placeholder="记录这次互动的细节、感受、有趣的对话..."
+                    value={description}
+                    onInput={e => setDescription(e.detail.value)}
+                  />
                 </View>
 
                 {/* 突破性时刻 */}
@@ -1972,14 +1969,13 @@ export default function InteractionCreatePage() {
                     </View>
                     <Text className="block text-sm font-medium text-gray-700">突破性时刻</Text>
                   </View>
-                  <View className="bg-amber-50 rounded-xl p-3">
-                    <Textarea
-                      style={{ width: '100%', minHeight: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
-                      placeholder="有没有什么特别的进展？比如第一次牵手、第一次说喜欢..."
-                      value={breakthroughMoment}
-                      onInput={e => setBreakthroughMoment(e.detail.value)}
-                    />
-                  </View>
+                  <Textarea
+                    className="bg-amber-50 border-amber-200 min-h-16"
+                    style={{ width: '100%', fontSize: '14px' }}
+                    placeholder="有没有什么特别的进展？比如第一次牵手、第一次说喜欢..."
+                    value={breakthroughMoment}
+                    onInput={e => setBreakthroughMoment(e.detail.value)}
+                  />
                 </View>
 
                 {/* 遇到的问题 */}
@@ -1990,14 +1986,13 @@ export default function InteractionCreatePage() {
                     </View>
                     <Text className="block text-sm font-medium text-gray-700">遇到的问题</Text>
                   </View>
-                  <View className="bg-gray-50 rounded-xl p-3">
-                    <Textarea
-                      style={{ width: '100%', minHeight: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
-                      placeholder="有没有什么尴尬、误会或问题？比如冷场了、说错话了..."
-                      value={issuesEncountered}
-                      onInput={e => setIssuesEncountered(e.detail.value)}
-                    />
-                  </View>
+                  <Textarea
+                    className="bg-gray-50 border-gray-200 min-h-16"
+                    style={{ width: '100%', fontSize: '14px' }}
+                    placeholder="有没有什么尴尬、误会或问题？比如冷场了、说错话了..."
+                    value={issuesEncountered}
+                    onInput={e => setIssuesEncountered(e.detail.value)}
+                  />
                 </View>
 
                 {/* 能量预览条 */}
