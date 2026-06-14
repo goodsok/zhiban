@@ -44,29 +44,29 @@ import {
 // 关系类型
 type RelationshipType = 'long_term' | 'short_term' | 'both' | 'undefined'
 
-// 关系类型配置
+// 关系类型配置 — 统一收敛到薄荷绿+中性色体系
 const RELATIONSHIP_TYPE_CONFIG: Record<RelationshipType, { label: string; color: string; bgColor: string; description: string }> = {
   long_term: { 
     label: '长期关系', 
-    color: '#4ECB71', 
+    color: '#2E9E5A', 
     bgColor: 'bg-green-50',
     description: '小火慢炖，稳扎稳打'
   },
   short_term: { 
     label: '短期关系', 
-    color: '#F0C75E', 
-    bgColor: 'bg-amber-50',
+    color: '#374151', 
+    bgColor: 'bg-gray-100',
     description: '下猛药，快速推进'
   },
   both: { 
     label: '灵活关系', 
-    color: '#A78BFA', 
-    bgColor: 'bg-violet-50',
+    color: '#4ECB71', 
+    bgColor: 'bg-green-50',
     description: '看情况，随机应变'
   },
   undefined: { 
     label: '未设置', 
-    color: '#A8A29E', 
+    color: '#9CA3AF', 
     bgColor: 'bg-gray-50',
     description: '点击设置关系类型'
   },
@@ -127,14 +127,14 @@ interface CycleInfo {
   recommendations: string[]
 }
 
-// 周期阶段配置
+// 周期阶段配置 — 收敛到绿灰体系
 const phaseConfig: Record<string, { icon: typeof Heart; color: string; bgColor: string }> = {
-  menstrual: { icon: Moon, color: '#78716C', bgColor: 'bg-gray-100' },
+  menstrual: { icon: Moon, color: '#6B7280', bgColor: 'bg-gray-50' },
   follicular: { icon: Sun, color: '#4ECB71', bgColor: 'bg-green-50' },
-  ovulation: { icon: Heart, color: '#EC4899', bgColor: 'bg-pink-50' },
-  luteal_early: { icon: Sun, color: '#60A5FA', bgColor: 'bg-blue-50' },
-  luteal_mid: { icon: Cloud, color: '#F0C75E', bgColor: 'bg-amber-50' },
-  luteal_late: { icon: Moon, color: '#E87461', bgColor: 'bg-white' },
+  ovulation: { icon: Heart, color: '#2E9E5A', bgColor: 'bg-green-50' },
+  luteal_early: { icon: Sun, color: '#4ECB71', bgColor: 'bg-green-50' },
+  luteal_mid: { icon: Cloud, color: '#374151', bgColor: 'bg-gray-50' },
+  luteal_late: { icon: Moon, color: '#6B7280', bgColor: 'bg-gray-50' },
 }
 
 const DetailPage: FC = () => {

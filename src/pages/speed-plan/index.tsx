@@ -87,6 +87,7 @@ interface Match {
   relationship_type?: string
   progress_score?: number
   cycleStartDate?: string
+  status?: string
 }
 
 interface MatchDetail extends Match {
@@ -326,10 +327,11 @@ const SpeedPlanPage: FC = () => {
       loadPlanDetail()
     } else {
       loadDraft()
-      // 如果 URL 带了 matchId，自动选中该对象
+      // 如果 URL 带了 matchId，自动选中该对象并跳转到背景步骤
       const urlMatchId = router.params.matchId
       if (urlMatchId) {
         fetchMatchDetail(Number(urlMatchId))
+        setCurrentStep(2) // 跳过选择对象步骤，直接进入互动背景
       }
     }
   })
@@ -478,7 +480,7 @@ const SpeedPlanPage: FC = () => {
       const res = await Network.request({ url: '/api/match/list' })
       console.log('Fetch matches response:', res.data)
       if (res.data?.code === 200 && res.data?.data?.list) {
-        setMatches(res.data.data.list)
+        setMatches(res.data.data.list.filter((m: Match) => m.status !== 'hidden'))
       }
     } catch (error) {
       console.error('Fetch matches error:', error)
@@ -889,7 +891,7 @@ const SpeedPlanPage: FC = () => {
       {/* 进度指示器 */}
       <View className="bg-white px-4 py-3 border-b">
         <View className="flex items-center justify-between">
-          {['背景', '对象', '目标', '方案'].map((label, index) => {
+          {['对象', '背景', '目标', '方案'].map((label, index) => {
             const stepNum = index + 1
             const isActive = currentStep === stepNum
             const isCompleted = currentStep > stepNum
@@ -925,65 +927,8 @@ const SpeedPlanPage: FC = () => {
         </View>
       </View>
 
-      {/* Step 1: 互动背景 */}
+      {/* Step 1: 选择对象 */}
       {currentStep === 1 && (
-        <View className="p-4">
-          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
-            <View className="flex items-center gap-3 mb-4">
-              <User size={18} color="#374151" />
-              <Text className="block text-base font-semibold text-gray-900">互动背景</Text>
-            </View>
-            
-            <View className="mb-4">
-              <Textarea
-                className="w-full h-24"
-                placeholder="描述互动背景，例如：相亲认识一周，微信聊了几天..."
-                value={background}
-                onInput={(e) => handleBackgroundChange(e.detail.value)}
-              />
-            </View>
-
-            <Text className="block text-sm text-gray-500 mb-4">当前进展（可多选）</Text>
-            
-            {PROGRESS_GROUPS.map((group) => (
-              <View key={group.title} className="mb-4">
-                <Text className="block text-xs text-gray-400 mb-2">{group.title}</Text>
-                <View className="flex flex-wrap gap-3">
-                  {group.items.map((behavior) => (
-                    <View
-                      key={behavior.code}
-                      className={`px-3 py-2 rounded-full ${
-                        currentProgress.includes(behavior.code)
-                          ? 'bg-green-500'
-                          : 'bg-gray-100'
-                      }`}
-                      onClick={() => toggleProgress(behavior.code)}
-                    >
-                      <Text className={`block text-xs ${
-                        currentProgress.includes(behavior.code) ? 'text-white' : 'text-gray-600'
-                      }`}
-                      >
-                        {behavior.name}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            ))}
-          </View>
-
-          <Button
-            className="w-full bg-green-500 rounded-xl py-3"
-            onClick={() => setCurrentStep(2)}
-          >
-            <Text className="text-white font-medium">下一步</Text>
-            <ChevronRight size={18} color="#fff" />
-          </Button>
-        </View>
-      )}
-
-      {/* Step 2: 选择对象 */}
-      {currentStep === 2 && (
         <View className="p-4">
           <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
@@ -1083,6 +1028,66 @@ const SpeedPlanPage: FC = () => {
             </View>
           )}
 
+          <Button
+            className={`w-full rounded-xl py-3 ${selectedMatch ? 'bg-green-500' : 'bg-gray-200'}`}
+            disabled={!selectedMatch}
+            onClick={() => selectedMatch && setCurrentStep(2)}
+          >
+            <Text className={`block font-medium ${selectedMatch ? 'text-white' : 'text-gray-400'}`}>
+              下一步
+            </Text>
+            <ChevronRight size={18} color={selectedMatch ? '#fff' : '#9CA3AF'} />
+          </Button>
+        </View>
+      )}
+
+      {/* Step 2: 互动背景 */}
+      {currentStep === 2 && (
+        <View className="p-4">
+          <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
+            <View className="flex items-center gap-3 mb-4">
+              <User size={18} color="#374151" />
+              <Text className="block text-base font-semibold text-gray-900">互动背景</Text>
+            </View>
+            
+            <View className="mb-4">
+              <Textarea
+                className="w-full h-24"
+                placeholder="描述互动背景，例如：相亲认识一周，微信聊了几天..."
+                value={background}
+                onInput={(e) => handleBackgroundChange(e.detail.value)}
+              />
+            </View>
+
+            <Text className="block text-sm text-gray-500 mb-4">当前进展（可多选）</Text>
+            
+            {PROGRESS_GROUPS.map((group) => (
+              <View key={group.title} className="mb-4">
+                <Text className="block text-xs text-gray-400 mb-2">{group.title}</Text>
+                <View className="flex flex-wrap gap-3">
+                  {group.items.map((behavior) => (
+                    <View
+                      key={behavior.code}
+                      className={`px-3 py-2 rounded-full ${
+                        currentProgress.includes(behavior.code)
+                          ? 'bg-green-500'
+                          : 'bg-gray-100'
+                      }`}
+                      onClick={() => toggleProgress(behavior.code)}
+                    >
+                      <Text className={`block text-xs ${
+                        currentProgress.includes(behavior.code) ? 'text-white' : 'text-gray-600'
+                      }`}
+                      >
+                        {behavior.name}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </View>
+
           <View className="flex gap-4">
             <Button
               variant="outline"
@@ -1092,13 +1097,11 @@ const SpeedPlanPage: FC = () => {
               <Text className="text-gray-600">上一步</Text>
             </Button>
             <Button
-              className={`flex-1 rounded-xl py-3 ${selectedMatch ? 'bg-green-500' : 'bg-gray-200'}`}
-              disabled={!selectedMatch}
-              onClick={() => selectedMatch && setCurrentStep(3)}
+              className="flex-1 bg-green-500 rounded-xl py-3"
+              onClick={() => setCurrentStep(3)}
             >
-              <Text className={`block font-medium ${selectedMatch ? 'text-white' : 'text-gray-400'}`}>
-                下一步
-              </Text>
+              <Text className="text-white font-medium">下一步</Text>
+              <ChevronRight size={18} color="#fff" />
             </Button>
           </View>
         </View>
