@@ -622,7 +622,7 @@ const TwinChatPage = () => {
       </View>
 
       {/* 消息区 */}
-      <ScrollView scrollY style={{ flex: 1, height: '0' }} scrollTop={scrollTop}>
+      <ScrollView scrollY style={{ flex: 1, height: '0', paddingBottom: '80px' }} scrollTop={scrollTop}>
         <View style={{ padding: '16px', paddingBottom: '24px' }}>
           {/* 空状态引导 */}
           {messages.length === 0 && !historyLoading && (
@@ -799,6 +799,10 @@ const TwinChatPage = () => {
       {/* 底部输入栏 */}
       <View
         style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
           backgroundColor: '#16181C',
           borderTop: '1px solid rgba(255,255,255,0.06)',
           padding: '12px 16px',
@@ -807,6 +811,7 @@ const TwinChatPage = () => {
           flexDirection: 'row',
           alignItems: 'center',
           gap: '10px',
+          zIndex: 100,
         }}
       >
         <View style={{ flex: 1 }}>

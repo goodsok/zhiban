@@ -193,6 +193,8 @@ export default function InteractionCreatePage() {
   // 聊天记录相关状态
   const [chatRecords, setChatRecords] = useState<ChatRecordCard[]>([])
   const [chatTextInput, setChatTextInput] = useState('')
+  const chatTextInputRef = useRef(chatTextInput)
+  chatTextInputRef.current = chatTextInput
   const [chatSource, setChatSource] = useState('wechat')
 
 
@@ -398,9 +400,10 @@ export default function InteractionCreatePage() {
 
   // AI 分析聊天内容
   const handleAnalyzeChat = useCallback(async () => {
-    console.log('handleAnalyzeChat triggered, chatTextInput:', chatTextInput?.slice(0, 50), 'matchId:', matchId)
+    const currentText = chatTextInputRef.current
+    console.log('handleAnalyzeChat triggered, chatTextInput:', currentText?.slice(0, 50), 'matchId:', matchId)
     // 过滤掉 OCR 解析失败的提示文字
-    const cleanContent = chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim()
+    const cleanContent = currentText.replace(/\[图片解析失败[^\]]*\]/g, '').trim()
     if (!cleanContent) {
       Taro.showToast({ title: '请先输入聊天内容', icon: 'none' })
       return
@@ -479,7 +482,7 @@ export default function InteractionCreatePage() {
         setAnalyzing(false)
       }
     }
-  }, [matchId, chatTextInput, chatSource])
+  }, [matchId, chatSource])
 
   // 重新分析：重置 AI 自动填充的状态
   const handleReAnalyze = useCallback(() => {
@@ -806,19 +809,16 @@ export default function InteractionCreatePage() {
           <Text className="block text-xs text-gray-400 mt-1">{chatTextInput.length}/5000 字</Text>
           {/* AI 分析按钮 - 有内容时显示 */}
           {chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim() && (
-            <Button
-              className="w-full mt-3 text-white py-2 rounded-xl"
-              style={{ backgroundColor: '#3B82F6' }}
-              disabled={analyzing}
-              onClick={handleAnalyzeChat}
+            <View
+              className="w-full mt-3 py-2 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: analyzing ? '#93C5FD' : '#3B82F6' }}
+              onClick={analyzing ? undefined : handleAnalyzeChat}
             >
-              <View className="flex items-center justify-center gap-2">
-                <Sparkles size={16} color="#fff" />
-                <Text className="block text-sm font-medium text-white">
-                  {analyzing ? 'AI 分析中...' : 'AI 智能分析'}
-                </Text>
-              </View>
-            </Button>
+              <Sparkles size={16} color="#fff" />
+              <Text className="block text-sm font-medium text-white ml-2">
+                {analyzing ? 'AI 分析中...' : 'AI 智能分析'}
+              </Text>
+            </View>
           )}
         </View>
       </View>

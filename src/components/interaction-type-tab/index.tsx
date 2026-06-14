@@ -50,23 +50,23 @@ export default function InteractionTypeTab({
   if (variant === 'pill') {
     return (
       <View className="bg-white border-b">
-        <ScrollView scrollX className="flex flex-row px-4 py-3 gap-3" style={{ whiteSpace: 'nowrap' }}>
+        <ScrollView scrollX className="flex flex-row px-4 py-3" style={{ whiteSpace: 'nowrap' }}>
           {showAll && (
             <View
               className="flex-shrink-0 px-4 py-2 rounded-full"
-              style={{ backgroundColor: value === 'all' ? '#1f2937' : '#f3f4f6' }}
+              style={{ backgroundColor: value === 'all' ? '#1f2937' : '#f3f4f6', marginRight: '12px' }}
               onClick={() => onChange('all')}
             >
               <Text className="block text-sm" style={{ color: value === 'all' ? '#fff' : '#4b5563' }}>全部</Text>
             </View>
           )}
-          {INTERACTION_TYPE_CONFIG.map(item => {
+          {INTERACTION_TYPE_CONFIG.map((item, idx) => {
             const isActive = value === item.type
             return (
               <View
                 key={item.type}
                 className="flex-shrink-0 px-4 py-2 rounded-full"
-                style={{ backgroundColor: isActive ? '#1f2937' : '#f3f4f6' }}
+                style={{ backgroundColor: isActive ? '#1f2937' : '#f3f4f6', marginRight: idx < INTERACTION_TYPE_CONFIG.length - 1 ? '12px' : '0' }}
                 onClick={() => onChange(item.type)}
               >
                 <Text className="block text-sm" style={{ color: isActive ? '#fff' : '#4b5563' }}>{item.label}</Text>
@@ -81,8 +81,8 @@ export default function InteractionTypeTab({
   // card 变体
   return (
     <View className="bg-white px-4 py-3 border-b">
-      <ScrollView scrollX className="flex flex-row gap-3" style={{ whiteSpace: 'nowrap' }}>
-        {INTERACTION_TYPE_CONFIG.map(item => {
+      <ScrollView scrollX className="flex flex-row" style={{ whiteSpace: 'nowrap' }}>
+        {INTERACTION_TYPE_CONFIG.map((item, idx) => {
           const IconComponent = item.icon
           const isActive = value === item.type
           return (
@@ -93,7 +93,7 @@ export default function InteractionTypeTab({
                   ? `${item.bgColor} border-current`
                   : 'bg-gray-50'
               }`}
-              style={{ borderColor: isActive ? item.color : undefined, minWidth: '72px', display: 'inline-flex', verticalAlign: 'top' }}
+              style={{ borderColor: isActive ? item.color : undefined, minWidth: '72px', display: 'inline-flex', verticalAlign: 'top', marginRight: idx < INTERACTION_TYPE_CONFIG.length - 1 ? '12px' : '0' }}
               onClick={() => onChange(item.type)}
             >
               <View className="mb-1">
