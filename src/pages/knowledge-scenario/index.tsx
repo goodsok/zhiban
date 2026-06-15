@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { useState, useMemo, useCallback } from 'react'
 import type { FC } from 'react'
 import CustomHeader from '@/components/custom-header'
@@ -92,10 +92,10 @@ const KnowledgeScenarioPage: FC = () => {
   const readProgress = totalCases > 0 ? Math.round((readCount / totalCases) * 100) : 0
 
   return (
-    <View style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#f9fafb' }}>
+    <View style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
       <CustomHeader title="场景演练" />
 
-      <ScrollView scrollY style={{ flex: 1 }}>
+      <View className="pb-28" style={{ boxSizing: 'border-box', overflow: 'hidden' }}>
         {/* 搜索栏 + 进度 */}
         <View className="px-4 pt-3 pb-2 bg-white border-b">
           <View className="bg-gray-50 rounded-xl px-3 py-2">
@@ -292,7 +292,7 @@ const KnowledgeScenarioPage: FC = () => {
             更多场景演练内容持续更新中...
           </Text>
         </View>
-      </ScrollView>
+      </View>
     </View>
   )
 }
