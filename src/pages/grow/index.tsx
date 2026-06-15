@@ -142,8 +142,8 @@ const getRandomItems = <T,>(arr: T[], count: number): T[] => {
 
 const GrowPage: FC = () => {
   const router = useRouter()
-  const urlMatchId = Number(router.params.matchId) || 0
-  const [selectedMatchId, setSelectedMatchId] = useState(urlMatchId)
+  const urlMatchId = router.params.matchId ? Number(router.params.matchId) : undefined
+  const [selectedMatchId, setSelectedMatchId] = useState<number | undefined>(urlMatchId)
   const matchId = selectedMatchId
 
   const [activeTab, setActiveTab] = useState('anniversary')
