@@ -476,7 +476,54 @@ CustomHeader → 列表项（卡片式）→ 空状态
 
 ---
 
-## 15. Textarea 跨端样式方案
+## 15. ScrollView 溢出问题
+
+### 问题
+
+小程序端 `<ScrollView scrollY>` 作为全页滚动容器时，内部卡片宽度可能超出屏幕右侧，表现为：
+
+- 卡片右边缘被截断或出现水平滚动条
+- 嵌套的 flex/gap 布局宽度计算异常
+- 百分比宽度子元素溢出
+
+根因：小程序端 ScrollView 会创建独立的滚动上下文，其内部布局的宽度计算与普通 View 不同，`gap`、`flex`、百分比宽度可能累加出超出容器的结果。
+
+### 解决方案
+
+**全页滚动场景：使用 `<View>` 替代 `<ScrollView scrollY>`**
+
+```tsx
+// ✅ 正确：页面级滚动用 View，小程序自动支持页面滚动
+<View className="px-4 pt-4 pb-28" style={{ boxSizing: 'border-box', overflow: 'hidden' }}>
+  {/* 卡片内容 */}
+</View>
+
+// ❌ 错误：全页 ScrollView 在小程序端会导致卡片溢出
+<ScrollView scrollY className="px-4 pt-4 pb-20">
+  {/* 卡片内容 */}
+</ScrollView>
+```
+
+### 适用场景
+
+| 场景 | 推荐方案 | 说明 |
+|------|----------|------|
+| 全页滚动（页面唯一滚动区） | `<View>` + 页面原生滚动 | 小程序页面本身可滚动，无需 ScrollView |
+| 局部固定高度滚动（如历史消息、长列表） | `<ScrollView scrollY style={{ height: 'xxx' }}>` | 固定高度的局部滚动区不会溢出 |
+| 聊天页消息列表 | `<ScrollView scrollY style={{ height: '100vh' }}>` | 需要配合 scrollTop 控制滚动位置 |
+
+### 防溢出清单
+
+对每个卡片/容器组件确认：
+
+1. 外层容器添加 `style={{ boxSizing: 'border-box' }}`
+2. 卡片添加 `style={{ overflow: 'hidden' }}`
+3. flex 子项使用 `min-w-0` 防止内容撑开
+4. 图片/媒体区使用固定尺寸而非百分比
+
+---
+
+## 16. Textarea 跨端样式方案
 
 ### 问题
 
@@ -542,7 +589,7 @@ import { Textarea } from '@tarojs/components'
 
 ---
 
-## 16. 设计禁忌
+## 17. 设计禁忌
 
 - ❌ 禁止使用 `bg-white bg-opacity-20`（Taro 不生效），改用 `rgba(255,255,255,0.2)` inline style
 - ❌ 禁止使用硬编码 px 值（`w-[340px]`、`text-[14px]`），使用 Tailwind 预设类名
