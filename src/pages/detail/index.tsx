@@ -479,28 +479,15 @@ const DetailPage: FC = () => {
           </View>
           
           {/* 周期追踪 */}
-          {cycleInfo ? (
-            <View 
-              className="flex flex-col items-center justify-center p-2 bg-white rounded-xl"
-              onClick={() => navigateTo({ url: `/pages/cycle/index?matchId=${detail.id}` })}
-            >
-              <View className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-1">
-                <Activity size={20} color="#2E9E5A" />
-              </View>
-              <Text className="block text-xs text-gray-700">周期</Text>
-              <Text className="block text-xs text-gray-400">Day {cycleInfo.day}</Text>
+          <View 
+            className="flex flex-col items-center justify-center p-2 bg-white rounded-xl"
+            onClick={() => navigateTo({ url: `/pages/cycle/index?matchId=${detail.id}` })}
+          >
+            <View className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-1">
+              <Activity size={20} color="#2E9E5A" />
             </View>
-          ) : (
-            <View 
-              className="flex flex-col items-center justify-center p-2 bg-white rounded-xl"
-              onClick={() => navigateTo({ url: `/pages/cycle/index?matchId=${detail.id}` })}
-            >
-              <View className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-1">
-                <Activity size={20} color="#2E9E5A" />
-              </View>
-              <Text className="block text-xs text-gray-700">周期</Text>
-            </View>
-          )}
+            <Text className="block text-xs text-gray-700">{cycleInfo ? `Day ${cycleInfo.day}` : '周期'}</Text>
+          </View>
         </View>
       </View>
 
