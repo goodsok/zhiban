@@ -12,6 +12,7 @@ import {
   Trash2,
   Sparkles,
   RotateCw,
+  Users,
 } from 'lucide-react-taro'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -60,6 +61,14 @@ interface PromiseItem {
   id: number
   content: string
   completed: boolean
+}
+
+interface MatchItem {
+  id: number
+  name: string
+  gender?: string
+  relationshipType?: string
+  status?: string
 }
 
 // 推荐目标池
@@ -133,7 +142,9 @@ const getRandomItems = <T,>(arr: T[], count: number): T[] => {
 
 const GrowPage: FC = () => {
   const router = useRouter()
-  const matchId = Number(router.params.matchId) || 0
+  const urlMatchId = Number(router.params.matchId) || 0
+  const [selectedMatchId, setSelectedMatchId] = useState(urlMatchId)
+  const matchId = selectedMatchId
 
   const [activeTab, setActiveTab] = useState('anniversary')
   const [anniversaries, setAnniversaries] = useState<Anniversary[]>([])
@@ -141,6 +152,8 @@ const GrowPage: FC = () => {
   const [memories, setMemories] = useState<Memory[]>([])
   const [promises, setPromises] = useState<PromiseItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [matches, setMatches] = useState<MatchItem[]>([])
+  const [matchesLoading, setMatchesLoading] = useState(false)
 
   // 推荐目标
   const [recommendedGoals, setRecommendedGoals] = useState<{ title: string; total: number }[]>(
@@ -167,6 +180,29 @@ const GrowPage: FC = () => {
   // 删除确认
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: number } | null>(null)
+
+  // 获取对象列表（无matchId时）
+  useEffect(() => {
+    if (!urlMatchId) {
+      setMatchesLoading(true)
+      Network.request({ url: '/api/match/list' }).then((res) => {
+        console.log('Match list response:', res.data)
+        const list = res.data?.data?.list || []
+        // 过滤隐藏对象
+        const visible = list.filter((m: MatchItem) => m.status !== 'hidden')
+        setMatches(visible)
+      }).catch((err) => {
+        console.error('Fetch match list error:', err)
+      }).finally(() => {
+        setMatchesLoading(false)
+      })
+    }
+  }, [urlMatchId])
+
+  // 选择对象后加载数据
+  const handleSelectMatch = (id: number) => {
+    setSelectedMatchId(id)
+  }
 
   // 加载数据
   const loadData = useCallback(async () => {
@@ -545,11 +581,74 @@ const GrowPage: FC = () => {
         </Tabs>
       </View>
 
-      {/* 无效matchId提示 */}
+      {/* 选择对象 */}
       {!matchId && (
-        <View className="flex flex-col items-center py-16">
-          <Text className="block text-sm text-gray-400">无效的页面参数</Text>
-          <Text className="block text-xs text-gray-300 mt-1">请从正确的入口进入</Text>
+        <View className="px-4 mt-3">
+          <Text className="block text-sm font-medium text-gray-700 mb-3">选择对象，开始共同成长</Text>
+          {matchesLoading ? (
+            <View className="p-4">
+              <Skeleton className="h-16 w-full rounded-2xl mb-3" />
+              <Skeleton className="h-16 w-full rounded-2xl mb-3" />
+              <Skeleton className="h-16 w-full rounded-2xl" />
+            </View>
+          ) : matches.length === 0 ? (
+            <View className="bg-white rounded-2xl shadow-soft p-8 flex flex-col items-center">
+              <Users size={40} color="#d1d5db" />
+              <Text className="block text-sm text-gray-400 mt-3">暂无对象</Text>
+              <Text className="block text-xs text-gray-300 mt-1">请先添加对象</Text>
+            </View>
+          ) : (
+            matches.map((m) => (
+              <View
+                key={m.id}
+                className="mb-3 bg-white rounded-2xl shadow-soft overflow-hidden"
+                onClick={() => handleSelectMatch(m.id)}
+              >
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    padding: '16px',
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '50%',
+                      backgroundColor: '#ECFDF5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Heart size={20} color="#4ECB71" />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text className="block text-sm font-medium text-gray-800">{m.name}</Text>
+                    <Text className="block text-xs text-gray-400 mt-1">
+                      {m.gender === 'male' ? '男' : m.gender === 'female' ? '女' : '未知'}
+                      {m.relationshipType ? ` · ${m.relationshipType}` : ''}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      backgroundColor: '#ECFDF5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ color: '#4ECB71', fontSize: '16px', fontWeight: 'bold' }}>›</Text>
+                  </View>
+                </View>
+              </View>
+            ))
+          )}
         </View>
       )}
 
