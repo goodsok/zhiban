@@ -981,7 +981,7 @@ const GrowPage: FC = () => {
         >
           <Button
             onClick={() => openAddDialog(activeTab as 'anniversary' | 'goal' | 'memory' | 'promise')}
-            className="w-full bg-green-500 hover:bg-green-600 rounded-xl py-5 shadow-lg"
+            className="w-full bg-green-500 hover:bg-green-600 rounded-xl py-5 shadow-soft"
           >
             <Plus size={20} color="#ffffff" />
             <Text className="block text-base font-semibold text-white ml-2">

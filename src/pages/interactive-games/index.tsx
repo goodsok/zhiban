@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { ArrowRight, Users, Sparkles, Heart, Brain, MessageSquare, Zap, TrendingUp, Hand, HeartPulse, EyeOff, Magnet, Wind } from 'lucide-react-taro'
 import { Network } from '@/network'
 import { Skeleton } from '@/components/ui/skeleton'
+import CustomHeader from '@/components/custom-header'
 
 interface GameCard {
   id: number
@@ -40,9 +41,9 @@ const ICON_MAP: Record<string, any> = {
 const CATEGORY_CONFIG: Record<string, { label: string; accentColor: string; dividerColor: string; dividerTextColor: string }> = {
   icebreaker: {
     label: '破冰交流',
-    accentColor: 'text-purple-600',
-    dividerColor: 'bg-purple-200',
-    dividerTextColor: 'text-purple-500',
+    accentColor: 'text-green-600',
+    dividerColor: 'bg-green-200',
+    dividerTextColor: 'text-green-500',
   },
   physical: {
     label: '肢体进挪',
@@ -189,8 +190,10 @@ const InteractiveGamesPage: FC = () => {
 
   return (
     <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="互动游戏" />
+
       {/* 顶部说明 */}
-      <View className="bg-gradient-to-r from-purple-500 to-blue-500 px-4 py-6">
+      <View className="bg-gradient-to-r from-green-500 to-teal-500 px-4 py-6">
         <Text className="block text-2xl font-bold text-white mb-2">互动游戏</Text>
         <Text className="block text-sm text-gray-200 leading-relaxed">
           精选约会场景互动游戏，通过轻松有趣的方式快速拉近彼此距离，创造美好回忆
@@ -214,7 +217,7 @@ const InteractiveGamesPage: FC = () => {
             <Sparkles size={48} color="#d1d5db" />
             <Text className="block text-gray-400 mt-4 mb-6">{error}</Text>
             <View
-              className="px-6 py-2 bg-purple-500 rounded-full"
+              className="px-6 py-2 bg-green-500 rounded-full"
               onClick={fetchGameList}
             >
               <Text className="text-white text-sm">重新加载</Text>
@@ -230,7 +233,7 @@ const InteractiveGamesPage: FC = () => {
             {orderedCategories.map((cat, catIdx) => {
               const config = CATEGORY_CONFIG[cat] || {
                 label: cat,
-                accentColor: 'text-purple-600',
+                accentColor: 'text-green-600',
                 dividerColor: 'bg-gray-200',
                 dividerTextColor: 'text-gray-500',
               }
@@ -257,7 +260,7 @@ const InteractiveGamesPage: FC = () => {
       {/* 底部提示 */}
       <View className="bg-white border-t px-4 py-3 mt-4">
         <View className="flex flex-row items-center">
-          <Sparkles size={16} color="#a855f7" />
+          <Sparkles size={16} color="#4ECB71" />
           <Text className="block text-xs text-gray-500 ml-2">
             提示：选择适合当前约会阶段的游戏，循序渐进，效果更佳
           </Text>

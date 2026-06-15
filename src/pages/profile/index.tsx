@@ -811,7 +811,7 @@ const ProfilePage: FC = () => {
         {isEditing && (
           <View className="pb-3">
             <View className="flex items-center gap-2">
-              <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+              <View className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder={placeholder}
@@ -876,7 +876,7 @@ const ProfilePage: FC = () => {
         {isEditing && (
           <View className="pb-3">
             <View className="flex items-center gap-2">
-              <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+              <View className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder={placeholder}
@@ -955,14 +955,14 @@ const ProfilePage: FC = () => {
             </View>
             <View className="flex items-center gap-2 mt-2">
               <View
-                className="flex-1 py-2 rounded-lg text-center"
+                className="flex-1 py-2 rounded-xl text-center"
                 style={{ backgroundColor: accentColor }}
                 onClick={() => saveSliderField(field, tempNumber)}
               >
                 <Text className="block text-xs text-white font-medium">确认</Text>
               </View>
               <View
-                className="flex-1 py-2 rounded-lg text-center bg-gray-100"
+                className="flex-1 py-2 rounded-xl text-center bg-gray-100"
                 onClick={cancelEdit}
               >
                 <Text className="block text-xs text-gray-600">取消</Text>
@@ -1033,7 +1033,7 @@ const ProfilePage: FC = () => {
               })}
             </View>
             <View
-              className="py-2 rounded-lg text-center"
+              className="py-2 rounded-xl text-center"
               style={{ backgroundColor: accentColor }}
               onClick={() => confirmMultiSelect(field)}
             >
@@ -1085,7 +1085,7 @@ const ProfilePage: FC = () => {
               )}
 
               <View className="flex-1">
-                <View className="bg-transparent rounded-lg">
+                <View className="bg-transparent rounded-xl">
                   <Input
                     type={isMiniApp ? 'nickname' : 'text'}
                     className="w-full bg-transparent"
@@ -1238,7 +1238,7 @@ const ProfilePage: FC = () => {
                   onClick={() => toggleLayer(layer)}
                 >
                   <View className="flex items-center gap-3">
-                    <View className={`w-8 h-8 rounded-lg ${config.bgColor} flex items-center justify-center`}>
+                    <View className={`w-8 h-8 rounded-xl ${config.bgColor} flex items-center justify-center`}>
                       <LayerIcon size={16} color={config.color} />
                     </View>
                     <View>
@@ -1287,7 +1287,7 @@ const ProfilePage: FC = () => {
                     {layer === 2 && (
                       <View>
                         {profile.mbti && (
-                          <View className="mb-3 p-3 bg-violet-50 rounded-lg">
+                          <View className="mb-3 p-3 bg-violet-50 rounded-xl">
                             <View className="flex items-center justify-between">
                               <View className="flex items-center gap-2">
                                 <Text className="block text-lg font-bold text-violet-700">{profile.mbti}</Text>
@@ -1362,7 +1362,7 @@ const ProfilePage: FC = () => {
         <Card className="shadow-soft border-0">
           <CardContent className="p-0">
             <View className="flex items-center gap-3 p-4" onClick={() => { if (matchList.length > 0) setShowDeleteDialog(true) }}>
-              <View className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+              <View className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center">
                 <Trash2 size={16} color="#EF4444" />
               </View>
               <View className="flex-1">

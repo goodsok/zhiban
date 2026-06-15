@@ -770,7 +770,7 @@ export default function InteractionCreatePage() {
           {chatRecords.length > 0 && (
             <View className="mt-2 space-y-2">
               {chatRecords.map(record => (
-                <View key={record.id} className="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
+                <View key={record.id} className="flex items-center gap-2 p-2 rounded-xl bg-gray-50">
                   <Image size={14} color="#8B5CF6" />
                   <View className="flex-1" style={{ flex: 1, minWidth: 0 }}>
                     {record.uploading ? (
@@ -836,19 +836,19 @@ export default function InteractionCreatePage() {
           {(analysisResult.chemistryScore || analysisResult.warmthLevel) && (
             <View className="flex flex-row gap-2 mb-3">
               {analysisResult.chemistryScore && (
-                <View className="flex-1 p-3 rounded-lg bg-pink-50">
+                <View className="flex-1 p-3 rounded-xl bg-pink-50">
                   <Text className="block text-xs text-gray-500">化学反应</Text>
                   <Text className="block text-lg font-bold text-pink-500">{analysisResult.chemistryScore}<Text className="text-xs text-gray-400 font-normal">/10</Text></Text>
                 </View>
               )}
               {analysisResult.warmthLevel && (
-                <View className="flex-1 p-3 rounded-lg bg-orange-50">
+                <View className="flex-1 p-3 rounded-xl bg-orange-50">
                   <Text className="block text-xs text-gray-500">亲密温度</Text>
                   <Text className="block text-lg font-bold text-orange-500">{analysisResult.warmthLevel}<Text className="text-xs text-gray-400 font-normal">/10</Text></Text>
                 </View>
               )}
               {analysisResult.depthLevel && (
-                <View className="flex-1 p-3 rounded-lg bg-violet-50">
+                <View className="flex-1 p-3 rounded-xl bg-violet-50">
                   <Text className="block text-xs text-gray-500">对话深度</Text>
                   <Text className="block text-sm font-medium text-gray-800 mt-1">
                     {analysisResult.depthLevel === 'deep' ? '深入交流' : analysisResult.depthLevel === 'medium' ? '有深度' : '浅层闲聊'}
@@ -860,14 +860,14 @@ export default function InteractionCreatePage() {
 
           {/* 摘要 */}
           {analysisResult.summary && (
-            <View className="p-3 rounded-lg bg-gray-50 mb-3">
+            <View className="p-3 rounded-xl bg-gray-50 mb-3">
               <Text className="block text-sm text-gray-700">{analysisResult.summary}</Text>
             </View>
           )}
 
           {/* 对话走向 */}
           {analysisResult.conversationFlow && (
-            <View className="p-3 rounded-lg bg-gray-50 mb-3">
+            <View className="p-3 rounded-xl bg-gray-50 mb-3">
               <Text className="block text-xs text-gray-500 mb-2">对话走向</Text>
               <View className="flex flex-row gap-4">
                 <View>
@@ -901,7 +901,7 @@ export default function InteractionCreatePage() {
 
           {/* 情感轨迹 */}
           {analysisResult.emotionalArc && (
-            <View className="p-3 rounded-lg bg-gray-50 mb-3">
+            <View className="p-3 rounded-xl bg-gray-50 mb-3">
               <Text className="block text-xs text-gray-500 mb-1">情感轨迹</Text>
               <Text className="block text-sm text-gray-800">{analysisResult.emotionalArc}</Text>
             </View>
@@ -962,7 +962,7 @@ export default function InteractionCreatePage() {
 
           {/* 沟通风格 */}
           {analysisResult.communicationStyle && (
-            <View className="p-3 rounded-lg bg-gray-50 mb-3">
+            <View className="p-3 rounded-xl bg-gray-50 mb-3">
               <Text className="block text-xs text-gray-500 mb-2">沟通风格</Text>
               <View className="flex flex-row gap-4">
                 {analysisResult.communicationStyle.me && (
@@ -983,7 +983,7 @@ export default function InteractionCreatePage() {
 
           {/* AI 建议 */}
           {analysisResult.suggestions?.length > 0 && (
-            <View className="p-3 rounded-lg bg-blue-50 mb-3">
+            <View className="p-3 rounded-xl bg-blue-50 mb-3">
               <Text className="block text-xs text-blue-500 mb-2">下一步建议</Text>
               <View className="flex flex-col gap-1">
                 {analysisResult.suggestions.map((suggestion, idx) => (
@@ -1130,7 +1130,7 @@ export default function InteractionCreatePage() {
                     setStartedAt(d)
                   }}
                 >
-                  <View className="px-3 py-2 bg-gray-50 rounded-lg flex items-center gap-1">
+                  <View className="px-3 py-2 bg-gray-50 rounded-xl flex items-center gap-1">
                     <Calendar size={14} color="#6B7280" />
                     <Text className="block text-xs text-gray-700">
                       {startedAt ? startedAt.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : '选择日期'}
@@ -1147,7 +1147,7 @@ export default function InteractionCreatePage() {
                     setStartedAt(d)
                   }}
                 >
-                  <View className="px-3 py-2 bg-gray-50 rounded-lg flex items-center gap-1">
+                  <View className="px-3 py-2 bg-gray-50 rounded-xl flex items-center gap-1">
                     <Clock size={14} color="#6B7280" />
                     <Text className="block text-xs text-gray-700">
                       {startedAt ? formatLocalTime(startedAt) : '选择时间'}
@@ -1175,7 +1175,7 @@ export default function InteractionCreatePage() {
                   return (
                     <View
                       key={opt.value}
-                      className="px-3 py-2 rounded-lg bg-gray-100"
+                      className="px-3 py-2 rounded-xl bg-gray-100"
                       style={isSelected ? { backgroundColor: PRIMARY_COLOR } : undefined}
                       onClick={() => {
                         setDurationMinutes(opt.value)
@@ -1189,7 +1189,7 @@ export default function InteractionCreatePage() {
                   )
                 })}
                 <View
-                  className="px-3 py-2 rounded-lg bg-gray-100"
+                  className="px-3 py-2 rounded-xl bg-gray-100"
                   style={showCustomDuration ? { backgroundColor: PRIMARY_COLOR } : undefined}
                   onClick={() => setShowCustomDuration(!showCustomDuration)}
                 >
@@ -1231,7 +1231,7 @@ export default function InteractionCreatePage() {
                   return (
                     <View
                       key={opt.value}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-100"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-gray-100"
                       style={isActive ? { backgroundColor: PRIMARY_COLOR } : undefined}
                       onClick={() => setInitiator(opt.value)}
                     >
@@ -1357,7 +1357,7 @@ export default function InteractionCreatePage() {
             </View>
             {showCustomDuration && (
               <View className="flex flex-row items-center gap-2 mt-2">
-                <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                <View className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                   <Input style={{ fontSize: '14px' }} type="number" placeholder="60" value={customDuration} onInput={e => setCustomDuration(e.detail.value)} />
                 </View>
                 <Text className="block text-xs text-gray-500">分钟</Text>
@@ -1397,7 +1397,7 @@ export default function InteractionCreatePage() {
             </View>
             {showCustomActivityInput && (
               <View className="flex flex-row gap-2 mt-2">
-                <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                <View className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                   <Input
                     style={{ fontSize: '14px' }}
                     placeholder="输入后回车添加"
@@ -1412,7 +1412,7 @@ export default function InteractionCreatePage() {
                   />
                 </View>
                 <View
-                  className="px-4 py-2 rounded-lg flex items-center justify-center"
+                  className="px-4 py-2 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: currentType.color }}
                   onClick={() => {
                     if (customActivity.trim() && !activities.includes(customActivity.trim())) {
@@ -1432,7 +1432,7 @@ export default function InteractionCreatePage() {
         {interactionType === 'other' && (
           <View className="mb-4">
             <Text className="block text-xs font-medium text-gray-400 mb-2">互动内容</Text>
-            <View className="bg-gray-50 rounded-lg px-3 py-2">
+            <View className="bg-gray-50 rounded-xl px-3 py-2">
               <Input style={{ fontSize: '14px' }} placeholder="简单描述一下..." value={title} onInput={e => setTitle(e.detail.value)} />
             </View>
           </View>
@@ -1540,7 +1540,7 @@ export default function InteractionCreatePage() {
               {(interactionType === 'date' || interactionType === 'social') && (
                 <View>
                   <Text className="block text-xs font-medium text-gray-400 mb-2">地点</Text>
-                  <View className="bg-gray-50 rounded-lg px-3 py-2">
+                  <View className="bg-gray-50 rounded-xl px-3 py-2">
                     <Input style={{ fontSize: '14px' }} placeholder="在哪里呢..." value={location} onInput={e => setLocation(e.detail.value)} />
                   </View>
                 </View>
@@ -1573,7 +1573,7 @@ export default function InteractionCreatePage() {
                   </View>
                   {showCustomDuration && (
                     <View className="flex flex-row items-center gap-2 mt-2">
-                      <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                      <View className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                         <Input style={{ fontSize: '14px' }} type="number" placeholder="60" value={customDuration} onInput={e => setCustomDuration(e.detail.value)} />
                       </View>
                       <Text className="block text-xs text-gray-500">分钟</Text>
@@ -1587,7 +1587,7 @@ export default function InteractionCreatePage() {
                   <Text className="block text-xs font-medium text-gray-400 mb-2">
                     {interactionType === 'date' ? '约会主题' : '互动内容'}
                   </Text>
-                  <View className="bg-gray-50 rounded-lg px-3 py-2">
+                  <View className="bg-gray-50 rounded-xl px-3 py-2">
                     <Input style={{ fontSize: '14px' }} placeholder={interactionType === 'date' ? '给这次约会起个名字...' : '简单描述一下...'} value={title} onInput={e => setTitle(e.detail.value)} />
                   </View>
                 </View>
@@ -1627,7 +1627,7 @@ export default function InteractionCreatePage() {
               </View>
               {/* 能量预览 */}
               {energyPreview && (
-                <View className="flex items-center gap-2 p-3 rounded-lg" style={{ backgroundColor: '#F0FDF4' }}>
+                <View className="flex items-center gap-2 p-3 rounded-xl" style={{ backgroundColor: '#F0FDF4' }}>
                   <Zap size={14} color="#4ECB71" />
                   <Text className="block text-xs text-emerald-700 font-medium">
                     预计 +{energyPreview.totalEnergy} 能量

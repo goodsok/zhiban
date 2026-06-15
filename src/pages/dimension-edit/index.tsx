@@ -238,7 +238,7 @@ const DimensionEditPage: FC = () => {
           <View className="space-y-2">
             {/* 搜索框 */}
             {showSearch && (
-              <View className="bg-gray-50 rounded-lg px-4 py-3 mb-4 flex items-center gap-3">
+              <View className="bg-gray-50 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
                 <Search size={16} color="#9CA3AF" />
                 <View className="flex-1">
                   <Input
@@ -335,7 +335,7 @@ const DimensionEditPage: FC = () => {
           <View>
             {/* 搜索框 */}
             {showSearch && hasEnumOptions && (
-              <View className="bg-gray-50 rounded-lg px-4 py-3 mb-4 flex items-center gap-3">
+              <View className="bg-gray-50 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
                 <Search size={16} color="#9CA3AF" />
                 <View className="flex-1">
                   <Input
@@ -410,7 +410,7 @@ const DimensionEditPage: FC = () => {
                     <Text className="block text-xs text-gray-500 mb-2">输入后按回车或点击添加</Text>
                   )}
                   <View className="flex items-center gap-3">
-                    <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                    <View className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                       <Input
                         value={customInputValue}
                         onInput={(e) => setCustomInputValue(e.detail.value)}
@@ -510,7 +510,7 @@ const DimensionEditPage: FC = () => {
       
       case 'number':
         return (
-          <View className="bg-gray-50 rounded-lg px-4 py-3">
+          <View className="bg-gray-50 rounded-xl px-4 py-3">
             <Input
               type="number"
               value={inputValue}
@@ -523,7 +523,7 @@ const DimensionEditPage: FC = () => {
       
       case 'textarea':
         return (
-          <View className="bg-gray-50 rounded-lg p-3">
+          <View className="bg-gray-50 rounded-xl p-3">
             <Input
               value={inputValue}
               onInput={(e) => setInputValue(e.detail.value)}
@@ -535,7 +535,7 @@ const DimensionEditPage: FC = () => {
       
       default:
         return (
-          <View className="bg-gray-50 rounded-lg px-4 py-3">
+          <View className="bg-gray-50 rounded-xl px-4 py-3">
             <Input
               value={inputValue}
               onInput={(e) => setInputValue(e.detail.value)}
@@ -564,7 +564,7 @@ const DimensionEditPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
+    <View className="min-h-screen pb-28" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title={definition.display_name} />
       
       {/* 顶部信息 */}
@@ -572,7 +572,7 @@ const DimensionEditPage: FC = () => {
         <View className="flex items-center gap-3 mb-2">
           {definition.is_custom && isEditingName ? (
             <View className="flex items-center gap-2 flex-1">
-              <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+              <View className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                 <Input
                   value={editingName}
                   onInput={(e) => setEditingName(e.detail.value)}
@@ -688,7 +688,7 @@ const DimensionEditPage: FC = () => {
 
               {/* 新增选项输入 */}
               <View style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
-                <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                <View className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                   <Input
                     value={newOptionInput}
                     onInput={(e) => setNewOptionInput(e.detail.value)}

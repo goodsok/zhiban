@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import CustomHeader from '@/components/custom-header'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -166,6 +167,7 @@ const TouchPage: FC = () => {
   if (loading || touchLevels.length === 0) {
     return (
       <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="手心温度" />
         <View className="bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-6">
           <Text className="block text-2xl font-bold text-white mb-2">手心温度</Text>
           <Text className="block text-sm text-gray-200">加载中...</Text>
@@ -447,7 +449,7 @@ const TouchPage: FC = () => {
                             key={id}
                             size="sm"
                             variant="outline"
-                            className="rounded-lg"
+                            className="rounded-xl"
                             onClick={() => handleRetrySkipped(id)}
                           >
                             <Text className="text-xs">Lv.{id} {level.name}</Text>

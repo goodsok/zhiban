@@ -237,7 +237,7 @@ const TasksPage: FC = () => {
   const PhaseIcon = getPhaseIcon()
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
+    <View className="min-h-screen pb-28" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
       <CustomHeader title="任务" />
 
@@ -370,7 +370,7 @@ const TasksPage: FC = () => {
 
                             {/* 做任务的原因 */}
                             {task.reason && (
-                              <View className="mb-4 bg-amber-50 rounded-lg p-3">
+                              <View className="mb-4 bg-amber-50 rounded-xl p-3">
                                 <View className="flex items-center gap-3 mb-2">
                                   <Lightbulb size={14} color="#D97706" />
                                   <Text className="block text-xs font-medium text-amber-700">为什么做</Text>
@@ -381,7 +381,7 @@ const TasksPage: FC = () => {
 
                             {/* 执行步骤 */}
                             {task.steps && task.steps.length > 0 && (
-                              <View className="mb-2 bg-blue-50 rounded-lg p-3">
+                              <View className="mb-2 bg-blue-50 rounded-xl p-3">
                                 <View className="flex items-center gap-3 mb-2">
                                   <ListChecks size={14} color="#2563EB" />
                                   <Text className="block text-xs font-medium text-blue-700">执行步骤</Text>

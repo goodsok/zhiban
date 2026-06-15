@@ -257,7 +257,7 @@ export default function InteractionDetailPage() {
   const moodInfo = detail.mood ? MOOD_CONFIG[detail.mood] : null
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
+    <View className="min-h-screen pb-28" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title="互动详情" />
 
       {/* 头部卡片 - 类型标识 */}
@@ -439,7 +439,7 @@ export default function InteractionDetailPage() {
                 const RecordIcon = record.contentType === 'image' ? Image : FileText
                 return (
                   <View key={record.id} className="flex items-center gap-4 py-2 border-b border-gray-100 last:border-b-0">
-                    <View className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#EFF6FF' }}>
+                    <View className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#EFF6FF' }}>
                       <RecordIcon size={16} color="#3B82F6" />
                     </View>
                     <View className="flex-1">

@@ -1002,25 +1002,25 @@ const SpeedPlanPage: FC = () => {
               <Text className="block text-sm text-gray-500 mb-2">对象分析</Text>
               <View className="grid grid-cols-2 gap-4">
                 {selectedMatch.mbti && (
-                  <View className="bg-gray-50 rounded-lg p-2">
+                  <View className="bg-gray-50 rounded-xl p-2">
                     <Text className="block text-xs text-gray-400">MBTI</Text>
                     <Text className="block text-sm font-medium text-gray-900">{selectedMatch.mbti}</Text>
                   </View>
                 )}
                 {selectedMatch.attachment_type && (
-                  <View className="bg-gray-50 rounded-lg p-2">
+                  <View className="bg-gray-50 rounded-xl p-2">
                     <Text className="block text-xs text-gray-400">依恋类型</Text>
                     <Text className="block text-sm font-medium text-gray-900">{selectedMatch.attachment_type}</Text>
                   </View>
                 )}
                 {selectedMatch.cycle_phase && (
-                  <View className="bg-gray-50 rounded-lg p-2">
+                  <View className="bg-gray-50 rounded-xl p-2">
                     <Text className="block text-xs text-gray-400">周期阶段</Text>
                     <Text className="block text-sm font-medium text-gray-900">{getCyclePhaseLabel(selectedMatch.cycle_phase)}</Text>
                   </View>
                 )}
                 {selectedMatch.relationship_energy !== undefined && (
-                  <View className="bg-gray-50 rounded-lg p-2">
+                  <View className="bg-gray-50 rounded-xl p-2">
                     <Text className="block text-xs text-gray-400">关系能量</Text>
                     <Text className="block text-sm font-medium text-gray-900">{selectedMatch.relationship_energy}</Text>
                   </View>

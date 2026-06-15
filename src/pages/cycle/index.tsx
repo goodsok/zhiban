@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Activity, Calendar, ChevronLeft, Heart, Moon, Sun, Cloud, Info } from 'lucide-react-taro'
 import { Network } from '@/network'
+import CustomHeader from '@/components/custom-header'
 
 interface CycleInfo {
   day: number
@@ -327,10 +328,11 @@ export default function CyclePage() {
 
   return (
     <View className="flex-1 bg-gray-50 min-h-screen pb-8">
-      <View className="bg-gradient-to-b from-pink-50 to-gray-50 px-4 pt-12 pb-4">
+      <CustomHeader title="周期追踪" />
+      <View className="bg-gradient-to-b from-green-50 to-gray-50 px-4 pb-4">
         <View className="flex items-center gap-4 mb-2">
-          <View className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center">
-            <Activity size={20} color="#EC4899" />
+          <View className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+            <Activity size={20} color="#4ECB71" />
           </View>
           <View className="flex-1">
             <Text className="block text-lg font-bold text-gray-800">周期追踪</Text>

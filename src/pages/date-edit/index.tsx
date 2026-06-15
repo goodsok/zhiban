@@ -124,7 +124,7 @@ const DateEditPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
+    <View className="min-h-screen pb-28" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
       <CustomHeader title={isEdit ? '编辑约会' : '记录约会'} />
 
@@ -179,7 +179,7 @@ const DateEditPage: FC = () => {
             {moodOptions.map((option) => (
               <View
                 key={option.value}
-                className={`flex-1 text-center py-2 rounded-lg ${
+                className={`flex-1 text-center py-2 rounded-xl ${
                   mood === option.value ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'
                 }`}
                 onClick={() => setMood(option.value as typeof mood)}

@@ -282,7 +282,7 @@ const DatePlanPage: FC = () => {
           <Card className="mb-4">
             <CardContent className="p-4">
               {loading ? (
-                <Skeleton className="h-10 rounded-lg" />
+                <Skeleton className="h-10 rounded-xl" />
               ) : (
                 matches.map((match) => (
                   <View

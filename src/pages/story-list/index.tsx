@@ -121,7 +121,7 @@ const StoryListPage: FC = () => {
             <Text className="block text-gray-400 mb-2">还没有故事</Text>
             <Text className="block text-gray-400 text-sm mb-4">把你的故事变成高能量内容</Text>
             <View
-              className="inline-flex items-center gap-3 bg-green-500 text-white px-4 py-2 rounded-lg"
+              className="inline-flex items-center gap-3 bg-green-500 text-white px-4 py-2 rounded-xl"
               onClick={goToCreate}
             >
               <Plus size={16} color="#fff" />

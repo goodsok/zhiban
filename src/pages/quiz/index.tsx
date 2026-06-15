@@ -6,6 +6,7 @@ import { Network } from '@/network'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import CustomHeader from '@/components/custom-header'
 import { 
   Brain, 
   Heart, 
@@ -92,40 +93,43 @@ const QuizPage: FC = () => {
   // 介绍页
   if (currentStep === 'intro') {
     return (
-      <View className="min-h-screen p-4 flex flex-col items-center justify-center" style={{ backgroundColor: '#F7F8FA' }}>
-        <View className="w-24 h-24 rounded-full bg-pink-100 flex items-center justify-center mb-6">
-          <Brain size={48} color="#FF6B9D" />
-        </View>
-        <Text className="block text-2xl font-bold text-gray-800 mb-2">默契测试</Text>
-        <Text className="block text-gray-500 text-center mb-8">
-          回答问题，测试你们对彼此的了解程度
-        </Text>
-        <Button 
-          size="lg"
-          className="bg-pink-500 hover:bg-pink-600 w-48"
-          onClick={startQuiz}
-        >
-          <Heart size={20} color="#fff" className="mr-2" />
-          <Text>开始测试</Text>
-        </Button>
+      <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <CustomHeader title="默契测试" />
+        <View className="p-4 flex flex-col items-center justify-center pt-20">
+          <View className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-6">
+            <Brain size={48} color="#4ECB71" />
+          </View>
+          <Text className="block text-2xl font-bold text-gray-800 mb-2">默契测试</Text>
+          <Text className="block text-gray-500 text-center mb-8">
+            回答问题，测试你们对彼此的了解程度
+          </Text>
+          <Button 
+            size="lg"
+            className="bg-green-500 hover:bg-green-600 w-48 rounded-xl"
+            onClick={startQuiz}
+          >
+            <Heart size={20} color="#fff" className="mr-2" />
+            <Text>开始测试</Text>
+          </Button>
 
-        {/* 历史记录 */}
-        <View className="w-full mt-12">
-          <Text className="block text-sm text-gray-500 mb-4">历史最佳成绩</Text>
-          <Card className="shadow-soft border-0">
-            <CardContent className="p-4">
-              <View className="flex items-center justify-between">
-                <View className="flex items-center gap-4">
-                  <Trophy size={24} color="#F59E0B" />
-                  <View>
-                    <Text className="block font-semibold text-gray-800">默契度 85%</Text>
-                    <Text className="block text-sm text-gray-500">上次测试：3天前</Text>
+          {/* 历史记录 */}
+          <View className="w-full mt-12">
+            <Text className="block text-sm text-gray-500 mb-4">历史最佳成绩</Text>
+            <Card className="shadow-soft border-0">
+              <CardContent className="p-4">
+                <View className="flex items-center justify-between">
+                  <View className="flex items-center gap-4">
+                    <Trophy size={24} color="#F59E0B" />
+                    <View>
+                      <Text className="block font-semibold text-gray-800">默契度 85%</Text>
+                      <Text className="block text-sm text-gray-500">上次测试：3天前</Text>
+                    </View>
                   </View>
+                  <ChevronRight size={20} color="#9CA3AF" />
                 </View>
-                <ChevronRight size={20} color="#9CA3AF" />
-              </View>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </View>
         </View>
       </View>
     )
@@ -136,8 +140,10 @@ const QuizPage: FC = () => {
     const question = questions[currentQuestion]
     return (
       <View className="min-h-screen p-4" style={{ backgroundColor: '#F7F8FA' }}>
+        <CustomHeader title={`默契测试 ${currentQuestion + 1}/${questions.length}`} />
+
         {/* 进度 */}
-        <View className="mb-6">
+        <View className="mb-6 mt-2">
           <View className="flex items-center justify-between mb-2">
             <Text className="block text-sm text-gray-500">
               题目 {currentQuestion + 1}/{questions.length}
@@ -160,13 +166,13 @@ const QuizPage: FC = () => {
           <Card 
             key={index} 
             className={`mb-3 shadow-soft border-0 ${
-              selectedAnswer === index ? 'ring-2 ring-pink-500' : ''
+              selectedAnswer === index ? 'ring-2 ring-green-500' : ''
             }`}
             onClick={() => selectAnswer(index)}
           >
             <CardContent className="p-4">
               <Text className={`block text-base ${
-                selectedAnswer === index ? 'text-pink-500 font-medium' : 'text-gray-700'
+                selectedAnswer === index ? 'text-green-500 font-medium' : 'text-gray-700'
               }`}
               >
                 {option}
@@ -179,7 +185,7 @@ const QuizPage: FC = () => {
         <View className="mt-6">
           <Button
             size="lg"
-            className="w-full bg-pink-500 hover:bg-pink-600"
+            className="w-full bg-green-500 hover:bg-green-600 rounded-xl"
             disabled={selectedAnswer === null}
             onClick={nextQuestion}
           >
@@ -195,40 +201,43 @@ const QuizPage: FC = () => {
   // 结果页
   if (currentStep === 'result' && result) {
     return (
-      <View className="min-h-screen p-4 flex flex-col items-center justify-center" style={{ backgroundColor: '#F7F8FA' }}>
-        <Text className="block text-6xl mb-4">{result.percentage === 100 ? '🎉' : result.percentage >= 60 ? '💖' : '💪'}</Text>
-        <Text className="block text-2xl font-bold text-gray-800 mb-2">{result.title}</Text>
-        <Text className="block text-gray-500 mb-8">{result.message}</Text>
+      <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+        <CustomHeader title="测试结果" />
+        <View className="p-4 flex flex-col items-center justify-center pt-16">
+          <Text className="block text-6xl mb-4">{result.percentage === 100 ? '🎉' : result.percentage >= 60 ? '💖' : '💪'}</Text>
+          <Text className="block text-2xl font-bold text-gray-800 mb-2">{result.title}</Text>
+          <Text className="block text-gray-500 mb-8">{result.message}</Text>
 
-        <Card className="shadow-soft border-0 w-full mb-6">
-          <CardContent className="p-6">
-            <View className="flex items-center justify-between mb-4">
-              <Text className="block text-gray-500">默契度</Text>
-              <Text className="block text-3xl font-bold text-pink-500">{result.percentage}%</Text>
-            </View>
-            <Progress value={result.percentage} className="h-3" />
-            <View className="flex items-center justify-between mt-4">
-              <Text className="block text-sm text-gray-500">答对 {result.score}/{result.total} 题</Text>
-            </View>
-          </CardContent>
-        </Card>
+          <Card className="shadow-soft border-0 w-full mb-6">
+            <CardContent className="p-6">
+              <View className="flex items-center justify-between mb-4">
+                <Text className="block text-gray-500">默契度</Text>
+                <Text className="block text-3xl font-bold text-green-500">{result.percentage}%</Text>
+              </View>
+              <Progress value={result.percentage} className="h-3" />
+              <View className="flex items-center justify-between mt-4">
+                <Text className="block text-sm text-gray-500">答对 {result.score}/{result.total} 题</Text>
+              </View>
+            </CardContent>
+          </Card>
 
-        <View className="flex gap-4 w-full">
-          <Button
-            variant="outline"
-            size="lg"
-            className="flex-1"
-            onClick={() => setCurrentStep('intro')}
-          >
-            <Text>返回首页</Text>
-          </Button>
-          <Button
-            size="lg"
-            className="flex-1 bg-pink-500 hover:bg-pink-600"
-            onClick={startQuiz}
-          >
-            <Text>再测一次</Text>
-          </Button>
+          <View className="flex gap-4 w-full">
+            <Button
+              variant="outline"
+              size="lg"
+              className="flex-1 rounded-xl"
+              onClick={() => setCurrentStep('intro')}
+            >
+              <Text>返回首页</Text>
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1 bg-green-500 hover:bg-green-600 rounded-xl"
+              onClick={startQuiz}
+            >
+              <Text>再测一次</Text>
+            </Button>
+          </View>
         </View>
       </View>
     )

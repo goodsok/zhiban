@@ -104,7 +104,7 @@ const DatesPage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
+    <View className="min-h-screen pb-28" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
       <CustomHeader 
         title="约会记录" 

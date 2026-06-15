@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import CustomHeader from '@/components/custom-header'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -180,6 +181,7 @@ const QuickPage: FC = () => {
   if (loading) {
     return (
       <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="快速问答" />
         <View className="bg-gradient-to-r from-purple-500 to-violet-500 px-4 py-6">
           <Text className="block text-2xl font-bold text-white mb-2">快速问答</Text>
           <Text className="block text-sm text-gray-200">加载中...</Text>
@@ -326,7 +328,7 @@ const QuickPage: FC = () => {
 
             {/* 倒计时提示 */}
             {timeLeft <= 3 && selectedOption === null && (
-              <View className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
+              <View className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">
                 <View className="flex flex-row items-center justify-center">
                   <Clock size={16} color="#ef4444" />
                   <Text className="text-sm font-medium text-red-600 ml-2">

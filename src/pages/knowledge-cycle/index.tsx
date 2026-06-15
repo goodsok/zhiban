@@ -161,7 +161,7 @@ const KnowledgeCyclePage: FC = () => {
 
                       {/* 伴侣建议 */}
                       {phase.partner_tips && (
-                        <View className="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <View className="mt-3 p-3 bg-gray-50 rounded-xl">
                           <Text className="block text-xs font-medium text-gray-700 mb-1">给TA的建议</Text>
                           <Text className="block text-xs text-gray-600">{phase.partner_tips}</Text>
                         </View>

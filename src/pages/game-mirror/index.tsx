@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import CustomHeader from '@/components/custom-header'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -172,6 +173,7 @@ const MirrorPage: FC = () => {
   if (actionSets.length === 0) {
     return (
       <View className="flex items-center justify-center h-screen bg-gradient-to-b from-violet-50 to-purple-50">
+      <CustomHeader title="双人镜像" />
         <Text className="block text-gray-500">加载中...</Text>
       </View>
     )

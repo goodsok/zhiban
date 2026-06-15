@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import CustomHeader from '@/components/custom-header'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -202,6 +203,7 @@ const ChallengePage: FC = () => {
   if (loading) {
     return (
       <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="观察力挑战" />
         <View className="bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-6">
           <Text className="block text-2xl font-bold text-white mb-2">观察力挑战</Text>
           <Text className="block text-sm text-gray-200">加载中...</Text>

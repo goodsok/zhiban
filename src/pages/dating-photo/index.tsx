@@ -6,6 +6,7 @@ import { Camera, X, Star, Sparkles, Wand, ChevronDown, History, Trash2, Clock, C
 import { Network } from '@/network'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import CustomHeader from '@/components/custom-header'
 
 interface PhotoScore {
   overallScore: number
@@ -302,6 +303,7 @@ const DatingPhotoPage: FC = () => {
 
   return (
     <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="照片评分" />
       {/* 顶部说明 */}
       <View className="bg-amber-50 px-4 py-3">
         <View className="flex flex-row items-center justify-between">
@@ -366,7 +368,7 @@ const DatingPhotoPage: FC = () => {
                       </View>
                       <Text className="text-xs text-gray-400">{history.photoUrls?.length || 0}张照片</Text>
                     </View>
-                    <View className="p-2 rounded-lg active:bg-gray-100" onClick={(e) => handleDeleteHistory(history.id, e)}>
+                    <View className="p-2 rounded-xl active:bg-gray-100" onClick={(e) => handleDeleteHistory(history.id, e)}>
                       <Trash2 size={16} color="#9ca3af" />
                     </View>
                   </View>
@@ -597,7 +599,7 @@ const DatingPhotoPage: FC = () => {
                       </View>
                     </View>
                   </View>
-                  <View className="mt-3 p-3 bg-green-50 rounded-lg">
+                  <View className="mt-3 p-3 bg-green-50 rounded-xl">
                     <Text className="block text-xs text-green-700">
                       点击图片可查看大图。这是 AI 根据建议生成的示例照片，仅供参考。实际优化时，建议根据建议重新拍摄或调整。
                     </Text>

@@ -148,7 +148,7 @@ export default function InteractionsPage() {
   }
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
+    <View className="min-h-screen pb-28" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title="互动记录" />
 
       {/* 能量概览卡片 */}
@@ -335,7 +335,7 @@ export default function InteractionsPage() {
         }}
       >
         <Button
-          className="w-full py-4 rounded-2xl shadow-lg"
+          className="w-full py-4 rounded-2xl shadow-soft"
           style={{ backgroundColor: '#1f2937' }}
           onClick={goCreateInteraction}
         >

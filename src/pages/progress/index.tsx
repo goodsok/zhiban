@@ -12,6 +12,7 @@ import {
   Calendar,
   Plus
 } from 'lucide-react-taro'
+import CustomHeader from '@/components/custom-header'
 
 // 里程碑数据
 const milestones = [
@@ -55,9 +56,10 @@ const ProgressPage: FC = () => {
 
   return (
     <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="关系进度" />
       {/* 关系阶段卡片 */}
       <View className="p-4">
-        <Card className="shadow-soft border-0 bg-gradient-to-r from-pink-500 to-orange-400">
+        <Card className="shadow-soft border-0 bg-gradient-to-r from-green-500 to-teal-500">
           <CardContent className="p-4">
             <View className="flex items-center justify-between mb-4">
               <View>

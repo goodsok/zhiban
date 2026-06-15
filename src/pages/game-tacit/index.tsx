@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import CustomHeader from '@/components/custom-header'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -144,6 +145,7 @@ const TacitPage: FC = () => {
   if (loading) {
     return (
       <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="默契测试" />
         <View className="bg-gradient-to-r from-blue-500 to-cyan-500 px-4 py-6">
           <Text className="block text-2xl font-bold text-white mb-2">默契测试</Text>
           <Text className="block text-sm text-gray-200">加载中...</Text>
@@ -338,7 +340,7 @@ const TacitPage: FC = () => {
                   {selectedCategory.questions.map((q, index) => {
                     const isMatch = playerAAnswers[index] === playerBAnswers[index]
                     return (
-                      <View key={q.id} className="border rounded-lg p-3">
+                      <View key={q.id} className="border rounded-xl p-3">
                         <Text className="text-sm text-gray-500 mb-2">{q.question}</Text>
                         <View className="flex flex-row">
                           <View className="flex-1 mr-2">

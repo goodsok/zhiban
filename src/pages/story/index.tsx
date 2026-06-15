@@ -587,7 +587,7 @@ const StoryPage: FC = () => {
                 return (
                   <View
                     key={stage.code}
-                    className={`px-3 py-2 rounded-lg ${
+                    className={`px-3 py-2 rounded-xl ${
                       isSelected ? 'bg-green-500' : 'bg-gray-100'
                     }`}
                     onClick={() => handleStageSelect(stage.code)}

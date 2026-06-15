@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import CustomHeader from '@/components/custom-header'
 import { View, Text, ScrollView } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -103,6 +104,7 @@ const UnderstandPage: FC = () => {
   if (loading) {
     return (
       <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="深入了解问答" />
         <View className="bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-6">
           <Text className="block text-2xl font-bold text-white mb-2">深入了解问答</Text>
           <Text className="block text-sm text-gray-200">加载中...</Text>

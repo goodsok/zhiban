@@ -552,7 +552,7 @@ export default function DatingProfilePage() {
                     <Text className="block text-xs text-gray-400">{formatTime(selectedHistory.createdAt)}</Text>
                   </View>
                   <View
-                    className="p-2 rounded-lg"
+                    className="p-2 rounded-xl"
                     onClick={() => handleDeleteHistory(selectedHistory.id)}
                   >
                     <Trash2 size={16} color="#FF6B6B" />

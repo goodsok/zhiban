@@ -307,7 +307,7 @@ const PortraitPage: FC = () => {
 
       {/* Tab 切换 */}
       <View className="px-4 pt-4">
-        <View className="flex bg-gray-100 rounded-lg p-1">
+        <View className="flex bg-gray-100 rounded-xl p-1">
           {[
             { key: 'overview', label: '概览' },
             { key: 'interaction', label: '相处' },

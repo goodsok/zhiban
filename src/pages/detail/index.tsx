@@ -363,7 +363,7 @@ const DetailPage: FC = () => {
   const relationTypeConfig = RELATIONSHIP_TYPE_CONFIG[detail.relationshipType || 'undefined']
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
+    <View className="min-h-screen pb-28" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader 
         title="档案" 
       />
@@ -380,7 +380,7 @@ const DetailPage: FC = () => {
                 {/* 姓名可编辑 — 轻量化：点击变输入框，失焦保存 */}
                 {editingName ? (
                   <View className="flex items-center gap-2 mb-3">
-                    <View className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
+                    <View className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                       <Input
                         className="w-full text-xl font-bold"
                         value={nameValue}
@@ -391,7 +391,7 @@ const DetailPage: FC = () => {
                       />
                     </View>
                     <View 
-                      className="p-2 bg-green-500 rounded-lg"
+                      className="p-2 bg-green-500 rounded-xl"
                       onClick={saveName}
                     >
                       {saving ? <Loader size={14} color="#fff" className="animate-spin" /> : <Check size={14} color="#fff" />}
@@ -555,7 +555,7 @@ const DetailPage: FC = () => {
             {/* 核心指标行：推进值 + 能量 */}
             <View style={{ display: 'flex', flexDirection: 'row', gap: '12px' }}>
               {detail.progressScore && (
-                <View className="flex-1 bg-gray-50 rounded-lg p-3">
+                <View className="flex-1 bg-gray-50 rounded-xl p-3">
                   <View className="flex items-center gap-1 mb-1">
                     <TrendingUp size={12} color="#2E9E5A" />
                     <Text className="block text-xs text-gray-500">关系推进</Text>
@@ -571,7 +571,7 @@ const DetailPage: FC = () => {
               
               {detail.energy && (
                 <View 
-                  className="flex-1 bg-green-50 rounded-lg p-3"
+                  className="flex-1 bg-green-50 rounded-xl p-3"
                   onClick={() => navigateTo({ url: `/pages/interactions/index?matchId=${detail.id}` })}
                 >
                   <View className="flex items-center gap-1 mb-1">
@@ -594,7 +594,7 @@ const DetailPage: FC = () => {
                   const phaseConf = phaseConfig[cycleInfo.phase] || phaseConfig.follicular
                   const PhaseIcon = phaseConf.icon
                   return (
-                    <View className={`${phaseConf.bgColor} rounded-lg p-3`}>
+                    <View className={`${phaseConf.bgColor} rounded-xl p-3`}>
                       <View className="flex items-center justify-between">
                         <View className="flex items-center gap-2">
                           <PhaseIcon size={14} color={phaseConf.color} />
@@ -622,7 +622,7 @@ const DetailPage: FC = () => {
               </View>
               
               {showDataOverview && detail.progressScore && (
-                <View className="mt-2 bg-gray-50 rounded-lg p-3">
+                <View className="mt-2 bg-gray-50 rounded-xl p-3">
                   {detail.progressScore.breakdown && (
                     <View>
                       <View className="flex items-center justify-between mb-1">
@@ -770,13 +770,13 @@ const DetailPage: FC = () => {
             />
           <View className="flex justify-end gap-3 mt-4">
             <View 
-              className="px-4 py-2 bg-gray-100 rounded-lg"
+              className="px-4 py-2 bg-gray-100 rounded-xl"
               onClick={() => { setEditingNotes(false); setNotesValue(detail.notes || '') }}
             >
               <Text className="block text-sm text-gray-600">取消</Text>
             </View>
             <View 
-              className="px-4 py-2 bg-green-500 rounded-lg flex items-center gap-1"
+              className="px-4 py-2 bg-green-500 rounded-xl flex items-center gap-1"
               onClick={saveNotes}
             >
               {saving ? <Loader size={14} color="#fff" className="animate-spin" /> : <Check size={14} color="#fff" />}

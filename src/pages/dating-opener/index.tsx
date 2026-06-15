@@ -262,7 +262,7 @@ const DatingOpenerPage: FC = () => {
           {platformOptions.map((option) => (
             <View
               key={option.value}
-              className={`px-4 py-3 flex flex-row items-center justify-between ${platform === option.value ? 'bg-purple-50' : ''}`}
+              className={`px-4 py-3 flex flex-row items-center justify-between ${platform === option.value ? 'bg-green-50' : ''}`}
               onClick={() => { setPlatform(option.value); setShowPlatformPicker(false) }}
             >
               <View className="flex flex-row items-center">
@@ -270,7 +270,7 @@ const DatingOpenerPage: FC = () => {
                 <Text className="text-sm text-gray-700">{option.label}</Text>
                 <Text className="text-xs text-gray-400 ml-2">{option.desc}</Text>
               </View>
-              {platform === option.value && <Text className="text-purple-500">✓</Text>}
+              {platform === option.value && <Text className="text-green-500">✓</Text>}
             </View>
           ))}
         </View>
@@ -282,7 +282,7 @@ const DatingOpenerPage: FC = () => {
   const renderGenerateButton = () => (
     <Button
       variant="default"
-      className="w-full bg-purple-500 text-white rounded-2xl h-12 mb-4"
+      className="w-full bg-green-500 text-white rounded-2xl h-12 mb-4"
       disabled={!canGenerate}
       onClick={handleGenerate}
     >
@@ -302,7 +302,7 @@ const DatingOpenerPage: FC = () => {
         {/* 对方画像 */}
         <View className="bg-white rounded-2xl p-4 shadow-soft mb-3">
           <View className="flex flex-row items-center mb-3">
-            <User size={14} color="#9333ea" />
+            <User size={14} color="#22c55e" />
             <Text className="block text-sm font-medium text-gray-700 ml-2">对方画像分析</Text>
           </View>
           <Text className="block text-sm text-gray-600 leading-relaxed">{result.targetAnalysis}</Text>
@@ -310,14 +310,14 @@ const DatingOpenerPage: FC = () => {
 
         {/* 平台标签 + 重新生成 */}
         <View className="flex flex-row items-center justify-between mb-3">
-          <View className="bg-purple-100 rounded-full px-3 py-1 flex flex-row items-center">
+          <View className="bg-green-100 rounded-full px-3 py-1 flex flex-row items-center">
             <Text className="text-sm mr-1">{currentPlatform.icon}</Text>
-            <Text className="text-xs text-purple-600">{currentPlatform.label} 专属</Text>
+            <Text className="text-xs text-green-600">{currentPlatform.label} 专属</Text>
           </View>
-          <Button variant="outline" className="rounded-full border-purple-300 h-8 px-3" onClick={handleGenerate} disabled={loading}>
+          <Button variant="outline" className="rounded-full border-green-300 h-8 px-3" onClick={handleGenerate} disabled={loading}>
             <View className="flex flex-row items-center">
-              <RefreshCw size={14} color="#9333ea" />
-              <Text className="text-purple-600 text-xs ml-1">换一批</Text>
+              <RefreshCw size={14} color="#22c55e" />
+              <Text className="text-green-600 text-xs ml-1">换一批</Text>
             </View>
           </Button>
         </View>
@@ -337,12 +337,12 @@ const DatingOpenerPage: FC = () => {
           return (
             <View key={index} className="bg-white rounded-2xl p-4 shadow-soft mb-3">
               {/* 风格标签 */}
-              <View className="bg-purple-100 rounded-full px-3 py-1 self-start mb-3">
-                <Text className="text-xs text-purple-700">{suggestion.style}</Text>
+              <View className="bg-green-100 rounded-full px-3 py-1 self-start mb-3">
+                <Text className="text-xs text-green-700">{suggestion.style}</Text>
               </View>
 
               {/* 开场白内容 */}
-              <View className="bg-purple-50 rounded-xl px-4 py-3 mb-3">
+              <View className="bg-green-50 rounded-xl px-4 py-3 mb-3">
                 <Text className="block text-base text-gray-900 leading-relaxed">{suggestion.content}</Text>
               </View>
 
@@ -391,7 +391,7 @@ const DatingOpenerPage: FC = () => {
         <View className="px-4 py-3 border-b border-gray-100 flex flex-row items-center justify-between">
           <Text className="text-sm font-medium text-gray-900">历史记录</Text>
           <View onClick={() => setShowHistory(false)}>
-            <Text className="text-xs text-purple-500">关闭</Text>
+            <Text className="text-xs text-green-500">关闭</Text>
           </View>
         </View>
         {historyLoading && historyList.length === 0 ? (
@@ -423,7 +423,7 @@ const DatingOpenerPage: FC = () => {
                     </View>
                     <Text className="text-xs text-gray-400">{formatDate(history.createdAt)}</Text>
                   </View>
-                  <View className="p-2 rounded-lg active:bg-gray-100" onClick={(e) => handleDeleteHistory(history.id, e)}>
+                  <View className="p-2 rounded-xl active:bg-gray-100" onClick={(e) => handleDeleteHistory(history.id, e)}>
                     <Trash2 size={16} color="#9ca3af" />
                   </View>
                 </View>
@@ -431,7 +431,7 @@ const DatingOpenerPage: FC = () => {
             })}
             {historyList.length < historyTotal && (
               <View className="px-4 py-3 flex flex-col items-center" onClick={loadMoreHistory}>
-                <Text className="text-xs text-purple-500">{historyLoading ? '加载中...' : '加载更多'}</Text>
+                <Text className="text-xs text-green-500">{historyLoading ? '加载中...' : '加载更多'}</Text>
               </View>
             )}
           </View>
@@ -452,8 +452,8 @@ const DatingOpenerPage: FC = () => {
           {/* 对象信息头部 */}
           <View className="bg-white rounded-2xl p-4 shadow-soft mb-3">
             <View className="flex flex-row items-center gap-3">
-              <View className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <User size={20} color="#9333ea" />
+              <View className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <User size={20} color="#22c55e" />
               </View>
               <View className="flex-1">
                 <Text className="block text-base font-semibold text-gray-900">
@@ -463,7 +463,7 @@ const DatingOpenerPage: FC = () => {
                   {matchInfo?.gender && `${matchInfo.gender} · `}{matchInfo?.relationshipType || ''}
                 </Text>
               </View>
-              <View className="bg-purple-500 rounded-full px-3 py-1 flex flex-row items-center">
+              <View className="bg-green-500 rounded-full px-3 py-1 flex flex-row items-center">
                 <Sparkles size={12} color="#fff" />
                 <Text className="text-xs text-white ml-1">AI</Text>
               </View>
@@ -480,7 +480,7 @@ const DatingOpenerPage: FC = () => {
           <View className="bg-white rounded-2xl p-4 shadow-soft mb-3">
             <Text className="block text-sm font-medium text-gray-900 mb-2">我的风格（选填）</Text>
             <Textarea
-              wrapperClassName="bg-purple-50 rounded-xl p-3"
+              wrapperClassName="bg-green-50 rounded-xl p-3"
               className="w-full"
               style={{ minHeight: '80px' }}
               placeholder="描述你的风格偏好，如：比较幽默、喜欢直来直去..."
@@ -496,7 +496,7 @@ const DatingOpenerPage: FC = () => {
           {/* 加载态 */}
           {loading && (
             <View className="py-8 flex flex-col items-center">
-              <Loader size={24} color="#9333ea" className="animate-spin" />
+              <Loader size={24} color="#22c55e" className="animate-spin" />
               <Text className="text-sm text-gray-400 mt-3">AI 正在分析对方数据...</Text>
             </View>
           )}
@@ -521,15 +521,15 @@ const DatingOpenerPage: FC = () => {
           {/* 顶部提示 + 历史 */}
           <View className="px-4 py-3 flex flex-row items-center justify-between">
             <View className="flex flex-row items-center flex-1">
-              <MessageCircle size={16} color="#9333ea" />
-              <Text className="block text-sm text-purple-700 ml-2">输入对方资料，AI 生成多种风格开场白</Text>
+              <MessageCircle size={16} color="#22c55e" />
+              <Text className="block text-sm text-green-700 ml-2">输入对方资料，AI 生成多种风格开场白</Text>
             </View>
             <View
               className="flex flex-row items-center px-3 py-2 bg-white rounded-full shadow-soft"
               onClick={() => setShowHistory(!showHistory)}
             >
-              <History size={14} color="#9333ea" />
-              <Text className="text-xs text-purple-600 ml-1">历史</Text>
+              <History size={14} color="#22c55e" />
+              <Text className="text-xs text-green-600 ml-1">历史</Text>
             </View>
           </View>
 
@@ -570,7 +570,7 @@ const DatingOpenerPage: FC = () => {
             <View className="bg-white rounded-2xl p-4 shadow-soft mb-3">
               <Text className="block text-sm font-medium text-gray-900 mb-2">我的风格（选填）</Text>
               <Textarea
-                wrapperClassName="bg-purple-50 rounded-xl p-3"
+                wrapperClassName="bg-green-50 rounded-xl p-3"
                 className="w-full"
                 style={{ width: '100%', minHeight: '80px' }}
                 placeholder="描述你的风格偏好，如：比较幽默、喜欢直来直去..."
@@ -586,7 +586,7 @@ const DatingOpenerPage: FC = () => {
             {/* 加载态 */}
             {loading && (
               <View className="py-8 flex flex-col items-center">
-                <Loader size={24} color="#9333ea" className="animate-spin" />
+                <Loader size={24} color="#22c55e" className="animate-spin" />
                 <Text className="text-sm text-gray-400 mt-3">AI 正在分析对方资料...</Text>
               </View>
             )}

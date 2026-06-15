@@ -317,7 +317,7 @@ const UserProfilePage: FC = () => {
   }
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
+    <View className="min-h-screen pb-28" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title="我的档案" />
 
       {/* 置信度提示 */}
@@ -338,7 +338,7 @@ const UserProfilePage: FC = () => {
       {/* Tab 切换 */}
       <View className="px-4 pt-4">
         <ScrollView scrollX className="whitespace-nowrap">
-          <View className="flex bg-gray-100 rounded-lg p-1 inline-flex min-w-full">
+          <View className="flex bg-gray-100 rounded-xl p-1 inline-flex min-w-full">
             {[
               { key: 'basic', label: '基本信息' },
               { key: 'personality', label: '性格情感' },
@@ -376,7 +376,7 @@ const UserProfilePage: FC = () => {
             {/* 昵称 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">昵称</Text>
-              <View className="bg-gray-50 rounded-lg px-4 py-3">
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="请输入昵称"
@@ -394,7 +394,7 @@ const UserProfilePage: FC = () => {
                 {genderOptions.map((option) => (
                   <View
                     key={option.value}
-                    className={`flex-1 py-3 rounded-lg text-center ${
+                    className={`flex-1 py-3 rounded-xl text-center ${
                       profile.gender === option.value ? 'bg-green-500' : 'bg-gray-50'
                     }`}
                     onClick={() => updateProfile({ gender: option.value as 'male' | 'female' })}
@@ -410,7 +410,7 @@ const UserProfilePage: FC = () => {
             {/* 出生年份 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">出生年份</Text>
-              <View className="bg-gray-50 rounded-lg px-4 py-3">
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：1995"
@@ -425,7 +425,7 @@ const UserProfilePage: FC = () => {
             {/* 身高 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">身高 (cm)</Text>
-              <View className="bg-gray-50 rounded-lg px-4 py-3">
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：175"
@@ -444,7 +444,7 @@ const UserProfilePage: FC = () => {
                 {educationOptions.map((option) => (
                   <View
                     key={option.value}
-                    className={`px-3 py-2 rounded-lg border ${
+                    className={`px-3 py-2 rounded-xl border ${
                       profile.education === option.value ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                     }`}
                     onClick={() => updateProfile({ education: option.value })}
@@ -458,7 +458,7 @@ const UserProfilePage: FC = () => {
             {/* 职业 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">职业</Text>
-              <View className="bg-gray-50 rounded-lg px-4 py-3">
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：产品经理"
@@ -472,7 +472,7 @@ const UserProfilePage: FC = () => {
             {/* 所在地 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">所在地</Text>
-              <View className="bg-gray-50 rounded-lg px-4 py-3">
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
                 <Input
                   className="w-full bg-transparent text-sm"
                   placeholder="例如：北京"
@@ -487,7 +487,7 @@ const UserProfilePage: FC = () => {
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">自我介绍</Text>
               <Textarea
-                wrapperClassName="w-full bg-gray-50 rounded-lg px-4 py-3"
+                wrapperClassName="w-full bg-gray-50 rounded-xl px-4 py-3"
                 className="w-full text-sm"
                 placeholder="写几句话介绍自己..."
                 value={profile.bio || ''}
@@ -520,7 +520,7 @@ const UserProfilePage: FC = () => {
               {mbtiOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`rounded-lg p-2 text-center ${
+                  className={`rounded-xl p-2 text-center ${
                     profile.mbti === option.value
                       ? 'bg-blue-500 border-2 border-blue-500'
                       : 'bg-gray-50'
@@ -538,7 +538,7 @@ const UserProfilePage: FC = () => {
               ))}
             </View>
             {profile.mbti && (
-              <View className="mt-3 bg-blue-50 rounded-lg p-2">
+              <View className="mt-3 bg-blue-50 rounded-xl p-2">
                 <Text className="block text-xs text-blue-600">
                   {mbtiOptions.find(o => o.value === profile.mbti)?.desc}
                 </Text>
@@ -757,7 +757,7 @@ const UserProfilePage: FC = () => {
               {relationshipGoalOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                  className={`flex items-center justify-between p-3 rounded-xl border ${
                     profile.relationshipGoal === option.value ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => updateProfile({ relationshipGoal: option.value as any })}
@@ -778,7 +778,7 @@ const UserProfilePage: FC = () => {
               {attachmentStyleOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                  className={`flex items-center justify-between p-3 rounded-xl border ${
                     profile.attachmentStyle === option.value ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => updateProfile({ attachmentStyle: option.value as any })}
@@ -799,7 +799,7 @@ const UserProfilePage: FC = () => {
               {loveLanguageOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border ${
                     profile.loveLanguage.includes(option.value) ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => toggleArrayItem('loveLanguage', option.value)}
@@ -826,7 +826,7 @@ const UserProfilePage: FC = () => {
               {hobbyOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border ${
                     profile.hobbies.includes(option.value) ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => toggleArrayItem('hobbies', option.value)}
@@ -848,7 +848,7 @@ const UserProfilePage: FC = () => {
               {interestOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border ${
                     profile.interests.includes(option.value) ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => toggleArrayItem('interests', option.value)}
@@ -875,7 +875,7 @@ const UserProfilePage: FC = () => {
               {preferredTraitOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`px-3 py-2 rounded-lg border ${
+                  className={`px-3 py-2 rounded-xl border ${
                     profile.preferredTraits.includes(option.value) ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => toggleArrayItem('preferredTraits', option.value)}
@@ -896,7 +896,7 @@ const UserProfilePage: FC = () => {
               {dealBreakerOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`px-3 py-2 rounded-lg border ${
+                  className={`px-3 py-2 rounded-xl border ${
                     profile.dealBreakers.includes(option.value) ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => toggleArrayItem('dealBreakers', option.value)}
@@ -923,7 +923,7 @@ const UserProfilePage: FC = () => {
               {communicationStyleOnlineOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                  className={`flex items-center justify-between p-3 rounded-xl border ${
                     profile.behavior?.communicationStyleOnline === option.value ? 'border-blue-500 bg-blue-50' : 'bg-gray-50'
                   }`}
                   onClick={() => setProfile(prev => ({
@@ -951,7 +951,7 @@ const UserProfilePage: FC = () => {
               {communicationStyleOfflineOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                  className={`flex items-center justify-between p-3 rounded-xl border ${
                     profile.behavior?.communicationStyleOffline === option.value ? 'border-green-500 bg-white' : 'bg-gray-50'
                   }`}
                   onClick={() => setProfile(prev => ({
@@ -968,7 +968,7 @@ const UserProfilePage: FC = () => {
             </View>
             {profile.behavior?.communicationStyleOnline && profile.behavior?.communicationStyleOffline &&
              profile.behavior.communicationStyleOnline !== profile.behavior.communicationStyleOffline && (
-              <View className="mt-3 p-2 rounded-lg bg-amber-50 border border-amber-200">
+              <View className="mt-3 p-2 rounded-xl bg-amber-50 border border-amber-200">
                 <Text className="block text-xs text-amber-700">线上线下风格不同，很多人都有这种反差</Text>
               </View>
             )}
@@ -981,7 +981,7 @@ const UserProfilePage: FC = () => {
               {responseSpeedOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                  className={`flex items-center justify-between p-3 rounded-xl border ${
                     profile.behavior?.responseSpeed === option.value ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => setProfile(prev => ({
@@ -1005,7 +1005,7 @@ const UserProfilePage: FC = () => {
               {socialEnergyOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                  className={`flex items-center justify-between p-3 rounded-xl border ${
                     profile.behavior?.socialEnergy === option.value ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => setProfile(prev => ({
@@ -1029,7 +1029,7 @@ const UserProfilePage: FC = () => {
               {timeSlotOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border ${
                     (profile.behavior?.activeTimeSlots || []).includes(option.value) ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => toggleBehaviorArray('activeTimeSlots', option.value)}
@@ -1048,7 +1048,7 @@ const UserProfilePage: FC = () => {
               {expressionStyleOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                  className={`flex items-center justify-between p-3 rounded-xl border ${
                     profile.behavior?.expressionStyle === option.value ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => setProfile(prev => ({
@@ -1072,7 +1072,7 @@ const UserProfilePage: FC = () => {
               {topicOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border ${
                     (profile.behavior?.preferredTopics || []).includes(option.value) ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => toggleBehaviorArray('preferredTopics', option.value)}
@@ -1091,7 +1091,7 @@ const UserProfilePage: FC = () => {
               {topicOptions.map((option) => (
                 <View
                   key={option.value}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border ${
                     (profile.behavior?.topicAvoid || []).includes(option.value) ? 'border-green-500 bg-green-50' : 'bg-gray-50'
                   }`}
                   onClick={() => {

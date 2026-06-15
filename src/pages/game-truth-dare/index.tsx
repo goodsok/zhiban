@@ -6,6 +6,7 @@ import { Heart, Shuffle, RotateCcw, Sparkles, ArrowRight, Check } from 'lucide-r
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Network } from '@/network'
+import CustomHeader from '@/components/custom-header'
 
 const TruthDarePage: FC = () => {
   const [mode, setMode] = useState<'truth' | 'dare'>('truth')
@@ -78,7 +79,8 @@ const TruthDarePage: FC = () => {
   if (loading) {
     return (
       <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
-        <View className="bg-gradient-to-r from-rose-500 to-pink-500 px-4 py-6">
+        <CustomHeader title="真心话大冒险" />
+        <View className="bg-gradient-to-r from-green-500 to-teal-500 px-4 py-6">
           <Text className="block text-2xl font-bold text-white mb-2">真心话大冒险</Text>
           <Text className="block text-sm text-gray-200">加载中...</Text>
         </View>
@@ -88,8 +90,10 @@ const TruthDarePage: FC = () => {
 
   return (
     <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="真心话大冒险" />
+
       {/* 顶部 */}
-      <View className="bg-gradient-to-r from-rose-500 to-pink-500 px-4 py-6">
+      <View className="bg-gradient-to-r from-green-500 to-teal-500 px-4 py-6">
         <Text className="block text-2xl font-bold text-white mb-2">真心话大冒险</Text>
         <Text className="block text-sm text-gray-200">
           经典破冰游戏，快速拉近距离
@@ -100,8 +104,8 @@ const TruthDarePage: FC = () => {
       <View className="bg-white px-4 py-3">
         <View className="flex flex-row bg-gray-100 rounded-xl p-1">
           <View 
-            className={`flex-1 py-2 rounded-lg flex flex-row items-center justify-center ${
-              mode === 'truth' ? 'bg-rose-500' : ''
+            className={`flex-1 py-2 rounded-xl flex flex-row items-center justify-center ${
+              mode === 'truth' ? 'bg-green-500' : ''
             }`}
             onClick={() => handleSwitchMode('truth')}
           >
@@ -111,8 +115,8 @@ const TruthDarePage: FC = () => {
             </Text>
           </View>
           <View 
-            className={`flex-1 py-2 rounded-lg flex flex-row items-center justify-center ${
-              mode === 'dare' ? 'bg-pink-500' : ''
+            className={`flex-1 py-2 rounded-xl flex flex-row items-center justify-center ${
+              mode === 'dare' ? 'bg-green-500' : ''
             }`}
             onClick={() => handleSwitchMode('dare')}
           >
@@ -127,11 +131,11 @@ const TruthDarePage: FC = () => {
       {/* 游戏区域 */}
       <View className="p-4">
         {!currentQuestion ? (
-          <Card className="bg-gradient-to-br from-rose-50 to-pink-50 border-rose-100">
+          <Card className="bg-gradient-to-br from-green-50 to-teal-50 border-green-100">
             <CardContent className="py-8">
               <View className="flex flex-col items-center">
                 <View className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
-                  <Shuffle size={32} color="#f43f5e" />
+                  <Shuffle size={32} color="#4ECB71" />
                 </View>
                 <Text className="block text-lg font-semibold text-gray-900 mb-2">准备开始</Text>
                 <Text className="block text-sm text-gray-500 text-center mb-6 leading-relaxed">
@@ -141,7 +145,7 @@ const TruthDarePage: FC = () => {
                   }
                 </Text>
                 <Button
-                  className="bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl px-8 py-3"
+                  className="bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl px-8 py-3"
                   onClick={handleNewQuestion}
                 >
                   <Text className="text-white font-medium">开始挑战</Text>
@@ -154,7 +158,7 @@ const TruthDarePage: FC = () => {
             <Card className="mb-4">
               <CardContent className="py-8">
                 <View className="flex flex-col items-center">
-                  <Text className="block text-xs text-rose-500 font-medium mb-4">
+                  <Text className="block text-xs text-green-500 font-medium mb-4">
                     {mode === 'truth' ? '真心话' : '大冒险'}
                   </Text>
                   {isRevealed ? (
@@ -163,8 +167,8 @@ const TruthDarePage: FC = () => {
                     </Text>
                   ) : (
                     <View className="flex flex-col items-center">
-                      <View className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-4">
-                        <Heart size={24} color="#f43f5e" />
+                      <View className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                        <Heart size={24} color="#4ECB71" />
                       </View>
                       <Text className="block text-sm text-gray-500">准备好了吗？</Text>
                     </View>
@@ -177,7 +181,7 @@ const TruthDarePage: FC = () => {
             <View className="space-y-3">
               {!isRevealed ? (
                 <Button
-                  className="bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl py-3"
+                  className="bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl py-3"
                   onClick={() => setIsRevealed(true)}
                 >
                   <View className="flex flex-row items-center justify-center">
@@ -188,7 +192,7 @@ const TruthDarePage: FC = () => {
               ) : (
                 <>
                   <Button
-                    className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl py-3"
+                    className="bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl py-3"
                     onClick={handleNewQuestion}
                   >
                     <View className="flex flex-row items-center justify-center">
@@ -217,8 +221,8 @@ const TruthDarePage: FC = () => {
                 <Text className="block text-sm font-medium text-gray-500 mb-4">历史记录</Text>
                 <View className="space-y-2">
                   {history.slice(0, 5).map((item, index) => (
-                    <View key={index} className="bg-white rounded-lg px-4 py-3 flex flex-row items-start">
-                      <Check size={16} color="#22c55e" className="mt-1 mr-2 flex-shrink-0" />
+                    <View key={index} className="bg-white rounded-2xl px-4 py-3 flex flex-row items-start">
+                      <Check size={16} color="#4ECB71" className="mt-1 mr-2 flex-shrink-0" />
                       <Text className="text-sm text-gray-700 flex-1">{item}</Text>
                     </View>
                   ))}
@@ -232,7 +236,7 @@ const TruthDarePage: FC = () => {
       {/* 底部提示 */}
       <View className="bg-white border-t px-4 py-3 mt-4">
         <View className="flex flex-row items-center">
-          <Sparkles size={16} color="#f43f5e" />
+          <Sparkles size={16} color="#4ECB71" />
           <Text className="block text-xs text-gray-500 ml-2">
             提示：真诚回答会让对方更了解你，勇敢尝试增加趣味性
           </Text>

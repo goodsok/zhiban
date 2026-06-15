@@ -170,7 +170,7 @@ const MomentsAnalyzePage: FC = () => {
             <Text className="block text-base font-semibold text-gray-900 mb-2">推断的兴趣</Text>
             <View className="flex flex-wrap gap-3">
               {analysis.result.interests.map((interest, index) => (
-                <View key={index} className="px-3 py-1 bg-purple-50 rounded-lg">
+                <View key={index} className="px-3 py-1 bg-purple-50 rounded-xl">
                   <Text className="block text-sm text-purple-600">{interest}</Text>
                 </View>
               ))}
@@ -276,7 +276,7 @@ const MomentsAnalyzePage: FC = () => {
                 return (
                   <View
                     key={match.id}
-                    className={`px-3 py-2 rounded-lg ${
+                    className={`px-3 py-2 rounded-xl ${
                       isSelected ? 'bg-green-500' : 'bg-gray-100'
                     }`}
                     onClick={() => setSelectedMatch(match)}

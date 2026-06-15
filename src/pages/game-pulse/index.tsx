@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import CustomHeader from '@/components/custom-header'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -169,6 +170,7 @@ const PulsePage: FC = () => {
   if (proximityChallenges.length === 0) {
     return (
       <View className="flex items-center justify-center h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="心跳同步" />
         <Text className="block text-gray-500">加载中...</Text>
       </View>
     )

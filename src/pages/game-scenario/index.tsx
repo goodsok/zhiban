@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import CustomHeader from '@/components/custom-header'
 import { View, Text } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -126,6 +127,7 @@ const ScenarioPage: FC = () => {
   if (loading) {
     return (
       <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="情景模拟" />
         <View className="bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-6">
           <Text className="block text-2xl font-bold text-white mb-2">情景模拟</Text>
           <Text className="block text-sm text-gray-200">加载中...</Text>
@@ -205,7 +207,7 @@ const ScenarioPage: FC = () => {
                     {selectedScenario.situations[currentSituationIndex].context}
                   </Text>
                 </View>
-                <View className="bg-white rounded-lg px-3 py-2 mt-3">
+                <View className="bg-white rounded-xl px-3 py-2 mt-3">
                   <Text className="text-sm font-medium text-gray-900">
                     {selectedScenario.situations[currentSituationIndex].question}
                   </Text>

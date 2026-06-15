@@ -168,7 +168,7 @@ const CreatePage: FC = () => {
   const isValid = formData.name
 
   return (
-    <View className="min-h-screen pb-24" style={{ backgroundColor: '#F7F8FA' }}>
+    <View className="min-h-screen pb-28" style={{ backgroundColor: '#F7F8FA' }}>
       {/* 顶部 */}
       <CustomHeader title="新建档案" />
 
@@ -188,12 +188,12 @@ const CreatePage: FC = () => {
                   <View key={index} className="relative">
                     <Image 
                       src={img.path} 
-                      className="w-20 h-20 rounded-lg object-cover"
+                      className="w-20 h-20 rounded-xl object-cover"
                       mode="aspectFill"
                     />
                     {/* 分析中遮罩 */}
                     {img.analyzing && (
-                      <View className="absolute inset-0 bg-green-500 bg-opacity-50 rounded-lg flex items-center justify-center">
+                      <View className="absolute inset-0 bg-green-500 bg-opacity-50 rounded-xl flex items-center justify-center">
                         <Loader size={16} color="#fff" className="animate-spin" />
                       </View>
                     )}
@@ -212,7 +212,7 @@ const CreatePage: FC = () => {
             {/* 上传按钮 */}
             {selectedImages.length < 3 && (
               <View 
-                className="flex items-center justify-center py-4 border-2 border-dashed border-gray-300 rounded-lg"
+                className="flex items-center justify-center py-4 border-2 border-dashed border-gray-300 rounded-xl"
                 onClick={handleChooseImage}
               >
                 <View className="text-center">
@@ -262,7 +262,7 @@ const CreatePage: FC = () => {
           <Text className="block text-xs text-gray-400 mb-2">性别</Text>
           <View className="flex gap-3">
             <View 
-              className={`flex-1 text-center py-2 rounded-lg ${
+              className={`flex-1 text-center py-2 rounded-xl ${
                 formData.gender === 'female' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'
               }`}
               onClick={() => setFormData({ ...formData, gender: 'female' })}
@@ -270,7 +270,7 @@ const CreatePage: FC = () => {
               <Text className="block text-sm">女</Text>
             </View>
             <View 
-              className={`flex-1 text-center py-2 rounded-lg ${
+              className={`flex-1 text-center py-2 rounded-xl ${
                 formData.gender === 'male' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'
               }`}
               onClick={() => setFormData({ ...formData, gender: 'male' })}

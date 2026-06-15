@@ -5,6 +5,7 @@ import type { FC } from 'react'
 import { User, Image, MessageSquare, Sparkles, ChevronRight } from 'lucide-react-taro'
 import { Network } from '@/network'
 import { Card, CardContent } from '@/components/ui/card'
+import CustomHeader from '@/components/custom-header'
 
 interface FeatureStatus {
   profileCount: number
@@ -30,8 +31,8 @@ const features: DatingFeature[] = [
     subtitle: 'AI分析你的交友资料，给出专业优化建议',
     icon: User,
     pagePath: '/pages/dating-profile/index',
-    iconBg: 'bg-blue-100',
-    iconColor: '#3b82f6',
+    iconBg: 'bg-green-100',
+    iconColor: '#4ECB71',
     statusKey: 'profileCount',
   },
   {
@@ -96,8 +97,8 @@ const DatingAppPage: FC = () => {
     const count = featureStatus[feature.statusKey]
     if (count > 0) {
       return (
-        <View className="bg-rose-100 rounded-full px-2 py-0">
-          <Text className="text-xs text-rose-600">已用{count}次</Text>
+        <View className="bg-green-100 rounded-full px-2 py-0">
+          <Text className="text-xs text-green-600">已用{count}次</Text>
         </View>
       )
     }
@@ -118,13 +119,15 @@ const DatingAppPage: FC = () => {
 
   return (
     <View className="min-h-screen pb-20" style={{ backgroundColor: '#F7F8FA' }}>
+      <CustomHeader title="交友软件助手" />
+
       {/* 顶部标题区 */}
-      <View className="bg-gradient-to-br from-rose-500 to-pink-500 px-4 py-6">
+      <View className="bg-gradient-to-br from-green-500 to-teal-500 px-4 py-6">
         <View className="flex flex-row items-center justify-center mb-2">
           <Sparkles size={24} color="#fff" />
           <Text className="block text-xl font-bold text-white ml-2">交友软件助手</Text>
         </View>
-        <Text className="block text-sm text-center text-rose-100">
+        <Text className="block text-sm text-center text-green-100">
           优化你的交友资料，提升匹配率
         </Text>
       </View>
@@ -136,7 +139,7 @@ const DatingAppPage: FC = () => {
           return (
             <Card
               key={feature.id}
-              className="mb-4"
+              className="mb-4 shadow-soft"
               onClick={() => goToFeature(feature.pagePath)}
             >
               <CardContent className="py-4 flex flex-row items-center">
@@ -163,23 +166,23 @@ const DatingAppPage: FC = () => {
 
       {/* 使用提示 */}
       <View className="px-4 mt-4">
-        <Card className="bg-rose-50 border-0">
+        <Card className="bg-green-50 border-0">
           <CardContent className="py-4">
-            <Text className="block text-sm font-medium text-rose-700 mb-2">使用技巧</Text>
-            <Text className="block text-xs text-rose-600 leading-relaxed">
+            <Text className="block text-sm font-medium text-green-700 mb-2">使用技巧</Text>
+            <Text className="block text-xs text-green-600 leading-relaxed">
               {getNextStep() || '建议先完成「资料优化」，再进行「照片评分」，最后使用「开场白生成」获得最佳效果。三项优化完成后，匹配率可提升 50% 以上！'}
             </Text>
             {!loading && featureStatus && (
               <View className="mt-3 flex flex-row gap-3">
-                <View className="flex-1 bg-white rounded-lg p-2 flex flex-col items-center">
-                  <Text className="block text-lg font-bold text-blue-500">{featureStatus.profileCount}</Text>
+                <View className="flex-1 bg-white rounded-xl p-2 flex flex-col items-center">
+                  <Text className="block text-lg font-bold text-green-500">{featureStatus.profileCount}</Text>
                   <Text className="block text-xs text-gray-500">资料优化</Text>
                 </View>
-                <View className="flex-1 bg-white rounded-lg p-2 flex flex-col items-center">
+                <View className="flex-1 bg-white rounded-xl p-2 flex flex-col items-center">
                   <Text className="block text-lg font-bold text-amber-500">{featureStatus.photoCount}</Text>
                   <Text className="block text-xs text-gray-500">照片评分</Text>
                 </View>
-                <View className="flex-1 bg-white rounded-lg p-2 flex flex-col items-center">
+                <View className="flex-1 bg-white rounded-xl p-2 flex flex-col items-center">
                   <Text className="block text-lg font-bold text-green-500">{featureStatus.openerCount}</Text>
                   <Text className="block text-xs text-gray-500">开场白</Text>
                 </View>
