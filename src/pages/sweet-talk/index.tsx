@@ -213,15 +213,14 @@ const SweetTalkPage: FC = () => {
 
         {/* 自定义上下文 */}
         <Text className="block text-sm font-semibold text-gray-900 mb-4">补充要求（选填）</Text>
-        <View className="bg-gray-50 rounded-2xl p-4 mb-6">
-          <Textarea
-            style={{ width: '100%', minHeight: '60px', backgroundColor: 'transparent' }}
-            placeholder="如：我们刚认识一周、她喜欢猫、昨晚吵架了..."
-            maxlength={200}
-            value={customContext}
-            onInput={(e) => setCustomContext(e.detail.value)}
-          />
-        </View>
+        <Textarea
+          className="bg-gray-50 rounded-2xl p-4 mb-6"
+          style={{ width: '100%', minHeight: '60px' }}
+          placeholder="如：我们刚认识一周、她喜欢猫、昨晚吵架了..."
+          maxlength={200}
+          value={customContext}
+          onInput={(e) => setCustomContext(e.detail.value)}
+        />
 
         {/* 生成按钮 */}
         <Button

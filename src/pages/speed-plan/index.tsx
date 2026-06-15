@@ -1050,14 +1050,12 @@ const SpeedPlanPage: FC = () => {
               <Text className="block text-base font-semibold text-gray-900">互动背景</Text>
             </View>
             
-            <View className="mb-4">
-              <Textarea
-                className="w-full h-24"
-                placeholder="描述互动背景，例如：相亲认识一周，微信聊了几天..."
-                value={background}
-                onInput={(e) => handleBackgroundChange(e.detail.value)}
-              />
-            </View>
+            <Textarea
+              className="w-full h-24 mb-4"
+              placeholder="描述互动背景，例如：相亲认识一周，微信聊了几天..."
+              value={background}
+              onInput={(e) => handleBackgroundChange(e.detail.value)}
+            />
 
             <Text className="block text-sm text-gray-500 mb-4">当前进展（可多选）</Text>
             

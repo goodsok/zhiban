@@ -481,15 +481,14 @@ const DatingProfilePage: FC = () => {
             {/* 个人简介 */}
             <View className="mb-4">
               <Text className="block text-sm font-medium text-gray-700 mb-2">个人简介</Text>
-              <View className="bg-gray-50 rounded-xl p-4">
-                <Textarea
-                  style={{ width: '100%', height: '256px', backgroundColor: 'transparent' }}
-                  placeholder="粘贴你的个人简介..."
-                  maxlength={500}
-                  value={bio}
-                  onInput={(e) => setBio(e.detail.value)}
-                />
-              </View>
+              <Textarea
+                className="bg-gray-50 rounded-xl p-4"
+                style={{ width: '100%', height: '256px' }}
+                placeholder="粘贴你的个人简介..."
+                maxlength={500}
+                value={bio}
+                onInput={(e) => setBio(e.detail.value)}
+              />
               <Text className="block text-xs text-gray-400 mt-1">{bio.length}/500</Text>
             </View>
 
@@ -696,15 +695,14 @@ const DatingProfilePage: FC = () => {
 
                   {/* 输入框 */}
                   <View className="flex flex-row gap-3 items-end">
-                    <View className="flex-1 bg-gray-50 rounded-xl px-4 py-2">
-                      <Textarea
-                        style={{ width: '100%', minHeight: '36px', maxHeight: '80px', backgroundColor: 'transparent' }}
-                        placeholder="输入你的问题..."
-                        maxlength={500}
-                        value={chatInput}
-                        onInput={(e) => setChatInput(e.detail.value)}
-                      />
-                    </View>
+                    <Textarea
+                      className="flex-1 bg-gray-50 rounded-xl px-4 py-2"
+                      style={{ width: '100%', minHeight: '36px', maxHeight: '80px' }}
+                      placeholder="输入你的问题..."
+                      maxlength={500}
+                      value={chatInput}
+                      onInput={(e) => setChatInput(e.detail.value)}
+                    />
                     <View
                       className={`rounded-xl p-2 ${chatInput.trim() && !chatLoading ? 'bg-blue-500' : 'bg-gray-200'}`}
                       onClick={handleSendMessage}

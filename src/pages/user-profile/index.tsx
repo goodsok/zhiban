@@ -486,15 +486,13 @@ const UserProfilePage: FC = () => {
             {/* 自我介绍 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">自我介绍</Text>
-              <View className="bg-gray-50 rounded-lg px-4 py-3">
-                <Textarea
-                  className="w-full bg-transparent text-sm"
-                  placeholder="写几句话介绍自己..."
-                  value={profile.bio || ''}
-                  onInput={(e) => updateProfile({ bio: e.detail.value })}
-                  maxlength={500}
-                />
-              </View>
+              <Textarea
+                className="w-full bg-gray-50 rounded-lg px-4 py-3 text-sm"
+                placeholder="写几句话介绍自己..."
+                value={profile.bio || ''}
+                onInput={(e) => updateProfile({ bio: e.detail.value })}
+                maxlength={500}
+              />
             </View>
           </View>
         </View>

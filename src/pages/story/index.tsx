@@ -641,15 +641,13 @@ const StoryPage: FC = () => {
             {/* 原始故事 */}
             <View className="mb-4">
               <Text className="block text-sm font-medium text-gray-700 mb-2">原始故事</Text>
-              <View className="bg-gray-50 rounded-xl p-3">
-                <Textarea
-                  className="w-full"
-                  style={{ minHeight: '100px' }}
-                  placeholder="把你的故事原始版本写在这里..."
-                  value={originalContent}
-                  onInput={(e) => setOriginalContent(e.detail.value)}
-                />
-              </View>
+              <Textarea
+                className="w-full bg-gray-50 rounded-xl p-3"
+                style={{ minHeight: '100px' }}
+                placeholder="把你的故事原始版本写在这里..."
+                value={originalContent}
+                onInput={(e) => setOriginalContent(e.detail.value)}
+              />
             </View>
 
             {/* 关键要素 */}
