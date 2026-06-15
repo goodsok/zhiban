@@ -143,6 +143,7 @@ const TwinChatPage = () => {
   const [loading, setLoading] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(true)
   const [statusBarHeight, setStatusBarHeight] = useState(0)
+  const [capsuleRight, setCapsuleRight] = useState(0)
   const [headerHeight, setHeaderHeight] = useState(0)
   const [showClearDialog, setShowClearDialog] = useState(false)
   const [scrollTop, setScrollTop] = useState(0)
@@ -167,10 +168,21 @@ const TwinChatPage = () => {
   const [newMilestones, setNewMilestones] = useState<Array<{ title: string; description?: string }>>([])
   const [topicSensitivity, setTopicSensitivity] = useState<string | null>(null)
 
-  // 获取状态栏高度
+  // 获取状态栏高度和胶囊按钮位置
   useEffect(() => {
     const systemInfo = Taro.getSystemInfoSync()
     setStatusBarHeight(systemInfo.statusBarHeight || 0)
+    // 获取小程序胶囊按钮位置，H5 端无胶囊
+    try {
+      const menuButton = Taro.getMenuButtonBoundingClientRect()
+      if (menuButton && menuButton.right) {
+        // 胶囊按钮距右边的距离 + 一定间距
+        const screenWidth = systemInfo.windowWidth || 375
+        setCapsuleRight(screenWidth - menuButton.left + 8)
+      }
+    } catch {
+      // H5 端无胶囊按钮
+    }
   }, [])
 
   // 计算顶栏高度（状态栏 + 44px导航栏 + 状态面板高度）
@@ -487,7 +499,7 @@ const TwinChatPage = () => {
           borderBottom: '1px solid rgba(255,255,255,0.06)'
         }}
       >
-        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', height: '44px', padding: '0 12px' }}>
+        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', height: '44px', paddingLeft: '12px', paddingRight: capsuleRight ? `${capsuleRight}px` : '12px' }}>
           <View onClick={() => Taro.navigateBack()} style={{ padding: '8px' }}>
             <ArrowLeft size={20} color="#E7E9EA" />
           </View>
