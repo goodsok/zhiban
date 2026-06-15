@@ -758,15 +758,17 @@ const DetailPage: FC = () => {
               <Text className="block text-xs text-gray-500">记录你对 TA 的观察和想法</Text>
             </DialogDescription>
           </DialogHeader>
-            <Textarea
-              className="bg-gray-50 rounded-xl p-3"
-              style={{ width: '100%', minHeight: '120px' }}
-              value={notesValue}
-              onInput={(e) => setNotesValue(e.detail.value)}
-              placeholder="添加备注..."
-              maxlength={500}
-              autoFocus
-            />
+            <View className="bg-gray-50 rounded-xl p-3">
+              <Textarea
+                className="w-full"
+                style={{ minHeight: '120px' }}
+                value={notesValue}
+                onInput={(e) => setNotesValue(e.detail.value)}
+                placeholder="添加备注..."
+                maxlength={500}
+                autoFocus
+              />
+            </View>
           <View className="flex justify-end gap-3 mt-4">
             <View 
               className="px-4 py-2 bg-gray-100 rounded-lg"

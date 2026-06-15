@@ -234,14 +234,16 @@ const DateEditPage: FC = () => {
               <Text className="ml-1">AI提取</Text>
             </Badge>
           </View>
-          <Textarea
-            className="bg-white rounded-2xl shadow-soft p-4"
-            style={{ width: '100%', minHeight: '100px' }}
-            placeholder="记录约会内容，AI会自动提取关键信息..."
-            value={notes}
-            onInput={(e) => setNotes(e.detail.value)}
-            maxlength={500}
-          />
+          <View className="bg-white rounded-2xl shadow-soft p-4">
+            <Textarea
+              className="w-full"
+              style={{ minHeight: '100px' }}
+              placeholder="记录约会内容，AI会自动提取关键信息..."
+              value={notes}
+              onInput={(e) => setNotes(e.detail.value)}
+              maxlength={500}
+            />
+          </View>
           <Text className="block text-xs text-gray-300 text-right mt-1">{notes.length}/500</Text>
         </View>
       </View>

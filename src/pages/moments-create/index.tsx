@@ -459,13 +459,15 @@ const MomentsCreatePage: FC = () => {
             </View>
             
             <View className="mb-4">
-              <Textarea
-                className="w-full bg-gray-50 rounded-xl p-3"
-                style={{ minHeight: '120px' }}
-                placeholder="描述今天发生了什么、想传达什么信息、有什么感受..."
-                value={inputContent}
-                onInput={(e) => setInputContent(e.detail.value)}
-              />
+              <View className="w-full bg-gray-50 rounded-xl p-3">
+                <Textarea
+                  className="w-full"
+                  style={{ minHeight: '120px' }}
+                  placeholder="描述今天发生了什么、想传达什么信息、有什么感受..."
+                  value={inputContent}
+                  onInput={(e) => setInputContent(e.detail.value)}
+                />
+              </View>
             </View>
 
             <Text className="block text-xs text-gray-400">

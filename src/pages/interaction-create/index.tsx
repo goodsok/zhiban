@@ -798,14 +798,15 @@ export default function InteractionCreatePage() {
               <Text className="block text-xs text-gray-400">可选，粘贴后可 AI 分析</Text>
             )}
           </View>
-          <Textarea
-            className="bg-gray-50 border-gray-200"
-            style={{ width: '100%', fontSize: '13px', minHeight: '10rem' }}
-            placeholder="粘贴或输入聊天记录...&#10;&#10;格式示例：&#10;我: 你今天怎么样？&#10;她: 还不错呀，刚下班~&#10;我: 辛苦啦，要不要一起吃饭？&#10;她: 好呀好呀！"
-            value={chatTextInput}
-            onInput={e => setChatTextInput(e.detail.value)}
-            maxlength={5000}
-          />
+          <View className="bg-gray-50 border-gray-200">
+            <Textarea
+              style={{ width: '100%', fontSize: '13px', minHeight: '10rem', backgroundColor: 'transparent' }}
+              placeholder="粘贴或输入聊天记录...&#10;&#10;格式示例：&#10;我: 你今天怎么样？&#10;她: 还不错呀，刚下班~&#10;我: 辛苦啦，要不要一起吃饭？&#10;她: 好呀好呀！"
+              value={chatTextInput}
+              onInput={e => setChatTextInput(e.detail.value)}
+              maxlength={5000}
+            />
+          </View>
           <Text className="block text-xs text-gray-400 mt-1">{chatTextInput.length}/5000 字</Text>
           {/* AI 分析按钮 - 有内容时显示 */}
           {chatTextInput.replace(/\[图片解析失败[^\]]*\]/g, '').trim() && (
@@ -1254,13 +1255,14 @@ export default function InteractionCreatePage() {
                 <Text className="block text-sm font-medium text-gray-700">突破性时刻</Text>
                 <Text className="block text-xs text-gray-400">可选</Text>
               </View>
-              <Textarea
-                className="bg-gray-50 border-gray-200"
-                style={{ width: '100%', minHeight: '60px', marginLeft: '44px', fontSize: '14px' }}
-                placeholder="有没有什么特别的进展？"
-                value={breakthroughMoment}
-                onInput={e => setBreakthroughMoment(e.detail.value)}
-              />
+              <View className="bg-gray-50 border-gray-200" style={{ marginLeft: '44px' }}>
+                <Textarea
+                  style={{ width: '100%', minHeight: '60px', fontSize: '14px', backgroundColor: 'transparent' }}
+                  placeholder="有没有什么特别的进展？"
+                  value={breakthroughMoment}
+                  onInput={e => setBreakthroughMoment(e.detail.value)}
+                />
+              </View>
             </View>
               </CollapsibleContent>
             </CardContent>
@@ -1594,35 +1596,38 @@ export default function InteractionCreatePage() {
               {/* 详细记录 */}
               <View>
                 <Text className="block text-xs font-medium text-gray-400 mb-2">详细记录</Text>
-                <Textarea
-                  className="bg-gray-50 border-gray-200"
-                  style={{ width: '100%', fontSize: '14px', minHeight: '5rem' }}
-                  placeholder="记录细节、感受、有趣的对话..."
-                  value={description}
-                  onInput={e => setDescription(e.detail.value)}
-                />
+                <View className="bg-gray-50 border-gray-200">
+                  <Textarea
+                    style={{ width: '100%', fontSize: '14px', minHeight: '5rem', backgroundColor: 'transparent' }}
+                    placeholder="记录细节、感受、有趣的对话..."
+                    value={description}
+                    onInput={e => setDescription(e.detail.value)}
+                  />
+                </View>
               </View>
               {/* 突破性时刻 */}
               <View>
                 <Text className="block text-xs font-medium text-gray-400 mb-2">突破性时刻</Text>
-                <Textarea
-                  className="bg-amber-50 border-amber-200"
-                  style={{ width: '100%', fontSize: '14px', minHeight: '3.5rem' }}
-                  placeholder="第一次牵手、第一次说喜欢..."
-                  value={breakthroughMoment}
-                  onInput={e => setBreakthroughMoment(e.detail.value)}
-                />
+                <View className="bg-amber-50 border-amber-200">
+                  <Textarea
+                    style={{ width: '100%', fontSize: '14px', minHeight: '3.5rem', backgroundColor: 'transparent' }}
+                    placeholder="第一次牵手、第一次说喜欢..."
+                    value={breakthroughMoment}
+                    onInput={e => setBreakthroughMoment(e.detail.value)}
+                  />
+                </View>
               </View>
               {/* 遇到的问题 */}
               <View>
                 <Text className="block text-xs font-medium text-gray-400 mb-2">遇到的问题</Text>
-                <Textarea
-                  className="bg-gray-50 border-gray-200"
-                  style={{ width: '100%', fontSize: '14px', minHeight: '3.5rem' }}
-                  placeholder="冷场了、说错话了..."
-                  value={issuesEncountered}
-                  onInput={e => setIssuesEncountered(e.detail.value)}
-                />
+                <View className="bg-gray-50 border-gray-200">
+                  <Textarea
+                    style={{ width: '100%', fontSize: '14px', minHeight: '3.5rem', backgroundColor: 'transparent' }}
+                    placeholder="冷场了、说错话了..."
+                    value={issuesEncountered}
+                    onInput={e => setIssuesEncountered(e.detail.value)}
+                  />
+                </View>
               </View>
               {/* 能量预览 */}
               {energyPreview && (

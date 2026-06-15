@@ -360,14 +360,16 @@ const DatePlanPage: FC = () => {
 
             {/* 特殊要求 */}
             <Text className="block text-xs text-gray-500 mb-2">特殊要求</Text>
-            <Textarea
-              className="bg-gray-50 rounded-2xl p-4"
-              style={{ width: '100%', minHeight: '60px' }}
-              placeholder="如：想要浪漫一点的、第一次约会、想多聊天..."
-              maxlength={200}
-              value={preferenceInput}
-              onInput={(e) => setPreferenceInput(e.detail.value)}
-            />
+            <View className="bg-gray-50 rounded-2xl p-4">
+              <Textarea
+                className="w-full"
+                style={{ minHeight: '60px' }}
+                placeholder="如：想要浪漫一点的、第一次约会、想多聊天..."
+                maxlength={200}
+                value={preferenceInput}
+                onInput={(e) => setPreferenceInput(e.detail.value)}
+              />
+            </View>
           </CardContent>
         </Card>
 

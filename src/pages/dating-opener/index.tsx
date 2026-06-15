@@ -479,15 +479,16 @@ const DatingOpenerPage: FC = () => {
           {/* 我的风格（选填） */}
           <View className="bg-white rounded-2xl p-4 shadow-soft mb-3">
             <Text className="block text-sm font-medium text-gray-900 mb-2">我的风格（选填）</Text>
-            <Textarea
-              className="bg-purple-50 rounded-xl p-3"
-              style={{ width: '100%', minHeight: '80px' }}
-              placeholder="描述你的风格偏好，如：比较幽默、喜欢直来直去..."
-              maxlength={200}
-              value={selfProfile}
-              onInput={(e) => setSelfProfile(e.detail.value)}
-            />
-          </View>
+            <View className="bg-purple-50 rounded-xl p-3">
+              <Textarea
+                className="w-full"
+                style={{ minHeight: '80px' }}
+                placeholder="描述你的风格偏好，如：比较幽默、喜欢直来直去..."
+                maxlength={200}
+                value={selfProfile}
+                onInput={(e) => setSelfProfile(e.detail.value)}
+              />
+            </View>          </View>
 
           {/* 生成按钮 */}
           {renderGenerateButton()}
@@ -550,14 +551,16 @@ const DatingOpenerPage: FC = () => {
             {/* 对方资料 */}
             <View className="bg-white rounded-2xl p-4 shadow-soft mb-3">
               <Text className="block text-sm font-medium text-gray-900 mb-2">对方资料</Text>
-              <Textarea
-                className="bg-gray-50 rounded-xl p-3"
-                style={{ width: '100%', minHeight: '120px' }}
-                placeholder="描述对方的资料，如：昵称、简介、兴趣标签、照片内容等..."
-                maxlength={500}
-                value={targetProfile}
-                onInput={(e) => setTargetProfile(e.detail.value)}
-              />
+              <View className="bg-gray-50 rounded-xl p-3">
+                <Textarea
+                  className="w-full"
+                  style={{ minHeight: '120px' }}
+                  placeholder="描述对方的资料，如：昵称、简介、兴趣标签、照片内容等..."
+                  maxlength={500}
+                  value={targetProfile}
+                  onInput={(e) => setTargetProfile(e.detail.value)}
+                />
+              </View>
               <Text className="block text-xs text-gray-400 mt-1">{targetProfile.length}/500</Text>
             </View>
 
