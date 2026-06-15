@@ -496,95 +496,10 @@ const GrowPage: FC = () => {
       {/* 自定义导航栏 */}
       <CustomHeader title="共同成长" />
 
-      {/* 顶部信息卡 */}
-      <View
-        style={{
-          background: 'linear-gradient(135deg, #4ECB71 0%, #2E9E5A 100%)',
-          padding: '20px 16px 24px',
-          borderBottomLeftRadius: '20px',
-          borderBottomRightRadius: '20px',
-        }}
-      >
-        <Text className="block text-xl font-bold text-white mb-1">一起变得更好</Text>
-        <Text className="block text-sm text-white opacity-80">
-          记录每个重要时刻，见证共同成长
-        </Text>
-        {/* 快捷统计 */}
-        <View style={{ display: 'flex', flexDirection: 'row', gap: '8px', marginTop: '16px' }}>
-          {[
-            { label: '纪念日', count: anniversaries.length },
-            { label: '进行中', count: goals.filter(g => !g.completed).length },
-            { label: '日记', count: memories.length },
-            { label: '约定', count: promises.length },
-          ].map((stat) => (
-            <View
-              key={stat.label}
-              style={{
-                flex: 1,
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                borderRadius: '12px',
-                padding: '8px 4px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              <Text className="block text-lg font-bold text-white">{stat.count}</Text>
-              <Text className="block text-xs text-white opacity-80">{stat.label}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {/* Tab切换 */}
-      <View className="bg-white mx-4 mt-4 rounded-2xl shadow-soft overflow-hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-gray-50 rounded-none h-11 border-b border-gray-100">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              return (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="flex-1"
-                >
-                  <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                    <Icon size={14} color={activeTab === tab.value ? '#4ECB71' : '#9ca3af'} />
-                    <Text
-                      className="ml-1 text-xs"
-                      style={{ color: activeTab === tab.value ? '#4ECB71' : '#9ca3af' }}
-                    >
-                      {tab.label}
-                    </Text>
-                    {tab.count > 0 && (
-                      <View
-                        style={{
-                          backgroundColor: activeTab === tab.value ? '#ECFDF5' : '#f3f4f6',
-                          borderRadius: '8px',
-                          padding: '0 5px',
-                          marginLeft: '4px',
-                        }}
-                      >
-                        <Text
-                          className="text-xs"
-                          style={{ color: activeTab === tab.value ? '#2E9E5A' : '#9ca3af', fontSize: '10px' }}
-                        >
-                          {tab.count}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </TabsTrigger>
-              )
-            })}
-          </TabsList>
-        </Tabs>
-      </View>
-
-      {/* 选择对象 */}
-      {!matchId && (
-        <View className="px-4 mt-3">
-          <Text className="block text-sm font-medium text-gray-700 mb-3">选择对象，开始共同成长</Text>
+      {!matchId ? (
+        /* 无对象时：选择对象 */
+        <View className="px-4 mt-4">
+          <Text className="block text-base font-medium text-gray-700 mb-4">选择对象，开始共同成长</Text>
           {matchesLoading ? (
             <View className="p-4">
               <Skeleton className="h-16 w-full rounded-2xl mb-3" />
@@ -650,13 +565,99 @@ const GrowPage: FC = () => {
             ))
           )}
         </View>
-      )}
+      ) : (
+        /* 有对象时：展示成长数据 */
+        <>
+          {/* 顶部信息卡 */}
+          <View
+            style={{
+              background: 'linear-gradient(135deg, #4ECB71 0%, #2E9E5A 100%)',
+              padding: '20px 16px 24px',
+              borderBottomLeftRadius: '20px',
+              borderBottomRightRadius: '20px',
+            }}
+          >
+            <Text className="block text-xl font-bold text-white mb-1">一起变得更好</Text>
+            <Text className="block text-sm text-white opacity-80">
+              记录每个重要时刻，见证共同成长
+            </Text>
+            {/* 快捷统计 */}
+            <View style={{ display: 'flex', flexDirection: 'row', gap: '8px', marginTop: '16px' }}>
+              {[
+                { label: '纪念日', count: anniversaries.length },
+                { label: '进行中', count: goals.filter(g => !g.completed).length },
+                { label: '日记', count: memories.length },
+                { label: '约定', count: promises.length },
+              ].map((stat) => (
+                <View
+                  key={stat.label}
+                  style={{
+                    flex: 1,
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    borderRadius: '12px',
+                    padding: '8px 4px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text className="block text-lg font-bold text-white">{stat.count}</Text>
+                  <Text className="block text-xs text-white opacity-80">{stat.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
 
-      {/* 加载态 */}
-      {matchId && loading && renderSkeleton()}
+          {/* Tab切换 */}
+          <View className="bg-white mx-4 mt-4 rounded-2xl shadow-soft overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="w-full bg-gray-50 rounded-none h-11 border-b border-gray-100">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon
+                  return (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className="flex-1"
+                    >
+                      <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                        <Icon size={14} color={activeTab === tab.value ? '#4ECB71' : '#9ca3af'} />
+                        <Text
+                          className="ml-1 text-xs"
+                          style={{ color: activeTab === tab.value ? '#4ECB71' : '#9ca3af' }}
+                        >
+                          {tab.label}
+                        </Text>
+                        {tab.count > 0 && (
+                          <View
+                            style={{
+                              backgroundColor: activeTab === tab.value ? '#ECFDF5' : '#f3f4f6',
+                              borderRadius: '8px',
+                              padding: '0 5px',
+                              marginLeft: '4px',
+                            }}
+                          >
+                            <Text
+                              className="text-xs"
+                              style={{ color: activeTab === tab.value ? '#2E9E5A' : '#9ca3af', fontSize: '10px' }}
+                            >
+                              {tab.count}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    </TabsTrigger>
+                  )
+                })}
+              </TabsList>
+            </Tabs>
+          </View>
 
-      {/* 内容区域 */}
-      {matchId && !loading && (
+          {/* 加载态 */}
+          {loading && renderSkeleton()}
+
+          {/* 内容区域 */}
+          {!loading && (
         <View className="px-4 mt-3">
           <TabsContent value="anniversary">
             {anniversaries.length > 0 && (
@@ -959,6 +960,8 @@ const GrowPage: FC = () => {
             )}
           </TabsContent>
         </View>
+      )}
+        </>
       )}
 
       {/* 底部浮动添加按钮 */}
