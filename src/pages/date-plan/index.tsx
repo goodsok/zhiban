@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { Textarea } from '@/components/ui/textarea'
 import Taro, { useLoad, useDidShow } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -150,7 +150,7 @@ const DatePlanPage: FC = () => {
       <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
         <CustomHeader title="约会计划" onBack={() => setPlan(null)} />
 
-        <ScrollView scrollY className="px-4 pt-4 pb-20">
+        <View className="px-4 pt-4 pb-28" style={{ boxSizing: "border-box", overflow: "hidden" }}>
           {generating && !plan && (
             <Card className="mb-4">
               <CardContent className="p-8 flex flex-col items-center justify-center">
@@ -250,7 +250,7 @@ const DatePlanPage: FC = () => {
               </Card>
             </>
           )}
-        </ScrollView>
+        </View>
       </View>
     )
   }
@@ -260,7 +260,7 @@ const DatePlanPage: FC = () => {
     <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title="约会计划" />
 
-      <ScrollView scrollY className="px-4 pt-4 pb-20">
+      <View className="px-4 pt-4 pb-28" style={{ boxSizing: "border-box", overflow: "hidden" }}>
         {/* 对象选择 */}
         <Card className="mb-4">
           <CardContent className="p-4">
@@ -401,7 +401,7 @@ const DatePlanPage: FC = () => {
             ))}
           </View>
         )}
-      </ScrollView>
+      </View>
     </View>
   )
 }

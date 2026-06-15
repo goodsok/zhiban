@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { Textarea } from '@/components/ui/textarea'
 import Taro, { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -102,7 +102,7 @@ const SweetTalkPage: FC = () => {
       <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
         <CustomHeader title="情话生成器" onBack={() => setResult(null)} />
 
-        <ScrollView scrollY className="px-4 pt-4 pb-20">
+        <View className="px-4 pt-4 pb-28" style={{ boxSizing: "border-box", overflow: "hidden" }}>
           {generating && !result && (
             <Card className="mb-4">
               <CardContent className="p-8 flex flex-col items-center justify-center">
@@ -165,7 +165,7 @@ const SweetTalkPage: FC = () => {
               </Card>
             </>
           )}
-        </ScrollView>
+        </View>
       </View>
     )
   }
@@ -175,7 +175,7 @@ const SweetTalkPage: FC = () => {
     <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title="情话生成器" />
 
-      <ScrollView scrollY className="px-4 pt-4 pb-20">
+      <View className="px-4 pt-4 pb-28" style={{ boxSizing: "border-box", overflow: "hidden" }}>
         {/* 选择场景 */}
         <Text className="block text-sm font-semibold text-gray-900 mb-4">选择场景</Text>
         <View className="flex flex-row flex-wrap gap-4 mb-6">
@@ -232,7 +232,7 @@ const SweetTalkPage: FC = () => {
           <Sparkles size={16} color="#fff" className="mr-2" />
           <Text className="text-sm text-white font-semibold">生成情话</Text>
         </Button>
-      </ScrollView>
+      </View>
     </View>
   )
 }

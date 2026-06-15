@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { useLoad, useDidShow } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -133,7 +133,7 @@ const ChatReviewPage: FC = () => {
       <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
         <CustomHeader title="聊天复盘" onBack={() => { setSelectedMatch(null); setAnalysis(null) }} />
 
-        <ScrollView scrollY className="px-4 pt-4 pb-20">
+        <View className="px-4 pt-4 pb-28" style={{ boxSizing: "border-box", overflow: "hidden" }}>
           {/* 对象名 & 评分 */}
           <Card className="mb-4">
             <CardContent className="p-4">
@@ -239,7 +239,7 @@ const ChatReviewPage: FC = () => {
               </Card>
             </>
           )}
-        </ScrollView>
+        </View>
       </View>
     )
   }
@@ -249,7 +249,7 @@ const ChatReviewPage: FC = () => {
     <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
       <CustomHeader title="聊天复盘" />
 
-      <ScrollView scrollY className="px-4 pt-4 pb-20">
+      <View className="px-4 pt-4 pb-28" style={{ boxSizing: "border-box", overflow: "hidden" }}>
         <Text className="block text-sm text-gray-500 mb-4">选择对象，AI 将分析你们的聊天记录</Text>
 
         {loading ? (
@@ -296,7 +296,7 @@ const ChatReviewPage: FC = () => {
             )
           })
         )}
-      </ScrollView>
+      </View>
     </View>
   )
 }
