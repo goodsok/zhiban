@@ -1,10 +1,10 @@
 import { View, Text, ScrollView } from '@tarojs/components'
+import { Textarea } from '@/components/ui/textarea'
 import { useLoad, useRouter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
-import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { ChevronRight, User, Sparkles, Check, LoaderCircle, Send, BookOpen } from 'lucide-react-taro'
 
@@ -641,15 +641,14 @@ const StoryPage: FC = () => {
             {/* 原始故事 */}
             <View className="mb-4">
               <Text className="block text-sm font-medium text-gray-700 mb-2">原始故事</Text>
-              <View className="w-full bg-gray-50 rounded-xl p-3">
-                <Textarea
-                  className="w-full"
-                  style={{ minHeight: '100px' }}
-                  placeholder="把你的故事原始版本写在这里..."
-                  value={originalContent}
-                  onInput={(e) => setOriginalContent(e.detail.value)}
-                />
-              </View>
+              <Textarea
+                wrapperClassName="w-full bg-gray-50 rounded-xl p-3"
+                className="w-full"
+                style={{ minHeight: '100px' }}
+                placeholder="把你的故事原始版本写在这里..."
+                value={originalContent}
+                onInput={(e) => setOriginalContent(e.detail.value)}
+              />
             </View>
 
             {/* 关键要素 */}

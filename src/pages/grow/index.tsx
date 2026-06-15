@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { View, Text, Picker } from '@tarojs/components'
+import { Textarea } from '@/components/ui/textarea'
 import { useRouter } from '@tarojs/taro'
 import type { FC } from 'react'
 import {
@@ -17,7 +18,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -1081,6 +1081,7 @@ const GrowPage: FC = () => {
               <View className="mb-4">
                 <Text className="block text-xs text-gray-500 mb-1">记录这一刻</Text>
                 <Textarea
+                  wrapperClassName="bg-gray-50 rounded-xl px-4 py-3"
                   value={newContent}
                   onInput={(e) => setNewContent(e.detail.value)}
                   placeholder="写下今天最想记住的瞬间..."

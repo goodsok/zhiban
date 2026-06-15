@@ -1,4 +1,5 @@
 import { View, Text, ScrollView } from '@tarojs/components'
+import { Textarea } from '@/components/ui/textarea'
 import Taro, { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -6,7 +7,6 @@ import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
 import { Loader, User, Heart, Sparkles, MessageCircle, Save, Target, X } from 'lucide-react-taro'
 
@@ -486,15 +486,14 @@ const UserProfilePage: FC = () => {
             {/* 自我介绍 */}
             <View className="mb-4">
               <Text className="block text-xs text-gray-500 mb-2">自我介绍</Text>
-              <View className="w-full bg-gray-50 rounded-lg px-4 py-3">
-                <Textarea
-                  className="w-full text-sm"
-                  placeholder="写几句话介绍自己..."
-                  value={profile.bio || ''}
-                  onInput={(e) => updateProfile({ bio: e.detail.value })}
-                  maxlength={500}
-                />
-            </View>
+              <Textarea
+                wrapperClassName="w-full bg-gray-50 rounded-lg px-4 py-3"
+                className="w-full text-sm"
+                placeholder="写几句话介绍自己..."
+                value={profile.bio || ''}
+                onInput={(e) => updateProfile({ bio: e.detail.value })}
+                maxlength={500}
+              />
           </View>
           </View>
         </View>

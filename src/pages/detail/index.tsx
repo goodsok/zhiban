@@ -2,12 +2,12 @@ import { View, Text } from '@tarojs/components'
 import { useLoad, useDidShow, useRouter, navigateTo, eventCenter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState, useCallback, useEffect } from 'react'
+import { Textarea } from '@/components/ui/textarea'
 import { Network } from '@/network'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Drawer,
   DrawerContent,
@@ -758,17 +758,16 @@ const DetailPage: FC = () => {
               <Text className="block text-xs text-gray-500">记录你对 TA 的观察和想法</Text>
             </DialogDescription>
           </DialogHeader>
-            <View className="bg-gray-50 rounded-xl p-3">
-              <Textarea
-                className="w-full"
-                style={{ minHeight: '120px' }}
-                value={notesValue}
-                onInput={(e) => setNotesValue(e.detail.value)}
-                placeholder="添加备注..."
-                maxlength={500}
-                autoFocus
-              />
-            </View>
+            <Textarea
+              wrapperClassName="bg-gray-50 rounded-xl p-3"
+              className="w-full"
+              style={{ minHeight: '120px' }}
+              value={notesValue}
+              onInput={(e) => setNotesValue(e.detail.value)}
+              placeholder="添加备注..."
+              maxlength={500}
+              autoFocus
+            />
           <View className="flex justify-end gap-3 mt-4">
             <View 
               className="px-4 py-2 bg-gray-100 rounded-lg"

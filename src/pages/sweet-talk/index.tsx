@@ -1,4 +1,5 @@
 import { View, Text, ScrollView } from '@tarojs/components'
+import { Textarea } from '@/components/ui/textarea'
 import Taro, { useLoad } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -7,7 +8,6 @@ import CustomHeader from '@/components/custom-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import { Sparkles, Sun, Moon, Heart, HandHelping, SmilePlus, MessageCircleHeart, PartyPopper, LoaderCircle, Copy, Check } from 'lucide-react-taro'
 
 // 场景配置
@@ -213,16 +213,15 @@ const SweetTalkPage: FC = () => {
 
         {/* 自定义上下文 */}
         <Text className="block text-sm font-semibold text-gray-900 mb-4">补充要求（选填）</Text>
-        <View className="bg-gray-50 rounded-2xl p-4 mb-6">
-          <Textarea
-            className="w-full"
-            style={{ minHeight: '60px' }}
-            placeholder="如：我们刚认识一周、她喜欢猫、昨晚吵架了..."
-            maxlength={200}
-            value={customContext}
-            onInput={(e) => setCustomContext(e.detail.value)}
-          />
-        </View>
+        <Textarea
+          wrapperClassName="bg-gray-50 rounded-2xl p-4 mb-6"
+          className="w-full"
+          style={{ minHeight: '60px' }}
+          placeholder="如：我们刚认识一周、她喜欢猫、昨晚吵架了..."
+          maxlength={200}
+          value={customContext}
+          onInput={(e) => setCustomContext(e.detail.value)}
+        />
 
         {/* 生成按钮 */}
         <Button

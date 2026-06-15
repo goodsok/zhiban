@@ -1,4 +1,5 @@
 import { View, Text, ScrollView } from '@tarojs/components'
+import { Textarea } from '@/components/ui/textarea'
 import Taro, { useLoad, useDidShow } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -9,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { MapPin, Clock, DollarSign, Sparkles, ChevronRight, LoaderCircle, Heart, Lightbulb, Shirt } from 'lucide-react-taro'
 
 // 对象信息
@@ -360,16 +360,15 @@ const DatePlanPage: FC = () => {
 
             {/* 特殊要求 */}
             <Text className="block text-xs text-gray-500 mb-2">特殊要求</Text>
-            <View className="bg-gray-50 rounded-2xl p-4">
-              <Textarea
-                className="w-full"
-                style={{ minHeight: '60px' }}
-                placeholder="如：想要浪漫一点的、第一次约会、想多聊天..."
-                maxlength={200}
-                value={preferenceInput}
-                onInput={(e) => setPreferenceInput(e.detail.value)}
-              />
-            </View>
+            <Textarea
+              wrapperClassName="bg-gray-50 rounded-2xl p-4"
+              className="w-full"
+              style={{ minHeight: '60px' }}
+              placeholder="如：想要浪漫一点的、第一次约会、想多聊天..."
+              maxlength={200}
+              value={preferenceInput}
+              onInput={(e) => setPreferenceInput(e.detail.value)}
+            />
           </CardContent>
         </Card>
 

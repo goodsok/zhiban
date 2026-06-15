@@ -1,10 +1,10 @@
 import { View, Text, ScrollView, Image } from '@tarojs/components'
+import { Textarea } from '@/components/ui/textarea'
 import Taro, { useLoad, useDidShow, useRouter } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState, useRef, useCallback } from 'react'
 import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
-import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -1050,14 +1050,13 @@ const SpeedPlanPage: FC = () => {
               <Text className="block text-base font-semibold text-gray-900">互动背景</Text>
             </View>
             
-            <View className="w-full mb-4">
-              <Textarea
-                className="w-full h-24"
-                placeholder="描述互动背景，例如：相亲认识一周，微信聊了几天..."
-                value={background}
-                onInput={(e) => handleBackgroundChange(e.detail.value)}
-              />
-            </View>
+            <Textarea
+              wrapperClassName="w-full mb-4"
+              className="w-full h-24"
+              placeholder="描述互动背景，例如：相亲认识一周，微信聊了几天..."
+              value={background}
+              onInput={(e) => handleBackgroundChange(e.detail.value)}
+            />
 
             <Text className="block text-sm text-gray-500 mb-4">当前进展（可多选）</Text>
             

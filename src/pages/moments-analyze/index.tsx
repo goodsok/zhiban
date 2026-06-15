@@ -1,10 +1,10 @@
 import { View, Text, ScrollView, Image } from '@tarojs/components'
+import { Textarea } from '@/components/ui/textarea'
 import { useLoad, useRouter, chooseImage, showToast } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
-import { Textarea } from '@/components/ui/textarea'
 import { User, Search, LoaderCircle, Sparkles, MessageCircle, Heart, ImagePlus, X, Camera } from 'lucide-react-taro'
 
 interface Match {
@@ -346,15 +346,14 @@ const MomentsAnalyzePage: FC = () => {
             <Text className="block text-base font-semibold text-gray-900">补充文字内容（可选）</Text>
           </View>
           
-          <View className="w-full bg-gray-50 rounded-xl p-3 mb-4">
-            <Textarea
-              className="w-full"
-              style={{ minHeight: '100px' }}
-              placeholder="粘贴对方的朋友圈文案，或补充截图中的关键信息..."
-              value={inputContent}
-              onInput={(e) => setInputContent(e.detail.value)}
-            />
-          </View>
+          <Textarea
+            wrapperClassName="w-full bg-gray-50 rounded-xl p-3 mb-4"
+            className="w-full"
+            style={{ minHeight: '100px' }}
+            placeholder="粘贴对方的朋友圈文案，或补充截图中的关键信息..."
+            value={inputContent}
+            onInput={(e) => setInputContent(e.detail.value)}
+          />
 
           <Text className="block text-xs text-gray-400">
             示例：今天终于把那个项目搞定了，加班到半夜但很值得

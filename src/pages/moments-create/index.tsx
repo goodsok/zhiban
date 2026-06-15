@@ -1,10 +1,10 @@
 import { View, Text, ScrollView } from '@tarojs/components'
+import { Textarea } from '@/components/ui/textarea'
 import { useLoad, showToast } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { Network } from '@/network'
 import CustomHeader from '@/components/custom-header'
-import { Textarea } from '@/components/ui/textarea'
 import { ChevronRight, User, Sparkles, Check, LoaderCircle, Image as ImageLucide, Clock } from 'lucide-react-taro'
 
 // 内容类型
@@ -459,15 +459,14 @@ const MomentsCreatePage: FC = () => {
             </View>
             
             <View className="mb-4">
-              <View className="w-full bg-gray-50 rounded-xl p-3">
-                <Textarea
-                  className="w-full"
-                  style={{ minHeight: '120px' }}
-                  placeholder="描述今天发生了什么、想传达什么信息、有什么感受..."
-                  value={inputContent}
-                  onInput={(e) => setInputContent(e.detail.value)}
-                />
-              </View>
+              <Textarea
+                wrapperClassName="w-full bg-gray-50 rounded-xl p-3"
+                className="w-full"
+                style={{ minHeight: '120px' }}
+                placeholder="描述今天发生了什么、想传达什么信息、有什么感受..."
+                value={inputContent}
+                onInput={(e) => setInputContent(e.detail.value)}
+              />
             </View>
 
             <Text className="block text-xs text-gray-400">

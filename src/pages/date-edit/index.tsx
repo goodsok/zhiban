@@ -1,4 +1,5 @@
 import { View, Text } from '@tarojs/components'
+import { Textarea } from '@/components/ui/textarea'
 import { useLoad, useRouter, navigateBack } from '@tarojs/taro'
 import type { FC } from 'react'
 import { useState } from 'react'
@@ -6,7 +7,6 @@ import { Network } from '@/network'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import CustomHeader from '@/components/custom-header'
 import {
   Check,
@@ -234,8 +234,8 @@ const DateEditPage: FC = () => {
               <Text className="ml-1">AI提取</Text>
             </Badge>
           </View>
-          <View className="bg-white rounded-2xl shadow-soft p-4">
             <Textarea
+              wrapperClassName="bg-white rounded-2xl shadow-soft p-4"
               className="w-full"
               style={{ minHeight: '100px' }}
               placeholder="记录约会内容，AI会自动提取关键信息..."
@@ -243,7 +243,6 @@ const DateEditPage: FC = () => {
               onInput={(e) => setNotes(e.detail.value)}
               maxlength={500}
             />
-          </View>
           <Text className="block text-xs text-gray-300 text-right mt-1">{notes.length}/500</Text>
         </View>
       </View>
