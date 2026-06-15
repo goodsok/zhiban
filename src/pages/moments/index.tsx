@@ -60,14 +60,14 @@ const MomentsPage: FC = () => {
               onClick={() => goToFeature(feature.pagePath)}
             >
               <View className="flex items-center gap-4">
-                <View className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                <View className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
                   <FeatureIcon size={24} color="#fff" />
                 </View>
                 <View className="flex-1">
                   <Text className="block text-lg font-semibold text-white">
                     {feature.title}
                   </Text>
-                  <Text className="block text-sm text-white text-opacity-80 mt-1">
+                  <Text className="block text-sm text-white mt-1" style={{ opacity: 0.8 }}>
                     {feature.subtitle}
                   </Text>
                 </View>
