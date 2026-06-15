@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { Textarea } from '@/components/ui/textarea'
 import { useLoad, showToast } from '@tarojs/taro'
 import type { FC } from 'react'
@@ -161,7 +161,7 @@ const MomentsCreatePage: FC = () => {
       <View className="min-h-screen" style={{ backgroundColor: '#F7F8FA' }}>
         <CustomHeader title="发圈建议" />
 
-        <ScrollView className="p-4" scrollY>
+        <View className="p-4 pt-2 pb-28">
           {/* 文案建议 */}
           <View className="bg-white rounded-2xl shadow-soft p-4 mb-4">
             <View className="flex items-center gap-3 mb-4">
@@ -235,7 +235,7 @@ const MomentsCreatePage: FC = () => {
               <Text className="block text-white font-medium">已发布，记录一下</Text>
             </View>
           </View>
-        </ScrollView>
+        </View>
       </View>
     )
   }
