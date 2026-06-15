@@ -165,3 +165,69 @@ bg-green-50 text-green-600 text-xs rounded-lg
 - 图片/视频走 TOS 对象存储，禁止打包本地资源（TabBar 图标除外）
 - TabBar 图标使用本地 PNG，通过 `npx taro-lucide-tabbar` 生成
 - 注意 H5/小程序跨端兼容（Text block、Input 包裹、Fixed+Flex 等）
+
+---
+
+## 10. Textarea 跨端样式方案
+
+### 问题
+
+Taro H5 端渲染 `<Textarea>` 时会自动生成 `<taro-textarea-core>` 外层容器：
+
+```html
+<taro-textarea-core class="taro-textarea-core">
+  <textarea class="用户传入的 className"></textarea>
+</taro-textarea-core>
+```
+
+`className` 只作用于内层 `<textarea>`，**外层容器无法接收任何样式**，导致背景色、圆角、内边距、边框等视觉样式全部失效。
+
+### 解决方案
+
+使用 `@/components/ui/textarea` 组件，通过 `wrapperClassName` 将视觉样式应用到外层容器：
+
+```tsx
+import { Textarea } from '@/components/ui/textarea'
+
+// ✅ 正确：wrapperClassName 控制外层容器样式
+<Textarea
+  wrapperClassName="bg-gray-50 rounded-2xl p-4 border border-gray-200"
+  style={{ width: '100%', minHeight: '100px' }}
+  placeholder="请输入内容..."
+  maxlength={500}
+/>
+
+// ❌ 错误：直接用 Taro Textarea + className，样式在 H5 端不生效
+import { Textarea } from '@tarojs/components'
+<Textarea
+  className="bg-gray-50 rounded-2xl p-4"  // 这些样式不会生效
+  placeholder="请输入内容..."
+/>
+```
+
+### API
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `wrapperClassName` | `string` | 外层容器的 CSS 类名（背景色、圆角、内边距、边框等） |
+| `wrapperStyle` | `React.CSSProperties` | 外层容器的 inline style |
+| 其余属性 | - | 透传给 Taro 原生 Textarea |
+
+### 样式分配原则
+
+| 样式类型 | 放在哪 | 原因 |
+|----------|--------|------|
+| 背景色 `bg-*` | `wrapperClassName` | 作用于外层容器 |
+| 圆角 `rounded-*` | `wrapperClassName` | 作用于外层容器 |
+| 内边距 `p-*` / `px-*` / `py-*` | `wrapperClassName` | 作用于外层容器 |
+| 边框 `border-*` | `wrapperClassName` | 作用于外层容器 |
+| 阴影 `shadow-*` | `wrapperClassName` | 作用于外层容器 |
+| 宽高 `width` / `minHeight` | `style`（内联） | 作用于内层 textarea |
+| 字体 `fontSize` | `style`（内联） | 作用于内层 textarea |
+| 文字色 `text-*` | `className` | 作用于内层 textarea |
+
+### 禁止事项
+
+- ❌ 禁止直接使用 `@tarojs/components` 的 `<Textarea>`（H5 端样式不生效）
+- ❌ 禁止手动用 `<View>` 包裹 `<Textarea>` 再加样式（冗余，且外层 View 不等于 taro-textarea-core）
+- ✅ 必须使用 `@/components/ui/textarea` 的 `<Textarea>` + `wrapperClassName`
