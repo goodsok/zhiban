@@ -42,7 +42,6 @@ import {
   Compass,
   Palette,
   Eye,
-  Pencil,
   Check,
   X,
   Trash2,
@@ -748,7 +747,6 @@ const ProfilePage: FC = () => {
             <Text className={`block text-xs ${currentValue ? 'text-gray-800 font-medium' : 'text-gray-300'}`}>
               {displayText || '未填写'}
             </Text>
-            <Pencil size={10} color={currentValue ? accentColor : '#D1D5DB'} />
             {isEditing ? <ChevronUp size={12} color="#9CA3AF" /> : <ChevronDown size={12} color="#9CA3AF" />}
           </View>
         </View>
@@ -804,7 +802,6 @@ const ProfilePage: FC = () => {
             <Text className={`block text-xs ${currentValue ? 'text-gray-800 font-medium' : 'text-gray-300'}`}>
               {currentValue || '未填写'}
             </Text>
-            <Pencil size={10} color={currentValue ? accentColor : '#D1D5DB'} />
             {isEditing ? <ChevronUp size={12} color="#9CA3AF" /> : <ChevronDown size={12} color="#9CA3AF" />}
           </View>
         </View>
@@ -869,7 +866,6 @@ const ProfilePage: FC = () => {
             <Text className={`block text-xs ${currentValue ? 'text-gray-800 font-medium' : 'text-gray-300'}`}>
               {displayText || '未填写'}
             </Text>
-            <Pencil size={10} color={currentValue ? accentColor : '#D1D5DB'} />
             {isEditing ? <ChevronUp size={12} color="#9CA3AF" /> : <ChevronDown size={12} color="#9CA3AF" />}
           </View>
         </View>
@@ -931,7 +927,6 @@ const ProfilePage: FC = () => {
           <Text className="block text-xs text-gray-500">{label}</Text>
           <View className="flex items-center gap-1">
             <Text className="block text-xs font-medium text-gray-700">{currentValue}</Text>
-            <Pencil size={10} color={accentColor} />
             {isEditing ? <ChevronUp size={12} color="#9CA3AF" /> : <ChevronDown size={12} color="#9CA3AF" />}
           </View>
         </View>
@@ -998,7 +993,6 @@ const ProfilePage: FC = () => {
             <Text className="block text-xs text-gray-400">
               {currentValues.length > 0 ? `已选${currentValues.length}项` : '未填写'}
             </Text>
-            <Pencil size={10} color={currentValues.length > 0 ? accentColor : '#D1D5DB'} />
             {isEditing ? <ChevronUp size={12} color="#9CA3AF" /> : <ChevronDown size={12} color="#9CA3AF" />}
           </View>
         </View>
@@ -1291,7 +1285,6 @@ const ProfilePage: FC = () => {
                             <View className="flex items-center justify-between">
                               <View className="flex items-center gap-2">
                                 <Text className="block text-lg font-bold text-violet-700">{profile.mbti}</Text>
-                                <Pencil size={12} color="#8B5CF6" />
                               </View>
                               <Text
                                 className="block text-xs text-violet-400"
