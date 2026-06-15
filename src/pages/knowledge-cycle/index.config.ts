@@ -6,7 +6,6 @@ export default typeof definePageConfig === 'function'
       navigationBarTextStyle: 'black',
     })
   : {
-      navigationStyle: 'custom',
       navigationBarTitleText: '周期科学',
       navigationBarBackgroundColor: '#ffffff',
       navigationBarTextStyle: 'black',

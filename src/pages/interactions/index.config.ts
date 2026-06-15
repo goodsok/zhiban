@@ -4,5 +4,4 @@ export default typeof definePageConfig === 'function'
       navigationBarTitleText: '互动记录',
     })
   : {
-      navigationStyle: 'custom',
       navigationBarTitleText: '互动记录' }

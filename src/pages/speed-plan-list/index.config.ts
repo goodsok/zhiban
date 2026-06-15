@@ -5,5 +5,4 @@ export default typeof definePageConfig === 'function'
     })
   : {
       navigationBarTitleText: '速推方案',
-      navigationStyle: 'custom',
     }

@@ -6,7 +6,6 @@ export default typeof definePageConfig === 'function'
       navigationBarTextStyle: 'black',
     })
   : {
-      navigationStyle: 'custom',
       navigationBarTitleText: '破冰话题',
       navigationBarBackgroundColor: '#ffffff',
       navigationBarTextStyle: 'black',

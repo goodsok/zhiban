@@ -1,9 +1,7 @@
 export default typeof definePageConfig === 'function'
-  ? definePageConfig({ 
+  ? definePageConfig({ navigationStyle: 'custom', 
       navigationBarTitleText: '互动任务',
-      navigationStyle: 'custom'
     })
   : { 
       navigationBarTitleText: '互动任务',
-      navigationStyle: 'custom'
     }

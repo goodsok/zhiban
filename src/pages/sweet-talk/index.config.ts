@@ -1,3 +1,3 @@
 export default typeof definePageConfig === 'function'
-  ? definePageConfig({ navigationBarTitleText: '情话生成器', navigationStyle: 'custom' })
-  : { navigationBarTitleText: '情话生成器', navigationStyle: 'custom' }
+  ? definePageConfig({ navigationStyle: 'custom', navigationBarTitleText: '情话生成器' })
+  : { navigationStyle: 'custom', navigationBarTitleText: '情话生成器' }

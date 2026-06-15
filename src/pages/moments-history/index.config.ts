@@ -1,5 +1,4 @@
 export default typeof definePageConfig === 'function'
   ? definePageConfig({ navigationStyle: 'custom', navigationBarTitleText: '发布记录' })
   : {
-      navigationStyle: 'custom',
       navigationBarTitleText: '发布记录' }

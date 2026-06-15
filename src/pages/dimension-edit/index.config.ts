@@ -4,5 +4,4 @@ export default typeof definePageConfig === 'function'
       navigationBarTitleText: '编辑维度'
     })
   : {
-      navigationStyle: 'custom',
       navigationBarTitleText: '编辑维度' }
