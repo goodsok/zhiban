@@ -378,7 +378,8 @@ const SpeedPlanPage: FC = () => {
 
   // 发送消息
   const sendMessage = async () => {
-    if (!chatInput.trim() || !planId) return
+    const currentPlanId = plan?.id || planId
+    if (!chatInput.trim() || !currentPlanId) return
     
     const userMessage = chatInput.trim()
     setChatInput('')
@@ -395,7 +396,7 @@ const SpeedPlanPage: FC = () => {
     
     try {
       const res = await Network.request({
-        url: `/api/speed-plan/${planId}/chat`,
+        url: `/api/speed-plan/${currentPlanId}/chat`,
         method: 'POST',
         data: { message: userMessage },
       })
