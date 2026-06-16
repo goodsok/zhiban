@@ -173,15 +173,17 @@ const TwinChatPage = () => {
     const systemInfo = Taro.getSystemInfoSync()
     setStatusBarHeight(systemInfo.statusBarHeight || 0)
     // 获取小程序胶囊按钮位置，H5 端无胶囊
-    try {
-      const menuButton = Taro.getMenuButtonBoundingClientRect()
-      if (menuButton && menuButton.right) {
-        // 胶囊按钮距右边的距离 + 一定间距
-        const screenWidth = systemInfo.windowWidth || 375
-        setCapsuleRight(screenWidth - menuButton.left + 8)
+    const isMiniApp = [Taro.ENV_TYPE.WEAPP as string, Taro.ENV_TYPE.TT as string].includes(Taro.getEnv() as string)
+    if (isMiniApp) {
+      try {
+        const menuButton = Taro.getMenuButtonBoundingClientRect()
+        if (menuButton && menuButton.right) {
+          const screenWidth = systemInfo.windowWidth || 375
+          setCapsuleRight(screenWidth - menuButton.left + 8)
+        }
+      } catch {
+        // 获取失败则使用默认间距
       }
-    } catch {
-      // H5 端无胶囊按钮
     }
   }, [])
 
