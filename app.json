@@ -24,9 +24,12 @@
       },
       "package": "com.zhiban.app"
     },
-    "plugins": [
-      "expo-router"
-    ],
-    "scheme": "zhiban"
+    "scheme": "zhiban",
+    "extra": {
+      "eas": {
+        "projectId": "e10107f6-f22f-4a6b-9651-f19d6701ff60"
+      }
+    },
+    "owner": "goodsok"
   }
 }
