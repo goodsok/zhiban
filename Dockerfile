@@ -25,22 +25,18 @@ COPY server/ ./server/
 # Build the server (webpack bundle)
 RUN cd /app/server && pnpm build
 
-# Prune dev dependencies for production
-RUN pnpm install --no-frozen-lockfile --prod
-
 # ---- Production Stage ----
 FROM node:20-slim
 
-# Install runtime libs for native modules (better-sqlite3 needs libstdc++, etc.)
+# Install runtime libs for native modules
 RUN apt-get update && apt-get install -y libstdc++6 && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy pruned node_modules and built server from builder
+# Copy entire workspace from builder (node_modules included)
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/server/node_modules ./server/node_modules
-COPY --from=builder /app/server/dist ./server/dist
-COPY --from=builder /app/server/package.json ./server/package.json
+COPY --from=builder /app/server ./server
+COPY --from=builder /app/package.json ./
 
 # Railway provides PORT env var
 ENV PORT=3000
