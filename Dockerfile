@@ -33,10 +33,8 @@ RUN apt-get update && apt-get install -y libstdc++6 && rm -rf /var/lib/apt/lists
 
 WORKDIR /app
 
-# Copy entire workspace from builder (node_modules included)
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/server ./server
-COPY --from=builder /app/package.json ./
+# Copy entire built workspace (preserves pnpm symlink structure)
+COPY --from=builder /app ./
 
 # Railway provides PORT env var
 ENV PORT=3000
