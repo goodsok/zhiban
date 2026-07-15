@@ -1,7 +1,6 @@
 import { PropsWithChildren } from 'react';
 import { LucideTaroProvider } from 'lucide-react-taro';
 import { Toaster } from '@/components/ui/toast';
-import './app.css';
 import { Preset } from './presets';
 
 const App = ({ children }: PropsWithChildren) => {
