@@ -1,7 +1,7 @@
 # ---- Build Stage ----
 FROM node:20-slim AS builder
 
-# Install build tools for native modules (better-sqlite3, pg)
+# Install build tools for native modules
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # Enable pnpm via corepack
@@ -12,7 +12,7 @@ WORKDIR /app
 # Copy workspace root files for pnpm install
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Copy server package.json
+# Copy server package.json + config files
 COPY server/package.json server/tsconfig.json server/nest-cli.json ./server/
 
 # Install all dependencies (root + server workspace)
@@ -22,13 +22,13 @@ RUN pnpm install --no-frozen-lockfile
 COPY server/ ./server/
 
 # Build the server (webpack bundle)
-RUN pnpm --filter server build
+RUN cd /app/server && pnpm build
 
 # ---- Production Stage ----
-FROM node:20-slim AS production
+FROM node:20-slim
 
-# Install runtime libs for native modules
-RUN apt-get update && apt-get install -y libsqlite3-0 && rm -rf /var/lib/apt/lists/*
+# Install build tools for native modules (needed for better-sqlite3 postinstall)
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
@@ -44,7 +44,9 @@ RUN pnpm install --no-frozen-lockfile --prod
 # Copy built server
 COPY --from=builder /app/server/dist ./server/dist
 
-EXPOSE ${PORT:-3000}
+# Railway provides PORT env var
+ENV PORT=3000
+EXPOSE 3000
 
 WORKDIR /app/server
 
