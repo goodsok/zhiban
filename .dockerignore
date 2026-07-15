@@ -1,0 +1,15 @@
+node_modules
+dist
+.taro_cache
+.git
+*.md
+src
+config
+babel.config.js
+metro.config.js
+app.json
+App.js
+eas.json
+project.config.json
+project.tt.json
+.husky
