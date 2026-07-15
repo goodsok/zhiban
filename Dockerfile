@@ -31,12 +31,24 @@ FROM node:20-slim
 # Install runtime libs for native modules
 RUN apt-get update && apt-get install -y libstdc++6 && rm -rf /var/lib/apt/lists/*
 
+# Enable pnpm via corepack for install
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
-# Copy entire built workspace (preserves pnpm symlink structure)
-COPY --from=builder /app ./
+# Copy workspace root files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY patches/ ./patches/
+COPY server/package.json server/tsconfig.json server/nest-cli.json ./server/
 
-# Railway provides PORT env var
+# Install production dependencies (preserves pnpm symlink structure)
+RUN pnpm install --no-frozen-lockfile --prod
+
+# Copy built server
+COPY --from=builder /app/server/dist ./server/dist
+
+# NODE_PATH allows require() to find modules in pnpm's store
+ENV NODE_PATH=/app/node_modules/.pnpm/node_modules:/app/server/node_modules
 ENV PORT=3000
 EXPOSE 3000
 
