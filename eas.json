@@ -10,21 +10,21 @@
       "ios": {
         "simulator": true
       },
-      "image": "latest"
+      "node": "20"
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
       },
-      "image": "latest"
+      "node": "20"
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
       },
-      "image": "latest"
+      "node": "20"
     }
   },
   "submit": {

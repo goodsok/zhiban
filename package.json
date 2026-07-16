@@ -111,7 +111,7 @@
     "weapp-tailwindcss": "^4.10.3"
   },
   "engines": {
-    "pnpm": ">=9.0.0"
+    "pnpm": ">=8.0.0"
   },
   "pnpm": {
     "patchedDependencies": {
