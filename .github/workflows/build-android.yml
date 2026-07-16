@@ -47,7 +47,6 @@ jobs:
         with:
           distribution: zulu
           java-version: 17
-          cache: gradle
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -72,6 +71,22 @@ jobs:
             --config metro.config.js \
             --verbose
           echo "Bundle size: $(wc -c < /tmp/test-bundle.jsbundle) bytes"
+
+      - name: Patch React Native Gradle Plugin (remove sonatype snapshots)
+        run: |
+          # The RN gradle plugin hardcodes oss.sonatype.org/snapshots which returns 504
+          # Patch it out so Gradle only uses Maven Central + mirrors
+          PLUGIN_DIR=$(find node_modules -path "*@react-native/gradle-plugin*/DependencyUtils.kt" | head -1)
+          if [ -n "$PLUGIN_DIR" ]; then
+            echo "Patching: $PLUGIN_DIR"
+            sed -i '/mavenRepoFromUrl.*oss.sonatype.org.*snapshots/d' "$PLUGIN_DIR"
+            grep -n "sonatype" "$PLUGIN_DIR" || echo "Sonatype snapshots line removed successfully"
+          else
+            echo "WARNING: DependencyUtils.kt not found, skipping patch"
+          fi
+
+      - name: Clear Gradle caches to avoid stale repo config
+        run: rm -rf android/.gradle android/app/.gradle ~/.gradle/caches
 
       - name: Build Release APK
         working-directory: android
