@@ -120,3 +120,4 @@ open *.xcworkspace
 3. **TabBar 导航** — Taro RN 自动映射 `switchTab`/`navigateTo` 到 react-navigation
 4. **lucide-react-taro 图标** — 直接复用，RN 端通过 SVG → Image 渲染
 5. **Tailwind CSS** — Taro RN 样式转换器自动处理，部分高级特性（动画、伪类）不支持
+# Build trigger
