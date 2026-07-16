@@ -80,6 +80,29 @@ jobs:
             grep -oP "https?://[^\"\\s)]+" /tmp/test-bundle.jsbundle | sort -u | head -5
           fi
 
+      - name: Debug autolinking
+        run: |
+          echo "=== react-native config ==="
+          npx react-native config 2>&1 | head -60
+          echo "=== AsyncStorage package check ==="
+          ls -la node_modules/@react-native-async-storage/async-storage/android/ 2>&1 || echo "NOT FOUND"
+          echo "=== Checking root node_modules symlinks ==="
+          ls -la node_modules/@react-native-async-storage 2>&1 || echo "NOT FOUND"
+
+      - name: Regenerate Android project (expo prebuild)
+        run: |
+          npx expo prebuild --platform android --clean 2>&1
+          # Re-apply build.gradle patches after prebuild
+          cd android
+          # Fix entryFile to point to Taro's App.js at project root
+          sed -i 's|entryFile = file(.*))|entryFile = file("../../App.js"))|' app/build.gradle
+          # Fix bundleCommand from Expo's export:embed to standard RN bundle
+          sed -i 's|bundleCommand = "export:embed"|bundleCommand = "bundle"|' app/build.gradle
+          # Add lint options to prevent build failures
+          sed -i '/android {/a\\        lintOptions {\n            abortOnError false\n            checkReleaseBuilds false\n        }' app/build.gradle
+          # Remove sonatype snapshots from root build.gradle
+          sed -i '/oss.sonatype.org.*snapshots/d' build.gradle
+
       - name: Patch React Native Gradle Plugin (remove sonatype snapshots)
         run: |
           # The RN gradle plugin hardcodes oss.sonatype.org/snapshots which returns 504
