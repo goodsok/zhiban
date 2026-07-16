@@ -4,7 +4,7 @@
     "slug": "zhiban",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/tabbar/users-active.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "resizeMode": "contain",
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/tabbar/users-active.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#4ECB71"
       },
       "package": "com.zhiban.app"
