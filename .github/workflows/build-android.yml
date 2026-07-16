@@ -92,9 +92,35 @@ jobs:
             echo "WARNING: DependencyUtils.kt not found, skipping patch"
           fi
 
+      - name: Check autolinking config
+        run: |
+          echo "=== react-native config ==="
+          npx react-native config 2>&1 | python3 -c "
+          import json, sys
+          lines = sys.stdin.readlines()
+          for i, line in enumerate(lines):
+              if line.strip().startswith('{'):
+                  data = json.loads(''.join(lines[i:]))
+                  break
+          deps = data.get('dependencies', {})
+          print(f'Found {len(deps)} native modules:')
+          for name, info in sorted(deps.items()):
+              android = info.get('platforms', {}).get('android', {})
+              if android:
+                  print(f'  {name}: sourceDir={android.get(\"sourceDir\",\"N/A\")}')
+          " 2>&1 || echo "react-native config failed"
+
       - name: Build Release APK
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon --warning-mode all 2>&1 | tee ../gradle-build-log.txt
+
+      - name: Check PackageList contents
+        if: always()
+        run: |
+          echo "=== Generated PackageList.java ==="
+          find android/app/build -name "PackageList.java" -exec cat {} \; 2>/dev/null || echo "PackageList.java not found"
+          echo "=== Checking for AsyncStorage in PackageList ==="
+          find android/app/build -name "PackageList.java" -exec grep -i "async\|AsyncStorage" {} \; 2>/dev/null || echo "AsyncStorage NOT found in PackageList!"
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
