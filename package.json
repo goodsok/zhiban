@@ -110,7 +110,6 @@
     "vite": "^4.2.0",
     "weapp-tailwindcss": "^4.10.3"
   },
-  "packageManager": "pnpm@9.0.0",
   "engines": {
     "pnpm": ">=9.0.0"
   },
@@ -124,5 +123,6 @@
     "typescript": true,
     "css": "Less",
     "framework": "React"
-  }
+  },
+  "packageManager": "pnpm@9.15.9"
 }
