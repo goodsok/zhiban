@@ -15,6 +15,8 @@ jobs:
   build-apk:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      PROJECT_DOMAIN: https://zhiban-production.up.railway.app
 
     steps:
       - name: Checkout code
@@ -68,9 +70,15 @@ jobs:
             --entry-file App.js \
             --bundle-output /tmp/test-bundle.jsbundle \
             --assets-dest /tmp/test-assets \
-            --config metro.config.js \
-            --verbose
+            --config metro.config.js
           echo "Bundle size: $(wc -c < /tmp/test-bundle.jsbundle) bytes"
+          # Verify PROJECT_DOMAIN is injected correctly
+          if grep -q "zhiban-production.up.railway.app" /tmp/test-bundle.jsbundle; then
+            echo "✅ PROJECT_DOMAIN (Railway) correctly injected into bundle"
+          else
+            echo "❌ WARNING: PROJECT_DOMAIN not found in bundle! APK may not connect to backend."
+            grep -oP "https?://[^\"\\s)]+" /tmp/test-bundle.jsbundle | sort -u | head -5
+          fi
 
       - name: Patch React Native Gradle Plugin (remove sonatype snapshots)
         run: |
