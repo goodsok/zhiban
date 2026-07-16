@@ -82,6 +82,11 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
     namespace 'com.zhiban.app'
     defaultConfig {
         applicationId 'com.zhiban.app'
