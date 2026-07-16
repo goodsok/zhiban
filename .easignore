@@ -1,1 +1,10 @@
 pnpm-lock.yaml
+pnpm-workspace.yaml
+server/
+patches/
+Dockerfile
+railway.json
+.dockerignore
+RN_SETUP.md
+DESIGN.md
+design_guidelines.md
