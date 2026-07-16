@@ -13,3 +13,4 @@
 // @tarojs/rn-supporter 生成的 entry-file 会自动注册 AppRegistry
 // Expo 只需引入 Taro 的入口即可
 require('@tarojs/rn-supporter/entry-file.js')
+
