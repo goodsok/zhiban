@@ -32,14 +32,14 @@ allprojects {
             // Android JSC is installed from npm
             url(new File(['node', '--print', "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist'))
         }
-
-        maven { url 'https://maven.aliyun.com/repository/central' }
-        maven { url 'https://maven.aliyun.com/repository/public' }
+        // Aliyun mirrors to avoid Maven Central 504 timeouts
         maven { url 'https://maven.aliyun.com/repository/google' }
-        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/central' }
+        // Sonatype releases (NOT snapshots - snapshots causes 504)
+        maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
         google()
         mavenCentral()
         maven { url 'https://www.jitpack.io' }
-        maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
     }
 }

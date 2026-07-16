@@ -15,7 +15,6 @@ react {
     codegenDir = new File(["node", "--print", "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
 
     // Use standard React Native CLI for bundling (not Expo's export:embed)
-    cliFile = new File(["node", "--print", "require.resolve('react-native/cli.js')"].execute(null, rootDir).text.trim())
     bundleCommand = "bundle"
 
     /* Folders */
@@ -82,12 +81,12 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    lintOptions {
-        checkReleaseBuilds false
-        abortOnError false
-    }
-
     namespace 'com.zhiban.app'
+
+    lintOptions {
+        abortOnError false
+        checkReleaseBuilds false
+    }
     defaultConfig {
         applicationId 'com.zhiban.app'
         minSdkVersion rootProject.ext.minSdkVersion
